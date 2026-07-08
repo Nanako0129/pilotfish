@@ -99,6 +99,7 @@ All verified line-by-line against official docs (code.claude.com — sub-agents,
 
 | Pattern / measurement | Numbers or approach | Source |
 |---|---|---|
+| **Official first-party benchmark** (2026-07-08) | Fable 5 orchestrator + Sonnet 5 workers: **96% of all-Fable performance at 46% of the cost** on BrowseComp (86.8% vs 90.8% accuracy, $18.53 vs $40.56/problem); the inverse advisor pattern (Sonnet executor consulting a Fable advisor): ~92% at ~63% on SWE-bench Pro — the orchestrator split wins on both axes | Anthropic (@ClaudeDevs thread; [multi-agent docs](https://platform.claude.com/docs/en/managed-agents/multi-agent)) |
 | 12-worker audit cost comparison | All-Fable $14.50; Fable+Sonnet $6.10 (−58%); Fable+Haiku $3.70 (−74%); orchestrator premium only $1.75 | Developers Digest |
 | Token-cost-reduction claims | Orchestrator + cheap subagents commonly claimed at 5–10×; individual claims up to −90% | Various community posts |
 | Explore telemetry | ~36% of API calls in Sonnet-selected sessions actually ran on Haiku (old built-in Explore behavior) — proof that cheap exploration is a huge volume | mirin.pro |

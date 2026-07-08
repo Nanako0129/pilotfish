@@ -99,6 +99,7 @@ Fable 5 在訂閱方案內的時間線（截至 2026-07-08）：
 
 | 模式 / 實測 | 數字或做法 | 出處 |
 |---|---|---|
+| **官方第一方 benchmark**（2026-07-08） | Fable 5 orchestrator + Sonnet 5 workers：**全 Fable 效能的 96%、成本 46%**（BrowseComp：準確率 86.8% vs 90.8%、每題 $18.53 vs $40.56）；反向 advisor 模式（Sonnet 執行、諮詢 Fable）約 92% 效能、63% 成本（SWE-bench Pro）——orchestrator 分工兩軸皆勝 | Anthropic（@ClaudeDevs 官方推文；[multi-agent 文件](https://platform.claude.com/docs/en/managed-agents/multi-agent)） |
 | 12-worker 稽核成本對照 | 全 Fable $14.50；Fable+Sonnet $6.10（−58%）；Fable+Haiku $3.70（−74%）；orchestrator 溢價僅 $1.75 | Developers Digest |
 | Token 成本削減宣稱 | Orchestrator + 便宜 subagents 普遍宣稱 5–10 倍；個案宣稱 −90% | 多篇社群貼文 |
 | Explore 遙測 | 選 Sonnet 的 session 中約 36% API 呼叫實際跑 Haiku（內建 Explore 舊行為），證明廉價探索量體巨大 | mirin.pro |
