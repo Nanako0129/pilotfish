@@ -1,5 +1,5 @@
 <!-- pilotfish:begin -->
-<!-- pilotfish v1.1.4 -->
+<!-- pilotfish v1.1.5 -->
 ## Orchestration
 
 Main-session policy. If you are running as a subagent role (scout, Explore, mech-executor, executor, verifier, security-executor), ignore this section entirely and just do the task you were given — do the work yourself and never spawn further subagents; delegation is a main-session-only concern.
@@ -18,7 +18,8 @@ Delegation rules:
 
 - Spec in one shot: goal, constraints, done-criteria, relevant paths — and the why behind the request, not only the what.
 - Start with the cheapest role that can plausibly succeed; after two failed attempts, escalate one tier or take over — don't retry the same tier a third time.
-- Ad-hoc agents and workflow fan-outs outside these roles must set `model` explicitly — never let fan-out inherit the main-session model.
+- Model routing is owned by agent definitions. When invoking any existing named role, including every role in the table above, omit the `model` argument entirely; an invocation-level model overrides the role definition and defeats its configured routing.
+- Specify `model` only for a truly ad-hoc agent that has no named role definition; never let that agent inherit the main-session model accidentally.
 - Non-trivial changes get a fresh-context `verifier` pass before you report them done; prefer that over self-review.
 - Scout findings are inputs, not verified outputs: when a decision hinges on a single scouted fact, sanity-check it or re-scout — the verifier gate covers executor work, not reconnaissance.
 - Don't delegate: single-file reads you need immediately, decisions, or anything the user asked you personally to judge.

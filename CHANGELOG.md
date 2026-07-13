@@ -2,6 +2,14 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
+## v1.1.5 — 2026-07-13
+
+Fix named-role model routing at the Agent invocation boundary. The orchestration policy now requires calls to every existing named role to omit `model`, leaving the role file's frontmatter as the sole model source. This prevents an invocation alias from silently overriding the intended Haiku, Sonnet, or Opus assignment. Only truly ad-hoc agents with no named role definition may set an explicit invocation model.
+
+This release also recommends a pinned local checkout for one-prompt installation and updates. The reviewed runbook and templates are read from the same release checkout, avoiding mutable cross-fetches and preserving Claude Code's WebFetch prompt-injection protection instead of asking users to bypass it.
+
+New dependency-free policy tests lock the version stamp, named-role model ownership contract, ad-hoc exception, role frontmatter, and pinned README install commands together.
+
 ## v1.1.4 — 2026-07-13
 
 Fix foreground-only delegation caused by an underspecified parallel-agent policy. The orchestrator now schedules by immediate data dependency: independent work and every independent fan-out call use `run_in_background: true`, while foreground execution is reserved for a result required by the very next main-session action when no other useful work can proceed. Background results still must be collected before dependent work or the final answer.
