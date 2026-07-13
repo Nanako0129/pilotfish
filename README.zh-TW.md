@@ -2,7 +2,7 @@
 
 > 領航魚與海中最大的掠食者同游——小而快，把例行工作攬下來，讓大傢伙專心做只有牠能做的事。
 
-**pilotfish** 是 [Claude Code](https://code.claude.com) 的多模型協作 plugin：前沿模型（Claude Fable 5 / Opus）在主 session 負責規劃、決策與審查，Sonnet 則透過五個釘住模型的角色 agent 承接大量執行工作。品質靠 fresh-context 驗證把關，而不是靠處處使用最大的模型——而真正重要的規則不是「請求」，是**由 hook 強制執行**。
+**pilotfish** 是 [Claude Code](https://code.claude.com) 的多模型協作 plugin：前沿模型（Claude Fable 5 / Opus）在主 session 負責規劃、決策與審查，Sonnet 則透過五個釘住模型的角色 agent 承接大量執行工作。品質靠 fresh-context 驗證把關，而不是靠處處使用最大的模型。它就是純粹的 markdown 與 JSON——沒有 hook、沒有直譯器、沒有任何 runtime 依賴——所以無論 Claude Code 跑在哪裡都能用，包含原生 Windows。
 
 ```
 /plugin marketplace add Nanako0129/pilotfish
@@ -29,7 +29,7 @@
 
 ## 運作方式
 
-三層架構，一次安裝：**角色層**（`agents/*.md`，每個角色用一行 frontmatter 把自己釘在某個模型上）、**政策層**（`skills/pilotfish/SKILL.md`，只寫角色、永不寫模型名，輸入 `/pilotfish` 時載入），以及**守衛**（`hooks/` + `scripts/guard.py`，強制執行政策只能「請求」的規則）。
+兩層架構，一次安裝：**角色層**（`agents/*.md`，每個角色用一行 frontmatter 把自己釘在某個模型上）與**政策層**（`skills/pilotfish/SKILL.md`，只寫角色、永不寫模型名，輸入 `/pilotfish` 時載入）。政策的規則沒有任何機制強制執行——這個取捨與代價見下方[〈為什麼沒有守衛〉](#為什麼沒有守衛)。
 
 ```mermaid
 flowchart TD
@@ -59,21 +59,18 @@ flowchart TD
 
 政策層補上運作規則：委派時一次給完整規格（含背後的「*為什麼*」）、從最便宜的可行角色開始並在兩次失敗後升級、每個角色的 model 只能來自它自己的 agent 定義、可獨立推進的工作放到背景排程、非平凡的工作在回報完成前必須通過一輪 `verifier` 驗證。
 
-## 守衛
+## 為什麼沒有守衛
 
-政策是一個請求；能力缺席才是事實。有三條規則過去只是文字，現在由 `PreToolUse` hook 強制執行——因為光靠文字一再失效：
+pilotfish 有兩條規則，是 subagent 原本可能不理會的。用一個 `PreToolUse` hook 把能力直接拿掉、而不是拜託模型別用，看起來很自然——畢竟「鎖住的門勝過一張『請勿進入』的告示」：模型根本沒有機會拿規則跟眼前的任務去權衡。pilotfish 刻意不這麼做。這裡誠實說明原因，以及你因此付出的代價。
 
-| | 主 session | Subagent |
-|---|---|---|
-| `run_in_background` | 允許 | **拒絕** |
-| `nohup` / `setsid` / 尾隨的 `&` | 允許 | **拒絕** |
-| 內建 `Explore` agent | **拒絕** → 改用 `scout` | — |
+Hook 是一支 script，script 就需要直譯器——而 Claude Code 並不保證機器上有。依官方文件，跑 Claude Code 的機器上**不保證**存在任何直譯器：不只 Python，就連 Node 也一樣，原生／standalone 安裝方式甚至不會把 `node` 放進 `PATH`。原生 Windows 是最硬的那道牆：它既不認 `#!` shebang、也不認 Unix 可執行權限位元，所以「寫一支 script、標成可執行、直接呼叫」這種慣用的 hook 形狀，本質上就是 Unix 限定，在 Windows 上連啟動都做不到。一個外掛只要帶了直譯型 hook，就不可能在 Claude Code 能跑的每個地方都跑得動——而 pilotfish 的前提正是「哪裡都能跑」：零依賴，純 markdown 與 JSON。
 
-**Subagent 不准 detach。** 當 subagent 的前景指令超過它的 `timeout`，Claude Code 並不會殺掉它——而是把它升級為背景任務。如果這個 agent 當初是在背景 spawn 的，被升級的 process 會存活、輸出會被擷取；如果是在**前景** spawn 的，它會在該 agent 回傳後幾秒內收到 `SIGTERM`，工作就此被摧毀。`nohup` 與 `setsid` 躲得掉那個 `SIGTERM`，靠的卻是徹底脫離 Claude Code 的任務追蹤——沒有 task id、沒有擷取的輸出、沒有完成通知——只是把「被摧毀的結果」洗成「遺失的結果」。所以長時間執行的 process 屬於 orchestrator：主 session 是唯一一個背景任務既被追蹤、又能可靠收到通知的 context。
+真正拍板的是失敗模式。守衛 hook 必須 **fail open**——畸形的 payload 一定要放行，否則守衛自己一個 bug 就能把你鎖在自己的 session 外面。但「直譯器根本不存在」同樣是 fail open，而且是**無聲**的：偏偏就在那些 hook 跑不起來的機器上，你既沒有強制力，也收不到任何「強制力不在了」的訊號。這比不出貨還糟，因為你以為被守住的規則，你就不會再自己盯著。**一扇不存在的門，勝過一扇你誤以為鎖上的門。** 所以強制力留在政策層：規則明文寫在 [`skills/pilotfish/SKILL.md`](./skills/pilotfish/SKILL.md) 裡，subagent 讀得到，原則上也可以不理。通用可攜性就是這筆交易換來的東西。以下是只靠政策 prompt 撐著的兩條規則：
 
-**內建的 `Explore` 被擋。** 自 Claude Code v2.1.198 起，它會繼承主 session 的模型，因此從 Fable／Opus session 發出的每一次背景搜尋都以前沿模型的價格計費——正是這個 plugin 存在要避免的成本。Plugin 無法覆蓋內建 agent（plugin agent 帶 namespace），所以守衛直接擋掉它，把偵察工作路由給 `scout`。
+- **絕不呼叫內建的 `Explore` agent。** 自 Claude Code v2.1.198 起，它會繼承主 session 的模型，因此從 Fable／Opus session 發出的每一次搜尋都以前沿模型的價格計費——正是這個 plugin 存在要避免的成本。Plugin 無法覆蓋內建 agent（plugin agent 帶 namespace），所以也不能靠繞路解決：每次都改用 `pilotfish:scout`，同一個唯讀偵察角色，釘在 Sonnet、effort 低。
+- **Subagent 不准 detach 一個 process**（`run_in_background`、`nohup`、`setsid`、`disown`、尾隨的 `&`）。當 subagent 的前景指令超過它的 `timeout`，Claude Code 並不會殺掉它——而是把它升級為背景任務。如果這個 agent 當初是在背景 spawn 的，被升級的 process 會存活、輸出會被擷取；如果是在**前景** spawn 的，它會在該 agent 回傳後幾秒內收到 `SIGTERM`，工作就此被摧毀。Detach 躲得掉那個 `SIGTERM`，靠的卻是徹底脫離 Claude Code 的任務追蹤——沒有 task id、沒有擷取的輸出、沒有完成通知——只是把「被摧毀的結果」洗成「遺失的結果」。所以長時間執行的 process 屬於 orchestrator：主 session 是唯一一個背景任務既被追蹤、又能可靠收到通知的 context。
 
-以上每一項行為都是實驗確立的，不是推測出來的。守衛大約 100 行，沒有網路存取，從不檢查你的程式碼，而且採 **fail open**——畸形的 payload 一律放行。它不可能把你鎖在自己的 session 外面。安裝前請先讀過它：[`scripts/guard.py`](./scripts/guard.py)、[`agents/`](./agents/) 底下的五個檔案，以及 [`skills/pilotfish/SKILL.md`](./skills/pilotfish/SKILL.md)。就這些。
+以上兩條規則都是實驗確立的，不是推測出來的，也都以指示的形式寫在 orchestrating session 會載入的 skill prompt 裡——確切文字見 [`skills/pilotfish/SKILL.md`](./skills/pilotfish/SKILL.md)。沒有任何機制會把能力拿掉：不理會指示的 subagent，不會被擋下來。這就是它誠實的樣子。
 
 ## 更多
 
@@ -82,7 +79,7 @@ flowchart TD
 
 **想在 Claude Code 裡使用 OpenAI GPT-5.6，又不改動原生 Claude state？** [Remora](https://github.com/Nanako0129/remora-cc) 把 pilotfish 的角色分工模式包裝成 session-scoped launcher，接到既有的 Anthropic-compatible gateway：它的 model 與 gateway override 會隨 child process 一起消失。
 
-**先行者與致意。** 「聰明的腦、便宜的手」這個分工不是 pilotfish 發明的：Anthropic 自己的工程文（[Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)）就是這個框架，Claude Code 內建 [`opusplan`](https://code.claude.com/docs/en/model-config)——如果你只想要更省的 session，`/model opusplan` 根本不需要裝任何 plugin——而 [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) 更早就做出「plugin + 強制 hook」這個形狀。pilotfish 的貢獻很小：刻意只有五個角色而非一大本 agent 目錄、寫成角色而能撐過模型換代的政策、以及每一條規則都由實驗（而非推理）確立的守衛——其中一條還推翻了本專案自己先前的建議。
+**先行者與致意。** 「聰明的腦、便宜的手」這個分工不是 pilotfish 發明的：Anthropic 自己的工程文（[Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)）就是這個框架，Claude Code 內建 [`opusplan`](https://code.claude.com/docs/en/model-config)——如果你只想要更省的 session，`/model opusplan` 根本不需要裝任何 plugin——而 [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) 更早就探索過「plugin + 強制 hook」這個形狀——pilotfish 刻意不走這條路，理由見[為什麼沒有守衛](#為什麼沒有守衛)。pilotfish 的貢獻很小：刻意只有五個角色而非一大本 agent 目錄、寫成角色而能撐過模型換代的政策、以及每一條規則都由實驗（而非推理）確立——其中一條還推翻了本專案自己先前的建議。
 
 ## 授權
 

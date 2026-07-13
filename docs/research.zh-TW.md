@@ -4,7 +4,7 @@
 
 ## 文件目的
 
-這份文件整理 2026 年 7 月初針對「如何最大化 Claude Fable 5 價值」所做的一輪有出處研究：Fable 5 相對 Opus 4.8 的真實強項與不值得用的場景、Claude 訂閱制的配額經濟學、Claude Code 官方提供的多模型協作機制，以及社群的實測數字與模式。pilotfish 的三層架構（見 [design.md](./design.md)）就是這份研究的落地結論。研究方法為四個並行研究代理（官方文件、社群模式、訂閱經濟、Claude Code 機制）加一輪對照 code.claude.com 官方文件的驗證；資料時點為 2026-07-08。
+這份文件整理 2026 年 7 月初針對「如何最大化 Claude Fable 5 價值」所做的一輪有出處研究：Fable 5 相對 Opus 4.8 的真實強項與不值得用的場景、Claude 訂閱制的配額經濟學、Claude Code 官方提供的多模型協作機制，以及社群的實測數字與模式。pilotfish 的架構（見 [design.md](./design.md)）就是這份研究的落地結論。研究方法為四個並行研究代理（官方文件、社群模式、訂閱經濟、Claude Code 機制）加一輪對照 code.claude.com 官方文件的驗證；資料時點為 2026-07-08。
 
 ## 目錄
 
@@ -92,7 +92,7 @@ Fable 5 在訂閱方案內的時間線（截至 2026-07-08）：
 | `availableModels`（settings） | 白名單，同時約束主 session、subagent frontmatter、Task 的 model 參數；超出名單的值被靜默跳過改為繼承 |
 | `[1m]` 後綴 | 啟用 1M context；文件明列支援 `sonnet`/`opus`/`opusplan` alias 與完整 model ID——`best` 不在列（實測 `best[1m]` 不報錯，但建議用純 `best`；Fable 5 本身預設即 1M） |
 | CLAUDE.md 與模型 | **不能**改主模型（settings / `/model` / `--model` 才行）——CLAUDE.md 管的是委派行為政策 |
-| 內建 Explore agent | v2.1.198 起繼承主對話模型（Claude API 上以 Opus 封頂）——此發現仍成立。自建同名的*使用者層* agent 可覆寫回 Haiku，但**外掛（plugin）**的 agent 不行（plugin agent 帶命名空間，例如 `pilotfish:Explore`），因此 pilotfish 改以 `PreToolUse` guard hook **封鎖**內建 Explore，並把偵查工作導向 `scout`（釘在 Sonnet，effort 低） |
+| 內建 Explore agent | v2.1.198 起繼承主對話模型（Claude API 上以 Opus 封頂）——此發現仍成立。自建同名的*使用者層* agent 可覆寫回 Haiku，但**外掛（plugin）**的 agent 不行（plugin agent 帶命名空間，例如 `pilotfish:Explore`），而 plugin 也無法出貨一個能在 Claude Code 任何環境都跑得動的 hook（不保證有直譯器存在，原生 Windows 更是完全無法啟動——詳見 [design.md](./design.md)）。因此 pilotfish 改以政策**指示** orchestrator 絕不呼叫內建版本，把偵查工作導向 `scout`（釘在 Sonnet，effort 低） |
 | 版本釘選 | `ANTHROPIC_DEFAULT_OPUS_MODEL` 等 env 可把 alias 釘到特定版本（third-party provider 部署適用） |
 
 ## 社群實測與模式

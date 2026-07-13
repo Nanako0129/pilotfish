@@ -2,7 +2,7 @@
 
 > Pilot fish swim alongside the ocean's largest predators — small, fast, and doing the routine work so the big one doesn't have to.
 
-**pilotfish** is a multi-model orchestration plugin for [Claude Code](https://code.claude.com). The frontier model (Claude Fable 5 / Opus) plans, decides, and reviews in your main session; Sonnet does the volume work through five pinned role agents. Quality is protected by fresh-context verification, not by using the biggest model everywhere — and the rules that matter aren't asked for, they're **enforced by a hook**.
+**pilotfish** is a multi-model orchestration plugin for [Claude Code](https://code.claude.com). The frontier model (Claude Fable 5 / Opus) plans, decides, and reviews in your main session; Sonnet does the volume work through five pinned role agents. Quality is protected by fresh-context verification, not by using the biggest model everywhere. It ships as pure markdown and JSON — no hook, no interpreter, no runtime dependency of any kind — so it runs anywhere Claude Code runs, Windows included.
 
 ```
 /plugin marketplace add Nanako0129/pilotfish
@@ -29,7 +29,7 @@ The quality you'd expect to lose is bought back by the `verifier` — an indepen
 
 ## How it works
 
-Three layers, one install: **roles** (`agents/*.md`, each pinning its own model in one line of frontmatter), **policy** (`skills/pilotfish/SKILL.md`, written in terms of roles and never model names, loaded by `/pilotfish`), and the **guard** (`hooks/` + `scripts/guard.py`, which enforces what a policy can only request).
+Two layers, one install: **roles** (`agents/*.md`, each pinning its own model in one line of frontmatter) and **policy** (`skills/pilotfish/SKILL.md`, written in terms of roles and never model names, loaded by `/pilotfish`). Nothing enforces the policy's rules structurally — see [Why no guard](#why-no-guard) below for the trade-off and what it costs you.
 
 ```mermaid
 flowchart TD
@@ -59,21 +59,16 @@ flowchart TD
 
 The policy adds the operating rules: spec delegations in one shot including the *why*, start with the cheapest plausible role and escalate after two failures, let each role take its model only from its own definition, schedule independent work in the background, and gate non-trivial work behind a `verifier` pass before calling it done.
 
-## The guard
+## Why no guard
 
-A policy is a request. A missing capability is a fact. Three rules that used to be prose are enforced by a `PreToolUse` hook, because prose kept failing:
+pilotfish has two rules a subagent might otherwise ignore, and it would be natural to enforce them with a `PreToolUse` hook that removes the capability outright instead of asking the model not to use it. A locked door beats a "please don't enter" sign: the model never gets to weigh the rule against the task in front of it. pilotfish deliberately doesn't. It's worth being honest about why, and what it costs you.
 
-| | Main session | Subagent |
-|---|---|---|
-| `run_in_background` | allowed | **denied** |
-| `nohup` / `setsid` / trailing `&` | allowed | **denied** |
-| built-in `Explore` agent | **denied** → use `scout` | — |
+A hook is a script, and a script needs an interpreter — one Claude Code does not guarantee. Per its own docs, nothing is guaranteed present on a machine running it: not Python, and not even `node`, since the native standalone installer doesn't put `node` on `PATH` at all. Native Windows is the sharp edge — it honors neither a `#!` shebang nor the Unix executable bit, so the usual "ship a script, mark it executable" hook is Unix-only by construction and cannot so much as launch there. A plugin that ships an interpreted hook therefore does not run everywhere Claude Code runs, and pilotfish's whole premise is that it should: a zero-dependency install that's just markdown and JSON. Worse, a hook like this fails *open* — so on the machines where the interpreter is missing you'd get no enforcement and no warning, which is the bad case, because you'd stop watching for what you believe is being caught. A door that isn't there is better than a door you wrongly believe is locked. So enforcement stays at the policy layer: rules stated plainly in [`skills/pilotfish/SKILL.md`](./skills/pilotfish/SKILL.md), which a subagent can read and, in principle, ignore. Universal portability is the trade. These are the rules the prompt carries alone:
 
-**Subagents may not detach.** When a subagent's foreground command exceeds its `timeout`, Claude Code doesn't kill it — it promotes it to a background task. If the agent was spawned in the background that promoted process survives and its output is collected; if it was spawned in the *foreground* it is `SIGTERM`ed seconds after the agent returns, destroying the work. `nohup` and `setsid` dodge that `SIGTERM` only by escaping Claude Code's task tracking entirely — no task id, no captured output, no notification — which launders a destroyed result into a lost one. So long-running processes belong to the orchestrator, the one context whose background tasks are both tracked and reliably notified.
+- **Never invoke the built-in `Explore` agent.** Since Claude Code v2.1.198 it inherits your main-session model, so every search it runs from a Fable/Opus session bills at frontier rates — exactly the cost this plugin exists to avoid. A plugin can't shadow a built-in (plugin agents are namespaced), so this can't be fixed by routing around it either: use `pilotfish:scout`, the same read-only recon role pinned to Sonnet at low effort, every time.
+- **Subagents must not detach a process** (`run_in_background`, `nohup`, `setsid`, `disown`, a trailing `&`). When a subagent's foreground command exceeds its `timeout`, Claude Code doesn't kill it — it promotes it to a background task. If the agent was spawned in the background that promoted process survives and its output is collected; if it was spawned in the *foreground* it is `SIGTERM`ed seconds after the agent returns, destroying the work. Detaching dodges that `SIGTERM` only by escaping Claude Code's task tracking entirely — no task id, no captured output, no notification — which launders a destroyed result into an orphaned one. Long-running processes belong to the orchestrator, the one context whose background tasks are both tracked and reliably notified.
 
-**The built-in `Explore` is blocked.** Since Claude Code v2.1.198 it inherits your main-session model, so every background search from a Fable/Opus session bills at frontier rates — exactly the cost this plugin exists to avoid. A plugin can't shadow a built-in (plugin agents are namespaced), so the guard denies it and routes recon to `scout`.
-
-Every one of these behaviours was established by experiment, not assumed. The guard is ~100 lines, has no network access, never inspects your code, and **fails open** — a malformed payload always allows the call. It cannot lock you out of your own session. Read it before you install: [`scripts/guard.py`](./scripts/guard.py), the five files in [`agents/`](./agents/), and [`skills/pilotfish/SKILL.md`](./skills/pilotfish/SKILL.md). That's everything.
+Both rules are established by experiment, not assumed, and both live as instructions in the skill prompt an orchestrating session loads — read [`skills/pilotfish/SKILL.md`](./skills/pilotfish/SKILL.md) for the exact wording. Nothing removes the capability: a subagent that ignores the instruction will not be stopped. That is the honest state of it.
 
 ## More
 
@@ -82,7 +77,7 @@ Every one of these behaviours was established by experiment, not assumed. The gu
 
 **Want OpenAI GPT-5.6 inside Claude Code without changing native Claude state?** [Remora](https://github.com/Nanako0129/remora-cc) packages pilotfish's role-based orchestration pattern into a session-scoped launcher for an existing Anthropic-compatible gateway: its model and gateway overrides disappear with the child process.
 
-**Prior art & credits.** The "smart brain, cheap hands" split is not pilotfish's invention: Anthropic's own engineering writeup ([Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)) frames it, Claude Code ships [`opusplan`](https://code.claude.com/docs/en/model-config) built in — if all you want is a cheaper session, `/model opusplan` needs no plugin at all — and [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) reached the plugin-with-guard-hooks shape first. pilotfish's contribution is small: five deliberately-few roles instead of a large catalog, a policy that survives model churn because it never names a model, and a guard whose rules were each established by experiment rather than reasoning — including one that overturned this project's own previous advice.
+**Prior art & credits.** The "smart brain, cheap hands" split is not pilotfish's invention: Anthropic's own engineering writeup ([Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)) frames it, Claude Code ships [`opusplan`](https://code.claude.com/docs/en/model-config) built in — if all you want is a cheaper session, `/model opusplan` needs no plugin at all — and [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) explored the plugin-with-guard-hooks shape, which pilotfish deliberately does not follow — see [Why no guard](#why-no-guard). pilotfish's contribution is small: five deliberately-few roles instead of a large catalog, a policy that survives model churn because it never names a model, and rules that were each established by experiment rather than reasoning — including one that overturned this project's own previous advice.
 
 ## License
 

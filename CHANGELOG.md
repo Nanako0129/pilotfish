@@ -14,13 +14,11 @@ Three reasons, in order of weight:
 
 The three Sonnet roles are deliberately kept as three files. The `Agent` tool has no `effort` parameter — effort is settable only in agent frontmatter — so one role definition means one effort level, and collapsing them would run bulk mechanical work at `effort: high` for nothing.
 
-Nothing about the guard's behaviour changes; only the text of its `Explore` denial, which names the tier `scout` is pinned to.
-
 ## v2.0.0 — 2026-07-13
 
 **pilotfish is now a plugin.** Install with `/plugin marketplace add Nanako0129/pilotfish` and `/plugin install pilotfish@pilotfish`; invoke with `/pilotfish`. Nothing is merged into `~/.claude/` any more, nothing is written into your projects, and uninstalling removes every trace. The old hand-merged global install (`templates/`, `install/AGENT-INSTALL.md`, the `VERSION`/README/policy stamp coupling) is gone with it.
 
-**The rules are now enforced, not requested.** A `PreToolUse` hook denies what the policy could previously only ask for: subagents may not detach a process (`nohup`, `setsid`, trailing `&`, `run_in_background`), and the built-in `Explore` agent is blocked in favour of `scout`. The main session keeps every capability — its backgrounding is the mechanism that works.
+**Still nothing to install but text.** The plugin is markdown and JSON — no hook script, no interpreter, no runtime dependency of any kind. That is a constraint pilotfish holds itself to, not an omission. A hook is a script, and a script needs an interpreter that Claude Code does not guarantee on the machine it runs on: Python is absent from a default Windows box, and even `node` is missing when Claude Code is installed from its native standalone binary rather than from npm. A rule enforced by a hook would therefore be enforced on some of your machines and silently absent on the others — the worst of both worlds, since you would stop watching for what you believe is being caught. So the rules live where they work everywhere: in the policy the orchestrator reads.
 
 **The detach-and-yield pattern was the bug, and it is gone.** v1.1.1 told executors to launch long commands with `nohup` and end their turn; v1.1.3 added an orchestrator rule to arm a background wait on the yielded PID. That protocol spans two agents and fails on the first forgotten step. The underlying harness behaviour, established by experiment:
 
@@ -30,7 +28,7 @@ Nothing about the guard's behaviour changes; only the text of its `Explore` deni
 
 `nohup`/`setsid` dodge that `SIGTERM` by escaping the process group — but they also escape Claude Code's task tracking, so there is no task id, no captured output, and no notification. Detaching converts a destroyed result into an orphaned one. So subagents no longer detach at all: they run in the foreground with an explicit `timeout` and hand back anything that cannot finish inside one. **Long-running processes belong to the orchestrator** — the only context whose background tasks are both tracked and reliably notified. This also makes spawning agents with `run_in_background: true` load-bearing for correctness, not merely cost.
 
-**`Explore` is blocked rather than shadowed.** Plugin agents are namespaced, so a plugin cannot override the built-in `Explore` — which since v2.1.198 inherits the main-session model and bills every background search at frontier rates. The guard blocks it and routes recon to `scout` (Haiku). Five roles now, not six.
+**`Explore` can no longer be shadowed, so the policy forbids it outright.** Since Claude Code v2.1.198 the built-in `Explore` inherits the main-session model, so every background search it runs from a Fable/Opus session bills at frontier rates — precisely the cost this plugin exists to avoid. v1.x neutralised it by shadowing it with a same-name *user-level* agent pinned to a cheap tier. A plugin cannot do that: plugin agents are namespaced, so `pilotfish:Explore` is a different agent from the built-in and shadows nothing. The skill therefore forbids the built-in in as many words and routes every search to `scout`. Five roles now, not six.
 
 Credit: [@dromsak](https://github.com/dromsak).
 

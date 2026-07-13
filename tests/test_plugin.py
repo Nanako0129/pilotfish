@@ -4,21 +4,25 @@ These replace the old policy tests, which enforced that four hand-maintained ver
 stamps moved together across a global-config install. A plugin has one version, in its
 manifest, so that machinery is gone.
 
-What is worth pinning now is the wiring: the manifest parses, the hook the plugin
-promises actually exists and is executable, every role the skill routes to is a real
-agent with a pinned model, and no role is told to detach a process.
+pilotfish ships no hooks and no runtime dependency of its own — it is pure markdown and
+JSON, so it runs anywhere Claude Code runs, Windows included. What is worth pinning now
+is the wiring: the manifest parses, every role the skill routes to is a real agent with
+a pinned model, the skill routes to namespaced names, and no role teaches a subagent to
+detach a process — that rule is policy now, not enforcement, but it must still hold.
 """
 
 from __future__ import annotations
 
 import json
-import os
 import re
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ROLES = ("scout", "mech-executor", "executor", "verifier", "security-executor")
+# Roles that can run commands. `scout` cannot — its tools allowlist has no `Bash` — so
+# it is the one role whose inability to detach is structural rather than instructed.
+SHELL_ROLES = tuple(r for r in ROLES if r != "scout")
 
 
 class Manifest(unittest.TestCase):
@@ -35,30 +39,6 @@ class Manifest(unittest.TestCase):
         self.assertTrue(market["owner"]["name"])
         names = [p["name"] for p in market["plugins"]]
         self.assertIn("pilotfish", names)
-
-
-class Wiring(unittest.TestCase):
-    def test_hook_script_exists_and_is_executable(self) -> None:
-        """A hook that points at a missing or non-executable script fails silently,
-        which would turn every guarantee in this plugin back into a suggestion."""
-        hooks = json.loads((ROOT / "hooks/hooks.json").read_text())
-        entries = hooks["hooks"]["PreToolUse"]
-        self.assertTrue(entries)
-        for entry in entries:
-            for hook in entry["hooks"]:
-                self.assertIn("${CLAUDE_PLUGIN_ROOT}", hook["command"])
-                rel = hook["command"].split("${CLAUDE_PLUGIN_ROOT}")[1].strip('"/')
-                script = ROOT / rel
-                self.assertTrue(script.is_file(), f"hook script missing: {rel}")
-                self.assertTrue(
-                    os.access(script, os.X_OK), f"hook script not executable: {rel}"
-                )
-
-    def test_guard_covers_both_tools_it_polices(self) -> None:
-        hooks = json.loads((ROOT / "hooks/hooks.json").read_text())
-        matchers = " ".join(e["matcher"] for e in hooks["hooks"]["PreToolUse"])
-        self.assertIn("Bash", matchers)  # subagent detaching
-        self.assertIn("Agent", matchers)  # the built-in Explore
 
 
 class Roles(unittest.TestCase):
@@ -88,11 +68,44 @@ class Roles(unittest.TestCase):
         skill = (ROOT / "skills/pilotfish/SKILL.md").read_text()
         self.assertIn("Never pass `model`", skill)
 
+    def test_skill_carries_the_two_unenforced_rules(self) -> None:
+        """With no hook, the skill prompt is the *only* thing carrying these two rules —
+        so a silent deletion would leave nothing behind and no test would notice. Both
+        must read as prohibitions: an assertion that something is blocked would be a
+        false claim of enforcement, which is worse than saying nothing at all."""
+        skill = (ROOT / "skills/pilotfish/SKILL.md").read_text()
+
+        # Rule 1: never route recon to the built-in Explore — it inherits the
+        # main-session model and bills every search at frontier rates.
+        explore_lines = [ln.lower() for ln in skill.splitlines() if "Explore" in ln]
+        self.assertTrue(explore_lines, "skill no longer mentions the built-in Explore")
+        for line in explore_lines:
+            self.assertRegex(
+                line,
+                r"never|must not|do not|don't",
+                "skill mentions Explore without forbidding it",
+            )
+            self.assertNotRegex(
+                line,
+                r"is blocked|is denied|cannot be (used|invoked)",
+                "skill claims Explore is enforced — nothing blocks it",
+            )
+
+        # Rule 2: subagents must not detach a process.
+        self.assertRegex(
+            skill.lower(),
+            r"(never|must not|do not|don't) detach",
+            "skill does not forbid subagents detaching a process",
+        )
+        for marker in ("nohup", "setsid", "run_in_background"):
+            self.assertIn(marker, skill, f"skill no longer names `{marker}`")
+
     def test_no_role_is_told_to_detach_a_process(self) -> None:
         """Verified empirically: a subagent's promoted background command is SIGTERMed
         when a foreground-spawned agent returns, and `nohup`/`setsid` dodge that only by
-        escaping the harness's task tracking — which orphans the result instead. The
-        guard blocks both; no role may teach them either."""
+        escaping the harness's task tracking — which orphans the result instead. Nothing
+        enforces this any more; it is policy only, in the skill prompt. No role may teach
+        it either."""
         for role in ROLES:
             agent = (ROOT / "agents" / f"{role}.md").read_text().lower()
             for marker in ("nohup", "setsid", "disown"):
@@ -101,6 +114,29 @@ class Roles(unittest.TestCase):
                     agent.replace(f"`{marker}`", ""),  # naming it in a prohibition is fine
                     msg=f"{role} is told to detach a process",
                 )
+
+    def test_every_shell_role_is_told_not_to_detach_a_process(self) -> None:
+        """The other half, and the one that actually carries the rule. With no hook, the
+        prompt is the only thing standing between a subagent and a detached process — so
+        a role that merely *omits* the instruction has no rule at all. Worse is a role
+        that asserts detaching is "blocked": that states an enforcement which does not
+        exist, and a model told the door is locked stops holding it shut itself.
+
+        `scout` is exempt — its positive `tools: Read, Glob, Grep` allowlist means it has
+        no `Bash` at all, so the capability is genuinely removed rather than merely asked
+        for. That is the one place enforcement survives without a hook."""
+        for role in SHELL_ROLES:
+            agent = (ROOT / "agents" / f"{role}.md").read_text().lower()
+            self.assertRegex(
+                agent,
+                r"(never|must not|do not|don't) detach",
+                msg=f"{role} carries no prohibition on detaching",
+            )
+            self.assertNotIn(
+                "blocked for subagents",
+                agent,
+                msg=f"{role} claims detaching is enforced — nothing enforces it",
+            )
 
 
 if __name__ == "__main__":

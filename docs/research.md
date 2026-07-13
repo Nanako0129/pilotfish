@@ -4,7 +4,7 @@
 
 ## Purpose
 
-This document collects a sourced research pass from early July 2026 on "how to maximize the value of Claude Fable 5": Fable 5's real strengths versus Opus 4.8 and the scenarios where it's wasteful, the quota economics of Claude subscriptions, the multi-model orchestration mechanisms Claude Code officially provides, and the community's measured numbers and patterns. pilotfish's three-layer architecture (see [design.md](./design.md)) is the applied conclusion of this research. Method: four parallel research agents (official docs, community patterns, subscription economics, Claude Code mechanisms) plus a verification pass against code.claude.com official documentation; data current as of 2026-07-09.
+This document collects a sourced research pass from early July 2026 on "how to maximize the value of Claude Fable 5": Fable 5's real strengths versus Opus 4.8 and the scenarios where it's wasteful, the quota economics of Claude subscriptions, the multi-model orchestration mechanisms Claude Code officially provides, and the community's measured numbers and patterns. pilotfish's architecture (see [design.md](./design.md)) is the applied conclusion of this research. Method: four parallel research agents (official docs, community patterns, subscription economics, Claude Code mechanisms) plus a verification pass against code.claude.com official documentation; data current as of 2026-07-09.
 
 ## Contents
 
@@ -92,7 +92,7 @@ All verified line-by-line against official docs (code.claude.com — sub-agents,
 | `availableModels` (settings) | An allowlist constraining the main session, subagent frontmatter, and Task model params alike; values outside it are silently skipped in favor of inheritance |
 | `[1m]` suffix | Enables 1M context; documented for `sonnet`/`opus`/`opusplan` aliases and full model IDs — `best` is not listed (empirically `best[1m]` doesn't error, but plain `best` is recommended; Fable 5 is 1M by default anyway) |
 | CLAUDE.md and models | CLAUDE.md **cannot** change the main model (settings / `/model` / `--model` do) — CLAUDE.md governs delegation behavior policy |
-| Built-in Explore agent | Since v2.1.198 it inherits the main conversation model (Opus-capped on the Claude API) — this finding stands. A same-name *user-level* agent could shadow it back to Haiku, but a **plugin** agent cannot (plugin agents are namespaced, e.g. `pilotfish:Explore`), so pilotfish instead **blocks** the built-in via its `PreToolUse` guard hook and routes recon to `scout` (pinned to Sonnet at low effort) |
+| Built-in Explore agent | Since v2.1.198 it inherits the main conversation model (Opus-capped on the Claude API) — this finding stands. A same-name *user-level* agent could shadow it back to Haiku, but a **plugin** agent cannot (plugin agents are namespaced, e.g. `pilotfish:Explore`), and a plugin cannot ship a hook that runs everywhere Claude Code does (no interpreter is guaranteed present, and native Windows can't launch one at all — see [design.md](./design.md)). So pilotfish instead **instructs** the orchestrator, as policy, never to invoke the built-in and to route recon to `scout` (pinned to Sonnet at low effort) |
 | Version pinning | `ANTHROPIC_DEFAULT_OPUS_MODEL` etc. pin aliases to specific versions (relevant for third-party provider deployments) |
 
 ## Community measurements and patterns
