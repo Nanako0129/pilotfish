@@ -1,6 +1,24 @@
 # Changelog
 
-All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
+All notable changes to pilotfish. From v2.0.0 the installed version is the plugin's manifest version (`/plugin`); v1.x installs stamped it inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`).
+
+## v2.0.0 — 2026-07-13
+
+**pilotfish is now a plugin.** Install with `/plugin marketplace add Nanako0129/pilotfish` and `/plugin install pilotfish@pilotfish`; invoke with `/pilotfish`. Nothing is merged into `~/.claude/` any more, nothing is written into your projects, and uninstalling removes every trace. The old hand-merged global install (`templates/`, `install/AGENT-INSTALL.md`, the `VERSION`/README/policy stamp coupling) is gone with it.
+
+**The rules are now enforced, not requested.** A `PreToolUse` hook denies what the policy could previously only ask for: subagents may not detach a process (`nohup`, `setsid`, trailing `&`, `run_in_background`), and the built-in `Explore` agent is blocked in favour of `scout`. The main session keeps every capability — its backgrounding is the mechanism that works.
+
+**The detach-and-yield pattern was the bug, and it is gone.** v1.1.1 told executors to launch long commands with `nohup` and end their turn; v1.1.3 added an orchestrator rule to arm a background wait on the yielded PID. That protocol spans two agents and fails on the first forgotten step. The underlying harness behaviour, established by experiment:
+
+- A foreground command exceeding its `timeout` is not killed — it is promoted to a background task, with the message "you will be notified when it completes."
+- In an agent spawned with `run_in_background: true`, that promise is kept: the promoted process survives the turn boundary *and* the agent returning, runs to completion, has its output captured, and its notification re-invokes the agent. Observed surviving 59s, 69s, 81s past a turn boundary and 141s past agent termination, with zero signals.
+- In an agent spawned in the **foreground**, the promoted process is `SIGTERM`ed seconds after the agent returns. The work is destroyed and the captured output truncated mid-stream.
+
+`nohup`/`setsid` dodge that `SIGTERM` by escaping the process group — but they also escape Claude Code's task tracking, so there is no task id, no captured output, and no notification. Detaching converts a destroyed result into an orphaned one. So subagents no longer detach at all: they run in the foreground with an explicit `timeout` and hand back anything that cannot finish inside one. **Long-running processes belong to the orchestrator** — the only context whose background tasks are both tracked and reliably notified. This also makes spawning agents with `run_in_background: true` load-bearing for correctness, not merely cost.
+
+**`Explore` is blocked rather than shadowed.** Plugin agents are namespaced, so a plugin cannot override the built-in `Explore` — which since v2.1.198 inherits the main-session model and bills every background search at frontier rates. The guard blocks it and routes recon to `scout` (Haiku). Five roles now, not six.
+
+Credit: [@dromsak](https://github.com/dromsak).
 
 ## v1.2.0 — 2026-07-14
 

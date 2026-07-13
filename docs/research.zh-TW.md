@@ -92,7 +92,7 @@ Fable 5 在訂閱方案內的時間線（截至 2026-07-08）：
 | `availableModels`（settings） | 白名單，同時約束主 session、subagent frontmatter、Task 的 model 參數；超出名單的值被靜默跳過改為繼承 |
 | `[1m]` 後綴 | 啟用 1M context；文件明列支援 `sonnet`/`opus`/`opusplan` alias 與完整 model ID——`best` 不在列（實測 `best[1m]` 不報錯，但建議用純 `best`；Fable 5 本身預設即 1M） |
 | CLAUDE.md 與模型 | **不能**改主模型（settings / `/model` / `--model` 才行）——CLAUDE.md 管的是委派行為政策 |
-| 內建 Explore agent | v2.1.198 起繼承主對話模型（Claude API 上以 Opus 封頂）；自建同名 `Explore.md` 可覆寫回 Haiku |
+| 內建 Explore agent | v2.1.198 起繼承主對話模型（Claude API 上以 Opus 封頂）——此發現仍成立。自建同名的*使用者層* agent 可覆寫回 Haiku，但**外掛（plugin）**的 agent 不行（plugin agent 帶命名空間，例如 `pilotfish:Explore`），因此 pilotfish 改以 `PreToolUse` guard hook **封鎖**內建 Explore，並把偵查工作導向 `scout`（釘在 Haiku） |
 | 版本釘選 | `ANTHROPIC_DEFAULT_OPUS_MODEL` 等 env 可把 alias 釘到特定版本（third-party provider 部署適用） |
 
 ## 社群實測與模式

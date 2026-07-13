@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/guard.py",
+            "timeout": 10,
+            "statusMessage": "pilotfish guard"
+          }
+        ]
+      }
+    ]
+  }
+}

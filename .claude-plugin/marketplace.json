@@ -1,0 +1,17 @@
+{
+  "name": "pilotfish",
+  "owner": {
+    "name": "Nanako0129",
+    "url": "https://github.com/Nanako0129"
+  },
+  "description": "Multi-model orchestration for Claude Code.",
+  "plugins": [
+    {
+      "name": "pilotfish",
+      "source": "./",
+      "description": "The frontier model plans and reviews; cheaper pinned-model agents do the volume work; fresh-context verification protects quality.",
+      "category": "productivity",
+      "keywords": ["orchestration", "subagents", "cost", "delegation", "verification"]
+    }
+  ]
+}
