@@ -2,6 +2,14 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
+## v1.1.6 — 2026-07-13
+
+Add a Baton-style dispatch brake before role routing. Matching `scout`, `executor`, or another role now establishes eligibility rather than forcing a spawn. Root-cause discovery, trace-driven debugging, tightly coupled state propagation, unresolved architecture, and small fixes stay with the orchestrator while diagnosis and implementation share the same evidence. Foreground delegation must still beat direct execution instead of launching a worker only to wait for it.
+
+This release publishes the complete bilingual experiment behind the change: a disposable state-clone fixture, neutral task prompt, baseline/candidate/final policy sources, all six observed runs, exact Agent tool inputs, normalized tool traces, model usage, timing, client-reported cost fields, raw-stream hashes, commands, correctness results, and limitations. pilotfish already worked inline in its baseline run, so the report claims non-regression rather than a causal speedup; remora's redundant foreground scout/executor path supplied the direct evidence for the brake.
+
+New policy contract tests lock the dispatch boundary while preserving named-role model ownership, background scheduling for eligible work, worktree isolation, and the fresh-context verifier gate.
+
 ## v1.1.5 — 2026-07-13
 
 Fix named-role model routing at the Agent invocation boundary. The orchestration policy now requires calls to every existing named role to omit `model`, leaving the role file's frontmatter as the sole model source. This prevents an invocation alias from silently overriding the intended Haiku, Sonnet, or Opus assignment. Only truly ad-hoc agents with no named role definition may set an explicit invocation model.

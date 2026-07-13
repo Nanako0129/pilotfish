@@ -81,14 +81,14 @@ The six roles:
 | `verifier` | opus | medium | Fresh-context adversarial verification; returns CONFIRMED/REFUTED, never fixes |
 | `security-executor` | opus | high | Anything security-sensitive — deliberately kept off Fable 5, whose safety classifiers can refuse benign defensive-security work |
 
-The policy layer adds the operating rules: spec delegations completely in one shot (including the *why*), start with the cheapest plausible role and escalate after two failures, let every existing named role take its model only from its agent definition, set an explicit `model` only for truly ad-hoc fan-outs, schedule independent work in the background while reserving foreground agents for immediate dependencies, and gate non-trivial work behind a `verifier` pass before calling it done.
+The policy layer first applies a dispatch brake: root-cause exploration, runtime tracing, and tightly coupled state work stay with the orchestrator when a worker would need to reconstruct the same context. A role match makes work eligible, not mandatory. Stable delegations are specified completely in one shot (including the *why*), start with the cheapest plausible role and escalate after two failures, take every named role's model only from its agent definition, schedule independent work in the background, reserve foreground agents for immediate dependencies that are still cheaper to delegate, and gate non-trivial work behind a `verifier` pass before calling it done.
 
 ## Install
 
-The recommended path is to clone the pinned v1.1.5 release locally, then start Claude Code from that checkout so it can read the runbook as a local file:
+The recommended path is to clone the pinned v1.1.6 release locally, then start Claude Code from that checkout so it can read the runbook as a local file:
 
 ```sh
-git clone --branch v1.1.5 --depth 1 https://github.com/Nanako0129/pilotfish.git
+git clone --branch v1.1.6 --depth 1 https://github.com/Nanako0129/pilotfish.git
 cd pilotfish
 claude
 ```
@@ -119,7 +119,7 @@ Prefer to do it by hand? The same steps are written for humans in [install/AGENT
 pilotfish installs by having Claude read a runbook and template files from this repo and merge them into your global `~/.claude/` config — including a policy block that then loads into **every future session**. Treat it like any `curl | sh`: trust flows from this repo and your GitHub connection, not from the paste. The local checkout path is recommended because you can inspect the pinned release before Claude reads the runbook. Before running it:
 
 - **Read the actual bytes that get installed**, not just the runbook: the six files in [templates/agents/](./templates/agents/) and [templates/claude-md.orchestration.md](./templates/claude-md.orchestration.md). Nothing else is written to disk.
-- **Pin to a release tag or commit** so what you reviewed is what installs — `main` can change between the moment you read it and the moment Claude reads it. The recommended command above pins to the `v1.1.5` release tag; for the strictest guarantee, fetch and check out the full commit SHA you reviewed, then verify that checkout before launching Claude.
+- **Pin to a release tag or commit** so what you reviewed is what installs — `main` can change between the moment you read it and the moment Claude reads it. The recommended command above pins to the `v1.1.6` release tag; for the strictest guarantee, fetch and check out the full commit SHA you reviewed, then verify that checkout before launching Claude.
 - **Keep the approval gate:** Claude writes nothing until you approve the merge plan, but the plan is still a summary of the runbook. Review the local runbook and templates yourself, and do not weaken or bypass WebFetch's prompt-injection protection if the raw URL is intercepted.
 
 ## What gets installed
@@ -182,10 +182,10 @@ The delegation policy in `CLAUDE.md` speaks only of roles (`executor`, `scout`, 
 | Why `effort: low` on the cheap roles? | Effort is the second big quota lever. Fable-5-generation models at low effort routinely match previous-generation `xhigh`; recon and mechanical work don't need deep thinking. |
 | Which effort for the main session? | `high`. Official guidance for Fable 5: `high` for most work, `xhigh` only for the longest-horizon tasks, `max` rarely — diminishing returns. |
 | Do I lose the 1M context window? | No — Fable 5 is 1M by default, so `best` gives you 1M whenever it resolves to Fable 5. If you want *guaranteed* 1M even when `best` would fall back to Opus, set `model` to `"opus[1m]"` instead (the `[1m]` suffix is documented for `sonnet`/`opus`/`opusplan`/full IDs, not for `best`). |
-| Does the orchestrator ever do work itself? | Yes — quick single-file reads, decisions, and anything you explicitly asked *it* to judge. Delegation has overhead; the policy says so. |
+| Does the orchestrator ever do work itself? | Yes — quick reads, decisions, root-cause exploration, trace-driven debugging, tightly coupled state work, and anything you explicitly asked *it* to judge. Delegation must beat direct work after context reconstruction and integration costs. |
 | My project has its own CLAUDE.md — conflict? | No file is ever touched: pilotfish writes only under `~/.claude/`. At runtime Claude Code *stacks* project memory and user memory — both load together, neither overrides the other. If one repo needs different behavior, add a local note there (e.g. "work inline in this repo, don't delegate") — the more specific instruction wins in practice. |
 | Subagent quality worries me | That's what `verifier` is for: an independent fresh-context pass that tries to *refute* the work. Official guidance: fresh-context verifiers beat self-critique. Escalation (two strikes → higher tier) handles the rest. Note verification isn't free either — it re-reads context on Opus — which is why the policy scopes it to non-trivial work only. |
-| Doesn't spawning agents cost extra? | Yes — every spawn is a fresh context that re-reads its slice of the codebase, and spec-writing costs main-session tokens. That overhead is why the policy says don't delegate single-file reads or quick judgments. The savings come from volume work (search, bulk edits, test runs), where the cheaper tier's per-token price dwarfs the spawn overhead. |
+| Doesn't spawning agents cost extra? | Yes — every spawn is a fresh context that re-reads its slice of the codebase, and spec-writing costs main-session tokens. The dispatch brake rejects work whose diagnosis and implementation share the same evidence, because the handoff would duplicate context. Savings come from bounded lookups, stable implementation specs, bulk edits, and independent verification where cheaper execution outweighs coordination. |
 | Turn it off fast? | **This session:** tell Claude "don't delegate this session — work inline"; it's just policy text, it obeys immediately. **This repo:** add a local note to the repo's CLAUDE.md. **Whole machine:** comment out the `pilotfish:begin/end` block in `~/.claude/CLAUDE.md` — the agent files just sit unused. No reinstall needed to switch back. |
 | Managed / enterprise machine? | Managed settings outrank user settings: a managed `model`, `availableModels` allowlist, or a managed agent with the same name will override pilotfish's user-level install. If roles don't take effect after restart, ask your admin — pilotfish can't (and shouldn't) override managed policy. |
 
@@ -198,6 +198,8 @@ This repo is the packaged result of a sourced research pass (official docs, Anth
 | [docs/research.md](./docs/research.md) | English | Full research findings: Fable 5 strengths & when it's wasteful, subscription economics, official Claude Code mechanisms, community measurements — with sources |
 | [docs/research.zh-TW.md](./docs/research.zh-TW.md) | 繁體中文 | 研究報告原版（the original the English version translates） |
 | [docs/design.md](./docs/design.md) | English | Why three layers, why role-based policy, why aliases over pinned IDs, effort tiering, what was deliberately left out |
+| [benchmarks/dispatch-brake/README.md](./benchmarks/dispatch-brake/README.md) | English + data | Reproducible baseline/candidate/final experiment for tightly coupled debugging and delegation overhead |
+| [benchmarks/dispatch-brake/README.md](./benchmarks/dispatch-brake/README.md) | English + data | Reproducible baseline/candidate/final experiment for tightly coupled debugging and delegation overhead |
 
 **Prior art & credits.** The "smart brain, cheap hands" split is not pilotfish's invention: Anthropic's own engineering writeup ([Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)) frames it, Claude Code ships [`opusplan`](https://code.claude.com/docs/en/model-config) built in — if all you want is cheaper sessions, `/model opusplan` needs no repo at all — and [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) packages the same frugality thesis as a plugin with ledger-enforcing guard hooks. pilotfish's contribution is the packaging: six deliberately-few roles instead of a 100-agent catalog, a role-based policy that survives model churn, an installer that shows its plan before touching anything, and claims that were adversarially fact-checked. If a heavier, hook-enforced flavor fits you better, use theirs.
 

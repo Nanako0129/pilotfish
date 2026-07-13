@@ -61,6 +61,12 @@ The intuitive objection to cheap executors is quality. pilotfish's answer is str
 
 A verifier isn't free — it runs on Opus and re-reads context in a fresh session. It's cheaper than generation only because it reads-and-runs rather than writes-and-iterates, and because the gate is scoped to *non-trivial* work (small changes skip it; the policy says so). What it buys is a change of question: from "is the executor smart enough?" to "did the output survive an independent refutation attempt?" — a much better question. Two known limits, held honestly: same-tier verification catches context-rot and unchecked claims, not capability-ceiling errors (Opus won't know what Opus can't know); and the gate covers executor output, not scout reconnaissance — which is why the policy separately tells the orchestrator to sanity-check load-bearing scouted facts. For security-sensitive diffs, the verifier's own prompt escalates it to a maximum-thoroughness pass.
 
+## Dispatch brake before role routing
+
+Role routing answers *which worker* should receive eligible work; it does not answer *whether spawning a worker is beneficial*. Before any Agent call, pilotfish now checks whether the outcome is stable, direct work is slower, the worker can proceed without reconstructing the orchestrator's evidence, ownership is exclusive, and integration remains cheap.
+
+This distinction matters most during exploratory debugging. Runtime traces, root-cause hypotheses, patch anchors, and live verification usually form one tightly coupled reasoning chain. Handing the middle of that chain to a fresh executor makes the executor rebuild context while the orchestrator waits, then makes the orchestrator rebuild enough context to integrate the answer. Such work remains in the main session until the root cause and one-shot implementation contract are stable. Bounded side lookups and fresh verification remain good delegation candidates because their context and outputs are independently scoped.
+
 ## Effort tiers
 
 Effort is the second big quota lever after model choice, and the Fable-5 generation shifted the calculus: low effort on current models routinely matches previous-generation `xhigh`. pilotfish therefore pairs every role with an effort:

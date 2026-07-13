@@ -45,6 +45,20 @@ class PolicyContractTests(unittest.TestCase):
             self.assertRegex(frontmatter, r"(?m)^model:\s*\S+\s*$")
             self.assertIn(f"`{role}`", policy)
 
+    def test_policy_brakes_tightly_coupled_exploration(self) -> None:
+        policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("Apply a dispatch brake", policy)
+        self.assertIn("direct main-session work would not be faster", policy)
+        self.assertIn("repeatedly reconstructing the main session's evidence", policy)
+        self.assertIn("root-cause discovery", policy)
+        self.assertIn("trace-driven debugging", policy)
+        self.assertIn("tightly coupled state propagation", policy)
+        self.assertIn("without rediscovery", policy)
+        self.assertIn("does not make delegation mandatory", policy)
+        self.assertIn("delegation still beats direct execution", policy)
+
 
 if __name__ == "__main__":
     unittest.main()
