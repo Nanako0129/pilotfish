@@ -133,6 +133,36 @@ class SubagentsCannotDetach(unittest.TestCase):
             with self.subTest(command=command):
                 self.assertEqual(decide(bash(SUB, command)), "ALLOW")
 
+    def test_heredoc_bodies_are_data_not_shell(self) -> None:
+        """A heredoc body goes to some program's stdin; the calling shell never
+        interprets it. Found in the wild: a subagent's `python3 - <<'EOF'` script was
+        denied because a *comment inside it* contained an English ampersand."""
+        for command in (
+            # The real one: an `&` in prose inside the body.
+            "python3 - <<'EOF'\n# strip docstrings & constants, then compare\nprint(1)\nEOF",
+            # Unquoted delimiter, and `<<-` with a tab-indented terminator.
+            "cat <<EOF > notes.md\nA & B\nEOF",
+            "cat <<-EOF\n\tone & two\n\tEOF",
+            # `nohup`/`&&`/`&` as *content* being written to a file, not run.
+            "cat <<'SH' > run.sh\nnohup ./x.sh &\nSH",
+            # Body mentioning the guard's own trigger words.
+            "python3 - <<'EOF'\n# we must not setsid or disown here\nEOF",
+        ):
+            with self.subTest(command=command):
+                self.assertEqual(decide(bash(SUB, command)), "ALLOW")
+
+    def test_heredoc_stripping_does_not_open_a_hole(self) -> None:
+        """The fix blanks the body but must NOT blank the line that opens it — that is
+        where a real detach would sit. A body-blanking bug here would silently disable
+        the whole shell-detach leg for any command containing a heredoc."""
+        for command in (
+            "cat <<EOF > f.txt &\nbody\nEOF",  # the heredoc'd command is backgrounded
+            "nohup cat <<EOF > f.txt\nbody\nEOF",  # nohup on the opening line
+            "cat <<EOF > f.txt\nbody\nEOF\n./long.sh &",  # detach *after* the terminator
+        ):
+            with self.subTest(command=command):
+                self.assertEqual(decide(bash(SUB, command)), "DENY")
+
 
 class BuiltinExploreIsUnreachable(unittest.TestCase):
     def test_builtin_explore_is_denied(self) -> None:

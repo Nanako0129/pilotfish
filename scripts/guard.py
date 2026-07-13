@@ -52,6 +52,9 @@ DETACH = re.compile(
 # A backgrounding `&`: not part of `&&`, not an fd redirect (`>&`, `&>`, `2>&1`).
 BACKGROUND_AMP = re.compile(r"(?<![&>])&(?![&>])")
 
+# A heredoc redirection: `<<EOF`, `<<-EOF`, `<<'EOF'`, `<<"EOF"`.
+HEREDOC = re.compile(r"<<-?\s*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1")
+
 EXPLORE_REASON = (
     "pilotfish: use `pilotfish:scout` instead of the built-in `Explore`. Since Claude "
     "Code v2.1.198 the built-in Explore inherits your main-session model, so every search "
@@ -99,6 +102,36 @@ def deny(reason: str) -> None:
     sys.exit(0)
 
 
+def strip_heredocs(command: str) -> str:
+    """Blank out heredoc *bodies*, keeping the command line that opens them.
+
+    A heredoc body is data on some program's stdin — the calling shell never interprets
+    it, so an `&` or a `nohup` inside one is prose, not a control operator. Without this,
+    a subagent writing `python3 - <<'EOF'` with an ampersand anywhere in the script (an
+    `&` in a comment is enough) was denied for "backgrounding a command" it never ran.
+
+    Replacement is space-for-space so every offset is preserved: the body is erased, the
+    line that opened it — where a real trailing `&` would live — is untouched.
+    """
+    for match in HEREDOC.finditer(command):
+        tag = match.group(2)
+        body_start = command.find("\n", match.end())
+        if body_start == -1:  # no body: the heredoc never opened
+            continue
+        terminator = re.search(
+            rf"(?m)^[ \t]*{re.escape(tag)}[ \t]*$", command[body_start + 1 :]
+        )
+        body_end = (
+            body_start + 1 + terminator.start() if terminator else len(command)
+        )
+        command = (
+            command[: body_start + 1]
+            + " " * (body_end - body_start - 1)
+            + command[body_end:]
+        )
+    return command
+
+
 def strip_quotes(command: str) -> str:
     """Blank out single- and double-quoted spans so a token inside a string literal
     (`git commit -m 'drop nohup'`, `grep 'a && b'`) is never mistaken for a command."""
@@ -133,7 +166,9 @@ def main() -> None:
             deny(BACKGROUND_REASON)
         command = tool_input.get("command")
         if isinstance(command, str):
-            scrubbed = strip_quotes(command)
+            # Heredocs first: `strip_quotes` would eat a quoted delimiter (`<<'EOF'`)
+            # and leave the body looking like live shell.
+            scrubbed = strip_quotes(strip_heredocs(command))
             if DETACH.search(scrubbed) or BACKGROUND_AMP.search(scrubbed):
                 deny(DETACH_REASON)
 
