@@ -2,6 +2,20 @@
 
 All notable changes to pilotfish. From v2.0.0 the installed version is the plugin's manifest version (`/plugin`); v1.x installs stamped it inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`).
 
+## v2.1.0 — 2026-07-13
+
+**Haiku is out; the execution tier is Sonnet.** `scout` moves Haiku → Sonnet (`effort: low`) and `executor` moves Opus/medium → Sonnet/high. `verifier` stays on Opus and goes to `effort: high`. `mech-executor` (Sonnet/low) and `security-executor` (Opus/high) are unchanged. This makes the shipped configuration exactly the one Anthropic benchmarked: a frontier orchestrator with Sonnet 5 workers, at 96% of all-frontier performance for 46% of the cost.
+
+Three reasons, in order of weight:
+
+- **Scout output is unverified input to everything downstream.** The `verifier` gate covers executor work, not reconnaissance — so a wrong `file:line` from a scout becomes an executor confidently editing the wrong thing, and nothing catches it. Haiku 4.5 → Sonnet 5 is a large enough capability gap that this stops being theoretical. Recon is the one place cheapness compounds into error.
+- **On subscriptions, Haiku was never the cheap option it looked like.** The weekly limit is two buckets — a shared all-models bucket plus an *additional* Sonnet-only bucket. Haiku draws on the scarce shared one; Sonnet can draw on dedicated headroom the frontier model cannot touch. For the subscriber this plugin is aimed at, moving recon to Sonnet can cost *less* of the resource that actually runs out, while being materially better.
+- **Opus on `executor` was over-insurance.** Quality on cheap executors is bought back by the `verifier` — an independent fresh-context pass — more cheaply and more reliably than by upgrading the executor itself. Paying Opus rates for routine implementation *and* running a verifier was paying twice for the same guarantee. The verifier's effort bump to `high` is where that money goes instead; it is the role that makes the rest of the tier safe.
+
+The three Sonnet roles are deliberately kept as three files. The `Agent` tool has no `effort` parameter — effort is settable only in agent frontmatter — so one role definition means one effort level, and collapsing them would run bulk mechanical work at `effort: high` for nothing.
+
+Nothing about the guard's behaviour changes; only the text of its `Explore` denial, which names the tier `scout` is pinned to.
+
 ## v2.0.0 — 2026-07-13
 
 **pilotfish is now a plugin.** Install with `/plugin marketplace add Nanako0129/pilotfish` and `/plugin install pilotfish@pilotfish`; invoke with `/pilotfish`. Nothing is merged into `~/.claude/` any more, nothing is written into your projects, and uninstalling removes every trace. The old hand-merged global install (`templates/`, `install/AGENT-INSTALL.md`, the `VERSION`/README/policy stamp coupling) is gone with it.

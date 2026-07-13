@@ -19,7 +19,7 @@ Each role's model and effort are pinned in its own definition. **Never pass `mod
 
 | Role | Delegate when |
 |---|---|
-| `pilotfish:scout` | Any search, lookup, or "where/how is X" reconnaissance. Use this, never the built-in `Explore` — that one inherits your main-session model and bills every search at frontier rates. It is blocked; `pilotfish:scout` is the same role pinned to Haiku. |
+| `pilotfish:scout` | Any search, lookup, or "where/how is X" reconnaissance. Use this, never the built-in `Explore` — that one inherits your main-session model and bills every search at frontier rates. It is blocked; `pilotfish:scout` is the same role pinned to Sonnet at low effort. |
 | `pilotfish:mech-executor` | Mechanical, fully-specified work: pattern refactors, convention-following tests, docs, bulk edits, running test suites |
 | `pilotfish:executor` | Implementation needing judgment: features, bug fixes, design-sensitive refactors |
 | `pilotfish:verifier` | Fresh-context verification of non-trivial completed work, before reporting it done |

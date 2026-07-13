@@ -1,8 +1,8 @@
 ---
 name: executor
 description: Implementation requiring judgment - feature work, bug fixes, refactors with design decisions, integration work. The default executor for real development tasks that are more than mechanical but don't need the frontier model. Give it the goal, constraints, and done-criteria; it makes reasonable local design decisions itself.
-model: opus
-effort: medium
+model: sonnet
+effort: high
 disallowedTools: Agent, Workflow
 ---
 

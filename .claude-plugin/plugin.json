@@ -1,7 +1,7 @@
 {
   "name": "pilotfish",
   "displayName": "pilotfish",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Multi-model orchestration for Claude Code: the frontier model plans and reviews, cheaper pinned-model agents do the volume work, and fresh-context verification protects quality.",
   "author": {
     "name": "Nanako0129",

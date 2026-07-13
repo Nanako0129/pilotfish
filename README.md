@@ -2,7 +2,7 @@
 
 > Pilot fish swim alongside the ocean's largest predators — small, fast, and doing the routine work so the big one doesn't have to.
 
-**pilotfish** is a multi-model orchestration plugin for [Claude Code](https://code.claude.com): the frontier model (Claude Fable 5 / Opus) plans, decides, and reviews in your main session, while cheaper models (Opus / Sonnet / Haiku) execute the volume work through role agents. Quality is protected by fresh-context verification, not by using the biggest model everywhere.
+**pilotfish** is a multi-model orchestration plugin for [Claude Code](https://code.claude.com): the frontier model (Claude Fable 5 / Opus) plans, decides, and reviews in your main session, while cheaper models (Sonnet, with Opus on the roles that need it) execute the volume work through role agents. Quality is protected by fresh-context verification, not by using the biggest model everywhere.
 
 ```
 /plugin marketplace add Nanako0129/pilotfish
@@ -41,7 +41,8 @@ Every piece of this carries Anthropic backing. The [Fable 5 prompting guide](htt
 |---|---|---|
 | Everything on Fable 5 | $14.50 | — |
 | Fable 5 orchestrates + Sonnet workers | $6.10 | 58% |
-| Fable 5 orchestrates + Haiku workers | $3.70 | 74% |
+
+The Sonnet-worker row is the one pilotfish ships: the execution roles are Sonnet, and the two roles that must not be cheap — `verifier` and `security-executor` — are Opus.
 
 > **Tip:** Claude subscriptions use a two-bucket weekly limit ([official article](https://support.claude.com/en/articles/14552983-models-usage-and-limits-in-claude-code)) — a shared "all models" bucket plus an **additional Sonnet-only bucket**. Routing execution to Sonnet agents costs less per token *and* draws on that extra dedicated headroom.
 
@@ -63,11 +64,11 @@ flowchart TD
     subgraph MAIN["main session — orchestrator"]
         O["plan / decide / spec / review<br>owns long-running processes"]
     end
-    O -->|recon| S["scout<br>haiku · effort low"]
+    O -->|recon| S["scout<br>sonnet · effort low"]
     O -->|mechanical spec| M["mech-executor<br>sonnet · effort low"]
-    O -->|judgment work| E["executor<br>opus · effort medium"]
+    O -->|judgment work| E["executor<br>sonnet · effort high"]
     O -->|security-sensitive| SEC["security-executor<br>opus · effort high"]
-    M --> V["verifier<br>opus · fresh context"]
+    M --> V["verifier<br>opus · effort high<br>fresh context"]
     E --> V
     SEC --> V
     V -->|CONFIRMED / REFUTED| O
@@ -77,11 +78,13 @@ The five roles:
 
 | Role | Model | Effort | Used for |
 |---|---|---|---|
-| `scout` | haiku | low | Read-only recon: "where/how is X", symbol usages, config values |
+| `scout` | sonnet | low | Read-only recon: "where/how is X", symbol usages, config values |
 | `mech-executor` | sonnet | low | Fully-specified mechanical work: pattern refactors, convention tests, docs, bulk edits |
-| `executor` | opus | medium | Implementation needing judgment: features, bug fixes, design-sensitive refactors |
-| `verifier` | opus | medium | Fresh-context adversarial verification; returns CONFIRMED/REFUTED, never fixes |
+| `executor` | sonnet | high | Implementation needing judgment: features, bug fixes, design-sensitive refactors |
+| `verifier` | opus | high | Fresh-context adversarial verification; returns CONFIRMED/REFUTED, never fixes |
 | `security-executor` | opus | high | Anything security-sensitive — deliberately kept off Fable 5, whose safety classifiers can refuse benign defensive-security work |
+
+Three of those roles are Sonnet and differ only in effort — which looks redundant until you check the `Agent` tool's parameters. It accepts `model`, but there is **no `effort` parameter**: effort can only be set in frontmatter. One role definition therefore means one effort level for everything it is ever asked to do, and collapsing these would run a 30-file mechanical rename at `effort: high` for nothing. Three files is the only mechanism the harness offers for three effort lanes.
 
 The policy adds the operating rules: spec delegations in one shot (including the *why*), start with the cheapest plausible role and escalate after two failures, let each role take its model only from its own definition, schedule independent work in the background, and gate non-trivial work behind a `verifier` pass before calling it done.
 
@@ -106,7 +109,7 @@ So subagents don't get to detach at all. They run commands in the foreground wit
 
 This is also why the policy insists on spawning agents with `run_in_background: true`. That isn't only cheaper and more parallel: it's the difference between an agent's long command finishing and being killed.
 
-**Why the built-in `Explore` is blocked.** Since Claude Code v2.1.198 the built-in `Explore` agent inherits your main-session model, so every background search from a Fable/Opus session bills at frontier rates. A plugin cannot shadow a built-in agent (plugin agents are namespaced), so pilotfish blocks it and routes recon to `scout`, which is pinned to Haiku.
+**Why the built-in `Explore` is blocked.** Since Claude Code v2.1.198 the built-in `Explore` agent inherits your main-session model, so every background search from a Fable/Opus session bills at frontier rates. A plugin cannot shadow a built-in agent (plugin agents are namespaced), so pilotfish blocks it and routes recon to `scout`, which is pinned to Sonnet at low effort.
 
 Every one of these behaviours was established by experiment, not assumed. The guard fails open: a malformed payload never breaks your session.
 
@@ -169,7 +172,7 @@ The whole stack keeps working when the frontier model disappears, because no pol
 |---|---|---|
 | Fable 5 leaves your plan | `best` re-resolves to the latest Opus | Likely none. Never pin `fable`/full IDs: pinned IDs hard-errored in June 2026 |
 | Model overloaded / API errors | `fallbackModel: ["opus", "sonnet"]` switches automatically | None |
-| A tier gets deprecated (Opus 4.8 → 4.9) | Role agents use aliases (`opus`, `sonnet`, `haiku`) that track the recommended version | None |
+| A tier gets deprecated (Opus 4.8 → 4.9) | Role agents use aliases (`opus`, `sonnet`) that track the recommended version | None |
 | Frontier refuses a security task mid-run | Security work is pre-routed to `security-executor` (Opus), so it never reaches the classifier | None |
 
 The policy speaks only of roles. Model bindings live in exactly one place — one line of frontmatter per agent file — so re-pointing a tier is a one-line edit that takes effect everywhere.
@@ -180,7 +183,7 @@ The policy speaks only of roles. Model bindings live in exactly one place — on
 |---|---|
 | I want to save even more quota | Switch the main session to `/model opusplan` — Opus thinks in plan mode, Sonnet executes. The role agents keep working unchanged underneath. |
 | Can I force every subagent onto one model? | `CLAUDE_CODE_SUBAGENT_MODEL` overrides *all* per-agent frontmatter — that's why pilotfish doesn't set it. Leave it unset. |
-| I use `availableModels` as an allowlist | Then it must contain every alias the agents use (`opus`, `sonnet`, `haiku`), or those agents silently fall back to inheriting the main-session model. |
+| I use `availableModels` as an allowlist | Then it must contain every alias the agents use (`opus`, `sonnet`), or those agents silently fall back to inheriting the main-session model. |
 | Why `effort: low` on the cheap roles? | Effort is the second big quota lever. Fable-5-generation models at low effort routinely match previous-generation `xhigh`; recon and mechanical work don't need deep thinking. |
 | Which effort for the main session? | `high`. Official guidance for Fable 5: `high` for most work, `xhigh` only for the longest-horizon tasks. |
 | Does the orchestrator ever do work itself? | Yes — quick single-file reads, decisions, and anything you explicitly asked *it* to judge. Delegation has overhead; the policy says so. |

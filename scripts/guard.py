@@ -29,7 +29,7 @@ main session, present for a subagent (verified against real captured payloads).
 The guard also blocks the built-in `Explore` agent, which since Claude Code v2.1.198
 inherits the main-session model and so bills every search at frontier rates. A plugin
 cannot shadow a built-in (plugin agents are namespaced), so it is blocked and recon is
-routed to `pilotfish:scout`, pinned to Haiku.
+routed to `pilotfish:scout`, pinned to Sonnet at low effort.
 
 The guard FAILS OPEN: any unexpected input allows the call. It cannot lock you out.
 """
@@ -56,7 +56,8 @@ EXPLORE_REASON = (
     "pilotfish: use `pilotfish:scout` instead of the built-in `Explore`. Since Claude "
     "Code v2.1.198 the built-in Explore inherits your main-session model, so every search "
     "it runs bills at frontier rates — which is precisely the cost this setup exists to "
-    "avoid. `pilotfish:scout` is the same read-only recon role, pinned to Haiku. Re-issue "
+    "avoid. `pilotfish:scout` is the same read-only recon role, pinned to Sonnet at low "
+    "effort. Re-issue "
     'this call with subagent_type: "pilotfish:scout".'
 )
 
