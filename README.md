@@ -2,61 +2,34 @@
 
 > Pilot fish swim alongside the ocean's largest predators — small, fast, and doing the routine work so the big one doesn't have to.
 
-**pilotfish** is a multi-model orchestration plugin for [Claude Code](https://code.claude.com): the frontier model (Claude Fable 5 / Opus) plans, decides, and reviews in your main session, while cheaper models (Sonnet, with Opus on the roles that need it) execute the volume work through role agents. Quality is protected by fresh-context verification, not by using the biggest model everywhere.
+**pilotfish** is a multi-model orchestration plugin for [Claude Code](https://code.claude.com). The frontier model (Claude Fable 5 / Opus) plans, decides, and reviews in your main session; Sonnet does the volume work through five pinned role agents. Quality is protected by fresh-context verification, not by using the biggest model everywhere — and the rules that matter aren't asked for, they're **enforced by a hook**.
 
 ```
 /plugin marketplace add Nanako0129/pilotfish
 /plugin install pilotfish@pilotfish
 ```
 
-Then type `/pilotfish`, and the rest of your session runs this way. Nothing is written into your `~/.claude/` config or into your projects; uninstalling removes every trace. ([Full install notes](#install).)
+Then type `/pilotfish` to arm it for the session, or `/pilotfish <task>` to arm it and start. It never activates on its own. Nothing is written into your `~/.claude/` config or into your projects; uninstalling (`/plugin uninstall pilotfish`) removes every trace.
 
-The rules that matter aren't asked for — they're **enforced by a hook**. See [The guard](#the-guard).
-
-> **Want OpenAI GPT-5.6 inside Claude Code without changing native Claude state?** [Remora](https://github.com/Nanako0129/remora-cc) packages pilotfish's role-based orchestration pattern into a session-scoped launcher for an existing Anthropic-compatible gateway. Use pilotfish for the native Claude Code path; use Remora for an approval-gated, verifiable install whose model and gateway overrides disappear with the child process.
+One manual step, if you want it: no plugin can set your main-session model, so put the orchestrator on the frontier tier yourself with `/model best` — or persist `{ "model": "best", "fallbackModel": ["opus", "sonnet"] }` in `~/.claude/settings.json`. pilotfish works without it, but the cost argument below assumes a frontier orchestrator.
 
 [繁體中文說明](./README.zh-TW.md)
 
-## Contents
-
-- [Why](#why)
-- [How it works](#how-it-works)
-- [The guard](#the-guard)
-- [Install](#install)
-- [Using it](#using-it)
-- [Trust & security](#trust--security)
-- [The fallback story](#the-fallback-story)
-- [Tuning & FAQ](#tuning--faq)
-- [Research & design](#research--design)
-- [Uninstall](#uninstall)
-- [License](#license)
-
 ## Why
 
-Frontier-model sessions are expensive in exactly the place it hurts subscribers: Claude Fable 5 consumes subscription limits **~2× faster than Opus** (official UI wording), and agentic sessions with heavy tool use burn far steeper than that in practice. Meanwhile, most tokens in a coding session are *not* judgment — they're searching, mechanical edits, test runs, and doc updates that a cheaper model does just as well.
+**Cost.** Most tokens in a coding session are not judgment — they're searching, mechanical edits, test runs, and doc updates that a cheaper model does just as well. Meanwhile Fable 5 consumes subscription limits ~2× faster than Opus, and agentic sessions with heavy tool use burn far steeper than that in practice.
 
-Every piece of this carries Anthropic backing. The [Fable 5 prompting guide](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5) recommends frequent subagent delegation and notes that **independent fresh-context verifier subagents outperform self-critique**. And as of 2026-07-08 the cheap-executor split is officially benchmarked: Anthropic's own tests put a **Fable 5 orchestrator with Sonnet 5 workers at 96% of all-Fable performance for 46% of the cost** (BrowseComp: 86.8% vs 90.8% accuracy, $18.53 vs $40.56 per problem) ([multi-agent docs](https://platform.claude.com/docs/en/managed-agents/multi-agent)). A community experiment points the same direction at hobby scale — a delegation-heavy 12-worker audit ([Developers Digest](https://www.developersdigest.tech/blog/fable-5-orchestrator-model-playbook)), best-case-shaped, in API dollars:
+The split is officially benchmarked, and pilotfish ships exactly the configuration Anthropic measured: a **Fable 5 orchestrator with Sonnet 5 workers reaches 96% of all-Fable performance for 46% of the cost** (BrowseComp: 86.8% vs 90.8% accuracy, $18.53 vs $40.56 per problem — [multi-agent docs](https://platform.claude.com/docs/en/managed-agents/multi-agent)). A community 12-worker audit puts the same split at [58% cheaper](https://www.developersdigest.tech/blog/fable-5-orchestrator-model-playbook) in API dollars ($14.50 → $6.10).
 
-| Setup (12-worker audit experiment, Developers Digest) | Cost | Savings |
-|---|---|---|
-| Everything on Fable 5 | $14.50 | — |
-| Fable 5 orchestrates + Sonnet workers | $6.10 | 58% |
+> On subscriptions it's better than the per-token price suggests: the weekly limit is [two buckets](https://support.claude.com/en/articles/14552983-models-usage-and-limits-in-claude-code) — a shared "all models" bucket **plus an additional Sonnet-only bucket**. Routing execution to Sonnet costs less per token *and* draws on headroom the frontier model can't touch.
 
-The Sonnet-worker row is the one pilotfish ships: the execution roles are Sonnet, and the two roles that must not be cheap — `verifier` and `security-executor` — are Opus.
+**Speed.** Sonnet returns tokens faster than Opus, and the two highest-volume roles run at `effort: low`, which removes most of the thinking latency from work that doesn't need it. Independent delegations are spawned in the background and overlap, so wall-clock tracks the slowest agent rather than the sum of them.
 
-> **Tip:** Claude subscriptions use a two-bucket weekly limit ([official article](https://support.claude.com/en/articles/14552983-models-usage-and-limits-in-claude-code)) — a shared "all models" bucket plus an **additional Sonnet-only bucket**. Routing execution to Sonnet agents costs less per token *and* draws on that extra dedicated headroom.
-
-> **Note:** These are subscription-plan mechanics. On the pay-per-token API the per-token savings still apply (there is no weekly bucket). On Bedrock / Vertex / Foundry, aliases resolve to each platform's built-in defaults and Fable 5 may not be enabled.
+The quality you'd expect to lose is bought back by the `verifier` — an independent, fresh-context pass that tries to *refute* the finished work. That's not a hedge: Anthropic's [Fable 5 prompting guide](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5) is explicit that fresh-context verifier subagents outperform self-critique. It's cheaper than it sounds, too — an executor's cost scales with the search space it explores, a verifier's only with the diff it's handed.
 
 ## How it works
 
-Three layers, one install:
-
-| Layer | Where | Job |
-|---|---|---|
-| Roles | `agents/*.md` | Five role agents, each pinned to the right model tier via one line of frontmatter |
-| Policy | `skills/pilotfish/SKILL.md` | *How* to delegate — written in terms of roles, never model names. Loads when you type `/pilotfish` |
-| **Guard** | `hooks/` + `scripts/guard.py` | Enforces the rules a policy can only ask for |
+Three layers, one install: **roles** (`agents/*.md`, each pinning its own model in one line of frontmatter), **policy** (`skills/pilotfish/SKILL.md`, written in terms of roles and never model names, loaded by `/pilotfish`), and the **guard** (`hooks/` + `scripts/guard.py`, which enforces what a policy can only request).
 
 ```mermaid
 flowchart TD
@@ -74,8 +47,6 @@ flowchart TD
     V -->|CONFIRMED / REFUTED| O
 ```
 
-The five roles:
-
 | Role | Model | Effort | Used for |
 |---|---|---|---|
 | `scout` | sonnet | low | Read-only recon: "where/how is X", symbol usages, config values |
@@ -84,13 +55,13 @@ The five roles:
 | `verifier` | opus | high | Fresh-context adversarial verification; returns CONFIRMED/REFUTED, never fixes |
 | `security-executor` | opus | high | Anything security-sensitive — deliberately kept off Fable 5, whose safety classifiers can refuse benign defensive-security work |
 
-Three of those roles are Sonnet and differ only in effort — which looks redundant until you check the `Agent` tool's parameters. It accepts `model`, but there is **no `effort` parameter**: effort can only be set in frontmatter. One role definition therefore means one effort level for everything it is ever asked to do, and collapsing these would run a 30-file mechanical rename at `effort: high` for nothing. Three files is the only mechanism the harness offers for three effort lanes.
+`scout`, `mech-executor`, and `executor` are all Sonnet and differ only in effort — which is precisely why they're three files. The `Agent` tool has no `effort` parameter, so frontmatter is the *only* place effort can be set: one role definition means one effort level, and a 30-file rename would run at `high` for nothing.
 
-The policy adds the operating rules: spec delegations in one shot (including the *why*), start with the cheapest plausible role and escalate after two failures, let each role take its model only from its own definition, schedule independent work in the background, and gate non-trivial work behind a `verifier` pass before calling it done.
+The policy adds the operating rules: spec delegations in one shot including the *why*, start with the cheapest plausible role and escalate after two failures, let each role take its model only from its own definition, schedule independent work in the background, and gate non-trivial work behind a `verifier` pass before calling it done.
 
 ## The guard
 
-A policy is a request. A missing capability is a fact. Three rules that used to be prose are now enforced by a `PreToolUse` hook, because prose kept failing:
+A policy is a request. A missing capability is a fact. Three rules that used to be prose are enforced by a `PreToolUse` hook, because prose kept failing:
 
 | | Main session | Subagent |
 |---|---|---|
@@ -98,118 +69,20 @@ A policy is a request. A missing capability is a fact. Three rules that used to 
 | `nohup` / `setsid` / trailing `&` | allowed | **denied** |
 | built-in `Explore` agent | **denied** → use `scout` | — |
 
-**Why subagents may not detach.** When a subagent's foreground command exceeds its `timeout`, Claude Code does not kill it — it promotes it to a background task and reports *"you will be notified when it completes."* Whether that promise holds depends on how the orchestrator spawned the agent:
+**Subagents may not detach.** When a subagent's foreground command exceeds its `timeout`, Claude Code doesn't kill it — it promotes it to a background task. If the agent was spawned in the background that promoted process survives and its output is collected; if it was spawned in the *foreground* it is `SIGTERM`ed seconds after the agent returns, destroying the work. `nohup` and `setsid` dodge that `SIGTERM` only by escaping Claude Code's task tracking entirely — no task id, no captured output, no notification — which launders a destroyed result into a lost one. So long-running processes belong to the orchestrator, the one context whose background tasks are both tracked and reliably notified.
 
-- Spawned with **`run_in_background: true`** → the promoted process survives, runs to completion, its output is captured, and the notification re-invokes the agent. **Safe.**
-- Spawned in the **foreground** → the promoted process is `SIGTERM`ed a few seconds after the agent returns. **The work is destroyed and its captured output truncated mid-stream.**
+**The built-in `Explore` is blocked.** Since Claude Code v2.1.198 it inherits your main-session model, so every background search from a Fable/Opus session bills at frontier rates — exactly the cost this plugin exists to avoid. A plugin can't shadow a built-in (plugin agents are namespaced), so the guard denies it and routes recon to `scout`.
 
-`nohup` and `setsid` dodge that `SIGTERM` by escaping the process group — which is exactly why the pattern gets adopted — but they also escape Claude Code's task tracking: no task id, no captured output, no completion notification. The result is an orphan nobody ever collects. Detaching doesn't rescue the handoff; it launders a destroyed result into a lost one.
+Every one of these behaviours was established by experiment, not assumed. The guard is ~100 lines, has no network access, never inspects your code, and **fails open** — a malformed payload always allows the call. It cannot lock you out of your own session. Read it before you install: [`scripts/guard.py`](./scripts/guard.py), the five files in [`agents/`](./agents/), and [`skills/pilotfish/SKILL.md`](./skills/pilotfish/SKILL.md). That's everything.
 
-So subagents don't get to detach at all. They run commands in the foreground with an explicit `timeout`, and hand back anything that can't finish inside one. **Long-running processes belong to the orchestrator** — the main session is the only context whose background tasks are both tracked and reliably notified.
+## More
 
-This is also why the policy insists on spawning agents with `run_in_background: true`. That isn't only cheaper and more parallel: it's the difference between an agent's long command finishing and being killed.
+[**docs/design.md**](./docs/design.md) — why role-based policy, why model aliases over pinned IDs, effort tiering, the fallback story when a tier disappears, tuning knobs, and what was deliberately left out.
+[**docs/research.md**](./docs/research.md) — the underlying research: Fable 5's strengths and when it's wasteful, subscription economics, official Claude Code mechanisms, community measurements, with sources ([繁體中文](./docs/research.zh-TW.md)).
 
-**Why the built-in `Explore` is blocked.** Since Claude Code v2.1.198 the built-in `Explore` agent inherits your main-session model, so every background search from a Fable/Opus session bills at frontier rates. A plugin cannot shadow a built-in agent (plugin agents are namespaced), so pilotfish blocks it and routes recon to `scout`, which is pinned to Sonnet at low effort.
+**Want OpenAI GPT-5.6 inside Claude Code without changing native Claude state?** [Remora](https://github.com/Nanako0129/remora-cc) packages pilotfish's role-based orchestration pattern into a session-scoped launcher for an existing Anthropic-compatible gateway: its model and gateway overrides disappear with the child process.
 
-Every one of these behaviours was established by experiment, not assumed. The guard fails open: a malformed payload never breaks your session.
-
-## Install
-
-```
-/plugin marketplace add Nanako0129/pilotfish
-/plugin install pilotfish@pilotfish
-```
-
-Then restart Claude Code, or run `/reload-plugins` to pick it up in the current session.
-
-That's the whole install. Nothing is written into your `~/.claude/` config and nothing is written into your projects — the plugin is self-contained, and uninstalling it removes every trace.
-
-**One manual step, if you want it.** The plugin cannot set your main-session model (no plugin can). To run the orchestrator on the best available frontier model, set it yourself:
-
-```
-/model best
-```
-
-Or persist it in `~/.claude/settings.json`:
-
-```json
-{ "model": "best", "fallbackModel": ["opus", "sonnet"] }
-```
-
-pilotfish works without this — the role agents are pinned regardless — you just won't get the frontier orchestrator the cost argument assumes.
-
-**Updating** is automatic: bump-versioned releases arrive through the marketplace. `/plugin` → Marketplaces to control it.
-
-## Using it
-
-```
-/pilotfish
-```
-
-Arms pilotfish for the rest of the session. Everything you ask from then on gets orchestrated — recon to `scout`, mechanical work to `mech-executor`, judgment to `executor`, and a `verifier` pass before anything is called done.
-
-```
-/pilotfish sort out gh issue 42
-```
-
-Same thing, and it starts on the task immediately.
-
-Both are explicit — pilotfish never activates on its own.
-
-## Trust & security
-
-pilotfish installs a plugin containing five agent definitions, one skill, and one hook script. The hook (`scripts/guard.py`) runs on every `Bash` and `Agent` tool call, so read it before you install — it is ~100 lines and does exactly one thing: deny a small set of calls, and allow everything else. It never inspects your code, never phones home, and has no network access.
-
-- **Read the bytes that run:** [`scripts/guard.py`](./scripts/guard.py), the five files in [`agents/`](./agents/), and [`skills/pilotfish/SKILL.md`](./skills/pilotfish/SKILL.md). That's everything.
-- **Pin it:** the marketplace entry is versioned; installing pins you to a release, and you only move when you choose to.
-- **The guard fails open.** If it can't parse a payload it allows the call. It cannot lock you out of your own session.
-
-## The fallback story
-
-The whole stack keeps working when the frontier model disappears, because no policy text ever names a model:
-
-| Failure mode | What catches it | Your action |
-|---|---|---|
-| Fable 5 leaves your plan | `best` re-resolves to the latest Opus | Likely none. Never pin `fable`/full IDs: pinned IDs hard-errored in June 2026 |
-| Model overloaded / API errors | `fallbackModel: ["opus", "sonnet"]` switches automatically | None |
-| A tier gets deprecated (Opus 4.8 → 4.9) | Role agents use aliases (`opus`, `sonnet`) that track the recommended version | None |
-| Frontier refuses a security task mid-run | Security work is pre-routed to `security-executor` (Opus), so it never reaches the classifier | None |
-
-The policy speaks only of roles. Model bindings live in exactly one place — one line of frontmatter per agent file — so re-pointing a tier is a one-line edit that takes effect everywhere.
-
-## Tuning & FAQ
-
-| Question | Answer |
-|---|---|
-| I want to save even more quota | Switch the main session to `/model opusplan` — Opus thinks in plan mode, Sonnet executes. The role agents keep working unchanged underneath. |
-| Can I force every subagent onto one model? | `CLAUDE_CODE_SUBAGENT_MODEL` overrides *all* per-agent frontmatter — that's why pilotfish doesn't set it. Leave it unset. |
-| I use `availableModels` as an allowlist | Then it must contain every alias the agents use (`opus`, `sonnet`), or those agents silently fall back to inheriting the main-session model. |
-| Why `effort: low` on the cheap roles? | Effort is the second big quota lever. Fable-5-generation models at low effort routinely match previous-generation `xhigh`; recon and mechanical work don't need deep thinking. |
-| Which effort for the main session? | `high`. Official guidance for Fable 5: `high` for most work, `xhigh` only for the longest-horizon tasks. |
-| Does the orchestrator ever do work itself? | Yes — quick single-file reads, decisions, and anything you explicitly asked *it* to judge. Delegation has overhead; the policy says so. |
-| Doesn't spawning agents cost extra? | Yes — every spawn is a fresh context that re-reads its slice of the codebase, and spec-writing costs main-session tokens. That's why the policy says don't delegate single-file reads or quick judgments. The savings come from volume work, where the cheaper tier's per-token price dwarfs the spawn overhead. |
-| Subagent quality worries me | That's what `verifier` is for: an independent fresh-context pass that tries to *refute* the work. Official guidance: fresh-context verifiers beat self-critique. |
-| The guard blocked something I actually wanted | In a subagent, that's the point — hand the long command back to the orchestrator, which can run it safely. If the guard is wrong about your case, open an issue with the command; false positives are bugs. |
-| Turn it off | Just don't type `/pilotfish`. The policy only loads when you invoke it. To remove the guard too, `/plugin uninstall pilotfish`. |
-| Managed / enterprise machine? | Managed settings outrank user settings. If roles don't take effect after restart, ask your admin — pilotfish can't (and shouldn't) override managed policy. |
-
-## Research & design
-
-| Document | Language | Contents |
-|---|---|---|
-| [docs/research.md](./docs/research.md) | English | Full research findings: Fable 5 strengths & when it's wasteful, subscription economics, official Claude Code mechanisms, community measurements — with sources |
-| [docs/research.zh-TW.md](./docs/research.zh-TW.md) | 繁體中文 | 研究報告原版 |
-| [docs/design.md](./docs/design.md) | English | Why role-based policy, why aliases over pinned IDs, effort tiering, what was deliberately left out |
-
-**Prior art & credits.** The "smart brain, cheap hands" split is not pilotfish's invention: Anthropic's own engineering writeup ([Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)) frames it, Claude Code ships [`opusplan`](https://code.claude.com/docs/en/model-config) built in — if all you want is cheaper sessions, `/model opusplan` needs no plugin at all — and [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) reached the plugin-with-guard-hooks shape first. pilotfish's contribution is a small one: five deliberately-few roles instead of a large catalog, a role-based policy that survives model churn, and a guard whose rules were each established by experiment rather than reasoning — including one that overturned this project's own previous advice.
-
-## Uninstall
-
-```
-/plugin uninstall pilotfish
-```
-
-That's it. Nothing was written outside the plugin.
+**Prior art & credits.** The "smart brain, cheap hands" split is not pilotfish's invention: Anthropic's own engineering writeup ([Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)) frames it, Claude Code ships [`opusplan`](https://code.claude.com/docs/en/model-config) built in — if all you want is a cheaper session, `/model opusplan` needs no plugin at all — and [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) reached the plugin-with-guard-hooks shape first. pilotfish's contribution is small: five deliberately-few roles instead of a large catalog, a policy that survives model churn because it never names a model, and a guard whose rules were each established by experiment rather than reasoning — including one that overturned this project's own previous advice.
 
 ## License
 
