@@ -36,7 +36,7 @@ flowchart LR
 | Claude Code | 2.1.207，patched build |
 | remora baseline | v0.1.6，commit `d2ad6e553c48de2b9a6feda199fc6f595882b5dc` |
 | pilotfish baseline | v1.1.5，commit `e5b45dd2330b1ba781d9da0f80211dd657d854cf` |
-| Baton 參考版本 | baton-dispatch v0.1.1 |
+| Baton 參考版本 | [baton-dispatch v0.1.1](https://github.com/cablate/baton) |
 | pilotfish main model | `claude-opus-4-8` |
 | remora main／worker | `gpt-5.6-sol`／`gpt-5.6-luna` |
 | Permission mode | `bypassPermissions`，僅用於可丟棄的 fixture copy |
@@ -114,7 +114,7 @@ Hard candidate 不能原樣發布：pilotfish 在 12 檔機械式工作中選擇
 | 小型唯讀稽核 | 2 scouts，261.52 s，$1.036893 | Inline，228.96 s，$0.918431 | 互相獨立不等於規模足夠 |
 | 緊密耦合 bug | remora baseline scout → executor → verifier | Inline 診斷／修正 → verifier，200.86 s，$0.817504 | Main 持續擁有同一條演進中的證據鏈 |
 
-完整 fixtures、prompts、所有完成 run、刻意中止的決策 probe、正規化 Agent inputs、model usage 與 raw-stream hashes 都位於 [`positive-controls/`](./positive-controls/)。其中有一項刻意不宣稱解決的 compatibility limit：GPT-5.6 Sol 自動載入另外安裝的 `baton-dispatch` v0.1.1 後，後續通用「兩個 disjoint surfaces」指引仍讓 remora 對小型 fixture fan-out。嘗試補的 precedence 文案沒有解決，因此已移除，不把沒有證據的文字假裝成修正。
+完整 fixtures、prompts、所有完成 run、刻意中止的決策 probe、正規化 Agent inputs、model usage 與 raw-stream hashes 都位於 [`positive-controls/`](./positive-controls/)。其中有一項刻意不宣稱解決的 compatibility limit：GPT-5.6 Sol 自動載入另外安裝的 [baton-dispatch v0.1.1](https://github.com/cablate/baton) 後，後續通用「兩個 disjoint surfaces」指引仍讓 remora 對小型 fixture fan-out。嘗試補的 precedence 文案沒有解決，因此已移除，不把沒有證據的文字假裝成修正。
 
 [`results.json`](./results.json) 包含 raw stream SHA-256。Repo 公開的是正規化後的 observable trace，不直接提交 Claude raw stream JSON，因為 raw init／hook event 會包含與 dispatch 主張無關的本機絕對路徑、session identifier 與 plugin inventory。這份報告不宣稱也不公開 chain-of-thought 或隱藏推理；可稽核證據是公開 prompt、fixture、policies、Agent tool inputs、tool sequence、result metrics、diff 與測試結果。
 

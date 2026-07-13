@@ -184,7 +184,7 @@ Read the local file install/AGENT-INSTALL.md in the current checkout and follow 
 | 會失去 1M context window 嗎？ | 不會——Fable 5 預設即 1M，`best` 解析到 Fable 5 時就是 1M。若想在 `best` 降級到 Opus 時也*保證* 1M，把 `model` 改設 `"opus[1m]"`（`[1m]` 後綴的文件支援範圍是 `sonnet`/`opus`/`opusplan`/完整 model ID，不含 `best`）。 |
 | Orchestrator 自己完全不動手嗎？ | 會動手——馬上要用的閱讀、少量 repo 檔案掃描、決策、根因探索、trace-driven debugging，以及你明確要*它*判斷的事。其他工作只有在成本、context、時間、隔離或驗證的整體效益高於重建與整合成本時才委派。 |
 | 我的專案有自己的 CLAUDE.md，會衝突嗎？ | 檔案完全不會被動到：pilotfish 只寫 `~/.claude/` 底下。執行時 Claude Code 把專案層與使用者層記憶「疊加」載入——兩者同時生效、互不覆寫。若某個 repo 需要不同行為，在該專案的 CLAUDE.md 寫一條在地規則（例如「這個 repo 內直接動手、不委派」）——實務上較具體的指示會勝出。 |
-| 我也裝了 delegation-planning skill | 請把它視為第二個 orchestration authority。較晚注入的 Skill output 可能和 pilotfish 全域 policy 衝突；公開實驗在 GPT-5.6 Sol 與 `baton-dispatch` v0.1.1 觀察到這個現象。建議只留一個 authority，或加一條明確的 project compatibility rule。pilotfish 不會停用使用者 skills。 |
+| 我也裝了 delegation-planning skill | 請把它視為第二個 orchestration authority。較晚注入的 Skill output 可能和 pilotfish 全域 policy 衝突；公開實驗在 GPT-5.6 Sol 與 [baton-dispatch v0.1.1](https://github.com/cablate/baton) 觀察到這個現象。建議只留一個 authority，或加一條明確的 project compatibility rule。pilotfish 不會停用使用者 skills。 |
 | 擔心 subagent 品質 | 這正是 `verifier` 的職責：獨立 fresh-context、以「推翻」為目標的驗證。官方口徑：fresh-context 驗證者優於自我批判。剩下的交給升級規則（兩次失敗 → 升一層）。注意驗證本身也不是免費的——它在 Opus 上重讀 context——所以政策把它限定在非平凡的工作。 |
 | Spawn agent 不是有額外成本嗎？ | 有——每次 spawn 都是全新 context、要重讀它負責的那部分 codebase，寫規格也花主 session 的 token。Policy 會讓約十來個短檔案的掃描直接完成，除非有可重疊 latency 或必須獨立觀點；但穩定的批次編輯仍可委派。公開 positive control 的 reported cost field 降低 36.01%，代價是 wall time 增加 7.92%。 |
 | 怎麼快速關掉？ | **只關這個 session：** 直接跟 Claude 說「這個 session 不要委派，全部直接動手」——那只是政策文字，它立刻照辦。**只關這個 repo：** 在該 repo 的 CLAUDE.md 加一條在地規則。**整台機器：** 把 `~/.claude/CLAUDE.md` 裡的 `pilotfish:begin/end` 區塊註解掉——agent 檔留著閒置即可。切回來不必重裝。 |

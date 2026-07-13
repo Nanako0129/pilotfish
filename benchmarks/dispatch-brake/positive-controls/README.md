@@ -76,7 +76,7 @@ TASK="$(sed -n '/^```text$/,/^```$/p' \
 | One run per completed condition | Time and cost deltas show observed behavior, not stable expected values |
 | Client-reported cost field | It is not a provider invoice |
 | Claude quota approached exhaustion | No further pilotfish live repetitions were started; the completed sized-gate run was preserved |
-| Co-installed `baton-dispatch` v0.1.1 | GPT-5.6 Sol auto-loaded the generic skill and still fanned out remora's small research fixture. Two follow-up probes were stopped once the decision violation was observable. An unverified precedence sentence was removed rather than shipped |
+| Co-installed [baton-dispatch v0.1.1](https://github.com/cablate/baton) | GPT-5.6 Sol auto-loaded the generic skill and still fanned out remora's small research fixture. Two follow-up probes were stopped once the decision violation was observable. An unverified precedence sentence was removed rather than shipped |
 | Product/model asymmetry | A policy that works under Claude Opus is not automatically proven under GPT-5.6 Sol when later skill instructions are injected |
 
 The remora/Baton interaction is therefore an open compatibility finding, not a claimed fix. The released policy improves the standalone routing contract and has positive/negative behavioral evidence, but it does not claim to dominate every independently installed orchestration skill.

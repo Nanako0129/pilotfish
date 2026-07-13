@@ -36,7 +36,7 @@ The complete fixture is in [`fixture/`](./fixture/), and the exact neutral promp
 | Claude Code | 2.1.207, patched build |
 | remora baseline | v0.1.6, commit `d2ad6e553c48de2b9a6feda199fc6f595882b5dc` |
 | pilotfish baseline | v1.1.5, commit `e5b45dd2330b1ba781d9da0f80211dd657d854cf` |
-| Baton reference | baton-dispatch v0.1.1 |
+| Baton reference | [baton-dispatch v0.1.1](https://github.com/cablate/baton) |
 | pilotfish main model | `claude-opus-4-8` |
 | remora main / worker | `gpt-5.6-sol` / `gpt-5.6-luna` |
 | Permission mode | `bypassPermissions`, restricted to disposable fixture copies |
@@ -114,7 +114,7 @@ The first net-benefit wording then overcorrected. Two background scouts handled 
 | Small read-only audit | 2 scouts, 261.52 s, $1.036893 | Inline, 228.96 s, $0.918431 | Independence alone is not enough scale |
 | Tightly coupled bug | remora baseline scout → executor → verifier | Inline diagnosis/fix → verifier, 200.86 s, $0.817504 | One evolving evidence chain stays owned by main |
 
-The complete fixtures, prompts, all completed runs, deliberately interrupted decision probes, normalized Agent inputs, model usage, and raw-stream hashes are in [`positive-controls/`](./positive-controls/). One compatibility limit is intentionally unresolved: when GPT-5.6 Sol auto-loaded the separately installed `baton-dispatch` v0.1.1 skill, its later generic “two disjoint surfaces” guidance still caused remora to fan out the small fixture. The attempted precedence wording did not fix the interaction and was removed rather than shipped without evidence.
+The complete fixtures, prompts, all completed runs, deliberately interrupted decision probes, normalized Agent inputs, model usage, and raw-stream hashes are in [`positive-controls/`](./positive-controls/). One compatibility limit is intentionally unresolved: when GPT-5.6 Sol auto-loaded the separately installed [baton-dispatch v0.1.1](https://github.com/cablate/baton) skill, its later generic “two disjoint surfaces” guidance still caused remora to fan out the small fixture. The attempted precedence wording did not fix the interaction and was removed rather than shipped without evidence.
 
 Raw stream hashes are included in [`results.json`](./results.json). The repository publishes normalized observable traces instead of raw Claude stream JSON because raw init and hook events contain local absolute paths, session identifiers, and plugin inventory unrelated to the dispatch claim. No chain-of-thought or hidden reasoning is claimed or published; the evidence is the public prompt, fixture, policies, Agent tool inputs, tool sequence, result metrics, diffs, and test outcomes.
 

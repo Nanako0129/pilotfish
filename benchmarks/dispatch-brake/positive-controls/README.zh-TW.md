@@ -76,7 +76,7 @@ TASK="$(sed -n '/^```text$/,/^```$/p' \
 | 每個完整條件只有一次執行 | 時間與成本差異只代表觀察到的行為，不是穩定期望值 |
 | Client-reported cost field | 不是 provider 帳單 |
 | Claude 額度接近耗盡 | 沒有再啟動 pilotfish live repetition；已完成的 sized-gate run 完整保留 |
-| 同時安裝 `baton-dispatch` v0.1.1 | GPT-5.6 Sol 自動載入通用 skill，remora 的小型研究仍 fan-out。兩個 follow-up probe 在觀察到決策違反後停止；沒通過驗證的 precedence 文字已移除，沒有假裝發布為修正 |
+| 同時安裝 [baton-dispatch v0.1.1](https://github.com/cablate/baton) | GPT-5.6 Sol 自動載入通用 skill，remora 的小型研究仍 fan-out。兩個 follow-up probe 在觀察到決策違反後停止；沒通過驗證的 precedence 文字已移除，沒有假裝發布為修正 |
 | Product／model 不對稱 | Claude Opus 遵守的 policy，不能自動外推到後續又注入 skill 指令的 GPT-5.6 Sol |
 
 因此 remora／Baton 的互動是公開的 compatibility finding，不是已修正宣稱。Release policy 改善 standalone routing contract，且已有 positive／negative 行為證據，但不宣稱能壓過每一個使用者另外安裝的 orchestration skill。
