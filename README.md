@@ -2,14 +2,16 @@
 
 > Pilot fish swim alongside the ocean's largest predators — small, fast, and doing the routine work so the big one doesn't have to.
 
-**pilotfish** is a multi-model orchestration plugin for [Claude Code](https://code.claude.com). The frontier model (Claude Fable 5 / Opus) plans, decides, and reviews in your main session; Sonnet does the volume work through five pinned role agents. Quality is protected by fresh-context verification, not by using the biggest model everywhere. It ships as pure markdown and JSON — no hook, no interpreter, no runtime dependency of any kind — so it runs anywhere Claude Code runs, Windows included.
+**pilotfish** is a multi-model orchestration plugin for [Claude Code](https://code.claude.com). The frontier model (Claude Fable 5 / Opus) plans and decides in your main session; seven pinned role agents split bounded discovery, Plan review, execution, security review, and outcome verification. Quality is protected by phase gates and fresh-context verification, not by using the biggest model everywhere. It ships as pure markdown and JSON — no hook, no interpreter, no runtime dependency of any kind — so it runs anywhere Claude Code runs, Windows included.
 
 ```
 /plugin marketplace add Nanako0129/pilotfish
 /plugin install pilotfish@pilotfish
 ```
 
-Then type `/pilotfish` to arm it for the session, or `/pilotfish <task>` to arm it and start. It never activates on its own. Nothing is written into your `~/.claude/` config or into your projects; uninstalling (`/plugin uninstall pilotfish`) removes every trace.
+Then type `/pilotfish:pilotfish` to arm it for the session, or `/pilotfish:pilotfish <task>` to arm it and start. Plugin skills are namespaced; bare `/pilotfish` is not the installed command. It never activates on its own. Nothing is written into your `~/.claude/` config or into your projects; uninstalling (`/plugin uninstall pilotfish`) removes every trace.
+
+> **Runtime requirement:** Claude Code **2.1.207 or newer**. This is the verified baseline that enforces agent `tools` allowlists. The plugin manifest has no minimum-runtime field, so the skill checks `claude --version` when invoked and stops before delegation or writes on an older or unidentifiable build; do not bypass that gate.
 
 One manual step, if you want it: no plugin can set your main-session model, so put the orchestrator on the frontier tier yourself with `/model best` — or persist `{ "model": "best", "fallbackModel": ["opus", "sonnet"] }` in `~/.claude/settings.json`. pilotfish works without it, but the cost argument below assumes a frontier orchestrator.
 
@@ -25,22 +27,26 @@ The split is officially benchmarked, and pilotfish ships exactly the configurati
 
 **Speed.** Sonnet returns tokens faster than Opus, and the two highest-volume roles run at `effort: low`, which removes most of the thinking latency from work that doesn't need it. Independent delegations are spawned in the background and overlap, so wall-clock tracks the slowest agent rather than the sum of them.
 
-The quality you'd expect to lose is bought back by the `verifier` — an independent, fresh-context pass that tries to *refute* the finished work. That's not a hedge: Anthropic's [Fable 5 prompting guide](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5) is explicit that fresh-context verifier subagents outperform self-critique. It's cheaper than it sounds, too — an executor's cost scales with the search space it explores, a verifier's only with the diff it's handed.
+The quality you'd expect to lose is bought back at two boundaries: a read-only `plan-verifier` challenges material Plans before approval, and an independent outcome `verifier` tries to *refute* finished work. That's not a hedge: Anthropic's [Fable 5 prompting guide](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5) is explicit that fresh-context verifier subagents outperform self-critique. Verification is reserved for material Plans and non-trivial outcomes rather than added to every small task.
 
 ## How it works
 
-Two layers, one install: **roles** (`agents/*.md`, each pinning its own model in one line of frontmatter) and **policy** (`skills/pilotfish/SKILL.md`, written in terms of roles and never model names, loaded by `/pilotfish`). Nothing enforces the policy's rules structurally — see [Why no guard](#why-no-guard) below for the trade-off and what it costs you.
+Two layers, one install: **roles** (`agents/*.md`, each pinning its own model in one line of frontmatter) and **policy** (`skills/pilotfish/SKILL.md`, written in terms of roles and never model names, loaded by `/pilotfish:pilotfish`). Positive tool allowlists enforce the three read-only roles; two cross-cutting prohibitions remain policy-only — see [Why no guard](#why-no-guard) for that trade-off.
 
 ```mermaid
 flowchart TD
-    U[You] -->|/pilotfish| O
+    U[You] -->|/pilotfish:pilotfish| O
     subgraph MAIN["main session — orchestrator"]
         O["plan / decide / spec / review<br>owns long-running processes"]
     end
     O -->|recon| S["scout<br>sonnet · effort low"]
+    O -->|Plan challenge| PV["plan-verifier<br>opus · read-only"]
+    PV -->|READY / REVISE| O
+    O -->|security evidence| SR["security-reviewer<br>opus · read-only"]
+    SR -->|findings| O
     O -->|mechanical spec| M["mech-executor<br>sonnet · effort low"]
     O -->|judgment work| E["executor<br>sonnet · effort high"]
-    O -->|security-sensitive| SEC["security-executor<br>opus · effort high"]
+    O -->|approved security spec| SEC["security-executor<br>opus · effort high"]
     M --> V["verifier<br>opus · effort high<br>fresh context"]
     E --> V
     SEC --> V
@@ -50,14 +56,16 @@ flowchart TD
 | Role | Model | Effort | Used for |
 |---|---|---|---|
 | `scout` | sonnet | low | Read-only recon: "where/how is X", symbol usages, config values |
+| `plan-verifier` | opus | medium | Tool-enforced read-only Plan challenge before approval; returns READY/REVISE |
+| `security-reviewer` | opus | high | Tool-enforced read-only security evidence and threat review before approval |
 | `mech-executor` | sonnet | low | Fully-specified mechanical work: pattern refactors, convention tests, docs, bulk edits |
 | `executor` | sonnet | high | Implementation needing judgment: features, bug fixes, design-sensitive refactors |
 | `verifier` | opus | high | Fresh-context adversarial verification; returns CONFIRMED/REFUTED, never fixes |
-| `security-executor` | opus | high | Anything security-sensitive — deliberately kept off Fable 5, whose safety classifiers can refuse benign defensive-security work |
+| `security-executor` | opus | high | Approved security-sensitive implementation — deliberately kept off Fable 5, whose safety classifiers can refuse benign defensive-security work |
 
 `scout`, `mech-executor`, and `executor` are all Sonnet and differ only in effort — which is precisely why they're three files. The `Agent` tool has no `effort` parameter, so frontmatter is the *only* place effort can be set: one role definition means one effort level, and a 30-file rename would run at `high` for nothing.
 
-The policy adds the operating rules: spec delegations in one shot including the *why*, start with the cheapest plausible role and escalate after two failures, let each role take its model only from its own definition, schedule independent work in the background, and gate non-trivial work behind a `verifier` pass before calling it done.
+The policy adds a phase-aware lifecycle: bounded read-only Discovery, main-session Plan synthesis, explicit approval before gated writes, stable execution contracts, and fresh outcome verification. It keeps small stable work direct, prevents a single unknown bug from becoming a sequential scout-to-executor relay, and separates pre-approval security evidence from write-capable security execution.
 
 ## Why no guard
 
@@ -77,7 +85,7 @@ Both rules are established by experiment, not assumed, and both live as instruct
 
 **Want OpenAI GPT-5.6 inside Claude Code without changing native Claude state?** [Remora](https://github.com/Nanako0129/remora-cc) packages pilotfish's role-based orchestration pattern into a session-scoped launcher for an existing Anthropic-compatible gateway: its model and gateway overrides disappear with the child process.
 
-**Prior art & credits.** The "smart brain, cheap hands" split is not pilotfish's invention: Anthropic's own engineering writeup ([Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)) frames it, Claude Code ships [`opusplan`](https://code.claude.com/docs/en/model-config) built in — if all you want is a cheaper session, `/model opusplan` needs no plugin at all — and [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) explored the plugin-with-guard-hooks shape, which pilotfish deliberately does not follow — see [Why no guard](#why-no-guard). pilotfish's contribution is small: five deliberately-few roles instead of a large catalog, a policy that survives model churn because it never names a model, and rules that were each established by experiment rather than reasoning — including one that overturned this project's own previous advice.
+**Prior art & credits.** The "smart brain, cheap hands" split is not pilotfish's invention: Anthropic's own engineering writeup ([Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)) frames it, Claude Code ships [`opusplan`](https://code.claude.com/docs/en/model-config) built in — if all you want is a cheaper session, `/model opusplan` needs no plugin at all — and [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) explored the plugin-with-guard-hooks shape, which pilotfish deliberately does not follow — see [Why no guard](#why-no-guard). pilotfish's contribution is small: seven deliberately-few roles instead of a large catalog, a policy that survives model churn because it never names a model, and rules that were each established by experiment rather than reasoning — including one that overturned this project's own previous advice.
 
 ## License
 

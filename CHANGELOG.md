@@ -2,9 +2,13 @@
 
 All notable changes to pilotfish. From v2.0.0 the installed version is the plugin's manifest version (`/plugin`); v1.x installs stamped it inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`).
 
-## v2.1.0 — 2026-07-13
+## v2.1.0 — 2026-07-14
 
-**Haiku is out; the execution tier is Sonnet.** `scout` moves Haiku → Sonnet (`effort: low`) and `executor` moves Opus/medium → Sonnet/high. `verifier` stays on Opus and goes to `effort: high`. `mech-executor` (Sonnet/low) and `security-executor` (Opus/high) are unchanged. This makes the shipped configuration exactly the one Anthropic benchmarked: a frontier orchestrator with Sonnet 5 workers, at 96% of all-frontier performance for 46% of the cost.
+**Haiku is out; the execution tier is Sonnet.** `scout` moves Haiku → Sonnet (`effort: low`) and `executor` moves Opus/medium → Sonnet/high. `verifier` stays on Opus and goes to `effort: high`. `mech-executor` (Sonnet/low), `plan-verifier` (Opus/medium), `security-reviewer` (Opus/high), and `security-executor` (Opus/high) are unchanged. This makes the execution configuration the one Anthropic benchmarked: a frontier orchestrator with Sonnet 5 workers, at 96% of all-frontier performance for 46% of the cost.
+
+The plugin replatform preserves v1.2.0's phase-aware lifecycle rather than reverting to execution-only routing. Seven namespaced plugin roles retain bounded Discovery, tool-enforced read-only Plan and security review before approval, approved execution, and fresh outcome verification. The former eighth role, the user-level `Explore` override, cannot shadow a built-in from a plugin namespace and is replaced by an explicit prohibition plus routing to `pilotfish:scout`.
+
+Plugin skills are invoked by their namespaced command, so the installed entrypoint is `/pilotfish:pilotfish`, not bare `/pilotfish`. Because the plugin manifest has no minimum-runtime field, the skill also runs a fail-closed `claude --version` preflight and requires Claude Code 2.1.207 or newer before it delegates or writes; the read-only Plan and security boundaries depend on that runtime enforcing agent `tools` allowlists.
 
 Three reasons, in order of weight:
 
@@ -14,9 +18,9 @@ Three reasons, in order of weight:
 
 The three Sonnet roles are deliberately kept as three files. The `Agent` tool has no `effort` parameter — effort is settable only in agent frontmatter — so one role definition means one effort level, and collapsing them would run bulk mechanical work at `effort: high` for nothing.
 
-## v2.0.0 — 2026-07-13
+## v2.0.0 — 2026-07-14
 
-**pilotfish is now a plugin.** Install with `/plugin marketplace add Nanako0129/pilotfish` and `/plugin install pilotfish@pilotfish`; invoke with `/pilotfish`. Nothing is merged into `~/.claude/` any more, nothing is written into your projects, and uninstalling removes every trace. The old hand-merged global install (`templates/`, `install/AGENT-INSTALL.md`, the `VERSION`/README/policy stamp coupling) is gone with it.
+**pilotfish is now a plugin.** Install with `/plugin marketplace add Nanako0129/pilotfish` and `/plugin install pilotfish@pilotfish`; invoke with `/pilotfish:pilotfish`. Nothing is merged into `~/.claude/` any more, nothing is written into your projects, and uninstalling removes every trace. The old hand-merged global install (`templates/`, `install/AGENT-INSTALL.md`, the `VERSION`/README/policy stamp coupling) is gone with it.
 
 **Still nothing to install but text.** The plugin is markdown and JSON — no hook script, no interpreter, no runtime dependency of any kind. That is a constraint pilotfish holds itself to, not an omission. A hook is a script, and a script needs an interpreter that Claude Code does not guarantee on the machine it runs on: Python is absent from a default Windows box, and even `node` is missing when Claude Code is installed from its native standalone binary rather than from npm. A rule enforced by a hook would therefore be enforced on some of your machines and silently absent on the others — the worst of both worlds, since you would stop watching for what you believe is being caught. So the rules live where they work everywhere: in the policy the orchestrator reads.
 
@@ -28,7 +32,7 @@ The three Sonnet roles are deliberately kept as three files. The `Agent` tool ha
 
 `nohup`/`setsid` dodge that `SIGTERM` by escaping the process group — but they also escape Claude Code's task tracking, so there is no task id, no captured output, and no notification. Detaching converts a destroyed result into an orphaned one. So subagents no longer detach at all: they run in the foreground with an explicit `timeout` and hand back anything that cannot finish inside one. **Long-running processes belong to the orchestrator** — the only context whose background tasks are both tracked and reliably notified. This also makes spawning agents with `run_in_background: true` load-bearing for correctness, not merely cost.
 
-**`Explore` can no longer be shadowed, so the policy forbids it outright.** Since Claude Code v2.1.198 the built-in `Explore` inherits the main-session model, so every background search it runs from a Fable/Opus session bills at frontier rates — precisely the cost this plugin exists to avoid. v1.x neutralised it by shadowing it with a same-name *user-level* agent pinned to a cheap tier. A plugin cannot do that: plugin agents are namespaced, so `pilotfish:Explore` is a different agent from the built-in and shadows nothing. The skill therefore forbids the built-in in as many words and routes every search to `scout`. Five roles now, not six.
+**`Explore` can no longer be shadowed, so the policy forbids it outright.** Since Claude Code v2.1.198 the built-in `Explore` inherits the main-session model, so every background search it runs from a Fable/Opus session bills at frontier rates — precisely the cost this plugin exists to avoid. v1.x neutralised it by shadowing it with a same-name *user-level* agent pinned to a cheap tier. A plugin cannot do that: plugin agents are namespaced, so `pilotfish:Explore` is a different agent from the built-in and shadows nothing. The skill therefore forbids the built-in in as many words and routes every search to `scout`. The plugin ships seven namespaced roles rather than v1.2.0's eight user-level roles.
 
 Credit: [@dromsak](https://github.com/dromsak).
 

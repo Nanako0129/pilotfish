@@ -6,23 +6,30 @@ manifest, so that machinery is gone.
 
 pilotfish ships no hooks and no runtime dependency of its own — it is pure markdown and
 JSON, so it runs anywhere Claude Code runs, Windows included. What is worth pinning now
-is the wiring: the manifest parses, every role the skill routes to is a real agent with
-a pinned model, the skill routes to namespaced names, and no role teaches a subagent to
-detach a process — that rule is policy now, not enforcement, but it must still hold.
+is the wiring: the manifest parses, phase and approval gates survive the replatform,
+every routed role is real and owns its model, historical evidence remains intact, and
+no role teaches a subagent to detach a process.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ROLES = ("scout", "mech-executor", "executor", "verifier", "security-executor")
-# Roles that can run commands. `scout` cannot — its tools allowlist has no `Bash` — so
-# it is the one role whose inability to detach is structural rather than instructed.
-SHELL_ROLES = tuple(r for r in ROLES if r != "scout")
+ROLES = (
+    "scout",
+    "plan-verifier",
+    "security-reviewer",
+    "mech-executor",
+    "executor",
+    "verifier",
+    "security-executor",
+)
+SHELL_ROLES = ("mech-executor", "executor", "verifier", "security-executor")
 
 
 class Manifest(unittest.TestCase):
@@ -40,12 +47,31 @@ class Manifest(unittest.TestCase):
         names = [p["name"] for p in market["plugins"]]
         self.assertIn("pilotfish", names)
 
+    def test_manifest_version_has_changelog_entry(self) -> None:
+        manifest = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())
+        changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+        self.assertRegex(
+            changelog,
+            rf"(?m)^## v{re.escape(manifest['version'])} ",
+        )
+
+    def test_docs_use_the_namespaced_skill_command(self) -> None:
+        for path in ("README.md", "README.zh-TW.md", "docs/design.md"):
+            content = (ROOT / path).read_text(encoding="utf-8")
+            self.assertIn("/pilotfish:pilotfish", content)
+
+        skill = (ROOT / "skills/pilotfish/SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("Invoke as /pilotfish:pilotfish", skill)
+
 
 class Roles(unittest.TestCase):
     def test_every_role_pins_its_own_model(self) -> None:
         """Model routing lives in the agent definition and nowhere else. If a role
         stops pinning a model it silently inherits the main session's — which is the
         entire cost problem this project exists to solve."""
+        actual_roles = {path.stem for path in (ROOT / "agents").glob("*.md")}
+        self.assertEqual(actual_roles, set(ROLES))
+
         for role in ROLES:
             agent = (ROOT / "agents" / f"{role}.md").read_text()
             frontmatter = agent.split("---", 2)[1]
@@ -67,6 +93,95 @@ class Roles(unittest.TestCase):
     def test_skill_forbids_passing_model_at_invocation(self) -> None:
         skill = (ROOT / "skills/pilotfish/SKILL.md").read_text()
         self.assertIn("Never pass `model`", skill)
+
+    def test_skill_uses_phase_specific_dispatch_brakes(self) -> None:
+        skill = (ROOT / "skills/pilotfish/SKILL.md").read_text()
+        for phrase in (
+            "## Phase gates",
+            "Stabilize the question, allowed scope, evidence format, and stop condition",
+            "The main session synthesizes one Plan",
+            "A broad initial request is not approval",
+            "No source edit or implementation brief before required approval",
+            "workers would repeatedly depend on evolving main-session evidence",
+            "Do not turn it into a sequential scout-to-executor pipeline",
+            "A matching role makes work eligible, not mandatory",
+            "Plan synthesis and final judgment stay in the main session",
+        ):
+            self.assertIn(phrase, skill)
+
+    def test_skill_requires_tool_enforcing_runtime(self) -> None:
+        skill = (ROOT / "skills/pilotfish/SKILL.md").read_text()
+        self.assertIn("claude --version", skill)
+        self.assertIn("Claude Code 2.1.207 or newer", skill)
+        self.assertIn("stop before delegating", skill)
+        self.assertIn("Do not approximate `plan-verifier` or `security-reviewer`", skill)
+
+        for path in ("README.md", "README.zh-TW.md"):
+            content = (ROOT / path).read_text(encoding="utf-8")
+            self.assertIn("2.1.207", content)
+
+    def test_plan_and_outcome_verification_are_capability_separated(self) -> None:
+        skill = (ROOT / "skills/pilotfish/SKILL.md").read_text()
+        plan_verifier = (ROOT / "agents/plan-verifier.md").read_text()
+        verifier = (ROOT / "agents/verifier.md").read_text()
+
+        self.assertIn("Plan review asks `pilotfish:plan-verifier` only for READY or REVISE", skill)
+        self.assertIn("outcome review asks `pilotfish:verifier` only for CONFIRMED or REFUTED", skill)
+        self.assertIn("tools: Read, Glob, Grep", plan_verifier)
+        self.assertIn("excludes Bash, Write, Edit", plan_verifier)
+        self.assertIn("READY", plan_verifier)
+        self.assertIn("REVISE", plan_verifier)
+        self.assertNotIn("CONFIRMED", plan_verifier)
+        self.assertNotIn("REFUTED", plan_verifier)
+        self.assertIn("CONFIRMED", verifier)
+        self.assertIn("REFUTED", verifier)
+        self.assertNotIn("READY", verifier)
+        self.assertNotIn("REVISE", verifier)
+
+    def test_security_roles_preserve_the_approval_boundary(self) -> None:
+        skill = (ROOT / "skills/pilotfish/SKILL.md").read_text()
+        reviewer = (ROOT / "agents/security-reviewer.md").read_text()
+        executor = (ROOT / "agents/security-executor.md").read_text()
+
+        self.assertIn("Before required approval", skill)
+        self.assertIn("Never send pre-approval work to the write-capable executor", skill)
+        self.assertIn("tools: Read, Glob, Grep, WebSearch, WebFetch", reviewer)
+        self.assertIn("excludes Bash, Write, Edit", reviewer)
+        self.assertIn("approved, stable execution contract", executor)
+        self.assertIn("pre-approval analysis belongs to `security-reviewer`", executor)
+
+    def test_historical_baton_evidence_matches_recorded_hashes(self) -> None:
+        gate = ROOT / "benchmarks" / "baton-compatibility"
+        results = json.loads((gate / "results.json").read_text(encoding="utf-8"))
+        runtime = results["runtime"]
+
+        for prefix in ("superseded_gate", "final_gate"):
+            policy = (gate / runtime[f"{prefix}_snapshot_policy"]).read_bytes()
+            agents = (gate / runtime[f"{prefix}_snapshot_agents_json"]).read_text(
+                encoding="utf-8"
+            ).rstrip("\n").encode()
+            self.assertEqual(
+                hashlib.sha256(policy).hexdigest(),
+                runtime[f"{prefix}_orchestration_sha256"],
+            )
+            self.assertEqual(
+                hashlib.sha256(agents).hexdigest(),
+                runtime[f"{prefix}_agents_json_sha256"],
+            )
+
+    def test_mechanical_replay_fetches_pinned_snapshot(self) -> None:
+        pinned = "863b117b9da42179c5bb77a05158920fbc092ee2"
+        for readme in (
+            "benchmarks/dispatch-brake/positive-controls/README.md",
+            "benchmarks/dispatch-brake/positive-controls/README.zh-TW.md",
+        ):
+            content = (ROOT / readme).read_text(encoding="utf-8")
+            fetch = 'fetch --depth 1 origin "$PINNED"'
+            worktree = 'worktree add --detach "$SNAPSHOT" "$PINNED"'
+            self.assertIn(f"PINNED={pinned}", content)
+            self.assertIn(fetch, content)
+            self.assertIn(worktree, content)
+            self.assertLess(content.index(fetch), content.index(worktree))
 
     def test_skill_carries_the_two_unenforced_rules(self) -> None:
         """With no hook, the skill prompt is the *only* thing carrying these two rules —
@@ -122,9 +237,8 @@ class Roles(unittest.TestCase):
         that asserts detaching is "blocked": that states an enforcement which does not
         exist, and a model told the door is locked stops holding it shut itself.
 
-        `scout` is exempt — its positive `tools: Read, Glob, Grep` allowlist means it has
-        no `Bash` at all, so the capability is genuinely removed rather than merely asked
-        for. That is the one place enforcement survives without a hook."""
+        The three read-only roles are exempt because positive tool allowlists remove Bash;
+        their inability to detach is structural rather than prompted."""
         for role in SHELL_ROLES:
             agent = (ROOT / "agents" / f"{role}.md").read_text().lower()
             self.assertRegex(

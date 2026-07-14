@@ -2,14 +2,16 @@
 
 > 領航魚與海中最大的掠食者同游——小而快，把例行工作攬下來，讓大傢伙專心做只有牠能做的事。
 
-**pilotfish** 是 [Claude Code](https://code.claude.com) 的多模型協作 plugin：前沿模型（Claude Fable 5 / Opus）在主 session 負責規劃、決策與審查，Sonnet 則透過五個釘住模型的角色 agent 承接大量執行工作。品質靠 fresh-context 驗證把關，而不是靠處處使用最大的模型。它就是純粹的 markdown 與 JSON——沒有 hook、沒有直譯器、沒有任何 runtime 依賴——所以無論 Claude Code 跑在哪裡都能用，包含原生 Windows。
+**pilotfish** 是 [Claude Code](https://code.claude.com) 的多模型協作 plugin：前沿模型（Claude Fable 5 / Opus）在主 session 負責規劃與決策；七個釘住模型的角色 agent 分別承接有限的探索、Plan 審查、執行、資安審查與結果驗證。品質靠 phase gate 與 fresh-context 驗證把關，而不是靠處處使用最大的模型。它就是純粹的 markdown 與 JSON——沒有 hook、沒有直譯器、沒有任何 runtime 依賴——所以無論 Claude Code 跑在哪裡都能用，包含原生 Windows。
 
 ```
 /plugin marketplace add Nanako0129/pilotfish
 /plugin install pilotfish@pilotfish
 ```
 
-接著輸入 `/pilotfish`，這個 session 接下來就照這套方式跑；或直接 `/pilotfish <任務>`，掛上之後立刻開始處理。它絕不自行啟動。不會寫入你的 `~/.claude/` 設定，也不會寫入你的專案；移除（`/plugin uninstall pilotfish`）不留下一絲痕跡。
+接著輸入 `/pilotfish:pilotfish`，這個 session 接下來就照這套方式跑；或直接 `/pilotfish:pilotfish <任務>`，掛上之後立刻開始處理。Plugin skill 具有 namespace；安裝後的指令不是裸的 `/pilotfish`。它絕不自行啟動。不會寫入你的 `~/.claude/` 設定，也不會寫入你的專案；移除（`/plugin uninstall pilotfish`）不留下一絲痕跡。
+
+> **Runtime 要求：** Claude Code **2.1.207 或更新版本**。這是已驗證會強制執行 agent `tools` allowlist 的最低基準。Plugin manifest 沒有最低 runtime 欄位，因此 skill 啟動時會檢查 `claude --version`；若版本更舊或無法辨識，會在委派或寫入前停止。不要繞過這道 gate。
 
 有一個手動步驟，看你要不要做：任何 plugin 都無法設定你的主 session 模型，所以請自己把 orchestrator 放到前沿層級——`/model best`，或寫進 `~/.claude/settings.json` 常駐：`{ "model": "best", "fallbackModel": ["opus", "sonnet"] }`。不做這步 pilotfish 一樣能用，只是底下的成本論證假設了一個前沿 orchestrator。
 
@@ -25,22 +27,26 @@
 
 **速度。** Sonnet 吐 token 比 Opus 快，而兩個工作量最大的角色跑在 `effort: low`——把不需要深度思考的工作上那層思考延遲拿掉了大半。可獨立推進的委派會放到背景並行推進，於是實際耗時跟的是最慢的那個 agent，而不是每個 agent 的時間相加。
 
-你以為會損失的品質，由 `verifier` 買回來——獨立、fresh-context、以*推翻*完成品為目標的一輪驗證。這不是保險起見：Anthropic 的 [Fable 5 prompting 指南](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5)明講「獨立的 fresh-context 驗證者 subagent 效果優於模型自我批判」。它也比聽起來便宜——executor 的成本隨它要探索的搜尋空間放大，verifier 的成本只隨遞到它手上的 diff 放大。
+你以為會損失的品質，在兩個邊界買回來：唯讀 `plan-verifier` 在批准前挑戰重要 Plan，獨立的結果 `verifier` 則以*推翻*完成品為目標。這不是保險起見：Anthropic 的 [Fable 5 prompting 指南](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5)明講「獨立的 fresh-context 驗證者 subagent 效果優於模型自我批判」。驗證只用在重要 Plan 與非平凡結果，不會加到每個小任務上。
 
 ## 運作方式
 
-兩層架構，一次安裝：**角色層**（`agents/*.md`，每個角色用一行 frontmatter 把自己釘在某個模型上）與**政策層**（`skills/pilotfish/SKILL.md`，只寫角色、永不寫模型名，輸入 `/pilotfish` 時載入）。政策的規則沒有任何機制強制執行——這個取捨與代價見下方[〈為什麼沒有守衛〉](#為什麼沒有守衛)。
+兩層架構，一次安裝：**角色層**（`agents/*.md`，每個角色用一行 frontmatter 把自己釘在某個模型上）與**政策層**（`skills/pilotfish/SKILL.md`，只寫角色、永不寫模型名，輸入 `/pilotfish:pilotfish` 時載入）。三個唯讀角色由正向 tool allowlist 強制限制；另外兩條跨角色禁令仍只靠政策——這個取捨見下方[〈為什麼沒有守衛〉](#為什麼沒有守衛)。
 
 ```mermaid
 flowchart TD
-    U[You] -->|/pilotfish| O
+    U[You] -->|/pilotfish:pilotfish| O
     subgraph MAIN["main session — orchestrator"]
         O["plan / decide / spec / review<br>owns long-running processes"]
     end
     O -->|recon| S["scout<br>sonnet · effort low"]
+    O -->|挑戰 Plan| PV["plan-verifier<br>opus · 唯讀"]
+    PV -->|READY / REVISE| O
+    O -->|資安證據| SR["security-reviewer<br>opus · 唯讀"]
+    SR -->|發現| O
     O -->|mechanical spec| M["mech-executor<br>sonnet · effort low"]
     O -->|judgment work| E["executor<br>sonnet · effort high"]
-    O -->|security-sensitive| SEC["security-executor<br>opus · effort high"]
+    O -->|已批准資安規格| SEC["security-executor<br>opus · effort high"]
     M --> V["verifier<br>opus · effort high<br>fresh context"]
     E --> V
     SEC --> V
@@ -50,14 +56,16 @@ flowchart TD
 | 角色 | 模型 | Effort | 用途 |
 |---|---|---|---|
 | `scout` | sonnet | low | 唯讀查找：「X 在哪／怎麼運作」、symbol 用法、設定值 |
+| `plan-verifier` | opus | medium | 批准前以 tool 強制唯讀挑戰 Plan；回覆 READY/REVISE |
+| `security-reviewer` | opus | high | 批准前以 tool 強制唯讀收集資安證據與 threat review |
 | `mech-executor` | sonnet | low | 規格完整的機械性工作：pattern 重構、照慣例寫測試、文件、批次編輯 |
 | `executor` | sonnet | high | 需要判斷的實作：功能開發、bug 修復、涉及設計的重構 |
 | `verifier` | opus | high | Fresh-context 對抗式驗證；回報 CONFIRMED/REFUTED，永不動手修 |
-| `security-executor` | opus | high | 一切資安相關工作——刻意不走 Fable 5，其安全分類器可能誤拒良性的防禦性資安工作 |
+| `security-executor` | opus | high | 已批准的資安實作——刻意不走 Fable 5，其安全分類器可能誤拒良性的防禦性資安工作 |
 
 `scout`、`mech-executor`、`executor` 三個都是 Sonnet，只差在 effort——而這正是它們得是三個檔案的原因。`Agent` 工具**沒有 `effort` 參數**，frontmatter 是*唯一*能設定 effort 的地方：一份角色定義就等於一個 effort 等級，否則一次 30 個檔案的機械性改名會白白跑在 `high` 上。
 
-政策層補上運作規則：委派時一次給完整規格（含背後的「*為什麼*」）、從最便宜的可行角色開始並在兩次失敗後升級、每個角色的 model 只能來自它自己的 agent 定義、可獨立推進的工作放到背景排程、非平凡的工作在回報完成前必須通過一輪 `verifier` 驗證。
+政策層補上 phase-aware lifecycle：有限的唯讀 Discovery、由主 session 綜整 Plan、gated write 前明確取得批准、穩定的 execution contract，以及 fresh outcome verification。小而穩定的工作仍直接做；單一未知 bug 不會被拆成循序 scout-to-executor 接力；批准前的資安證據與可寫入的資安實作也由不同角色承接。
 
 ## 為什麼沒有守衛
 
@@ -79,7 +87,7 @@ Hook 是一支 script，script 就需要直譯器——而 Claude Code 並不保
 
 **想在 Claude Code 裡使用 OpenAI GPT-5.6，又不改動原生 Claude state？** [Remora](https://github.com/Nanako0129/remora-cc) 把 pilotfish 的角色分工模式包裝成 session-scoped launcher，接到既有的 Anthropic-compatible gateway：它的 model 與 gateway override 會隨 child process 一起消失。
 
-**先行者與致意。** 「聰明的腦、便宜的手」這個分工不是 pilotfish 發明的：Anthropic 自己的工程文（[Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)）就是這個框架，Claude Code 內建 [`opusplan`](https://code.claude.com/docs/en/model-config)——如果你只想要更省的 session，`/model opusplan` 根本不需要裝任何 plugin——而 [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) 更早就探索過「plugin + 強制 hook」這個形狀——pilotfish 刻意不走這條路，理由見[為什麼沒有守衛](#為什麼沒有守衛)。pilotfish 的貢獻很小：刻意只有五個角色而非一大本 agent 目錄、寫成角色而能撐過模型換代的政策、以及每一條規則都由實驗（而非推理）確立——其中一條還推翻了本專案自己先前的建議。
+**先行者與致意。** 「聰明的腦、便宜的手」這個分工不是 pilotfish 發明的：Anthropic 自己的工程文（[Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)）就是這個框架，Claude Code 內建 [`opusplan`](https://code.claude.com/docs/en/model-config)——如果你只想要更省的 session，`/model opusplan` 根本不需要裝任何 plugin——而 [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) 更早就探索過「plugin + 強制 hook」這個形狀——pilotfish 刻意不走這條路，理由見[為什麼沒有守衛](#為什麼沒有守衛)。pilotfish 的貢獻很小：刻意只有七個角色而非一大本 agent 目錄、寫成角色而能撐過模型換代的政策、以及每一條規則都由實驗（而非推理）確立——其中一條還推翻了本專案自己先前的建議。
 
 ## 授權
 
