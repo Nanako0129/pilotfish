@@ -18,6 +18,28 @@
 
 Fixture 是最早發佈於 pilotfish commit `5f027b8c` 的[雙 surface 研究 control](../dispatch-brake/positive-controls/research/fixture)。執行環境為 Claude Code 2.1.207、原生 first-party Claude authentication、PR #10 candidate policy，以及 `SKILL.md` SHA-256 記錄於 [`results.json`](./results.json) 的 Baton skill。
 
+### 設計緣起
+
+這個五階段 lifecycle 的直接設計來源之一，是 [Baton](https://github.com/cablate/baton) 原作者 [CabLate](https://github.com/cablate) 在 2026-07-13 討論大型 Legacy code 重構與 Agent 委派邊界時提出的流程。以下保留原始回覆：
+
+> 大型的專案有個先決條件是把範圍訂下來，以我重構 Legacy code 的例子，Baton 會根據我當下的需求與該階段的目標，先派出研究用的 agent 理解專案現況，並分析後續要怎麼委派。
+>
+> 所以一個比較理想的流程應該是要這樣：
+>
+> 使用者提出一個需求
+>
+> -> 透過 Baton 去規劃如何委派 Agent 理解這個需求
+>
+> -> Agent們捕獲到實際情況回來後，主 session 撰寫一份 Plan
+>
+> (這過程為了詳細驗證 Plan 的可靠性，Baton可能還是會委派驗證用的 Agent)
+>
+> -> 使用者允許 Plan 執行，Baton 根據 Plan 執行最佳委派方案
+
+— [CabLate](https://github.com/cablate)，2026-07-13
+
+這段流程後來被具體化為 Discovery → Plan → Approval → Execution → Verification，並成為下方合成契約的骨架。
+
 ## 合成契約
 
 ```mermaid

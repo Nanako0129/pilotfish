@@ -18,6 +18,28 @@ This experiment tests whether [Baton](https://github.com/cablate/baton) and the 
 
 The fixture is the [two-surface research control](../dispatch-brake/positive-controls/research/fixture) first published in pilotfish commit `5f027b8c`. The run used Claude Code 2.1.207, native first-party Claude authentication, the PR #10 candidate policy, and the installed Baton skill whose `SKILL.md` SHA-256 is recorded in [`results.json`](./results.json).
 
+### Design provenance
+
+One direct design input for this five-stage lifecycle came from [CabLate](https://github.com/cablate), author of [Baton](https://github.com/cablate/baton), during a July 13, 2026 discussion about delegation boundaries in large legacy-code refactors. A faithful English translation follows; the [Traditional Chinese report](./README.zh-TW.md#設計緣起) preserves the original wording:
+
+> Large projects have a prerequisite: the scope needs to be defined. In my legacy-code refactoring example, Baton would first dispatch research agents according to my current request and the goal of that phase, so they could understand the project's current state and analyze how to delegate the work that follows.
+>
+> An ideal flow, then, should look like this:
+>
+> The user submits a request
+>
+> -> Baton plans how to delegate agents to understand the request
+>
+> -> After the agents return with what they found, the main session writes a Plan
+>
+> (During this process, Baton may still delegate a verification agent to validate the Plan in detail)
+>
+> -> The user approves execution of the Plan, and Baton executes the best delegation strategy based on that Plan
+
+— [CabLate](https://github.com/cablate), July 13, 2026; translated from the [Traditional Chinese original](./README.zh-TW.md#設計緣起).
+
+That workflow was later formalized as Discovery → Plan → Approval → Execution → Verification and became the backbone of the composition contract below.
+
 ## Composition contract
 
 ```mermaid
