@@ -1,6 +1,40 @@
 # Changelog
 
-All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
+All notable changes to pilotfish. From v2.0.0 the installed version is the plugin's manifest version (`/plugin`); v1.x installs stamped it inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`).
+
+## v2.1.0 — 2026-07-14
+
+**Haiku is out; the execution tier is Sonnet.** `scout` moves Haiku → Sonnet (`effort: low`) and `executor` moves Opus/medium → Sonnet/high. `verifier` stays on Opus and goes to `effort: high`. `mech-executor` (Sonnet/low), `plan-verifier` (Opus/medium), `security-reviewer` (Opus/high), and `security-executor` (Opus/high) are unchanged. This makes the execution configuration the one Anthropic benchmarked: a frontier orchestrator with Sonnet 5 workers, at 96% of all-frontier performance for 46% of the cost.
+
+The plugin replatform preserves v1.2.0's phase-aware lifecycle rather than reverting to execution-only routing. Seven namespaced plugin roles retain bounded Discovery, tool-enforced read-only Plan and security review before approval, approved execution, and fresh outcome verification. The former eighth role, the user-level `Explore` override, cannot shadow a built-in from a plugin namespace and is replaced by an explicit prohibition plus routing to `pilotfish:scout`.
+
+Plugin skills are invoked by their namespaced command, so the installed entrypoint is `/pilotfish:pilotfish`, not bare `/pilotfish`. Because the plugin manifest has no minimum-runtime field, the skill also runs a fail-closed `claude --version` preflight and requires Claude Code 2.1.207 or newer before it delegates or writes; the read-only Plan and security boundaries depend on that runtime enforcing agent `tools` allowlists.
+
+Three reasons, in order of weight:
+
+- **Scout output is unverified input to everything downstream.** The `verifier` gate covers executor work, not reconnaissance — so a wrong `file:line` from a scout becomes an executor confidently editing the wrong thing, and nothing catches it. Haiku 4.5 → Sonnet 5 is a large enough capability gap that this stops being theoretical. Recon is the one place cheapness compounds into error.
+- **On subscriptions, Haiku was never the cheap option it looked like.** The weekly limit is two buckets — a shared all-models bucket plus an *additional* Sonnet-only bucket. Haiku draws on the scarce shared one; Sonnet can draw on dedicated headroom the frontier model cannot touch. For the subscriber this plugin is aimed at, moving recon to Sonnet can cost *less* of the resource that actually runs out, while being materially better.
+- **Opus on `executor` was over-insurance.** Quality on cheap executors is bought back by the `verifier` — an independent fresh-context pass — more cheaply and more reliably than by upgrading the executor itself. Paying Opus rates for routine implementation *and* running a verifier was paying twice for the same guarantee. The verifier's effort bump to `high` is where that money goes instead; it is the role that makes the rest of the tier safe.
+
+The three Sonnet roles are deliberately kept as three files. The `Agent` tool has no `effort` parameter — effort is settable only in agent frontmatter — so one role definition means one effort level, and collapsing them would run bulk mechanical work at `effort: high` for nothing.
+
+## v2.0.0 — 2026-07-14
+
+**pilotfish is now a plugin.** Install with `/plugin marketplace add Nanako0129/pilotfish` and `/plugin install pilotfish@pilotfish`; invoke with `/pilotfish:pilotfish`. Nothing is merged into `~/.claude/` any more, nothing is written into your projects, and uninstalling removes every trace. The old hand-merged global install (`templates/`, `install/AGENT-INSTALL.md`, the `VERSION`/README/policy stamp coupling) is gone with it.
+
+**Still nothing to install but text.** The plugin is markdown and JSON — no hook script, no interpreter, no runtime dependency of any kind. That is a constraint pilotfish holds itself to, not an omission. A hook is a script, and a script needs an interpreter that Claude Code does not guarantee on the machine it runs on: Python is absent from a default Windows box, and even `node` is missing when Claude Code is installed from its native standalone binary rather than from npm. A rule enforced by a hook would therefore be enforced on some of your machines and silently absent on the others — the worst of both worlds, since you would stop watching for what you believe is being caught. So the rules live where they work everywhere: in the policy the orchestrator reads.
+
+**The detach-and-yield pattern was the bug, and it is gone.** v1.1.1 told executors to launch long commands with `nohup` and end their turn; v1.1.3 added an orchestrator rule to arm a background wait on the yielded PID. That protocol spans two agents and fails on the first forgotten step. The underlying harness behaviour, established by experiment:
+
+- A foreground command exceeding its `timeout` is not killed — it is promoted to a background task, with the message "you will be notified when it completes."
+- In an agent spawned with `run_in_background: true`, that promise is kept: the promoted process survives the turn boundary *and* the agent returning, runs to completion, has its output captured, and its notification re-invokes the agent. Observed surviving 59s, 69s, 81s past a turn boundary and 141s past agent termination, with zero signals.
+- In an agent spawned in the **foreground**, the promoted process is `SIGTERM`ed seconds after the agent returns. The work is destroyed and the captured output truncated mid-stream.
+
+`nohup`/`setsid` dodge that `SIGTERM` by escaping the process group — but they also escape Claude Code's task tracking, so there is no task id, no captured output, and no notification. Detaching converts a destroyed result into an orphaned one. So subagents no longer detach at all: they run in the foreground with an explicit `timeout` and hand back anything that cannot finish inside one. **Long-running processes belong to the orchestrator** — the only context whose background tasks are both tracked and reliably notified. This also makes spawning agents with `run_in_background: true` load-bearing for correctness, not merely cost.
+
+**`Explore` can no longer be shadowed, so the policy forbids it outright.** Since Claude Code v2.1.198 the built-in `Explore` inherits the main-session model, so every background search it runs from a Fable/Opus session bills at frontier rates — precisely the cost this plugin exists to avoid. v1.x neutralised it by shadowing it with a same-name *user-level* agent pinned to a cheap tier. A plugin cannot do that: plugin agents are namespaced, so `pilotfish:Explore` is a different agent from the built-in and shadows nothing. The skill therefore forbids the built-in in as many words and routes every search to `scout`. The plugin ships seven namespaced roles rather than v1.2.0's eight user-level roles.
+
+Credit: [@dromsak](https://github.com/dromsak).
 
 ## v1.2.0 — 2026-07-14
 
