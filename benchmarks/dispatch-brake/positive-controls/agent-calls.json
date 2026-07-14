@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "description": "Observable Agent tool inputs from positive-control and rejected policy runs. Disposable absolute fixture roots are normalized to <fixture-root>; all other input text is unchanged.",
+  "runs": {
+    "negative-remora-broad-net-benefit": [
+      {
+        "subagent_type": "scout",
+        "description": "定位 status-line 失敗",
+        "prompt": "在唯讀模式下勘查此 repo。目標：找出 status-line usage tests、相關實作與資料流，尤其 cloned messages 與 canonical stream wrappers 的所有權邊界。不要修改檔案。請回報：1) 相關檔案與關鍵行；2) 測試預期與目前實作的可能落差；3) 建議主會話執行的最小測試命令；4) 若能從程式碼判斷，提出最可能根因，但清楚區分事實與推測。",
+        "run_in_background": false
+      },
+      {
+        "subagent_type": "executor",
+        "description": "修正 status-line 狀態同步",
+        "prompt": "請在目前 checkout 實作並測試最小正確修正。已確認根因與資料流如下：`Session.startAssistant` 將 canonical assistant message 交給 `reduceSession`，而 reducer 會 clone message 與 usage，故 `state.messages` 是 status-line state 的 source of truth；`Session.finishAssistant` 透過 `commitAssistantMessage` 先 mutation `canonicalMessages` 中的 canonical stream wrapper，再送出 `message_delta`。目前 reducer 對 `message_delta` no-op，導致 finalized `committed`/`usage` 沒有跨 clone 邊界投影到 status-line state，selector 因而回傳 null。請只修改必要檔案，優先在 reducer 的 `message_delta` 分支，以 `messageId` 更新對應的 state-owned clone，且絕不可把 `event.message` canonical wrapper 直接存進 state；usage 也必須維持 clone。保留未命中的訊息與其他狀態。不要做無關重構。若需要補測試，只補能鎖定 ownership boundary 的最小測試。完成條件：`node --test test/statusline.test.js` 通過，並回報修改與測試結果。",
+        "run_in_background": false
+      }
+    ],
+    "research-remora-hard-brake": [
+      {
+        "subagent_type": "scout",
+        "description": "稽核 surface-a 規則",
+        "prompt": "只稽核儲存庫中的 `surface-a/**`，不得讀取或搜尋 `surface-b/**`、根目錄其他檔案、git 歷史或外部資料。這是獨立證據蒐集；不要根據另一個 surface 推論。請逐一判定：1) role roster；2) model-source rule（模型由哪裡決定、呼叫端是否可覆寫）；3) delegation eligibility rule；4) background/foreground behavior；5) verifier boundary。每項都要提供明確結論、適用條件／例外，以及一個或多個 `surface-a/path:line` 引用。若不同檔案互相衝突，也要引用雙方並說明。最後列出你實際讀過的 surface-a 檔案。只回傳稽核筆記，不修改任何檔案。",
+        "run_in_background": true
+      },
+      {
+        "subagent_type": "scout",
+        "description": "稽核 surface-b 規則",
+        "prompt": "只稽核儲存庫中的 `surface-b/**`，不得讀取或搜尋 `surface-a/**`、根目錄其他檔案、git 歷史或外部資料。這是獨立證據蒐集；不要根據另一個 surface 推論。請逐一判定：1) role roster；2) model-source rule（模型由哪裡決定、呼叫端是否可覆寫）；3) delegation eligibility rule；4) background/foreground behavior；5) verifier boundary。每項都要提供明確結論、適用條件／例外，以及一個或多個 `surface-b/path:line` 引用。若不同檔案互相衝突，也要引用雙方並說明。最後列出你實際讀過的 surface-b 檔案。只回傳稽核筆記，不修改任何檔案。",
+        "run_in_background": true
+      },
+      {
+        "subagent_type": "verifier",
+        "description": "驗證報告引用與結論",
+        "prompt": "Fresh-context 驗證新建立的 `REPORT.md`。請讀取 `REPORT.md`、`surface-a/**`、`surface-b/**` 與 `verify-report.mjs`，嘗試反駁報告：逐項檢查 role roster、model-source rule、delegation eligibility、background/foreground behavior、verifier boundary，以及相同點／差異是否均由引用的 file:line 支持；確認報告沒有把一個 surface 的證據拿去補另一個 surface 的獨立判定，也沒有修改來源檔案。可執行測試但不可修檔。最後只回覆 `CONFIRMED` 或 `REFUTED`，若 REFUTED 請列出具體 file:line 問題。",
+        "run_in_background": true
+      }
+    ],
+    "mechanical-remora-hard-brake": [
+      {
+        "subagent_type": "mech-executor",
+        "description": "Normalize all adapters",
+        "prompt": "請直接在目前 checkout 完成這個機械式變更。目標：對 `src/adapters` 內的每一個檔案／adapter，讓 `normalize(record)` 回傳一個新的物件，先保留 `record` 的所有欄位，再將 `label` 設為 `record.label` 修剪前後空白後的值，並將 `enabled` 設為布林值：只有當 `record.enabled === true` 或 `record.enabled === \"true\"` 時才是 `true`，其餘一律是 `false`。每個 adapter 必須自包含；不得新增共用 helper、不得改 exports、不得編輯任何 tests。請先確認 `src/adapters` 的完整檔案清單與既有慣例，逐檔修改，不要遺漏。完成後辨識並執行 focused adapter/normalize tests，再執行完整 test suite。若測試失敗，請調查是變更造成或既有問題，但不要擴大修改範圍。回報：修改檔案清單、實作摘要、focused/full 測試命令與結果、任何阻礙。Done criteria：所有 `src/adapters` adapter 都精確符合上述語意；只有允許的 source 檔案被修改；focused 與 full tests 均已執行並通過。",
+        "run_in_background": false
+      },
+      {
+        "subagent_type": "verifier",
+        "description": "Verify adapter normalization",
+        "prompt": "請以 fresh-context 對目前 working tree 做唯讀、對抗式驗證，不要修改任何檔案。使用者規格：`src/adapters` 內每個 adapter 的 `normalize(record)` 必須回傳新物件、保留所有原欄位、將 `label` 設為 `record.label.trim()`，且 `enabled` 僅在原值嚴格等於布林 `true` 或字串 `\"true\"` 時為 `true`，其餘皆為 `false`。每個 adapter 自包含；不得新增共用 helper、改 exports、或改 tests。請：1) 完整列出並核對 `src/adapters` 的所有檔案是否全數修改且語意精確；2) 核對 git diff 是否只有允許的 source 檔案；3) 檢查新物件與欄位覆寫順序是否正確；4) 重新執行 focused adapter tests 與 full test suite；5) 嘗試找出未被現有 tests 涵蓋的規格偏差。回報明確 PASS/FAIL、證據、測試命令與結果；若 FAIL，只描述 finding，不修正。",
+        "run_in_background": false
+      }
+    ],
+    "research-pilotfish-broad-net-benefit": [
+      {
+        "description": "Audit surface-a orchestration",
+        "subagent_type": "scout",
+        "run_in_background": true,
+        "prompt": "You are auditing ONE orchestration implementation. Read ONLY files under the directory `surface-a/` in the repo at <fixture-root>. Do NOT read anything under surface-b/ — that is a separate independent audit. The files are: surface-a/agents.json, surface-a/architecture.md, surface-a/orchestration.md.\n\nExtract these FIVE facts about surface-a's orchestration policy. For EACH fact, give precise evidence as `surface-a/<file>:<line>` (exact line number) plus a short verbatim quote (<=1 sentence) from that line/region. If a fact spans multiple lines, cite the most representative anchor line and note the range.\n\n1. ROLE ROSTER — the complete list of agent roles/types this implementation defines (names verbatim).\n2. MODEL-SOURCE RULE — where does an agent's model come from? Is the model owned by the agent/role definition, or specified at invocation/dispatch time, or something else? Quote the governing rule.\n3. DELEGATION ELIGIBILITY RULE — the condition(s) under which delegation to a subagent is permitted (any \"brake\", gating precondition, or \"delegate when X\" statement). Quote it.\n4. BACKGROUND/FOREGROUND BEHAVIOR — the rule for running agents in background vs foreground, and any rule about batches of parallel agents. Quote it.\n5. VERIFIER BOUNDARY — what the verifier role does and the limits of its scope (e.g. read-only, when it runs, what it may/may not touch). Quote it.\n\nReport concisely as five numbered findings, each: the answer + `surface-a/file:line` + verbatim quote. Do not edit any files. Do not read package.json, verify-report.mjs, or any surface-b file."
+      },
+      {
+        "description": "Audit surface-b orchestration",
+        "subagent_type": "scout",
+        "run_in_background": true,
+        "prompt": "You are auditing ONE orchestration implementation. Read ONLY files under the directory `surface-b/` in the repo at <fixture-root>. Do NOT read anything under surface-a/ — that is a separate independent audit. The files are: surface-b/orchestration.md, surface-b/design.md, and surface-b/agents/*.md (Explore.md, executor.md, mech-executor.md, scout.md, security-executor.md, verifier.md).\n\nExtract these FIVE facts about surface-b's orchestration policy. For EACH fact, give precise evidence as `surface-b/<file>:<line>` (exact line number) plus a short verbatim quote (<=1 sentence) from that line/region. If a fact spans multiple lines, cite the most representative anchor line and note the range.\n\n1. ROLE ROSTER — the complete list of agent roles/types this implementation defines (names verbatim; note that each agent may be its own file under surface-b/agents/).\n2. MODEL-SOURCE RULE — where does an agent's model come from? Is the model owned by the agent/role definition (e.g. frontmatter), or specified at invocation/dispatch time, or something else? Quote the governing rule and note any per-agent model values you see in the agent files' frontmatter.\n3. DELEGATION ELIGIBILITY RULE — the condition(s) under which delegation to a subagent is permitted (any \"brake\", gating precondition, or \"delegate when X\" statement). Quote it.\n4. BACKGROUND/FOREGROUND BEHAVIOR — the rule for running agents in background vs foreground, and any rule about batches of parallel agents. Quote it.\n5. VERIFIER BOUNDARY — what the verifier role does and the limits of its scope (e.g. read-only, when it runs, what it may/may not touch). Quote it, citing surface-b/agents/verifier.md where relevant.\n\nReport concisely as five numbered findings, each: the answer + `surface-b/file:line` + verbatim quote. Do not edit any files. Do not read package.json, verify-report.mjs, or any surface-a file."
+      }
+    ],
+    "mechanical-pilotfish-balanced": [
+      {
+        "description": "Normalize adapters in src/adapters",
+        "subagent_type": "mech-executor",
+        "run_in_background": false,
+        "prompt": "Apply one identical mechanical edit to EVERY `.js` file in `src/adapters/` (there are 12: alpha, bravo, charlie, delta, echo, foxtrot, golf, hotel, india, juliet, kilo, lima — do not miss any).\n\nEach file currently contains exactly:\n```js\nexport function normalize(record) {\n  return { ...record };\n}\n```\n\nRewrite each file's `normalize` to return a NEW object that:\n- preserves all fields of `record` (spread first),\n- trims `record.label`,\n- sets `enabled` to `true` ONLY when `record.enabled` is boolean `true` OR the string `\"true\"`; otherwise `false`.\n\nTarget implementation for every file (identical in all 12):\n```js\nexport function normalize(record) {\n  return {\n    ...record,\n    label: record.label.trim(),\n    enabled: record.enabled === true || record.enabled === \"true\",\n  };\n}\n```\n\nHard constraints:\n- Keep each adapter SELF-CONTAINED. Do NOT add or import a shared helper/module. The same code is intentionally duplicated across all 12 files.\n- Do NOT change exports (keep the named `export function normalize`).\n- Do NOT edit `test/adapters.test.js` or any test file.\n- Must NOT mutate the input `record` (the test asserts `source.label` stays `\"  Example  \"`); the spread + `.trim()` returning a new string satisfies this — verify you did not write `record.label = ...`.\n- Work in the current checkout (no worktree).\n\nWhy: the record contract is being tightened so all adapters normalize label/enabled consistently; the existing test suite already encodes the exact contract.\n\nDone-criteria — run BOTH and paste the full output:\n1. Focused: `node --test test/adapters.test.js`\n2. Full suite: `npm test`\nBoth must be fully green (all 12 subtests pass). Then report: the list of files changed and the two test outputs. Do not commit."
+      }
+    ],
+    "negative-remora-balanced": [
+      {
+        "subagent_type": "verifier",
+        "description": "驗證 status-line 修正",
+        "prompt": "請以 fresh context 對目前工作樹的 status-line 修正做唯讀、對抗式驗證。目標：確認根因確實是 `message_delta` 到達時 canonical message 已被 stream 原地更新，但 reducer 忽略事件，導致 status-line clone 永遠停在 provisional；確認 `src/reducer.js` 的最小修正會依 `messageId` 更新既有 clone 的 `committed` 與 cloned `usage`，且不把 canonical stream wrapper 或其 usage reference 放進 status-line state；確認既有兩個 usage 測試與 ownership 邊界。請檢視 diff、執行相關測試，嘗試找出 correctness/identity regression。不要修改任何檔案。回報結論與具體證據。",
+        "run_in_background": false
+      }
+    ],
+    "research-pilotfish-size-wording-rejected": [
+      {
+        "description": "Audit surface-a orchestration",
+        "subagent_type": "scout",
+        "run_in_background": true,
+        "prompt": "You are auditing ONE orchestration implementation in isolation. Read ONLY files under the directory `<fixture-root>/surface-a/` (surface-a/agents.json, surface-a/architecture.md, surface-a/orchestration.md). Do NOT read anything under surface-b/ or any other directory — this isolation is a hard requirement of the task; findings must come only from surface-a files.\n\nDetermine these five facts about surface-a's orchestration policy, and for EACH fact give exact evidence as `surface-a/<file>:<line>` plus a short verbatim quote of the relevant line(s):\n\n1. Role roster — which agent/subagent roles exist in this surface (list every role name).\n2. Model-source rule — where does an agent's model come from? (e.g. is it owned by the agent/role definition, or set per-invocation? Is passing a model at invocation time encouraged or forbidden, and why?)\n3. Delegation eligibility rule — when is delegation allowed vs blocked? Capture any \"dispatch brake\" / preconditions / \"delegate when\" criteria, and whether the policy leans toward or against delegating.\n4. Background/foreground behavior — when to run agents with background vs foreground execution; rules about parallel batches, worktrees/isolation, and collecting results.\n5. Verifier boundary — what the verifier role covers, when a verification pass is required, and any stated limits/blind spots of verification.\n\nReport concisely, grouped by the five facts. Every claim must carry a `surface-a/<file>:<line>` citation with a quoted snippet so it can be spot-checked. If a fact is absent or ambiguous in surface-a, say so explicitly. Do not compare to any other surface — you have no knowledge of one."
+      },
+      {
+        "description": "Audit surface-b orchestration",
+        "subagent_type": "scout",
+        "run_in_background": true,
+        "prompt": "You are auditing ONE orchestration implementation in isolation. Read ONLY files under the directory `<fixture-root>/surface-b/` (surface-b/orchestration.md, surface-b/design.md, and surface-b/agents/*.md — Explore.md, executor.md, mech-executor.md, scout.md, security-executor.md, verifier.md). Do NOT read anything under surface-a/ or any other directory — this isolation is a hard requirement of the task; findings must come only from surface-b files.\n\nDetermine these five facts about surface-b's orchestration policy, and for EACH fact give exact evidence as `surface-b/<file>:<line>` plus a short verbatim quote of the relevant line(s):\n\n1. Role roster — which agent/subagent roles exist in this surface (list every role name; note the per-role agent definition files).\n2. Model-source rule — where does an agent's model come from? (e.g. is it owned by the agent/role definition, or set per-invocation? Is passing a model at invocation time encouraged or forbidden, and why? Check role frontmatter too.)\n3. Delegation eligibility rule — when is delegation allowed vs blocked? Capture any \"dispatch brake\" / preconditions / \"delegate when\" criteria, and whether the policy leans toward or against delegating.\n4. Background/foreground behavior — when to run agents with background vs foreground execution; rules about parallel batches, worktrees/isolation, and collecting results.\n5. Verifier boundary — what the verifier role covers, when a verification pass is required, and any stated limits/blind spots of verification.\n\nReport concisely, grouped by the five facts. Every claim must carry a `surface-b/<file>:<line>` citation with a quoted snippet so it can be spot-checked. If a fact is absent or ambiguous in surface-b, say so explicitly. Do not compare to any other surface — you have no knowledge of one."
+      }
+    ],
+    "research-remora-size-gate-with-baton-1": [
+      {
+        "subagent_type": "Explore",
+        "description": "稽核 surface-a 規則",
+        "prompt": "在 repository `<fixture-root>` 進行唯讀稽核。你只能讀取路徑名稱屬於 `surface-a` 的檔案；不可讀取 `surface-b`、repo 根目錄設定、測試或其他檔案，也不可修改任何檔案。獨立判定 surface-a 的五項事實：(1) role roster；(2) model-source rule（模型由哪裡決定，以及 invocation 是否可覆寫）；(3) delegation eligibility rule；(4) background/foreground behavior；(5) verifier boundary。每項都要給精確 `file:line` 證據，必要時引用多個區段，並區分明文規則與你的推論。若 surface-a 證據不足，明確寫不足，不得借用其他 surface。最後列出你實際讀過的所有檔案。輸出用繁體中文，結構化表格或分節均可。",
+        "run_in_background": true
+      },
+      {
+        "subagent_type": "Explore",
+        "description": "稽核 surface-b 規則",
+        "prompt": "在 repository `<fixture-root>` 進行唯讀稽核。你只能讀取路徑名稱屬於 `surface-b` 的檔案；不可讀取 `surface-a`、repo 根目錄設定、測試或其他檔案，也不可修改任何檔案。獨立判定 surface-b 的五項事實：(1) role roster；(2) model-source rule（模型由哪裡決定，以及 invocation 是否可覆寫）；(3) delegation eligibility rule；(4) background/foreground behavior；(5) verifier boundary。每項都要給精確 `file:line` 證據，必要時引用多個區段，並區分明文規則與你的推論。若 surface-b 證據不足，明確寫不足，不得借用其他 surface。最後列出你實際讀過的所有檔案。輸出用繁體中文，結構化表格或分節均可。",
+        "run_in_background": true
+      }
+    ],
+    "research-remora-size-gate-with-baton-2": [
+      {
+        "subagent_type": "scout",
+        "description": "稽核 surface-a 規則",
+        "prompt": "在儲存庫 <fixture-root> 進行唯讀稽核。你的唯一資料來源是 surface-a 目錄內的檔案；不得讀取 surface-b、根目錄說明、測試或任何 surface-a 之外的檔案，也不得修改檔案。獨立判定：1) role roster；2) model-source rule（模型由何處決定、呼叫端是否可覆寫）；3) delegation eligibility rule；4) background/foreground behavior；5) verifier boundary。每項都要提供精確 `surface-a/...:line` 證據、必要的短引文，並分清楚明文規則與合理推論。若同一項有例外或衝突，完整列出。最後回傳結構化 Markdown：Scope、Evidence table（五項）、Ambiguities/Conflicts、Surface-a-only conclusion。停止條件：五項皆已有足以支撐結論的 surface-a-only 證據。",
+        "run_in_background": true
+      },
+      {
+        "subagent_type": "scout",
+        "description": "稽核 surface-b 規則",
+        "prompt": "在儲存庫 <fixture-root> 進行唯讀稽核。你的唯一資料來源是 surface-b 目錄內的檔案；不得讀取 surface-a、根目錄說明、測試或任何 surface-b 之外的檔案，也不得修改檔案。獨立判定：1) role roster；2) model-source rule（模型由何處決定、呼叫端是否可覆寫）；3) delegation eligibility rule；4) background/foreground behavior；5) verifier boundary。每項都要提供精確 `surface-b/...:line` 證據、必要的短引文，並分清楚明文規則與合理推論。若同一項有例外或衝突，完整列出。最後回傳結構化 Markdown：Scope、Evidence table（五項）、Ambiguities/Conflicts、Surface-b-only conclusion。停止條件：五項皆已有足以支撐結論的 surface-b-only 證據。",
+        "run_in_background": true
+      }
+    ]
+  }
+}

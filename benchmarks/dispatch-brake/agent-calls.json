@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "description": "Exact observable Agent tool inputs from the two remora runs that dispatched agents. Runs not listed made no Agent calls.",
+  "runs": {
+    "remora-current": [
+      {
+        "description": "診斷 status-line 失敗",
+        "prompt": "請在目前 repo 做唯讀診斷。目標：找出唯一失敗的 status-line usage test、重現失敗、定位未知根因，並提出最小正確修正。重要設計邊界：status-line state 必須擁有 cloned messages，不可改成持有 canonical stream wrappers。請回報：1) 精確失敗測試與命令/output 摘要；2) 相關資料流與 source of truth；3) 根因；4) 建議最小 diff（檔案/符號/具體修改）；5) 應跑哪些相關測試。不要修改任何檔案。",
+        "subagent_type": "scout",
+        "run_in_background": false
+      },
+      {
+        "description": "修正 status-line reducer",
+        "prompt": "請在目前 checkout 實作並驗證這個 bug fix。已診斷資料流：Session.canonicalMessages 是 canonical stream wrapper 的 source of truth；startAssistant 經 reducer 將 message clone 到 status-line state.messages；finishAssistant 先 mutation canonical message，再送 message_delta；目前 reducer 對 message_delta 直接 return state，造成 cloned state 永遠未提交。設計邊界不可改：status-line state 必須持有 cloned messages（含 cloned usage），不能改持有 canonical wrappers。請先實際跑精準測試確認失敗，再做最小正確修改：在 reducer 的 message_delta 分支以 messageId 找到對應 state clone，從 event.message 建立新的 message clone與 usage clone並替換；其他 message 保持不變。請視既有測試判斷是否需要加一個最小 ownership regression assertion，避免過度修改。完成後跑 test/statusline.test.js 與完整相關測試（若 npm test 是整套則跑）。回報修改檔案、實際測試命令與結果。不要 commit。",
+        "subagent_type": "executor",
+        "run_in_background": false
+      },
+      {
+        "description": "驗證 status-line 修正",
+        "prompt": "請以 fresh-context adversarial verifier 身分驗證目前未提交 diff。需求：唯一 status-line usage failure 應以最小正確方式修正；status-line state 必須擁有 cloned messages 與 cloned usage，不得持有 canonical stream wrappers；message_delta 應只更新同 id clone且保留其他訊息；不能引入 stale overwrite 或 identity alias。請檢查 diff、相關資料流與測試，實際跑精準測試及完整測試。嘗試反駁修正；若有問題回報具體檔案/行號/重現方式，若沒有則明確說通過並列證據。不要修改檔案。",
+        "subagent_type": "verifier",
+        "run_in_background": true
+      }
+    ],
+    "remora-postpatch": [
+      {
+        "description": "驗證 status-line 修正",
+        "prompt": "請在目前 checkout 對既有修正做 fresh-context 唯讀驗證，不要修改檔案。目標：確認 src/reducer.js 對 message_delta 的處理確實修正 finalized usage 無法進入 status-line state 的根因，且維持 status-line state 持有 cloned message 與 cloned usage，而不是 canonical stream wrapper/reference。請檢查相關 src 與 test，執行你認為必要的測試，嘗試找出反例或回歸。回報：結論、證據、任何問題（若無請明說）。",
+        "subagent_type": "verifier",
+        "run_in_background": true
+      }
+    ]
+  }
+}

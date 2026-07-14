@@ -1,0 +1,1 @@
+核准上一回合的 Plan。依已核准的 scope、ownership 與 sequence 執行：只建立 REPORT.md，由 Plan 指定的單一 writer 撰寫、main session 整合，跑 git scope 與 npm test，最後呼叫新的既有命名 `verifier` 做 outcome verification，只要求 CONFIRMED 或 REFUTED，不得要求 READY 或 REVISE。呼叫任何既有命名角色不得傳入 model。只有 verifier 回覆 CONFIRMED、npm test 通過且唯一變更是 REPORT.md 才可回報完成；若 REFUTED，依 Plan 最多做一輪限縮修正與新的 fresh outcome verification，仍失敗就停止。

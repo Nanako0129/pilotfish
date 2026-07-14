@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "description": "Normalized observable tool traces. Absolute paths, session identifiers, hook payloads, plugin inventory, and hidden reasoning are intentionally excluded.",
+  "runs": {
+    "pilotfish-current": {
+      "tools": ["Bash", "Bash", "Read", "Bash", "Read", "Read", "Read", "Read", "Read", "Bash", "Bash", "Edit", "Bash", "Bash", "Bash", "Bash"],
+      "agent_calls": []
+    },
+    "remora-current": {
+      "tools": ["TaskCreate", "TaskCreate", "TaskCreate", "TaskUpdate", "Agent", "Glob", "Grep", "Grep", "Read", "Read", "Read", "Read", "Read", "Glob", "Read", "Grep", "Glob", "TaskUpdate", "TaskUpdate", "Agent", "Bash", "Read", "Read", "Read", "Bash", "Read", "Read", "Read", "Bash", "Bash", "Edit", "Edit", "Bash", "Bash", "Bash", "TaskUpdate", "TaskUpdate", "Agent", "Skill", "TaskOutput", "Bash", "Bash", "Bash", "Bash", "Bash", "Bash", "Read", "Read", "Read", "Read", "Read", "Bash", "Bash", "Bash", "Bash", "Bash", "Read", "Read", "TaskGet", "TaskUpdate"],
+      "agent_calls": [
+        {"role": "scout", "run_in_background": false},
+        {"role": "executor", "run_in_background": false},
+        {"role": "verifier", "run_in_background": true}
+      ]
+    },
+    "pilotfish-candidate": {
+      "tools": ["Bash", "Bash", "Read", "Read", "Bash", "Bash", "Read", "Read", "Read", "Read", "Edit", "Bash"],
+      "agent_calls": []
+    },
+    "remora-candidate": {
+      "tools": ["TaskCreate", "TaskCreate", "TaskCreate", "TaskUpdate", "Bash", "Read", "Read", "Read", "Read", "Read", "Read", "Bash", "TaskUpdate", "TaskUpdate", "Edit", "TaskUpdate", "TaskUpdate", "Bash", "Bash", "Bash", "TaskUpdate"],
+      "agent_calls": []
+    },
+    "pilotfish-postpatch": {
+      "tools": ["Bash", "Bash", "Read", "Read", "Read", "Read", "Read", "Bash", "Edit", "Bash"],
+      "agent_calls": []
+    },
+    "remora-postpatch": {
+      "tools": ["TaskCreate", "TaskCreate", "TaskCreate", "Bash", "TaskGet", "Read", "Bash", "TaskUpdate", "Bash", "Read", "Read", "Read", "Read", "Read", "TaskGet", "TaskGet", "TaskUpdate", "TaskUpdate", "Edit", "Bash", "Bash", "TaskGet", "TaskGet", "TaskUpdate", "TaskUpdate", "Agent", "Bash", "Bash", "TaskGet", "Skill", "TaskOutput", "Bash", "Bash", "Bash", "Bash", "Read", "Bash", "Read", "Read", "Read", "Read", "Read", "Bash", "Bash", "Bash", "Bash", "Bash", "Bash", "Bash", "TaskGet", "TaskUpdate"],
+      "agent_calls": [
+        {"role": "verifier", "run_in_background": true}
+      ]
+    }
+  }
+}

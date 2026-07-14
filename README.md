@@ -4,7 +4,7 @@
 
 **pilotfish** is a multi-model orchestration layer for [Claude Code](https://code.claude.com): the frontier model (Claude Fable 5 / Opus) plans, decides, and reviews in your main session, while cheaper models (Opus / Sonnet / Haiku) execute the volume work through global subagents. Quality is protected by fresh-context verification, not by using the biggest model everywhere. Everything installs globally — one setup, every project — and the whole stack degrades gracefully when the frontier model becomes unavailable.
 
-> **Want OpenAI GPT-5.6 inside Claude Code without changing native Claude state?** [Remora](https://github.com/Nanako0129/remora-cc) packages pilotfish's role-based orchestration pattern into a session-scoped launcher for an existing Anthropic-compatible gateway. Use pilotfish to study or customize the global policy; use Remora for an approval-gated, verifiable install whose model and gateway overrides disappear with the child process.
+> **Want OpenAI GPT-5.6 inside Claude Code without changing native Claude state?** [remora](https://github.com/Nanako0129/remora-cc) packages pilotfish's role-based orchestration pattern into a session-scoped launcher for an existing Anthropic-compatible gateway. Use pilotfish to study or customize the global policy; use remora for an approval-gated, verifiable install whose model and gateway overrides disappear with the child process.
 
 **Where this came from:** my weekly quota reset one morning, and the first thing I did with a fresh Fable 5 allowance was ask it to figure out why the previous week's had evaporated. This repo is the setup that research produced, and it's what I now run daily on every project — three config files, no runtime code. The research notes (with sources) are in [docs/](./docs/).
 
@@ -51,7 +51,7 @@ Three layers, three files' worth of configuration, all under `~/.claude/`:
 | Layer | File(s) | Job |
 |---|---|---|
 | Machine | `~/.claude/settings.json` | Who orchestrates (`best`) + automatic `fallbackModel` chain |
-| Roles | `~/.claude/agents/*.md` | Six role agents, each pinned to the right model tier via one line of frontmatter |
+| Roles | `~/.claude/agents/*.md` | Eight role agents, each pinned to the right model tier and capability surface via frontmatter |
 | Policy | `~/.claude/CLAUDE.md` | *How* to delegate — written in terms of roles, never model names |
 
 ```mermaid
@@ -61,34 +61,50 @@ flowchart TD
         O["Orchestrator<br>plan / decide / spec / review"]
     end
     O -->|recon| S["scout / Explore<br>haiku · effort low"]
+    O -->|Plan challenge| PV["plan-verifier<br>opus · read-only"]
+    PV -->|READY / REVISE| O
     O -->|mechanical spec| M["mech-executor<br>sonnet · effort low"]
     O -->|judgment work| E["executor<br>opus · effort medium"]
-    O -->|security-sensitive| SEC["security-executor<br>opus · effort high"]
+    O -->|security evidence| SR["security-reviewer<br>opus · read-only"]
+    SR --> O
+    O -->|approved security work| SEC["security-executor<br>opus · effort high"]
     M --> V["verifier<br>opus · fresh context"]
     E --> V
     SEC --> V
     V -->|CONFIRMED / REFUTED| O
 ```
 
-The six roles:
+The eight roles:
 
 | Role | Model | Effort | Used for |
 |---|---|---|---|
 | `scout` | haiku | low | Read-only lookups: "where/how is X", symbol usages, config values |
 | `Explore` | haiku | low | Overrides the built-in Explore agent (see warning above) |
+| `plan-verifier` | opus | medium | Tool-enforced read-only Plan challenge before approval; returns READY/REVISE |
+| `security-reviewer` | opus | high | Tool-enforced read-only security evidence and threat review before approval |
 | `mech-executor` | sonnet | low | Fully-specified mechanical work: pattern refactors, convention tests, docs, bulk edits |
 | `executor` | opus | medium | Implementation needing judgment: features, bug fixes, design-sensitive refactors |
-| `verifier` | opus | medium | Fresh-context adversarial verification; returns CONFIRMED/REFUTED, never fixes |
-| `security-executor` | opus | high | Anything security-sensitive — deliberately kept off Fable 5, whose safety classifiers can refuse benign defensive-security work |
+| `verifier` | opus | medium | Fresh-context outcome verification after implementation; returns CONFIRMED/REFUTED and never fixes |
+| `security-executor` | opus | high | Approved security implementation — deliberately kept off Fable 5, whose safety classifiers can refuse benign defensive-security work |
 
-The policy layer adds the operating rules: spec delegations completely in one shot (including the *why*), start with the cheapest plausible role and escalate after two failures, let every existing named role take its model only from its agent definition, set an explicit `model` only for truly ad-hoc fan-outs, schedule independent work in the background while reserving foreground agents for immediate dependencies, and gate non-trivial work behind a `verifier` pass before calling it done.
+The policy layer now uses phase-specific dispatch brakes rather than requiring a finished implementation outcome before any delegation. Small, stable work stays direct. Large or ambiguous work may begin with bounded read-only discovery, then returns to the main session for one Plan; material Plans can receive a fresh readiness review and wait for user approval before writing agents start. Execution still requires stable scope, exclusive ownership, done criteria, integration, and verification. Every named role takes its model only from its agent definition, independent work runs in the background, and foreground agents remain reserved for immediate dependencies whose net benefit stays positive.
+
+| Phase | pilotfish behavior |
+|---|---|
+| Discovery | `scout` / `Explore` collect bounded facts under a stable research contract; the implementation outcome may still be unknown |
+| Plan | Main session reconciles evidence and owns scope, dependencies, ownership, budgets, stop conditions, and acceptance checks; `plan-verifier` may challenge it through read-only tools |
+| Approval | Large, architectural, risky, or explicitly plan-first work waits for explicit approval before source writes or implementation briefs |
+| Execution | `mech-executor`, `executor`, or `security-executor` receives one stable, exclusively owned contract |
+| Verification | `verifier` attempts to refute completed non-trivial work through read-and-run tools; main session keeps final judgment |
+
+Long-running processes remain main-session owned. Every Bash-capable leaf role (`mech-executor`, `executor`, `verifier`, `security-executor`) runs bounded commands in the foreground and never detaches with `nohup`, `setsid`, trailing `&`, or subagent-side background execution; if work cannot finish within 10 minutes, it returns the exact command, absolute worktree or working directory, required environment, and input paths to the orchestrator. The orchestrator runs it in that same context, never implicitly from the parent checkout. Any agent likely to run a long command must itself be spawned with `run_in_background: true`, preserving harness tracking and completion notification.
 
 ## Install
 
-The recommended path is to clone the pinned v1.1.5 release locally, then start Claude Code from that checkout so it can read the runbook as a local file:
+The recommended path is to clone the pinned v1.2.0 release locally, then start Claude Code from that checkout so it can read the runbook as a local file:
 
 ```sh
-git clone --branch v1.1.5 --depth 1 https://github.com/Nanako0129/pilotfish.git
+git clone --branch v1.2.0 --depth 1 https://github.com/Nanako0129/pilotfish.git
 cd pilotfish
 claude
 ```
@@ -102,7 +118,7 @@ Show me the full plan of changes and get my approval before writing anything.
 
 Claude reads the local install runbook, inspects your existing configuration, shows you a merge plan (nothing is overwritten blindly), and applies it after you approve. Installation is idempotent — running it again upgrades in place.
 
-> **Note:** Requires a reasonably current Claude Code — on older builds the `best` alias may be rejected, and `effort`/`tools` frontmatter is silently ignored (agents still run, just untuned). On native Windows without WSL, the runbook's shell snippets assume a POSIX shell; the installing agent is instructed to fall back to its own file tools. Restart your session afterwards: the agents directory is scanned at session start, and the `model` setting applies on restart.
+> **Runtime requirement:** Claude Code **2.1.207 or newer**. This is the verified baseline that enforces agent `tools` allowlists; pilotfish relies on that enforcement to keep `plan-verifier` and `security-reviewer` read-only before approval. The installer stops before making changes on an older or unidentifiable build. Earlier versions may also reject `best` or ignore `effort`. On native Windows without WSL, the runbook's shell snippets assume a POSIX shell; the installing agent is instructed to fall back to its own file tools. Restart your session afterwards: the agents directory is scanned at session start, and the `model` setting applies on restart.
 
 For convenience, you can also paste the raw GitHub prompt below. This is a mutable, unpinned convenience path: it follows `main`, so the runbook and templates may change independently between review and installation, and Claude Code's WebFetch prompt-injection protection may intercept a remote document that directly instructs an AI to install software. If it is intercepted, use the local-checkout path above; do not disable or bypass the safety check.
 
@@ -118,8 +134,8 @@ Prefer to do it by hand? The same steps are written for humans in [install/AGENT
 
 pilotfish installs by having Claude read a runbook and template files from this repo and merge them into your global `~/.claude/` config — including a policy block that then loads into **every future session**. Treat it like any `curl | sh`: trust flows from this repo and your GitHub connection, not from the paste. The local checkout path is recommended because you can inspect the pinned release before Claude reads the runbook. Before running it:
 
-- **Read the actual bytes that get installed**, not just the runbook: the six files in [templates/agents/](./templates/agents/) and [templates/claude-md.orchestration.md](./templates/claude-md.orchestration.md). Nothing else is written to disk.
-- **Pin to a release tag or commit** so what you reviewed is what installs — `main` can change between the moment you read it and the moment Claude reads it. The recommended command above pins to the `v1.1.5` release tag; for the strictest guarantee, fetch and check out the full commit SHA you reviewed, then verify that checkout before launching Claude.
+- **Read the actual bytes that get installed**, not just the runbook: the eight files in [templates/agents/](./templates/agents/) and [templates/claude-md.orchestration.md](./templates/claude-md.orchestration.md). Nothing else is written to disk.
+- **Pin to a release tag or commit** so what you reviewed is what installs — `main` can change between the moment you read it and the moment Claude reads it. The recommended command above pins to the `v1.2.0` release tag; for the strictest guarantee, fetch and check out the full commit SHA you reviewed, then verify that checkout before launching Claude.
 - **Keep the approval gate:** Claude writes nothing until you approve the merge plan, but the plan is still a summary of the runbook. Review the local runbook and templates yourself, and do not weaken or bypass WebFetch's prompt-injection protection if the raw URL is intercepted.
 
 ## What gets installed
@@ -127,7 +143,7 @@ pilotfish installs by having Claude read a runbook and template files from this 
 | Target | Change | Reversible |
 |---|---|---|
 | `~/.claude/settings.json` | `model` → `"best"`, adds `fallbackModel: ["opus", "sonnet"]`, extends `availableModels` (only if you already restrict it) | Yes — keys are independent |
-| `~/.claude/agents/` | Six role agent files (listed above) | Yes — delete the files |
+| `~/.claude/agents/` | Eight role agent files (listed above) | Yes — delete the files |
 | `~/.claude/CLAUDE.md` | One `## Orchestration` section between `<!-- pilotfish:begin/end -->` markers | Yes — remove the marker block |
 
 Nothing is written into any project. That's deliberate — see the design doc.
@@ -182,10 +198,11 @@ The delegation policy in `CLAUDE.md` speaks only of roles (`executor`, `scout`, 
 | Why `effort: low` on the cheap roles? | Effort is the second big quota lever. Fable-5-generation models at low effort routinely match previous-generation `xhigh`; recon and mechanical work don't need deep thinking. |
 | Which effort for the main session? | `high`. Official guidance for Fable 5: `high` for most work, `xhigh` only for the longest-horizon tasks, `max` rarely — diminishing returns. |
 | Do I lose the 1M context window? | No — Fable 5 is 1M by default, so `best` gives you 1M whenever it resolves to Fable 5. If you want *guaranteed* 1M even when `best` would fall back to Opus, set `model` to `"opus[1m]"` instead (the `[1m]` suffix is documented for `sonnet`/`opus`/`opusplan`/full IDs, not for `best`). |
-| Does the orchestrator ever do work itself? | Yes — quick single-file reads, decisions, and anything you explicitly asked *it* to judge. Delegation has overhead; the policy says so. |
+| Does the orchestrator ever do work itself? | Yes — quick reads, small bounded repository scans, decisions, root-cause exploration, trace-driven debugging, tightly coupled state work, and anything you explicitly asked *it* to judge. Other work is delegated when its combined cost, context, latency, isolation, or verification benefit exceeds reconstruction and integration overhead. |
 | My project has its own CLAUDE.md — conflict? | No file is ever touched: pilotfish writes only under `~/.claude/`. At runtime Claude Code *stacks* project memory and user memory — both load together, neither overrides the other. If one repo needs different behavior, add a local note there (e.g. "work inline in this repo, don't delegate") — the more specific instruction wins in practice. |
-| Subagent quality worries me | That's what `verifier` is for: an independent fresh-context pass that tries to *refute* the work. Official guidance: fresh-context verifiers beat self-critique. Escalation (two strikes → higher tier) handles the rest. Note verification isn't free either — it re-reads context on Opus — which is why the policy scopes it to non-trivial work only. |
-| Doesn't spawning agents cost extra? | Yes — every spawn is a fresh context that re-reads its slice of the codebase, and spec-writing costs main-session tokens. That overhead is why the policy says don't delegate single-file reads or quick judgments. The savings come from volume work (search, bulk edits, test runs), where the cheaper tier's per-token price dwarfs the spawn overhead. |
+| I also installed a delegation-planning skill | Treat it as a complementary planning layer. A skill such as [Baton](https://github.com/cablate/baton) can shape discovery questions, worker count, ownership, sequence, and stop conditions; pilotfish supplies the named Claude roles, model routing, leaf-agent boundary, approval gate, and verifier contract. The [public two-turn compatibility gate](./benchmarks/baton-compatibility/README.md) completed Discovery → main-session Plan → `READY` → explicit approval → execution → fresh `CONFIRMED` verification. On its small fixture Baton correctly kept Discovery in the main session, then delegated the approved mechanical write to `mech-executor` and verification to `verifier`. pilotfish never disables user skills. |
+| Subagent quality worries me | Independent fresh-context roles challenge both boundaries: read-only `plan-verifier` reviews a material Plan before approval, while outcome `verifier` tries to *refute* completed work after implementation. Official guidance: fresh-context verifiers beat self-critique. Escalation (two strikes → higher tier) handles the rest. Verification is not free—it re-reads context on Opus—so small work skips it. |
+| Doesn't spawning agents cost extra? | Yes — every spawn is a fresh context that re-reads its slice of the codebase, and synthesis costs main-session tokens. A bounded task-local scan therefore stays inline by default. Discovery may still fan out when disjoint evidence materially reduces Plan uncertainty, while execution delegates only after its contract is stable. In the public mechanical control's execution-only segment, delegation reported 36.01% less cost with a 7.92% wall-time trade-off; neither compared run included the required outcome verifier, so this demonstrates route reachability rather than full-lifecycle savings. The research fixture shows the overhead of two scouts on one small task, not that plan-first discovery is categorically wrong. |
 | Turn it off fast? | **This session:** tell Claude "don't delegate this session — work inline"; it's just policy text, it obeys immediately. **This repo:** add a local note to the repo's CLAUDE.md. **Whole machine:** comment out the `pilotfish:begin/end` block in `~/.claude/CLAUDE.md` — the agent files just sit unused. No reinstall needed to switch back. |
 | Managed / enterprise machine? | Managed settings outrank user settings: a managed `model`, `availableModels` allowlist, or a managed agent with the same name will override pilotfish's user-level install. If roles don't take effect after restart, ask your admin — pilotfish can't (and shouldn't) override managed policy. |
 
@@ -198,15 +215,18 @@ This repo is the packaged result of a sourced research pass (official docs, Anth
 | [docs/research.md](./docs/research.md) | English | Full research findings: Fable 5 strengths & when it's wasteful, subscription economics, official Claude Code mechanisms, community measurements — with sources |
 | [docs/research.zh-TW.md](./docs/research.zh-TW.md) | 繁體中文 | 研究報告原版（the original the English version translates） |
 | [docs/design.md](./docs/design.md) | English | Why three layers, why role-based policy, why aliases over pinned IDs, effort tiering, what was deliberately left out |
+| [benchmarks/dispatch-brake/README.md](./benchmarks/dispatch-brake/README.md) | English + data | Reproducible negative/positive controls, rejected policy iterations, Agent traces, cost and timing evidence |
+| [benchmarks/dispatch-brake/positive-controls/README.md](./benchmarks/dispatch-brake/positive-controls/README.md) | English + data | Mechanical delegation evidence plus the measured task-local overhead and interpretation limits of small read-only fan-out |
+| [benchmarks/baton-compatibility/README.md](./benchmarks/baton-compatibility/README.md) | English + data | Complete native-Claude two-turn Baton lifecycle, exact prompts, rejected harness run, routing evidence, and machine-readable results |
 
-**Prior art & credits.** The "smart brain, cheap hands" split is not pilotfish's invention: Anthropic's own engineering writeup ([Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)) frames it, Claude Code ships [`opusplan`](https://code.claude.com/docs/en/model-config) built in — if all you want is cheaper sessions, `/model opusplan` needs no repo at all — and [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) packages the same frugality thesis as a plugin with ledger-enforcing guard hooks. pilotfish's contribution is the packaging: six deliberately-few roles instead of a 100-agent catalog, a role-based policy that survives model churn, an installer that shows its plan before touching anything, and claims that were adversarially fact-checked. If a heavier, hook-enforced flavor fits you better, use theirs.
+**Prior art & credits.** The "smart brain, cheap hands" split is not pilotfish's invention: Anthropic's own engineering writeup ([Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)) frames it, Claude Code ships [`opusplan`](https://code.claude.com/docs/en/model-config) built in — if all you want is cheaper sessions, `/model opusplan` needs no repo at all — and [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) packages the same frugality thesis as a plugin with ledger-enforcing guard hooks. pilotfish's contribution is the packaging: eight deliberately-few roles instead of a 100-agent catalog, a role-based policy that survives model churn, an installer that shows its plan before touching anything, and claims that were adversarially fact-checked. If a heavier, hook-enforced flavor fits you better, use theirs.
 
 ## Uninstall
 
 Tell Claude Code:
 
 ```text
-Uninstall pilotfish: remove the six pilotfish agent files from ~/.claude/agents/,
+Uninstall pilotfish: remove the eight pilotfish agent files from ~/.claude/agents/,
 delete the <!-- pilotfish:begin --> ... <!-- pilotfish:end --> block from ~/.claude/CLAUDE.md,
 and offer to restore my previous "model" / remove "fallbackModel" in ~/.claude/settings.json.
 ```

@@ -1,0 +1,567 @@
+{
+  "schema_version": 1,
+  "run_date": "2026-07-13",
+  "timezone": "Asia/Taipei",
+  "environment_reference": "../results.json",
+  "metric_note": "reported_cost_usd is Claude Code's client-reported field, not a provider invoice. Interrupted-run cost is spend observed at the stop point, not a completed-condition comparison.",
+  "complete_runs": [
+    {
+      "name": "research-pilotfish-hard-brake",
+      "fixture": "small-readonly-research",
+      "surface": "pilotfish",
+      "policy_iteration": "direct-work hard veto",
+      "status": "success",
+      "wall_seconds": 234.1,
+      "duration_ms": 231897,
+      "num_turns": 17,
+      "reported_cost_usd": 0.8968640000000001,
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "agent_calls": [],
+      "model_usage": {
+        "claude-opus-4-8": {
+          "inputTokens": 14,
+          "outputTokens": 15095,
+          "cacheReadInputTokens": 185058,
+          "cacheCreationInputTokens": 42689,
+          "webSearchRequests": 0,
+          "costUSD": 0.8968640000000001,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000
+        }
+      },
+      "raw_stream_sha256": "fc103c64d6fa0e065fd43db7a543b052156e168bb2558a66fa5847d1a8dc1906"
+    },
+    {
+      "name": "research-remora-hard-brake",
+      "fixture": "small-readonly-research",
+      "surface": "remora",
+      "policy_iteration": "direct-work hard veto",
+      "status": "error_max_budget_usd",
+      "wall_seconds": 288.79,
+      "duration_ms": 4,
+      "num_turns": 1,
+      "reported_cost_usd": 3.1560490000000003,
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "agent_calls": [
+        {
+          "subagent_type": "scout",
+          "description": "稽核 surface-a 規則",
+          "run_in_background": true
+        },
+        {
+          "subagent_type": "scout",
+          "description": "稽核 surface-b 規則",
+          "run_in_background": true
+        },
+        {
+          "subagent_type": "verifier",
+          "description": "驗證報告引用與結論",
+          "run_in_background": true
+        }
+      ],
+      "model_usage": {
+        "gpt-5.6-sol": {
+          "inputTokens": 341677,
+          "outputTokens": 10691,
+          "cacheReadInputTokens": 1697280,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 2.8243,
+          "contextWindow": 372000,
+          "maxOutputTokens": 32000
+        },
+        "gpt-5.6-luna": {
+          "inputTokens": 31147,
+          "outputTokens": 6846,
+          "cacheReadInputTokens": 9728,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.33174899999999996,
+          "contextWindow": 372000,
+          "maxOutputTokens": 32000
+        }
+      },
+      "raw_stream_sha256": "461dc2b7595384ef425276193a3fd3a73261f2f69353cc9254fecfc7af0edab9",
+      "note": "REPORT.md and its acceptance test completed; the run then exhausted the USD 3 client budget while finalizing fresh verification."
+    },
+    {
+      "name": "mechanical-pilotfish-hard-brake",
+      "fixture": "stable-mechanical-12-file",
+      "surface": "pilotfish",
+      "policy_iteration": "direct-work hard veto",
+      "status": "success",
+      "wall_seconds": 128.24,
+      "duration_ms": 122578,
+      "num_turns": 28,
+      "reported_cost_usd": 0.790263,
+      "tests_passed": 12,
+      "tests_failed": 0,
+      "agent_calls": [],
+      "model_usage": {
+        "claude-opus-4-8": {
+          "inputTokens": 12,
+          "outputTokens": 8313,
+          "cacheReadInputTokens": 99276,
+          "cacheCreationInputTokens": 53274,
+          "webSearchRequests": 0,
+          "costUSD": 0.790263,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000
+        }
+      },
+      "raw_stream_sha256": "fadd2be8d3660b8f9d676c57493fb79ede49b4f7b49d7d9ba58229685a946365"
+    },
+    {
+      "name": "mechanical-remora-hard-brake",
+      "fixture": "stable-mechanical-12-file",
+      "surface": "remora",
+      "policy_iteration": "direct-work hard veto",
+      "status": "success",
+      "wall_seconds": 260.46,
+      "duration_ms": 256502,
+      "num_turns": 15,
+      "reported_cost_usd": 1.010412,
+      "tests_passed": 12,
+      "tests_failed": 0,
+      "agent_calls": [
+        {
+          "subagent_type": "mech-executor",
+          "description": "Normalize all adapters",
+          "run_in_background": false
+        },
+        {
+          "subagent_type": "verifier",
+          "description": "Verify adapter normalization",
+          "run_in_background": false
+        }
+      ],
+      "model_usage": {
+        "gpt-5.6-sol": {
+          "inputTokens": 65735,
+          "outputTokens": 6371,
+          "cacheReadInputTokens": 275456,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.6256780000000001,
+          "contextWindow": 372000,
+          "maxOutputTokens": 32000
+        },
+        "gpt-5.6-luna": {
+          "inputTokens": 31697,
+          "outputTokens": 4657,
+          "cacheReadInputTokens": 219648,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.3847340000000001,
+          "contextWindow": 372000,
+          "maxOutputTokens": 32000
+        }
+      },
+      "raw_stream_sha256": "844ee44e97f65a9d8d909778fbf88a9378e98aa27fa33fd6c55627e2500503f1"
+    },
+    {
+      "name": "research-pilotfish-broad-net-benefit",
+      "fixture": "small-readonly-research",
+      "surface": "pilotfish",
+      "policy_iteration": "broad net-benefit positive default",
+      "status": "success",
+      "wall_seconds": 261.52,
+      "duration_ms": 158489,
+      "num_turns": 11,
+      "reported_cost_usd": 1.0368928,
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "agent_calls": [
+        {
+          "subagent_type": "scout",
+          "description": "Audit surface-a orchestration",
+          "run_in_background": true
+        },
+        {
+          "subagent_type": "scout",
+          "description": "Audit surface-b orchestration",
+          "run_in_background": true
+        }
+      ],
+      "model_usage": {
+        "claude-opus-4-8": {
+          "inputTokens": 20,
+          "outputTokens": 15417,
+          "cacheReadInputTokens": 285369,
+          "cacheCreationInputTokens": 45129,
+          "webSearchRequests": 0,
+          "costUSD": 0.9794995,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000
+        },
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 52,
+          "outputTokens": 5277,
+          "cacheReadInputTokens": 26013,
+          "cacheCreationInputTokens": 22684,
+          "webSearchRequests": 0,
+          "costUSD": 0.0573933,
+          "contextWindow": 200000,
+          "maxOutputTokens": 32000
+        }
+      },
+      "raw_stream_sha256": "14d0e5032a6b94411efbda8d8a9005c96171e45522045fedfe6bff7170daeebd"
+    },
+    {
+      "name": "mechanical-pilotfish-balanced",
+      "fixture": "stable-mechanical-12-file",
+      "surface": "pilotfish",
+      "policy_iteration": "net benefit plus single-bug guard",
+      "status": "success",
+      "wall_seconds": 138.4,
+      "duration_ms": 136864,
+      "num_turns": 5,
+      "reported_cost_usd": 0.50568165,
+      "tests_passed": 12,
+      "tests_failed": 0,
+      "agent_calls": [
+        {
+          "subagent_type": "mech-executor",
+          "description": "Normalize adapters in src/adapters",
+          "run_in_background": false
+        }
+      ],
+      "model_usage": {
+        "claude-opus-4-8": {
+          "inputTokens": 10,
+          "outputTokens": 5378,
+          "cacheReadInputTokens": 95765,
+          "cacheCreationInputTokens": 20242,
+          "webSearchRequests": 0,
+          "costUSD": 0.3848025,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000
+        },
+        "claude-sonnet-5": {
+          "inputTokens": 12,
+          "outputTokens": 1325,
+          "cacheReadInputTokens": 90623,
+          "cacheCreationInputTokens": 19675,
+          "webSearchRequests": 0,
+          "costUSD": 0.12087915,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000
+        }
+      },
+      "raw_stream_sha256": "a888213aaf1e801e51c075b919a8965ec81f87601298b3fade47a2dc159321de"
+    },
+    {
+      "name": "negative-pilotfish-balanced",
+      "fixture": "tightly-coupled-state-clone",
+      "surface": "pilotfish",
+      "policy_iteration": "net benefit plus single-bug guard",
+      "status": "success",
+      "wall_seconds": 77.45,
+      "duration_ms": 75746,
+      "num_turns": 10,
+      "reported_cost_usd": 0.36530899999999994,
+      "tests_passed": 2,
+      "tests_failed": 0,
+      "agent_calls": [],
+      "model_usage": {
+        "claude-opus-4-8": {
+          "inputTokens": 12,
+          "outputTokens": 4654,
+          "cacheReadInputTokens": 115758,
+          "cacheCreationInputTokens": 19102,
+          "webSearchRequests": 0,
+          "costUSD": 0.36530899999999994,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000
+        }
+      },
+      "raw_stream_sha256": "fa00625b3b41326732368a5bf223f6b52f374f6df4fcce27b86307ad32e8f881"
+    },
+    {
+      "name": "negative-remora-balanced",
+      "fixture": "tightly-coupled-state-clone",
+      "surface": "remora",
+      "policy_iteration": "net benefit plus single-bug guard",
+      "status": "success",
+      "wall_seconds": 200.86,
+      "duration_ms": 199454,
+      "num_turns": 24,
+      "reported_cost_usd": 0.817504,
+      "tests_passed": 2,
+      "tests_failed": 0,
+      "agent_calls": [
+        {
+          "subagent_type": "verifier",
+          "description": "驗證 status-line 修正",
+          "run_in_background": false
+        }
+      ],
+      "model_usage": {
+        "gpt-5.6-sol": {
+          "inputTokens": 71423,
+          "outputTokens": 8237,
+          "cacheReadInputTokens": 508928,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.817504,
+          "contextWindow": 372000,
+          "maxOutputTokens": 32000
+        }
+      },
+      "raw_stream_sha256": "4e1da242a30cff7977f1635dd41358082d00c205db39d988a658bc7db98d598c"
+    },
+    {
+      "name": "research-pilotfish-sized-gate",
+      "fixture": "small-readonly-research",
+      "surface": "pilotfish",
+      "policy_iteration": "final sized read-only gate",
+      "status": "success",
+      "wall_seconds": 228.96,
+      "duration_ms": 226618,
+      "num_turns": 18,
+      "reported_cost_usd": 0.918431,
+      "tests_passed": 1,
+      "tests_failed": 0,
+      "agent_calls": [],
+      "model_usage": {
+        "claude-opus-4-8": {
+          "inputTokens": 16,
+          "outputTokens": 15030,
+          "cacheReadInputTokens": 220062,
+          "cacheCreationInputTokens": 43257,
+          "webSearchRequests": 0,
+          "costUSD": 0.918431,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000
+        }
+      },
+      "raw_stream_sha256": "21868a56f652be79b28562d531ae8a0fa46d418bdc5502ae5bb0b5cd450baa68"
+    }
+  ],
+  "interrupted_policy_probes": [
+    {
+      "name": "negative-remora-broad-net-benefit",
+      "fixture": "tightly-coupled-state-clone",
+      "surface": "remora",
+      "policy_iteration": "broad net-benefit before single-bug guard",
+      "status": "error_during_execution",
+      "wall_seconds": 118.27,
+      "duration_ms": 116943,
+      "num_turns": 20,
+      "reported_cost_usd": 0.328834,
+      "tests_passed": null,
+      "tests_failed": null,
+      "agent_calls": [
+        {
+          "subagent_type": "scout",
+          "description": "定位 status-line 失敗",
+          "run_in_background": false
+        },
+        {
+          "subagent_type": "executor",
+          "description": "修正 status-line 狀態同步",
+          "run_in_background": false
+        }
+      ],
+      "model_usage": {
+        "gpt-5.6-sol": {
+          "inputTokens": 15216,
+          "outputTokens": 2187,
+          "cacheReadInputTokens": 167936,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.214723,
+          "contextWindow": 372000,
+          "maxOutputTokens": 32000
+        },
+        "gpt-5.6-luna": {
+          "inputTokens": 8336,
+          "outputTokens": 2631,
+          "cacheReadInputTokens": 13312,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.11411099999999999,
+          "contextWindow": 372000,
+          "maxOutputTokens": 32000
+        }
+      },
+      "raw_stream_sha256": "b342e11e090df2594717c3029ef93692386d3ff984435c71da2331df85e5b7f3",
+      "stop_reason": "Stopped after observing a foreground scout followed by a foreground executor, which violated the intended single-reasoning-chain boundary."
+    },
+    {
+      "name": "research-pilotfish-size-wording-rejected",
+      "fixture": "small-readonly-research",
+      "surface": "pilotfish",
+      "policy_iteration": "subjective sizable wording",
+      "status": "error_during_execution",
+      "wall_seconds": 74.02,
+      "duration_ms": 70659,
+      "num_turns": 7,
+      "reported_cost_usd": 0.29687099999999994,
+      "tests_passed": null,
+      "tests_failed": null,
+      "agent_calls": [
+        {
+          "subagent_type": "scout",
+          "description": "Audit surface-a orchestration",
+          "run_in_background": true
+        },
+        {
+          "subagent_type": "scout",
+          "description": "Audit surface-b orchestration",
+          "run_in_background": true
+        }
+      ],
+      "model_usage": {
+        "claude-opus-4-8": {
+          "inputTokens": 6,
+          "outputTokens": 4399,
+          "cacheReadInputTokens": 47212,
+          "cacheCreationInputTokens": 14645,
+          "webSearchRequests": 0,
+          "costUSD": 0.280061,
+          "contextWindow": 1000000,
+          "maxOutputTokens": 64000
+        },
+        "claude-haiku-4-5-20251001": {
+          "inputTokens": 20,
+          "outputTokens": 746,
+          "cacheReadInputTokens": 0,
+          "cacheCreationInputTokens": 10448,
+          "webSearchRequests": 0,
+          "costUSD": 0.01681,
+          "contextWindow": 200000,
+          "maxOutputTokens": 32000
+        }
+      },
+      "raw_stream_sha256": "d915599c1b34429610e19040789b71affeb40626ad5a402392cc36843848c026",
+      "stop_reason": "Stopped after two background scouts proved that qualitative size wording was too ambiguous."
+    },
+    {
+      "name": "research-remora-sized-gate-with-baton",
+      "fixture": "small-readonly-research",
+      "surface": "remora",
+      "policy_iteration": "sized read-only gate with auto-loaded baton-dispatch",
+      "status": "error_during_execution",
+      "wall_seconds": 137.09,
+      "duration_ms": 42964,
+      "num_turns": 20,
+      "reported_cost_usd": 0.79647,
+      "tests_passed": null,
+      "tests_failed": null,
+      "agent_calls": [
+        {
+          "subagent_type": "Explore",
+          "description": "稽核 surface-a 規則",
+          "run_in_background": true
+        },
+        {
+          "subagent_type": "Explore",
+          "description": "稽核 surface-b 規則",
+          "run_in_background": true
+        }
+      ],
+      "model_usage": {
+        "gpt-5.6-sol": {
+          "inputTokens": 46374,
+          "outputTokens": 3092,
+          "cacheReadInputTokens": 479744,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.549042,
+          "contextWindow": 372000,
+          "maxOutputTokens": 32000
+        },
+        "gpt-5.6-luna": {
+          "inputTokens": 24542,
+          "outputTokens": 4702,
+          "cacheReadInputTokens": 14336,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.24742800000000004,
+          "contextWindow": 372000,
+          "maxOutputTokens": 32000
+        }
+      },
+      "raw_stream_sha256": "3f16c74b56292f0f2f384537622cabdea82508a3fcf0444486c0f38b8006d90d",
+      "stop_reason": "Stopped after two background Explore calls selected by the auto-loaded baton-dispatch skill. The probe did not continue through main-session Plan synthesis, user approval, execution, or verification."
+    },
+    {
+      "name": "research-remora-precedence-probe-unshipped",
+      "fixture": "small-readonly-research",
+      "surface": "remora",
+      "policy_iteration": "unshipped generic-skill precedence wording",
+      "status": "error_during_execution",
+      "wall_seconds": null,
+      "duration_ms": 33177,
+      "num_turns": 8,
+      "reported_cost_usd": 0.8063840000000001,
+      "tests_passed": null,
+      "tests_failed": null,
+      "agent_calls": [
+        {
+          "subagent_type": "scout",
+          "description": "稽核 surface-a 規則",
+          "run_in_background": true
+        },
+        {
+          "subagent_type": "scout",
+          "description": "稽核 surface-b 規則",
+          "run_in_background": true
+        }
+      ],
+      "model_usage": {
+        "gpt-5.6-sol": {
+          "inputTokens": 57460,
+          "outputTokens": 2914,
+          "cacheReadInputTokens": 391168,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.555734,
+          "contextWindow": 372000,
+          "maxOutputTokens": 32000
+        },
+        "gpt-5.6-luna": {
+          "inputTokens": 18435,
+          "outputTokens": 6083,
+          "cacheReadInputTokens": 12800,
+          "cacheCreationInputTokens": 0,
+          "webSearchRequests": 0,
+          "costUSD": 0.25065000000000004,
+          "contextWindow": 372000,
+          "maxOutputTokens": 32000
+        }
+      },
+      "raw_stream_sha256": "084bcdfa3b2597a7e0526d53db05c24a771958c8727ed9720f19348e846495da",
+      "stop_reason": "Stopped after two background scouts. The probe recorded the discovery decomposition but did not continue through main-session Plan synthesis, user approval, execution, or verification."
+    }
+  ],
+  "comparisons": {
+    "mechanical_pilotfish": {
+      "direct_run": "mechanical-pilotfish-hard-brake",
+      "delegated_run": "mechanical-pilotfish-balanced",
+      "wall_time_change_percent": 7.92,
+      "execution_only_reported_cost_change_percent": -36.01,
+      "outcome_verification_included": false,
+      "full_lifecycle_savings_claimed": false,
+      "interpretation": "The hard direct-speed veto suppressed a useful cheap-worker route. Net-benefit routing restored it with a modest latency trade-off, but neither compared run included the required outcome verifier, so this is not a full-lifecycle savings claim."
+    },
+    "small_research_pilotfish": {
+      "direct_hard_brake_run": "research-pilotfish-hard-brake",
+      "overbroad_fanout_run": "research-pilotfish-broad-net-benefit",
+      "final_sized_gate_run": "research-pilotfish-sized-gate",
+      "overbroad_vs_direct_wall_time_change_percent": 11.71,
+      "overbroad_vs_direct_reported_cost_change_percent": 15.61,
+      "final_agent_calls": 0,
+      "interpretation": "Direct work was faster and cheaper for this task-local fixture. The two-scout run demonstrates startup and synthesis overhead here, but does not establish that discovery fan-out is harmful in a larger plan-first lifecycle."
+    },
+    "remora_baton_composition_probe": {
+      "observed": true,
+      "completed_lifecycle": false,
+      "skill": "baton-dispatch v0.1.1",
+      "interpretation": "The auto-loaded planning skill selected two independent read-only discovery calls while remora supplied the named roles and model routing. Both probes stopped before Plan synthesis, approval, execution, and verification, so the observation establishes neither a compatibility failure nor end-to-end compatibility."
+    }
+  }
+}

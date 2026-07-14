@@ -1,0 +1,8 @@
+{
+  "name": "dispatch-positive-research",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node verify-report.mjs"
+  }
+}

@@ -9,7 +9,7 @@ pilotfish is a global multi-model orchestration layer for Claude Code. It touche
 | Target | Change |
 |---|---|
 | `~/.claude/settings.json` | Set `model` to `"best"`, add `fallbackModel`, conditionally extend `availableModels` |
-| `~/.claude/agents/` | Install six role agent files: `scout.md`, `Explore.md`, `mech-executor.md`, `executor.md`, `verifier.md`, `security-executor.md` |
+| `~/.claude/agents/` | Install eight role agent files: `scout.md`, `Explore.md`, `plan-verifier.md`, `security-reviewer.md`, `mech-executor.md`, `executor.md`, `verifier.md`, `security-executor.md` |
 | `~/.claude/CLAUDE.md` | Insert one `## Orchestration` section between `<!-- pilotfish:begin -->` and `<!-- pilotfish:end -->` markers |
 
 Source of truth for the files: the [templates/](../templates/) directory of this repository. If you are running inside a local clone, use those files directly; otherwise fetch each from `https://raw.githubusercontent.com/Nanako0129/pilotfish/main/templates/...`.
@@ -31,10 +31,11 @@ When the user asks to **update** (rather than fresh-install), run this before St
 
 Gather the current state before proposing anything:
 
-1. Read `~/.claude/settings.json` (note the current `model`, and whether `fallbackModel` / `availableModels` exist). If the file is missing, you will create a minimal one.
-2. Read `~/.claude/CLAUDE.md` if it exists. Check for existing `<!-- pilotfish:begin -->` / `<!-- pilotfish:end -->` markers — their presence means this is an **upgrade**, not a fresh install.
-3. List `~/.claude/agents/` and note which of the six pilotfish filenames already exist. **Also read the `name:` frontmatter of every existing agent file (any filename)** — Claude Code resolves collisions by the `name` field, not the filename, and loads only one definition per name. If any existing agent already declares `name: scout`, `executor`, `mech-executor`, `verifier`, `security-executor`, or `Explore`, flag it as a name collision in the plan and ask the user whether to rename theirs, skip that pilotfish role, or overwrite. Likewise note any enabled **plugin** that ships agents with these names — a user-level file shadows the plugin's version (still reachable via its scoped `plugin:name`).
-4. Check whether the environment variable `CLAUDE_CODE_SUBAGENT_MODEL` is set (`echo "$CLAUDE_CODE_SUBAGENT_MODEL"`).
+1. Run `claude --version` and parse its semantic version. pilotfish requires **Claude Code 2.1.207 or newer**, the verified baseline that enforces agent `tools` allowlists. If the command is unavailable, its version cannot be parsed, or it reports an older version, **stop before presenting a write plan or changing anything** and ask the user to update Claude Code. Do not install a prompt-only approximation: `plan-verifier` and `security-reviewer` depend on enforced tool exclusion to preserve the pre-approval read-only boundary.
+2. Read `~/.claude/settings.json` (note the current `model`, and whether `fallbackModel` / `availableModels` exist). If the file is missing, you will create a minimal one.
+3. Read `~/.claude/CLAUDE.md` if it exists. Check for existing `<!-- pilotfish:begin -->` / `<!-- pilotfish:end -->` markers — their presence means this is an **upgrade**, not a fresh install.
+4. List `~/.claude/agents/` and note which of the eight pilotfish filenames already exist. **Also read the `name:` frontmatter of every existing agent file (any filename)** — Claude Code resolves collisions by the `name` field, not the filename, and loads only one definition per name. If any existing agent already declares `name: scout`, `Explore`, `plan-verifier`, `security-reviewer`, `mech-executor`, `executor`, `verifier`, or `security-executor`, flag it as a name collision in the plan and ask the user whether to rename theirs, skip that pilotfish role, or overwrite. Likewise note any enabled **plugin** that ships agents with these names — a user-level file shadows the plugin's version (still reachable via its scoped `plugin:name`).
+5. Check whether the environment variable `CLAUDE_CODE_SUBAGENT_MODEL` is set (`echo "$CLAUDE_CODE_SUBAGENT_MODEL"`).
 
 > ⚠️ **Warning:** If `CLAUDE_CODE_SUBAGENT_MODEL` is set, it silently overrides every per-agent `model` frontmatter and defeats the entire tiering design. Flag it in your plan and recommend unsetting it. Do not unset it yourself without approval.
 
@@ -73,7 +74,7 @@ Validate afterwards: `jq empty ~/.claude/settings.json`.
 
 ### 3.3 Agent files
 
-For each of the six files in `templates/agents/`, write it to `~/.claude/agents/<same-name>.md`:
+For each of the eight files in `templates/agents/`, write it to `~/.claude/agents/<same-name>.md`:
 
 | Existing state | Action |
 |---|---|
@@ -102,16 +103,16 @@ Do not modify anything outside the markers.
 ## Step 4 — Verify and hand off
 
 1. `jq empty ~/.claude/settings.json` exits 0.
-2. `ls ~/.claude/agents/` shows all six files.
+2. `ls ~/.claude/agents/` shows all eight files.
 3. The markers appear exactly once in `~/.claude/CLAUDE.md`: `grep -c "pilotfish:begin" ~/.claude/CLAUDE.md` prints `1`.
 4. Read the installed policy block and verify that it says existing named roles are invoked without `model`, while only truly ad-hoc agents with no named role definition receive an explicit invocation model.
-5. Tell the user to **restart their Claude Code session**: the agents directory is scanned at session start, and the `model` setting applies on restart. After restart, `/model` should show the new default, and asking Claude "which subagent types are available?" should list the six roles (scout, Explore, mech-executor, executor, verifier, security-executor). On Claude Code before 2.1.198 you can also run `/agents` to see them; that wizard was removed in 2.1.198.
+5. Tell the user to **restart their Claude Code session**: the agents directory is scanned at session start, and the `model` setting applies on restart. After restart, `/model` should show the new default, and asking Claude "which subagent types are available?" should list the eight roles (scout, Explore, plan-verifier, security-reviewer, mech-executor, executor, verifier, security-executor). On Claude Code before 2.1.198 you can also run `/agents` to see them; that wizard was removed in 2.1.198.
 6. Summarize what changed, what was skipped, and where the backups are.
 
 ## Uninstall
 
 On request, reverse the three targets:
 
-1. Delete the six files from `~/.claude/agents/` (only ones whose content matches pilotfish templates — show a diff first if they were customized).
+1. Delete the eight files from `~/.claude/agents/` (only ones whose content matches pilotfish templates — show a diff first if they were customized).
 2. Remove the block from `<!-- pilotfish:begin -->` through `<!-- pilotfish:end -->` (inclusive) in `~/.claude/CLAUDE.md`; delete the file only if that leaves it empty and the user confirms.
 3. In `~/.claude/settings.json`: restore `model` from the **oldest** `settings.json.pilotfish-*` backup in `~/.claude/backups/` — that file is the pre-install state (Step 3.1 only ever backs up settings once, on first install). If no such backup exists, or the backup has no `model` key, **remove** the `model` key instead of leaving the pilotfish value. Remove `fallbackModel` if the user doesn't want it. Leave `availableModels` additions in place unless asked — they are harmless.

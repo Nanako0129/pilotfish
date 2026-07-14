@@ -1,0 +1,574 @@
+{
+  "schema_version": 1,
+  "description": "Normalized observable tool sequences. Absolute paths, session identifiers, hook payloads, plugin inventory, and hidden reasoning are intentionally excluded.",
+  "runs": {
+    "research-pilotfish-hard-brake": {
+      "tools": [
+        "Bash",
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Write",
+        "Bash"
+      ],
+      "skills": [],
+      "agent_calls": []
+    },
+    "research-remora-hard-brake": {
+      "tools": [
+        "Skill",
+        "Skill",
+        "Skill",
+        "Bash",
+        "TaskCreate",
+        "TaskCreate",
+        "TaskCreate",
+        "TaskCreate",
+        "TaskUpdate",
+        "TaskUpdate",
+        "Agent",
+        "Agent",
+        "Glob",
+        "Grep",
+        "Glob",
+        "Grep",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "TaskUpdate",
+        "TaskUpdate",
+        "TaskUpdate",
+        "TaskUpdate",
+        "TaskUpdate",
+        "Write",
+        "TaskUpdate",
+        "TaskUpdate",
+        "Bash",
+        "Agent",
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "skills": [
+        "baton-dispatch",
+        "claude-api",
+        "md-style"
+      ],
+      "agent_calls": [
+        {
+          "subagent_type": "scout",
+          "run_in_background": true
+        },
+        {
+          "subagent_type": "scout",
+          "run_in_background": true
+        },
+        {
+          "subagent_type": "verifier",
+          "run_in_background": true
+        }
+      ]
+    },
+    "mechanical-pilotfish-hard-brake": {
+      "tools": [
+        "Bash",
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Bash"
+      ],
+      "skills": [],
+      "agent_calls": []
+    },
+    "mechanical-remora-hard-brake": {
+      "tools": [
+        "TaskCreate",
+        "TaskCreate",
+        "TaskCreate",
+        "TaskCreate",
+        "TaskUpdate",
+        "Agent",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Read",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Bash",
+        "Bash",
+        "Bash",
+        "SendMessage",
+        "TaskUpdate",
+        "TaskUpdate",
+        "TaskUpdate",
+        "TaskUpdate",
+        "Bash",
+        "Agent",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Read",
+        "Bash",
+        "Bash",
+        "Read",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "TaskUpdate",
+        "Bash"
+      ],
+      "skills": [],
+      "agent_calls": [
+        {
+          "subagent_type": "mech-executor",
+          "run_in_background": false
+        },
+        {
+          "subagent_type": "verifier",
+          "run_in_background": false
+        }
+      ]
+    },
+    "research-pilotfish-broad-net-benefit": {
+      "tools": [
+        "Bash",
+        "Bash",
+        "Read",
+        "Agent",
+        "Read",
+        "Read",
+        "Read",
+        "Agent",
+        "Glob",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Write",
+        "Bash"
+      ],
+      "skills": [],
+      "agent_calls": [
+        {
+          "subagent_type": "scout",
+          "run_in_background": true
+        },
+        {
+          "subagent_type": "scout",
+          "run_in_background": true
+        }
+      ]
+    },
+    "mechanical-pilotfish-balanced": {
+      "tools": [
+        "Bash",
+        "Bash",
+        "Agent",
+        "Bash",
+        "Bash",
+        "Read",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "skills": [],
+      "agent_calls": [
+        {
+          "subagent_type": "mech-executor",
+          "run_in_background": false
+        }
+      ]
+    },
+    "negative-pilotfish-balanced": {
+      "tools": [
+        "Bash",
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Edit",
+        "Bash"
+      ],
+      "skills": [],
+      "agent_calls": []
+    },
+    "negative-remora-balanced": {
+      "tools": [
+        "TaskCreate",
+        "TaskCreate",
+        "TaskCreate",
+        "TaskUpdate",
+        "Bash",
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Bash",
+        "TaskUpdate",
+        "TaskUpdate",
+        "Edit",
+        "TaskUpdate",
+        "TaskUpdate",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Agent",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "TaskUpdate"
+      ],
+      "skills": [],
+      "agent_calls": [
+        {
+          "subagent_type": "verifier",
+          "run_in_background": false
+        }
+      ]
+    },
+    "research-pilotfish-sized-gate": {
+      "tools": [
+        "Bash",
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Write",
+        "Bash"
+      ],
+      "skills": [],
+      "agent_calls": []
+    },
+    "negative-remora-broad-net-benefit": {
+      "tools": [
+        "TaskCreate",
+        "TaskCreate",
+        "TaskCreate",
+        "Agent",
+        "Glob",
+        "Grep",
+        "Glob",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Glob",
+        "Grep",
+        "Read",
+        "Read",
+        "TaskGet",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "TaskUpdate",
+        "Bash",
+        "TaskGet",
+        "TaskGet",
+        "TaskUpdate",
+        "TaskUpdate",
+        "Agent"
+      ],
+      "skills": [],
+      "agent_calls": [
+        {
+          "subagent_type": "scout",
+          "run_in_background": false
+        },
+        {
+          "subagent_type": "executor",
+          "run_in_background": false
+        }
+      ]
+    },
+    "research-pilotfish-size-wording-rejected": {
+      "tools": [
+        "Bash",
+        "Read",
+        "Read",
+        "Agent",
+        "Read",
+        "Read",
+        "Read",
+        "Agent",
+        "Glob",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read"
+      ],
+      "skills": [],
+      "agent_calls": [
+        {
+          "subagent_type": "scout",
+          "run_in_background": true
+        },
+        {
+          "subagent_type": "scout",
+          "run_in_background": true
+        }
+      ]
+    },
+    "research-remora-sized-gate-with-baton": {
+      "tools": [
+        "Skill",
+        "Skill",
+        "TaskCreate",
+        "TaskCreate",
+        "TaskCreate",
+        "TaskCreate",
+        "TaskUpdate",
+        "TaskUpdate",
+        "TaskUpdate",
+        "TaskUpdate",
+        "Agent",
+        "Agent",
+        "Glob",
+        "Glob",
+        "Glob",
+        "Glob",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "TaskGet",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "TaskGet",
+        "TaskUpdate",
+        "TaskUpdate",
+        "TaskGet",
+        "TaskUpdate",
+        "Read"
+      ],
+      "skills": [
+        "baton-dispatch",
+        "md-style"
+      ],
+      "agent_calls": [
+        {
+          "subagent_type": "Explore",
+          "run_in_background": true
+        },
+        {
+          "subagent_type": "Explore",
+          "run_in_background": true
+        }
+      ]
+    },
+    "research-remora-precedence-probe-unshipped": {
+      "tools": [
+        "Skill",
+        "Read",
+        "TaskCreate",
+        "TaskCreate",
+        "TaskCreate",
+        "TaskCreate",
+        "TaskGet",
+        "TaskGet",
+        "TaskGet",
+        "TaskGet",
+        "TaskUpdate",
+        "TaskUpdate",
+        "TaskUpdate",
+        "TaskUpdate",
+        "Agent",
+        "Agent",
+        "Glob",
+        "Grep",
+        "Skill",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Glob",
+        "Grep",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "TaskGet",
+        "TaskGet",
+        "TaskGet",
+        "TaskUpdate",
+        "TaskUpdate",
+        "TaskGet"
+      ],
+      "skills": [
+        "baton-dispatch",
+        "md-style"
+      ],
+      "agent_calls": [
+        {
+          "subagent_type": "scout",
+          "run_in_background": true
+        },
+        {
+          "subagent_type": "scout",
+          "run_in_background": true
+        }
+      ]
+    }
+  }
+}

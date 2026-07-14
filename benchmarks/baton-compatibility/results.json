@@ -1,0 +1,153 @@
+{
+  "schema_version": 2,
+  "run_date": "2026-07-14",
+  "timezone": "Asia/Taipei",
+  "fixture": {
+    "repository": "https://github.com/Nanako0129/pilotfish",
+    "commit": "5f027b8c7701d9acd4ae424a6089ffe3d1fa57a7",
+    "path": "benchmarks/dispatch-brake/positive-controls/research/fixture"
+  },
+  "runtime": {
+    "claude_code": "2.1.207",
+    "calico_patched_binary": true,
+    "provider_route": "native Claude first-party authentication",
+    "initial_candidate_base_head": "863b117b9da42179c5bb77a05158920fbc092ee2",
+    "superseded_gate_orchestration_sha256": "b2854ae1a32875144108c69f68d1a75ec4c755e935bbd9fb25214a95c449b0f7",
+    "superseded_gate_agents_json_sha256": "9d9b4f80ce8aa1f7f3e1386655a991dee9025726f2882ae0ac9cd2a32f788b46",
+    "superseded_gate_snapshot_policy": "gate-snapshot/CLAUDE.md",
+    "superseded_gate_snapshot_agents_json": "gate-snapshot/agents.json",
+    "final_gate_orchestration_sha256": "46977d982ebdb244428ae3c45240dcdaedc2f8cb5668032e0bf11c6093a2f9ff",
+    "final_gate_agents_json_sha256": "b3b45557491e9a92aecacab8a05d4c78c3b8f5dc9b26a5c5683f48c5f22bf3f7",
+    "final_gate_snapshot_policy": "final-gate-snapshot/CLAUDE.md",
+    "final_gate_snapshot_agents_json": "final-gate-snapshot/agents.json",
+    "agents_hash_input": "shell command substitution bytes; repository trailing newline stripped",
+    "final_gate_candidate_version_stamp": "1.1.6",
+    "final_gate_candidate_orchestration_sha256": "46977d982ebdb244428ae3c45240dcdaedc2f8cb5668032e0bf11c6093a2f9ff",
+    "release_candidate_version": "1.2.0",
+    "release_candidate_orchestration_sha256": "5760abdeaf55a58c3db6b3f0e3de2c4aa69d303bfd83989b2707a9b00454d9d3",
+    "release_candidate_agents_json_sha256": "b3b45557491e9a92aecacab8a05d4c78c3b8f5dc9b26a5c5683f48c5f22bf3f7",
+    "release_candidate_policy_delta_from_final_gate": "inert version-stamp comment only: v1.1.6 to v1.2.0",
+    "baton_skill_sha256": "48b1e573a9e3de85fdb68c433bd47d69add9ec8491613ca304cfcef2326e3d67"
+  },
+  "final_gate": {
+    "transcript_sha256": "022871ac102442caeb6f902449442d8ccea5248617efafb4bb59dbce237c2569",
+    "startup_resend_required": false,
+    "turns": [
+      {
+        "phase": "discovery_plan_approval_wait",
+        "duration_ms": 221661,
+        "duration_api_ms": 221301,
+        "num_turns": 18,
+        "client_reported_cost_usd": 1.76351525,
+        "models": [
+          "claude-fable-5",
+          "claude-opus-4-8"
+        ],
+        "baton_loaded": true,
+        "discovery_topology": "direct main-session read",
+        "git_clean": true,
+        "plan_verifier_role": "plan-verifier",
+        "plan_verifier_observed_tools": [
+          "Glob",
+          "Read"
+        ],
+        "verifier_sequence": [
+          "READY"
+        ]
+      },
+      {
+        "phase": "approved_execution_verification",
+        "duration_ms": 226487,
+        "duration_api_ms": 225789,
+        "num_turns": 4,
+        "client_reported_cost_usd": 2.02553285,
+        "models": [
+          "claude-fable-5",
+          "claude-sonnet-5",
+          "claude-opus-4-8"
+        ],
+        "only_change": "REPORT.md",
+        "report_sha256": "e6d8d575d0c6601c6ed96b6ef00926cb219f353c79753c8b6baea816fb98779b",
+        "report_lines": 36,
+        "citation_count": 34,
+        "test_passed": true,
+        "executor_write_tool_blocked": true,
+        "executor_approved_scope_fallback": "Bash heredoc",
+        "verifier_sequence": [
+          "CONFIRMED"
+        ]
+      }
+    ],
+    "total_duration_ms": 448148,
+    "total_duration_api_ms": 447090,
+    "total_num_turns": 22,
+    "total_client_reported_cost_usd": 3.7890481,
+    "agent_calls": [
+      {
+        "role": "plan-verifier",
+        "mode": "plan_readiness",
+        "background": false,
+        "invocation_model": null,
+        "observed_model": "claude-opus-4-8",
+        "observed_tools": [
+          "Glob",
+          "Read"
+        ],
+        "verdicts": [
+          "READY"
+        ]
+      },
+      {
+        "role": "mech-executor",
+        "mode": "approved_execution",
+        "background": false,
+        "invocation_model": null,
+        "observed_model": "claude-sonnet-5"
+      },
+      {
+        "role": "verifier",
+        "mode": "outcome_verification",
+        "background": false,
+        "invocation_model": null,
+        "observed_model": "claude-opus-4-8",
+        "observed_tools": [
+          "Bash",
+          "Read"
+        ],
+        "verdicts": [
+          "CONFIRMED"
+        ]
+      }
+    ],
+    "approval_tool_boundary_exercised": true,
+    "security_reviewer_runtime_exercised": false,
+    "passed": true
+  },
+  "superseded_gate": {
+    "transcript_sha256": "ed10fabf6b4daf38d1cf7c87ff8cd2eb0fb1042873140fcc0d097d872e7bf874",
+    "total_duration_ms": 494933,
+    "total_num_turns": 12,
+    "total_client_reported_cost_usd": 3.906375,
+    "plan_role": "verifier",
+    "outcome_role": "verifier",
+    "passed_at_the_time": true,
+    "superseded_reason": "Codex review found that the dual-mode verifier and pre-approval security analysis relied on prompt-only no-write boundaries; the final candidate split them into tool-enforced read-only roles and reran the lifecycle"
+  },
+  "rejected_harness_run": {
+    "transcript_sha256": "64376ea52a4e67192df29d8595c180ddc5017638029759a8ac13aff87d5cca81",
+    "duration_ms": 213558,
+    "num_turns": 17,
+    "client_reported_cost_usd": 1.6278745,
+    "git_clean": true,
+    "plan_verdict": "READY",
+    "second_turn_started": false,
+    "rejection_reason": "--setting-sources project,local hid the user-installed baton-dispatch skill, so the run did not test the requested composition"
+  },
+  "unexercised_controls": {
+    "source": "https://github.com/Nanako0129/pilotfish/pull/10#issuecomment-4958570683",
+    "long_process_triggered": false,
+    "long_process_evidence": "four dedicated direct harness trials from the contributor plus policy contract tests across every Bash-capable role",
+    "security_reviewer_invoked": false,
+    "security_reviewer_evidence": "frontmatter tool allowlist and policy contract tests; no security task was added to this orchestration fixture"
+  }
+}

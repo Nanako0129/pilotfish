@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "run_date": "2026-07-13",
+  "timezone": "Asia/Taipei",
+  "environment": {
+    "os": "macOS 26.5.2 (25F84)",
+    "node": "v26.4.0",
+    "claude_code": "2.1.207 (patched)",
+    "remora": "0.1.6",
+    "pilotfish": "1.1.5",
+    "baton_dispatch": "0.1.1",
+    "pilotfish_main_model": "claude-opus-4-8",
+    "remora_main_model": "gpt-5.6-sol",
+    "remora_worker_model": "gpt-5.6-luna",
+    "remora_context_window": 372000
+  },
+  "source_commits": {
+    "remora_baseline": "d2ad6e553c48de2b9a6feda199fc6f595882b5dc",
+    "pilotfish_baseline": "e5b45dd2330b1ba781d9da0f80211dd657d854cf"
+  },
+  "runs": [
+    {
+      "name": "pilotfish-current",
+      "policy": "installed pilotfish v1.1.5 baseline",
+      "status": "success",
+      "wall_seconds": 101.21,
+      "duration_ms": 99480,
+      "num_turns": 17,
+      "reported_cost_usd": 0.460236,
+      "tests_passed": 2,
+      "tests_failed": 0,
+      "agent_calls": [],
+      "model_usage": {
+        "claude-opus-4-8": {
+          "input_tokens": 22,
+          "output_tokens": 5891,
+          "cache_read_input_tokens": 233062,
+          "cache_creation_input_tokens": 19632,
+          "reported_cost_usd": 0.460236
+        }
+      },
+      "raw_stream_sha256": "761e94c099ebe5566c43667135722dc8c5abd856585eaf8ef0f4a78b78b8b169"
+    },
+    {
+      "name": "remora-current",
+      "policy": "remora v0.1.6 baseline",
+      "status": "success",
+      "wall_seconds": 322.90,
+      "duration_ms": 321616,
+      "num_turns": 17,
+      "reported_cost_usd": 1.316911,
+      "tests_passed": 2,
+      "tests_failed": 0,
+      "agent_calls": [
+        {"role": "scout", "run_in_background": false, "description": "Diagnose status-line failure"},
+        {"role": "executor", "run_in_background": false, "description": "Fix status-line reducer"},
+        {"role": "verifier", "run_in_background": true, "description": "Verify status-line fix"}
+      ],
+      "model_usage": {
+        "gpt-5.6-sol": {
+          "input_tokens": 80342,
+          "output_tokens": 8482,
+          "cache_read_input_tokens": 461824,
+          "cache_creation_input_tokens": 0,
+          "reported_cost_usd": 0.844672
+        },
+        "gpt-5.6-luna": {
+          "input_tokens": 47145,
+          "output_tokens": 5426,
+          "cache_read_input_tokens": 201728,
+          "cache_creation_input_tokens": 0,
+          "reported_cost_usd": 0.472239
+        }
+      },
+      "raw_stream_sha256": "45d2eb9b83220e522c817b53d498ad004ddd1ac1b6ca2d9166c1ed222777d3c3"
+    },
+    {
+      "name": "pilotfish-candidate",
+      "policy": "development dispatch-brake candidate",
+      "status": "success",
+      "wall_seconds": 83.99,
+      "duration_ms": 82371,
+      "num_turns": 13,
+      "reported_cost_usd": 0.439315,
+      "tests_passed": 2,
+      "tests_failed": 0,
+      "agent_calls": [],
+      "model_usage": {
+        "claude-opus-4-8": {
+          "input_tokens": 12,
+          "output_tokens": 5167,
+          "cache_read_input_tokens": 105020,
+          "cache_creation_input_tokens": 25757,
+          "reported_cost_usd": 0.439315
+        }
+      },
+      "raw_stream_sha256": "28ec9eb5f7f2d7222f2b7933faa2cf0185225f19300ece65a3dcdc9965125d02"
+    },
+    {
+      "name": "remora-candidate",
+      "policy": "development dispatch-brake candidate without the final verifier rule",
+      "status": "success",
+      "wall_seconds": 89.76,
+      "duration_ms": 88295,
+      "num_turns": 22,
+      "reported_cost_usd": 0.455722,
+      "tests_passed": 2,
+      "tests_failed": 0,
+      "agent_calls": [],
+      "model_usage": {
+        "gpt-5.6-sol": {
+          "input_tokens": 39875,
+          "output_tokens": 2451,
+          "cache_read_input_tokens": 390144,
+          "cache_creation_input_tokens": 0,
+          "reported_cost_usd": 0.455722
+        }
+      },
+      "raw_stream_sha256": "fd674113376254b00f861fae38e1c6dab242eb6db483723f0f4023276cd30148"
+    },
+    {
+      "name": "pilotfish-postpatch",
+      "policy": "exact repository policy with dispatch brake",
+      "status": "success",
+      "wall_seconds": 83.70,
+      "duration_ms": 82067,
+      "num_turns": 11,
+      "reported_cost_usd": 0.401433,
+      "tests_passed": 2,
+      "tests_failed": 0,
+      "agent_calls": [],
+      "model_usage": {
+        "claude-opus-4-8": {
+          "input_tokens": 14,
+          "output_tokens": 5212,
+          "cache_read_input_tokens": 142246,
+          "cache_creation_input_tokens": 19994,
+          "reported_cost_usd": 0.401433
+        }
+      },
+      "raw_stream_sha256": "3e4e226969b0973a3baa53ae2d2f00971d3bcb143b058c48172bd5978372f640"
+    },
+    {
+      "name": "remora-postpatch",
+      "policy": "exact repository policy with dispatch brake and verifier gate",
+      "status": "success",
+      "wall_seconds": 244.24,
+      "duration_ms": 242638,
+      "num_turns": 33,
+      "reported_cost_usd": 0.790973,
+      "tests_passed": 2,
+      "tests_failed": 0,
+      "agent_calls": [
+        {"role": "verifier", "run_in_background": true, "description": "Verify status-line fix"}
+      ],
+      "model_usage": {
+        "gpt-5.6-sol": {
+          "input_tokens": 48594,
+          "output_tokens": 10779,
+          "cache_read_input_tokens": 557056,
+          "cache_creation_input_tokens": 0,
+          "reported_cost_usd": 0.790973
+        }
+      },
+      "raw_stream_sha256": "f50e1b2241b13a3aad2ea101d8731258cd694bef0e88f54f68673630d0a1764e"
+    }
+  ],
+  "primary_comparison": {
+    "remora": {
+      "wall_time_reduction_percent": 24.36,
+      "reported_cost_reduction_percent": 39.94,
+      "agent_calls_before": 3,
+      "agent_calls_after": 1,
+      "foreground_agent_calls_before": 2,
+      "foreground_agent_calls_after": 0,
+      "verifier_preserved": true
+    },
+    "pilotfish": {
+      "baseline_already_worked_inline": true,
+      "wall_time_change_percent": -17.30,
+      "reported_cost_change_percent": -12.78,
+      "causal_performance_claim_supported": false,
+      "non_regression_supported": true
+    }
+  },
+  "positive_control_extension": {
+    "results": "positive-controls/results.json",
+    "traces": "positive-controls/traces.json",
+    "agent_calls": "positive-controls/agent-calls.json",
+    "fixtures": [
+      "positive-controls/research/fixture",
+      "positive-controls/mechanical/fixture"
+    ],
+    "mechanical_delegation_preserved": true,
+    "mechanical_execution_only_reported_cost_change_percent": -36.01,
+    "mechanical_wall_time_change_percent": 7.92,
+    "mechanical_outcome_verification_included": false,
+    "mechanical_full_lifecycle_savings_claimed": false,
+    "small_research_task_local_direct_path_supported": true,
+    "small_research_overbroad_cost_change_percent": 15.61,
+    "small_research_overbroad_wall_time_change_percent": 11.71,
+    "baton_plan_first_lifecycle_tested": true,
+    "baton_compatibility_gate": "../baton-compatibility/results.json"
+  }
+}

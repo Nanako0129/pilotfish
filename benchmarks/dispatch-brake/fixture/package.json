@@ -1,0 +1,8 @@
+{
+  "name": "dispatch-brake-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}
