@@ -12,11 +12,11 @@
 
 ## 目的
 
-這項實驗驗證 [Baton](https://github.com/cablate/baton) 與 phase-aware pilotfish v1.2.0 release candidate，能否在原生 Claude 路由下完成真正的 plan-first lifecycle。Baton 負責選擇最小且有淨效益的 delegation topology；pilotfish 繼續掌管具名角色、角色模型、leaf-agent 邊界、approval、tool capabilities 與 verifier 詞彙。精確實測 snapshot 帶有先前的 v1.1.6 candidate stamp；發布前因這是 feature-level 變更而重分類為 v1.2.0，policy bytes 唯一差異是這行不影響執行的版本註解。
+這項實驗驗證 [Baton](https://github.com/cablate/baton) 與 pilotfish v1.2.1 release candidate，能否在原生 Claude 路由下完成真正的 plan-first lifecycle。Baton 負責選擇最小且有淨效益的 delegation topology；pilotfish 繼續掌管具名角色、角色模型、leaf-agent 邊界、approval、tool capabilities 與 verifier 詞彙。Repo 內 snapshot 與發布 templates 就是 runtime 實測的精確 bytes。
 
 > **Gate：** Discovery 可以發生在實作結果仍未知時，但 source write 必須等待 main-session Plan 與明確批准。Plan review 回覆 `READY` / `REVISE`；outcome review 回覆 `CONFIRMED` / `REFUTED`。
 
-Fixture 是最早發佈於 pilotfish commit `5f027b8c` 的[雙 surface 研究 control](../dispatch-brake/positive-controls/research/fixture)。執行環境為 Claude Code 2.1.207、原生 first-party Claude authentication、PR #10 candidate policy，以及 `SKILL.md` SHA-256 記錄於 [`results.json`](./results.json) 的 Baton skill。
+Fixture 是最早發佈於 pilotfish commit `5f027b8c` 的[雙 surface 研究 control](../dispatch-brake/positive-controls/research/fixture)。執行環境為 Claude Code 2.1.211、原生 first-party Claude authentication、PR #14 經 maintainer 修正的 candidate policy，以及 `SKILL.md` SHA-256 記錄於 [`results.json`](./results.json) 的 Baton skill。
 
 ### 設計緣起
 
@@ -70,7 +70,7 @@ flowchart TD
 > ⚠️ **安全界線：** `--dangerously-skip-permissions` 只用在可丟棄 fixture。不要在不可信或有價值的 checkout 使用。
 
 ```bash
-SOURCE=/path/to/pilotfish-pr10
+SOURCE=/path/to/pilotfish-pr14
 ROOT="$(mktemp -d /tmp/pilotfish-baton-gate.XXXXXX)"
 WORK="$ROOT/fixture"
 SNAPSHOT="$SOURCE/benchmarks/baton-compatibility/final-gate-snapshot"
@@ -106,7 +106,7 @@ claude --dangerously-skip-permissions \
   "$(cat "$SOURCE/benchmarks/baton-compatibility/prompts/turn-2.txt")"
 ```
 
-這項 Gate 驗證 runtime policy composition 與最終精確角色定義。[`final-gate-snapshot/CLAUDE.md`](./final-gate-snapshot/CLAUDE.md) 直接以 repo 內 bytes 計算 hash；`agents.json` 透過 shell command substitution 讀取，注入與計算 hash 前會去掉檔案尾端 newline。角色定義與目前 templates 完全一致；發布 policy 在正規化不影響執行的 v1.1.6 → v1.2.0 版本註解後，也與實測 policy 完全一致。[`results.json`](./results.json) 記錄兩份 raw policy hash，tests 則鎖定只有這一項差異。Gate 不另外驗證 global file discovery 或 installer；後兩者仍由 installer review path 與 policy contract tests 覆蓋。
+這項 Gate 驗證 runtime policy composition 與最終精確角色定義。[`final-gate-snapshot/CLAUDE.md`](./final-gate-snapshot/CLAUDE.md) 直接以 repo 內 bytes 計算 hash；`agents.json` 透過 shell command substitution 讀取，注入與計算 hash 前會去掉檔案尾端 newline。Policy 與角色定義都和目前 release templates 完全一致。[`results.json`](./results.json) 記錄 hashes，tests 也要求 policy byte-for-byte 相同。Gate 不另外驗證 global file discovery 或 installer；後兩者仍由 installer review path 與 policy contract tests 覆蓋。
 
 ## 精確 prompts
 
@@ -119,16 +119,15 @@ claude --dangerously-skip-permissions \
 
 | Turn | Wall time | Client-reported cost | API turns | Models | 結果 |
 |---|---:|---:|---:|---|---|
-| Discovery + Plan | 221.661 s | $1.763515 | 18 | Fable 5 + Opus 4.8 | Baton 已載入；直接 discovery；Git clean；唯讀 `plan-verifier` 回 `READY` |
-| 已批准 execution + verification | 226.487 s | $2.025533 | 4 | Fable 5 + Sonnet 5 + Opus 4.8 | `mech-executor` 只寫 `REPORT.md`；`npm test` 通過；outcome `verifier` 回 `CONFIRMED` |
-| 合計 | 448.148 s | $3.789048 | 22 | Fable 5 + Sonnet 5 + Opus 4.8 | 完整 lifecycle 通過，沒有重送 |
+| Discovery + Plan | 247.719 s | $1.992795 | 13 | Fable 5 + Opus 4.8 | Baton 已載入；直接 discovery；Git clean；唯讀 `plan-verifier` 回 `REVISE`；main 在批准前修正六組引用範圍 |
+| 已批准 execution + verification | 120.676 s | $1.717640 | 4 | Fable 5 + Opus 4.8 | Main session 只寫 `REPORT.md`；`npm test` 通過；outcome `verifier` 回 `CONFIRMED` |
+| 合計 | 368.395 s | $3.710435 | 17 | Fable 5 + Opus 4.8 | 完整 lifecycle 通過，沒有重送 |
 
-Baton 選擇由 main session 直接 discovery，再把穩定的單檔 execution contract 委派給 `mech-executor`。這正是預期的 phase 差異：探索中的工作留在 main；批准後的機械式撰寫走便宜 worker。Main session 保留 Plan synthesis、integration、tests 與最終判斷。
+Baton 選擇由 main session 直接 discovery。Readiness verifier 抓到 Plan 草稿中六組錯誤行號，因此 main session 在要求批准前先修正引用。因所有證據已留在 main context，Baton 也讓批准後的單檔彙整直接由 main session 完成，只把 fresh outcome verification 委派出去。這次 run 因此證明：只要 dispatch 沒有淨效益，Baton 在任一 phase 都能選擇直接工作。
 
 | Agent call | 排程 | Invocation `model` | 實際 model | Verdict |
 |---|---|---|---|---|
-| `plan-verifier`：Plan readiness | Foreground | 省略 | `claude-opus-4-8` | `READY`；實際只用 `Glob`／`Read` |
-| `mech-executor`：已批准撰寫 | Foreground | 省略 | `claude-sonnet-5` | 只有 `REPORT.md` |
+| `plan-verifier`：Plan readiness | Foreground | 省略 | `claude-opus-4-8` | `REVISE`；實際只用 `Glob`／`Read` |
 | `verifier`：outcome verification | Foreground | 省略 | `claude-opus-4-8` | `CONFIRMED` |
 
 | 驗收檢查 | 結果 |
@@ -136,22 +135,23 @@ Baton 選擇由 main session 直接 discovery，再把穩定的單檔 execution 
 | Baton 可用性 | Skill tool 回覆 `Launching skill: baton-dispatch` |
 | 批准前寫入 | 無；Turn 1 結束時 Git tree 乾淨 |
 | Plan ownership | Main session |
-| Write scope | 只有 `REPORT.md`；36 行、7,071 bytes |
-| 引用驗證 | Outcome verifier 核對 34 個 surface citations |
+| Plan 修正 | `plan-verifier` 回 `REVISE`；main 在批准前把六組 Surface B model 引用從第 5–6 行改為第 4–5 行 |
+| Write scope | 只有 `REPORT.md`；44 行、4,540 bytes |
+| 引用驗證 | Outcome verifier 核對 30 個 surface citations |
 | Repo 測試 | `REPORT.md covers both independent surfaces with file:line evidence` |
-| Verifier 詞彙 | Plan `READY`；outcome `CONFIRMED`；沒有跨 mode labels |
-| 具名角色路由 | 三個 Agent call 都省略 invocation-level `model`；Plan／outcome 驗證走 Opus 4.8，execution 走 Sonnet 5 |
+| Verifier 詞彙 | Plan `REVISE`；outcome `CONFIRMED`；沒有跨 mode labels |
+| 具名角色路由 | 兩個 Agent call 都省略 invocation-level `model`；Plan／outcome 驗證都走 Opus 4.8 |
 | Startup resend | 不需要；兩個 turn 的 transcript 都正常建立並持續增長 |
 
-Machine-readable 資料位於 [`results.json`](./results.json)。最終 raw transcript SHA-256 是 `022871ac102442caeb6f902449442d8ccea5248617efafb4bb59dbce237c2569`。
+Machine-readable 資料位於 [`results.json`](./results.json)。最終 raw transcript SHA-256 是 `1beba30b94ec6ee6f74fa96cb880c8a8ecabbdf335a7c3542fda0c99521575a3`。
 
-Writer 的 `Write` tool 被環境中「避免 subagent 寫報告」的保護擋了兩次；在明確批准的單檔 scope 內，它改用 Bash heredoc。最終檔案仍通過 main-session tests 與 fresh verification。這項插曲沒有擴大 scope，但確實影響 trace，因此完整揭露。
-
-Gate 沒有觸發 long-running process，也沒有呼叫 `security-reviewer`。Long-process 保留 [@dromsak 的 4 次直接 harness 實測](https://github.com/Nanako0129/pilotfish/pull/10#issuecomment-4958570683)與四角色 contract tests；security-reviewer 邊界由正向 tool allowlist 與 policy tests 驗證。沒有額外把 edge-case Claude run 包裝成證據。
+Gate 沒有觸發 background recon 結果收集、long-running process，也沒有呼叫 `security-reviewer`。v1.2.1 新增的「結果收集 vs. 繼續工作」區分由 deterministic contract test 鎖定，但這次 run 不對該路徑宣稱 live runtime coverage。Long-process 保留 [@dromsak 的 4 次直接 harness 實測](https://github.com/Nanako0129/pilotfish/pull/10#issuecomment-4958570683)與四角色 contract tests；security-reviewer 邊界由正向 tool allowlist 與 policy tests 驗證。沒有額外把 edge-case Claude run 包裝成證據。
 
 ## 已取代與被拒絕的 harness runs
 
 較早的完整 Gate 讓同一個雙 mode `verifier` 同時負責 Plan 與 outcome review。它當時通過（494.933 秒、$3.906375、12 turns），但 Codex review 指出 Plan 與批准前 security 邊界只靠 prompt。它已被上方 capability-separated run 取代；精確 inputs 仍保留於 [`gate-snapshot/`](./gate-snapshot/)，transcript hash 也仍在 [`results.json`](./results.json)。
+
+v1.2.0 release Gate（448.148 秒、$3.789048、22 turns）仍可由 Git commit `1251465` 重現；[`results.json`](./results.json) 保留它的 source commit、hashes、metrics 與 transcript hash，不在原地改寫歷史證據。
 
 第一次隔離嘗試不列入相容性證據。它使用 `--setting-sources project,local`，因此看不到安裝在 user 層的 Baton skill。剩餘 pilotfish gate 雖然仍得到乾淨的 `READY`，但該 run 沒有測到指定 composition，也沒有啟動批准回合。
 
@@ -174,9 +174,10 @@ Gate 沒有觸發 long-running process，也沒有呼叫 `security-reviewer`。L
 |---|---|
 | 單次 final run | 時間與 cost 是觀察值，不是母體估計 |
 | Client-reported cost field | 不是 provider invoice |
-| 小型 fixture | Baton 選擇直接 discovery 與一個 mechanical writer；大型任務可能選擇有界 fan-out 或直接撰寫 |
+| 小型 fixture | Baton 選擇直接 discovery 與 main-session 直接撰寫；大型任務可能選擇有界 fan-out 或 delegated writing |
 | 動態角色注入 | 已驗證精確 final snapshot definitions，但 global agent-file discovery 不在這次 runtime Gate 範圍 |
+| 未觸發的 background 結果收集 | Deterministic policy test 覆蓋 collection／continuation contract；這個 fixture 沒有觸發 background recon retrieval |
 | 未觸發的 security／long-process 路徑 | Tool allowlists、policy tests 與 contributor 專門實測涵蓋其 contract；本 fixture 不宣稱 runtime coverage |
 | Candidate project memory 疊加 user memory | 較具體的 candidate policy 管理 fixture；managed policy 或矛盾的 project instruction 仍可能改變行為 |
-| 本機為 patched Claude binary | Provider route 是原生 first-party Claude，但其他 Claude Code 版本仍需自己的 smoke test |
+| 單一 Claude Code 2.1.211 runtime | Provider route 是原生 first-party Claude；其他 Claude Code 版本仍需自己的 smoke test |
 | Raw transcript 未提交 | 內含本機絕對路徑與 session metadata；改為公開 prompts、正規化 calls、content hashes、metrics 與 verdicts |

@@ -1,6 +1,6 @@
 {
-  "schema_version": 2,
-  "run_date": "2026-07-14",
+  "schema_version": 3,
+  "run_date": "2026-07-16",
   "timezone": "Asia/Taipei",
   "fixture": {
     "repository": "https://github.com/Nanako0129/pilotfish",
@@ -8,37 +8,37 @@
     "path": "benchmarks/dispatch-brake/positive-controls/research/fixture"
   },
   "runtime": {
-    "claude_code": "2.1.207",
-    "calico_patched_binary": true,
+    "claude_code": "2.1.211",
+    "calico_patched_binary": false,
     "provider_route": "native Claude first-party authentication",
-    "initial_candidate_base_head": "863b117b9da42179c5bb77a05158920fbc092ee2",
+    "initial_candidate_base_head": "7967297610512bba86022bb41c72bc220203435e",
     "superseded_gate_orchestration_sha256": "b2854ae1a32875144108c69f68d1a75ec4c755e935bbd9fb25214a95c449b0f7",
     "superseded_gate_agents_json_sha256": "9d9b4f80ce8aa1f7f3e1386655a991dee9025726f2882ae0ac9cd2a32f788b46",
     "superseded_gate_snapshot_policy": "gate-snapshot/CLAUDE.md",
     "superseded_gate_snapshot_agents_json": "gate-snapshot/agents.json",
-    "final_gate_orchestration_sha256": "46977d982ebdb244428ae3c45240dcdaedc2f8cb5668032e0bf11c6093a2f9ff",
-    "final_gate_agents_json_sha256": "b3b45557491e9a92aecacab8a05d4c78c3b8f5dc9b26a5c5683f48c5f22bf3f7",
+    "final_gate_orchestration_sha256": "fa1e3f19dfa3649fc341254da5a8fdaa116bfdb61181101672c7afddcb7a7188",
+    "final_gate_agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
     "final_gate_snapshot_policy": "final-gate-snapshot/CLAUDE.md",
     "final_gate_snapshot_agents_json": "final-gate-snapshot/agents.json",
     "agents_hash_input": "shell command substitution bytes; repository trailing newline stripped",
-    "final_gate_candidate_version_stamp": "1.1.6",
-    "final_gate_candidate_orchestration_sha256": "46977d982ebdb244428ae3c45240dcdaedc2f8cb5668032e0bf11c6093a2f9ff",
-    "release_candidate_version": "1.2.0",
-    "release_candidate_orchestration_sha256": "5760abdeaf55a58c3db6b3f0e3de2c4aa69d303bfd83989b2707a9b00454d9d3",
-    "release_candidate_agents_json_sha256": "b3b45557491e9a92aecacab8a05d4c78c3b8f5dc9b26a5c5683f48c5f22bf3f7",
-    "release_candidate_policy_delta_from_final_gate": "inert version-stamp comment only: v1.1.6 to v1.2.0",
+    "final_gate_candidate_version_stamp": "1.2.1",
+    "final_gate_candidate_orchestration_sha256": "fa1e3f19dfa3649fc341254da5a8fdaa116bfdb61181101672c7afddcb7a7188",
+    "release_candidate_version": "1.2.1",
+    "release_candidate_orchestration_sha256": "fa1e3f19dfa3649fc341254da5a8fdaa116bfdb61181101672c7afddcb7a7188",
+    "release_candidate_agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
+    "release_candidate_policy_delta_from_final_gate": "none; exact policy bytes",
     "baton_skill_sha256": "48b1e573a9e3de85fdb68c433bd47d69add9ec8491613ca304cfcef2326e3d67"
   },
   "final_gate": {
-    "transcript_sha256": "022871ac102442caeb6f902449442d8ccea5248617efafb4bb59dbce237c2569",
+    "transcript_sha256": "1beba30b94ec6ee6f74fa96cb880c8a8ecabbdf335a7c3542fda0c99521575a3",
     "startup_resend_required": false,
     "turns": [
       {
         "phase": "discovery_plan_approval_wait",
-        "duration_ms": 221661,
-        "duration_api_ms": 221301,
-        "num_turns": 18,
-        "client_reported_cost_usd": 1.76351525,
+        "duration_ms": 247719,
+        "duration_api_ms": 246880,
+        "num_turns": 13,
+        "client_reported_cost_usd": 1.99279475,
         "models": [
           "claude-fable-5",
           "claude-opus-4-8"
@@ -52,36 +52,37 @@
           "Read"
         ],
         "verifier_sequence": [
-          "READY"
-        ]
+          "REVISE"
+        ],
+        "plan_revision_applied": true,
+        "plan_revision_summary": "main session corrected six surface-b model citations from lines 5-6 to lines 4-5 before requesting approval"
       },
       {
         "phase": "approved_execution_verification",
-        "duration_ms": 226487,
-        "duration_api_ms": 225789,
+        "duration_ms": 120676,
+        "duration_api_ms": 120117,
         "num_turns": 4,
-        "client_reported_cost_usd": 2.02553285,
+        "client_reported_cost_usd": 1.71763975,
         "models": [
           "claude-fable-5",
-          "claude-sonnet-5",
           "claude-opus-4-8"
         ],
+        "writer": "main_session",
         "only_change": "REPORT.md",
-        "report_sha256": "e6d8d575d0c6601c6ed96b6ef00926cb219f353c79753c8b6baea816fb98779b",
-        "report_lines": 36,
-        "citation_count": 34,
+        "report_sha256": "b47ee14e5dc69a95ebc94cab5adb768f9a31f9a4790cd05759157904e6ce5c66",
+        "report_lines": 44,
+        "report_bytes": 4540,
+        "citation_count": 30,
         "test_passed": true,
-        "executor_write_tool_blocked": true,
-        "executor_approved_scope_fallback": "Bash heredoc",
         "verifier_sequence": [
           "CONFIRMED"
         ]
       }
     ],
-    "total_duration_ms": 448148,
-    "total_duration_api_ms": 447090,
-    "total_num_turns": 22,
-    "total_client_reported_cost_usd": 3.7890481,
+    "total_duration_ms": 368395,
+    "total_duration_api_ms": 366997,
+    "total_num_turns": 17,
+    "total_client_reported_cost_usd": 3.7104345,
     "agent_calls": [
       {
         "role": "plan-verifier",
@@ -94,15 +95,8 @@
           "Read"
         ],
         "verdicts": [
-          "READY"
+          "REVISE"
         ]
-      },
-      {
-        "role": "mech-executor",
-        "mode": "approved_execution",
-        "background": false,
-        "invocation_model": null,
-        "observed_model": "claude-sonnet-5"
       },
       {
         "role": "verifier",
@@ -120,8 +114,21 @@
       }
     ],
     "approval_tool_boundary_exercised": true,
+    "result_collection_runtime_exercised": false,
     "security_reviewer_runtime_exercised": false,
     "passed": true
+  },
+  "previous_release_gate": {
+    "release_candidate_version": "1.2.0",
+    "source_commit": "125146508587d69eab1265b00210a59d1e5b375f",
+    "transcript_sha256": "022871ac102442caeb6f902449442d8ccea5248617efafb4bb59dbce237c2569",
+    "final_gate_orchestration_sha256": "46977d982ebdb244428ae3c45240dcdaedc2f8cb5668032e0bf11c6093a2f9ff",
+    "final_gate_agents_json_sha256": "b3b45557491e9a92aecacab8a05d4c78c3b8f5dc9b26a5c5683f48c5f22bf3f7",
+    "release_candidate_orchestration_sha256": "5760abdeaf55a58c3db6b3f0e3de2c4aa69d303bfd83989b2707a9b00454d9d3",
+    "total_duration_ms": 448148,
+    "total_num_turns": 22,
+    "total_client_reported_cost_usd": 3.7890481,
+    "note": "The exact v1.2.0 final snapshot remains available in Git history at the source commit."
   },
   "superseded_gate": {
     "transcript_sha256": "ed10fabf6b4daf38d1cf7c87ff8cd2eb0fb1042873140fcc0d097d872e7bf874",
@@ -148,6 +155,8 @@
     "long_process_triggered": false,
     "long_process_evidence": "four dedicated direct harness trials from the contributor plus policy contract tests across every Bash-capable role",
     "security_reviewer_invoked": false,
-    "security_reviewer_evidence": "frontmatter tool allowlist and policy contract tests; no security task was added to this orchestration fixture"
+    "security_reviewer_evidence": "frontmatter tool allowlist and policy contract tests; no security task was added to this orchestration fixture",
+    "result_collection_background_recon_triggered": false,
+    "result_collection_evidence": "policy contract tests lock collection versus continuation; this fixture chose direct discovery and did not exercise background recon result retrieval"
   }
 }

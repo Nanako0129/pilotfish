@@ -62,14 +62,14 @@ class PolicyContractTests(unittest.TestCase):
             hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
             runtime["release_candidate_agents_json_sha256"],
         )
-        version_stamp = re.compile(rb"pilotfish v\d+\.\d+\.\d+")
+        self.assertEqual(current_policy, final_gate_policy)
+        version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+        self.assertEqual(runtime["final_gate_candidate_version_stamp"], version)
+        self.assertEqual(runtime["release_candidate_version"], version)
         self.assertEqual(
-            version_stamp.sub(b"pilotfish v<release>", current_policy),
-            version_stamp.sub(b"pilotfish v<release>", final_gate_policy),
+            runtime["release_candidate_policy_delta_from_final_gate"],
+            "none; exact policy bytes",
         )
-        self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.1.6")
-        self.assertEqual(runtime["release_candidate_version"], "1.2.0")
-        self.assertIn("version-stamp comment only", runtime["release_candidate_policy_delta_from_final_gate"])
 
         gate_readme = (gate / "README.md").read_text(encoding="utf-8")
         self.assertIn("SESSION_ID=\"$(python3 -c", gate_readme)
