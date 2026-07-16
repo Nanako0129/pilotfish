@@ -62,14 +62,14 @@ class PolicyContractTests(unittest.TestCase):
             hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
             runtime["release_candidate_agents_json_sha256"],
         )
-        version_stamp = re.compile(rb"pilotfish v\d+\.\d+\.\d+")
+        self.assertEqual(current_policy, final_gate_policy)
+        version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+        self.assertEqual(runtime["final_gate_candidate_version_stamp"], version)
+        self.assertEqual(runtime["release_candidate_version"], version)
         self.assertEqual(
-            version_stamp.sub(b"pilotfish v<release>", current_policy),
-            version_stamp.sub(b"pilotfish v<release>", final_gate_policy),
+            runtime["release_candidate_policy_delta_from_final_gate"],
+            "none; exact policy bytes",
         )
-        self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.1.6")
-        self.assertEqual(runtime["release_candidate_version"], "1.2.0")
-        self.assertIn("version-stamp comment only", runtime["release_candidate_policy_delta_from_final_gate"])
 
         gate_readme = (gate / "README.md").read_text(encoding="utf-8")
         self.assertIn("SESSION_ID=\"$(python3 -c", gate_readme)
@@ -258,6 +258,29 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("absolute working directory or isolated worktree", policy)
         self.assertIn("rather than the parent checkout", policy)
         self.assertIn("Bash(run_in_background: true)", policy)
+
+    def test_result_collection_and_agent_continuation_are_distinct(self) -> None:
+        policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("Read completed output directly", policy)
+        self.assertIn(
+            "only resume when the task itself has changed or needs more work", policy
+        )
+        self.assertIn(
+            "does not prevent the orchestrator from redirecting or resuming", policy
+        )
+        self.assertIn("Resume only for genuinely new or redirected work", policy)
+        self.assertNotIn("resuming one merely makes it re-run", policy)
+
+        for role in ("scout", "Explore"):
+            agent = (ROOT / "templates" / "agents" / f"{role}.md").read_text(
+                encoding="utf-8"
+            )
+            self.assertIn("final message for each run", agent)
+            self.assertIn("genuinely new follow-up work", agent)
+            self.assertIn("another self-contained final message", agent)
+            self.assertNotIn("answer a follow-up", agent)
 
     def test_security_role_preserves_the_approval_boundary(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
