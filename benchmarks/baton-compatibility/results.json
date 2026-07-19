@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "run_date": "2026-07-16",
+  "run_date": "2026-07-20",
   "timezone": "Asia/Taipei",
   "fixture": {
     "repository": "https://github.com/Nanako0129/pilotfish",
@@ -8,37 +8,37 @@
     "path": "benchmarks/dispatch-brake/positive-controls/research/fixture"
   },
   "runtime": {
-    "claude_code": "2.1.211",
+    "claude_code": "2.1.215",
     "calico_patched_binary": false,
     "provider_route": "native Claude first-party authentication",
-    "initial_candidate_base_head": "7967297610512bba86022bb41c72bc220203435e",
+    "initial_candidate_base_head": "80b5d1fe5c829f471ed65bba78357df85bdb4f16",
     "superseded_gate_orchestration_sha256": "b2854ae1a32875144108c69f68d1a75ec4c755e935bbd9fb25214a95c449b0f7",
     "superseded_gate_agents_json_sha256": "9d9b4f80ce8aa1f7f3e1386655a991dee9025726f2882ae0ac9cd2a32f788b46",
     "superseded_gate_snapshot_policy": "gate-snapshot/CLAUDE.md",
     "superseded_gate_snapshot_agents_json": "gate-snapshot/agents.json",
-    "final_gate_orchestration_sha256": "fa1e3f19dfa3649fc341254da5a8fdaa116bfdb61181101672c7afddcb7a7188",
+    "final_gate_orchestration_sha256": "dc765dfc22b2c1875101ce665e8b3bba5968ff2549556459e5c2a8c847da0f44",
     "final_gate_agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
     "final_gate_snapshot_policy": "final-gate-snapshot/CLAUDE.md",
     "final_gate_snapshot_agents_json": "final-gate-snapshot/agents.json",
     "agents_hash_input": "shell command substitution bytes; repository trailing newline stripped",
-    "final_gate_candidate_version_stamp": "1.2.1",
-    "final_gate_candidate_orchestration_sha256": "fa1e3f19dfa3649fc341254da5a8fdaa116bfdb61181101672c7afddcb7a7188",
-    "release_candidate_version": "1.2.1",
-    "release_candidate_orchestration_sha256": "fa1e3f19dfa3649fc341254da5a8fdaa116bfdb61181101672c7afddcb7a7188",
+    "final_gate_candidate_version_stamp": "1.3.0",
+    "final_gate_candidate_orchestration_sha256": "dc765dfc22b2c1875101ce665e8b3bba5968ff2549556459e5c2a8c847da0f44",
+    "release_candidate_version": "1.3.0",
+    "release_candidate_orchestration_sha256": "dc765dfc22b2c1875101ce665e8b3bba5968ff2549556459e5c2a8c847da0f44",
     "release_candidate_agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
     "release_candidate_policy_delta_from_final_gate": "none; exact policy bytes",
     "baton_skill_sha256": "48b1e573a9e3de85fdb68c433bd47d69add9ec8491613ca304cfcef2326e3d67"
   },
   "final_gate": {
-    "transcript_sha256": "1beba30b94ec6ee6f74fa96cb880c8a8ecabbdf335a7c3542fda0c99521575a3",
+    "transcript_sha256": "ff58d7ae7940367ad9921026ed8c7c32db11de032055402a875824b1450ad76f",
     "startup_resend_required": false,
     "turns": [
       {
         "phase": "discovery_plan_approval_wait",
-        "duration_ms": 247719,
-        "duration_api_ms": 246880,
-        "num_turns": 13,
-        "client_reported_cost_usd": 1.99279475,
+        "duration_ms": 159032,
+        "duration_api_ms": 156829,
+        "num_turns": 18,
+        "client_reported_cost_usd": 1.8466575,
         "models": [
           "claude-fable-5",
           "claude-opus-4-8"
@@ -48,41 +48,57 @@
         "git_clean": true,
         "plan_verifier_role": "plan-verifier",
         "plan_verifier_observed_tools": [
-          "Glob",
           "Read"
         ],
         "verifier_sequence": [
-          "REVISE"
+          "READY"
         ],
-        "plan_revision_applied": true,
-        "plan_revision_summary": "main session corrected six surface-b model citations from lines 5-6 to lines 4-5 before requesting approval"
+        "plan_revision_applied": false,
+        "plan_revision_summary": "none required; the readiness pass returned READY on the first Plan"
       },
       {
         "phase": "approved_execution_verification",
-        "duration_ms": 120676,
-        "duration_api_ms": 120117,
-        "num_turns": 4,
-        "client_reported_cost_usd": 1.71763975,
+        "cli_invocations": 2,
+        "interruption": {
+          "cause": "subscription model limit reached mid-run; client message: \"You've reached your Fable 5 limit.\"",
+          "boundary": "after REPORT.md was written, before npm test and outcome verification",
+          "interrupted_invocation": {
+            "duration_ms": 46941,
+            "duration_api_ms": 46241,
+            "num_turns": 2,
+            "client_reported_cost_usd": 1.081003,
+            "models": [
+              "claude-fable-5"
+            ],
+            "is_error": true
+          },
+          "resume": "operator enabled usage credits; resumed with the same session id and the verbatim turn-2 prompt"
+        },
+        "duration_ms": 85021,
+        "duration_api_ms": 79359,
+        "num_turns": 3,
+        "client_reported_cost_usd": 1.67602825,
         "models": [
           "claude-fable-5",
           "claude-opus-4-8"
         ],
         "writer": "main_session",
         "only_change": "REPORT.md",
-        "report_sha256": "b47ee14e5dc69a95ebc94cab5adb768f9a31f9a4790cd05759157904e6ce5c66",
-        "report_lines": 44,
-        "report_bytes": 4540,
-        "citation_count": 30,
+        "report_sha256": "55a3f5cde62f5e6e21b4bc95c27eabe1537098993d8291d3d60a0ecee340ea20",
+        "report_lines": 34,
+        "report_bytes": 6485,
+        "citation_count": 45,
         "test_passed": true,
         "verifier_sequence": [
           "CONFIRMED"
         ]
       }
     ],
-    "total_duration_ms": 368395,
-    "total_duration_api_ms": 366997,
-    "total_num_turns": 17,
-    "total_client_reported_cost_usd": 3.7104345,
+    "total_duration_ms": 290994,
+    "total_duration_api_ms": 282429,
+    "total_num_turns": 23,
+    "total_cli_invocations": 3,
+    "total_client_reported_cost_usd": 4.60368575,
     "agent_calls": [
       {
         "role": "plan-verifier",
@@ -91,11 +107,10 @@
         "invocation_model": null,
         "observed_model": "claude-opus-4-8",
         "observed_tools": [
-          "Glob",
           "Read"
         ],
         "verdicts": [
-          "REVISE"
+          "READY"
         ]
       },
       {
@@ -119,16 +134,16 @@
     "passed": true
   },
   "previous_release_gate": {
-    "release_candidate_version": "1.2.0",
-    "source_commit": "125146508587d69eab1265b00210a59d1e5b375f",
-    "transcript_sha256": "022871ac102442caeb6f902449442d8ccea5248617efafb4bb59dbce237c2569",
-    "final_gate_orchestration_sha256": "46977d982ebdb244428ae3c45240dcdaedc2f8cb5668032e0bf11c6093a2f9ff",
-    "final_gate_agents_json_sha256": "b3b45557491e9a92aecacab8a05d4c78c3b8f5dc9b26a5c5683f48c5f22bf3f7",
-    "release_candidate_orchestration_sha256": "5760abdeaf55a58c3db6b3f0e3de2c4aa69d303bfd83989b2707a9b00454d9d3",
-    "total_duration_ms": 448148,
-    "total_num_turns": 22,
-    "total_client_reported_cost_usd": 3.7890481,
-    "note": "The exact v1.2.0 final snapshot remains available in Git history at the source commit."
+    "release_candidate_version": "1.2.1",
+    "source_commit": "80b5d1fe5c829f471ed65bba78357df85bdb4f16",
+    "transcript_sha256": "1beba30b94ec6ee6f74fa96cb880c8a8ecabbdf335a7c3542fda0c99521575a3",
+    "final_gate_orchestration_sha256": "fa1e3f19dfa3649fc341254da5a8fdaa116bfdb61181101672c7afddcb7a7188",
+    "final_gate_agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
+    "release_candidate_orchestration_sha256": "fa1e3f19dfa3649fc341254da5a8fdaa116bfdb61181101672c7afddcb7a7188",
+    "total_duration_ms": 368395,
+    "total_num_turns": 17,
+    "total_client_reported_cost_usd": 3.7104345,
+    "note": "The exact v1.2.1 final snapshot remains available in Git history at the source commit."
   },
   "superseded_gate": {
     "transcript_sha256": "ed10fabf6b4daf38d1cf7c87ff8cd2eb0fb1042873140fcc0d097d872e7bf874",

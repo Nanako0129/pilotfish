@@ -183,6 +183,17 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("independent evidence or perspectives", policy)
         self.assertIn("stable multi-file repetition", policy)
 
+    def test_policy_batches_recurring_small_work(self) -> None:
+        policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("recurrence is their blind spot", policy)
+        self.assertIn("about three times", policy)
+        self.assertIn("keep only per-item triage and acceptance", policy)
+        self.assertIn("not a single unknown bug", policy)
+        self.assertIn("feature or PR closure", policy)
+        self.assertIn("two REVISE rounds per Plan", policy)
+
     def test_planning_skills_compose_with_role_routing(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
