@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from decimal import Decimal
 import hashlib
 import json
 import re
@@ -25,26 +26,32 @@ ROLES = (
 class PolicyContractTests(unittest.TestCase):
     def test_baton_gate_snapshot_matches_recorded_hashes(self) -> None:
         gate = ROOT / "benchmarks" / "baton-compatibility"
-        results = json.loads((gate / "results.json").read_text(encoding="utf-8"))
+        results = json.loads(
+            (gate / "results.json").read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
         runtime = results["runtime"]
+        self.assertEqual(results["final_gate_status"], "complete")
+        self.assertEqual(results["final_gate"]["status"], "passed")
 
-        for prefix in ("superseded_gate", "final_gate"):
-            policy = (gate / runtime[f"{prefix}_snapshot_policy"]).read_bytes()
-            agents = (gate / runtime[f"{prefix}_snapshot_agents_json"]).read_text(
-                encoding="utf-8"
-            ).rstrip("\n").encode()
-
-            self.assertEqual(
-                hashlib.sha256(policy).hexdigest(),
-                runtime[f"{prefix}_orchestration_sha256"],
-            )
-            self.assertEqual(
-                hashlib.sha256(agents).hexdigest(),
-                runtime[f"{prefix}_agents_json_sha256"],
-            )
+        superseded_policy = (gate / runtime["superseded_gate_snapshot_policy"]).read_bytes()
+        superseded_agents = (
+            gate / runtime["superseded_gate_snapshot_agents_json"]
+        ).read_text(encoding="utf-8").rstrip("\n").encode()
+        self.assertEqual(
+            hashlib.sha256(superseded_policy).hexdigest(),
+            runtime["superseded_gate_orchestration_sha256"],
+        )
+        self.assertEqual(
+            hashlib.sha256(superseded_agents).hexdigest(),
+            runtime["superseded_gate_agents_json_sha256"],
+        )
 
         current_policy = (ROOT / "templates/claude-md.orchestration.md").read_bytes()
-        final_gate_policy = (gate / runtime["final_gate_snapshot_policy"]).read_bytes()
+        snapshot_policy = (gate / runtime["final_gate_snapshot_policy"]).read_bytes()
+        snapshot_agents = (
+            gate / runtime["final_gate_snapshot_agents_json"]
+        ).read_bytes().rstrip(b"\n")
         completed = subprocess.run(
             [
                 sys.executable,
@@ -54,6 +61,7 @@ class PolicyContractTests(unittest.TestCase):
             check=True,
             capture_output=True,
         )
+        self.assertEqual(current_policy, snapshot_policy)
         self.assertEqual(
             hashlib.sha256(current_policy).hexdigest(),
             runtime["release_candidate_orchestration_sha256"],
@@ -62,7 +70,6 @@ class PolicyContractTests(unittest.TestCase):
             hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
             runtime["release_candidate_agents_json_sha256"],
         )
-        self.assertEqual(current_policy, final_gate_policy)
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], version)
         self.assertEqual(runtime["release_candidate_version"], version)
@@ -70,11 +77,78 @@ class PolicyContractTests(unittest.TestCase):
             runtime["release_candidate_policy_delta_from_final_gate"],
             "none; exact policy bytes",
         )
+        final_policy = (gate / runtime["final_gate_snapshot_policy"]).read_bytes()
+        self.assertEqual(
+            hashlib.sha256(final_policy).hexdigest(),
+            runtime["final_gate_orchestration_sha256"],
+        )
+        self.assertEqual(
+            hashlib.sha256(snapshot_agents).hexdigest(),
+            runtime["final_gate_agents_json_sha256"],
+        )
+        self.assertEqual(snapshot_agents, completed.stdout.rstrip(b"\n"))
+        prompt_1 = (gate / "prompts" / "turn-1.txt").read_bytes()
+        prompt_2 = (gate / "prompts" / "turn-2.txt").read_bytes()
+        prompt_1_file_hash = hashlib.sha256(prompt_1).hexdigest()
+        prompt_2_file_hash = hashlib.sha256(prompt_2).hexdigest()
+        prompt_1_runtime_hash = hashlib.sha256(prompt_1.rstrip(b"\n")).hexdigest()
+        prompt_2_runtime_hash = hashlib.sha256(prompt_2.rstrip(b"\n")).hexdigest()
+        self.assertEqual(
+            prompt_1_file_hash,
+            "45dbe7b6b24cb5838ebf4219011797b61f172fcc18f0ca5039144017e93fcca7",
+        )
+        self.assertEqual(
+            prompt_2_file_hash,
+            "82d833090ba91982651de9ac4beed8fc96311119c6eb9c6f0304c292821918e7",
+        )
+        self.assertEqual(
+            prompt_1_runtime_hash,
+            "d2ad46b7ecfb503f8f7185d6d68f404d326f1a4a480b9141d1a80318a746bb73",
+        )
+        self.assertEqual(
+            prompt_2_runtime_hash,
+            "93ae95d1cd4eebca91ab42a06d484e180f46dd1f327e471a5a4fd2a27ca2f344",
+        )
+        self.assertEqual(
+            prompt_1_file_hash, runtime["final_gate_prompt_turn_1_file_sha256"]
+        )
+        self.assertEqual(
+            prompt_2_file_hash, runtime["final_gate_prompt_turn_2_file_sha256"]
+        )
+        self.assertEqual(
+            prompt_1_runtime_hash,
+            runtime["final_gate_prompt_turn_1_runtime_input_sha256"],
+        )
+        self.assertEqual(
+            prompt_2_runtime_hash,
+            runtime["final_gate_prompt_turn_2_runtime_input_sha256"],
+        )
+        self.assertEqual(
+            results["final_gate"]["prompt_file_hashes"]["turn-1.txt"],
+            prompt_1_file_hash,
+        )
+        self.assertEqual(
+            results["final_gate"]["prompt_file_hashes"]["turn-2.txt"],
+            prompt_2_file_hash,
+        )
+        self.assertEqual(
+            results["final_gate"]["prompt_runtime_input_hashes"]["turn-1.txt"],
+            prompt_1_runtime_hash,
+        )
+        self.assertEqual(
+            results["final_gate"]["prompt_runtime_input_hashes"]["turn-2.txt"],
+            prompt_2_runtime_hash,
+        )
 
         gate_readme = (gate / "README.md").read_text(encoding="utf-8")
         self.assertIn("SESSION_ID=\"$(python3 -c", gate_readme)
         self.assertIn('--session-id "$SESSION_ID"', gate_readme)
         self.assertIn('--resume "$SESSION_ID"', gate_readme)
+
+        turn_1_prompt = (gate / "prompts" / "turn-1.txt").read_text(encoding="utf-8")
+        self.assertIn("The Plan must require", turn_1_prompt)
+        self.assertIn("fresh existing named `verifier`", turn_1_prompt)
+        self.assertIn("`plan-verifier` must return REVISE", turn_1_prompt)
 
         controls = (
             ROOT
@@ -182,6 +256,67 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("external or tool latency overlaps", policy)
         self.assertIn("independent evidence or perspectives", policy)
         self.assertIn("stable multi-file repetition", policy)
+
+    def test_policy_uses_backend_neutral_recurrence_conditions(self) -> None:
+        policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
+            encoding="utf-8"
+        )
+        for phrase in (
+            "stable brief",
+            "one-shot brief",
+            "independent and the same shape",
+            "done criteria",
+            "ownership",
+            "per-item acceptance",
+            "Delegation is conditional, not mandatory",
+            "main session",
+            "diagnosis",
+            "integration",
+            "known remedy",
+            "Execution work",
+        ):
+            self.assertIn(phrase, policy)
+
+        for phrase in (
+            "about three times",
+            "feature or PR closure",
+            "two REVISE rounds per Plan",
+            "plan documents",
+        ):
+            self.assertNotIn(phrase, policy)
+
+    def test_policy_verifies_at_coherent_boundary(self) -> None:
+        policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
+            encoding="utf-8"
+        )
+        for phrase in (
+            "smallest coherent integration boundary",
+            "independently refuted",
+            "Tests, builds, and static checks are intermediate evidence",
+            "security",
+            "cross-language or FFI",
+            "serialization or pre-aggregation",
+            "irreversible operation",
+            "block later integration",
+        ):
+            self.assertIn(phrase, policy)
+        self.assertNotIn("tests are sufficient evidence", policy)
+        self.assertNotIn("tests are sufficient", policy)
+
+    def test_policy_requires_plan_convergence_or_escalation(self) -> None:
+        policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
+            encoding="utf-8"
+        )
+        for phrase in (
+            "substantially unchanged Plan",
+            "material revision or new evidence",
+            "simplify it",
+            "surface the blocker to the user",
+            "defer the blocked scope",
+            "never silently overrule",
+        ):
+            self.assertIn(phrase, policy)
+        self.assertNotIn("main session decides the residual disagreements", policy)
 
     def test_planning_skills_compose_with_role_routing(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
@@ -299,6 +434,242 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("excludes Bash, Write, Edit", reviewer)
         self.assertIn("approved, stable execution contract", executor)
         self.assertIn("pre-approval analysis belongs to `security-reviewer`", executor)
+
+    def test_bilingual_docs_and_field_report_claim_boundaries(self) -> None:
+        report = ROOT / "docs/field-report-tokscale-2026-07.zh-TW.md"
+        self.assertTrue(report.is_file())
+        changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+        self.assertIn("./docs/field-report-tokscale-2026-07.zh-TW.md", changelog)
+
+        report_text = report.read_text(encoding="utf-8")
+        self.assertIn("remora", report_text)
+        self.assertIn("GPT-5.6", report_text)
+        self.assertIn("backend-neutral", report_text)
+        self.assertIn("native-Claude efficiency A/B", report_text)
+        self.assertNotIn("native Claude 的最佳", report_text)
+
+        english = (ROOT / "benchmarks/baton-compatibility/README.md").read_text(
+            encoding="utf-8"
+        )
+        chinese = (
+            ROOT / "benchmarks/baton-compatibility/README.zh-TW.md"
+        ).read_text(encoding="utf-8")
+        rejected_hash = (
+            "64376ea52a4e67192df29d8595c180dd"
+            "c5017638029759a8ac13aff87d5cca81"
+        )
+        for content in (english, chinese):
+            self.assertIn("results.json", content)
+            self.assertEqual(content.count("--max-budget-usd 6"), 2)
+            self.assertNotIn("--max-budget-usd 3", content)
+            self.assertIn(rejected_hash, content)
+        self.assertIn("compatibility/provenance", english)
+        self.assertIn("remora", english)
+        self.assertIn("GPT-5.6", english)
+        self.assertIn("CONFIRMED", english)
+        self.assertIn("compatibility／provenance", chinese)
+        self.assertIn("remora／GPT-5.6", chinese)
+        self.assertIn("CONFIRMED", chinese)
+        self.assertNotIn("prove native-Claude efficiency", english)
+        self.assertNotIn("原生 Claude 效率提升", chinese)
+
+        snapshot = (
+            ROOT / "benchmarks/baton-compatibility/final-gate-snapshot/README.md"
+        ).read_text(encoding="utf-8")
+        for phrase in (
+            "v1.3.0",
+            "v1.2.1",
+            "v1.2.0",
+            "40f3815",
+            "runtime-tested",
+            "CONFIRMED",
+        ):
+            self.assertIn(phrase, snapshot)
+
+    def test_baton_evidence_record_granularity_and_totals(self) -> None:
+        results = json.loads(
+            (
+                ROOT / "benchmarks/baton-compatibility/results.json"
+            ).read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        self.assertEqual(results["schema_version"], 3)
+        self.assertEqual(results["final_gate_status"], "complete")
+        final = results["final_gate"]
+        self.assertEqual(final["status"], "passed")
+        self.assertEqual(final["granularity"], "invocation")
+        self.assertEqual(len(final["turns"]), final["total_cli_invocations"])
+        self.assertEqual(final["source_base_head"], "a38dd2dde000441b24881fa49495e545ff21b9e6")
+        self.assertEqual(final["transcript_sha256"], "98724de501d714dcb58b315b2260147f9cdd43975f16e52297a84ed258a83ac4")
+        self.assertEqual(final["total_cli_invocations"], 2)
+        final_metric_keys = {
+            "duration_ms",
+            "duration_api_ms",
+            "num_turns",
+            "client_reported_cost_usd",
+            "models",
+            "disposition",
+        }
+        for expected, turn in enumerate(final["turns"], 1):
+            self.assertEqual(turn["cli_invocation"], expected)
+            self.assertIn("prompt_turn", turn)
+            self.assertEqual(turn["max_budget_usd"], 6)
+            self.assertTrue(final_metric_keys <= turn.keys())
+        for field, total_field in (
+            ("duration_ms", "total_duration_ms"),
+            ("duration_api_ms", "total_duration_api_ms"),
+            ("num_turns", "total_num_turns"),
+        ):
+            self.assertEqual(
+                sum((turn[field] for turn in final["turns"]), 0),
+                final[total_field],
+            )
+        self.assertEqual(final["total_duration_ms"], 323978)
+        self.assertEqual(final["total_duration_api_ms"], 458056)
+        self.assertEqual(final["total_num_turns"], 6)
+        self.assertEqual(
+            sum(
+                (turn["client_reported_cost_usd"] for turn in final["turns"]),
+                Decimal("0"),
+            ),
+            final["total_client_reported_cost_usd"],
+        )
+        self.assertEqual(final["total_client_reported_cost_usd"], Decimal("3.5088455"))
+        self.assertTrue(final["result_collection_runtime_exercised"])
+        self.assertFalse(final["security_reviewer_runtime_exercised"])
+        self.assertNotIn(
+            "result_collection_background_recon_triggered",
+            results["unexercised_controls"],
+        )
+        self.assertNotIn("result_collection_evidence", results["unexercised_controls"])
+        self.assertTrue(final["passed"])
+        self.assertEqual(
+            [call["role"] for call in final["agent_calls"]],
+            ["scout", "scout", "plan-verifier", "mech-executor", "verifier"],
+        )
+        self.assertTrue(all(call["invocation_model"] is None for call in final["agent_calls"]))
+        self.assertTrue(all(call["background"] for call in final["agent_calls"][:2]))
+        self.assertEqual(final["agent_calls"][0]["observed_tools"], ["Read"])
+        self.assertEqual(final["agent_calls"][1]["observed_tools"], ["Read", "Glob"])
+        self.assertEqual(final["agent_calls"][3]["observed_model"], "claude-sonnet-5")
+        self.assertEqual(final["agent_calls"][3]["observed_tools"], ["Write", "Bash"])
+        self.assertEqual(final["agent_calls"][-1]["verdicts"], ["CONFIRMED"])
+
+        failed = results["failed_candidate_gate"]
+        self.assertEqual(failed["granularity"], "invocation")
+        self.assertEqual(failed["status"], "failed")
+        self.assertEqual(len(failed["turns"]), failed["total_cli_invocations"])
+        self.assertEqual(failed["total_cli_invocations"], 1)
+        self.assertEqual(failed["total_duration_ms"], 218040)
+        self.assertEqual(failed["total_duration_api_ms"], 186738)
+        self.assertEqual(failed["total_num_turns"], 13)
+        self.assertEqual(failed["total_client_reported_cost_usd"], Decimal("4.12912975"))
+        self.assertEqual(failed["turns"][0]["disposition"], "budget_exhausted")
+        self.assertEqual(failed["turns"][0]["terminal_status"], "budget_exhausted")
+        self.assertEqual(failed["turns"][0]["max_budget_usd"], 3)
+        self.assertTrue(failed["prompt_fix_applied_to_release_candidate"])
+        self.assertTrue(failed["failure_led_to_prompt_fix"])
+        self.assertEqual(
+            failed["prompt_turn_1_file_sha256"],
+            "edce6a591e5879769b89b0fff0f4aa8c64e038f79b93e6a804161e4f9914624f",
+        )
+        self.assertEqual(
+            failed["prompt_turn_1_runtime_input_sha256"],
+            "8aa4459acbb2f96df4617dcbf2b147c91222252a48c8fac754f344bc2d32d2fb",
+        )
+        self.assertEqual(
+            failed["transcript_sha256"],
+            "250b8cd8b53e758299b233d16c2753890a46c6284a99a8d21ba5d5e907bf7ebc",
+        )
+
+        candidate = results["superseded_candidate_gate"]
+        self.assertEqual(candidate["granularity"], "invocation")
+        self.assertEqual(len(candidate["turns"]), candidate["total_cli_invocations"])
+        self.assertEqual(candidate["source_commit"], "40f38151581b890c7aec64218a95758045dfec57")
+        metric_keys = {
+            "duration_ms",
+            "duration_api_ms",
+            "num_turns",
+            "client_reported_cost_usd",
+            "models",
+            "disposition",
+        }
+        for expected, turn in enumerate(candidate["turns"], 1):
+            self.assertEqual(turn["cli_invocation"], expected)
+            self.assertIn("prompt_turn", turn)
+            self.assertTrue(metric_keys <= turn.keys())
+
+        for field, total_field in (
+            ("duration_ms", "total_duration_ms"),
+            ("duration_api_ms", "total_duration_api_ms"),
+            ("num_turns", "total_num_turns"),
+        ):
+            self.assertEqual(
+                sum((turn[field] for turn in candidate["turns"]), 0),
+                candidate[total_field],
+            )
+        self.assertEqual(
+            sum(
+                (turn["client_reported_cost_usd"] for turn in candidate["turns"]),
+                Decimal("0"),
+            ),
+            candidate["total_client_reported_cost_usd"],
+        )
+        self.assertEqual(candidate["total_client_reported_cost_usd"], Decimal("4.60368875"))
+
+        summary_keys = (
+            "previous_release_gate",
+            "historical_release_gate",
+            "superseded_gate",
+            "rejected_harness_run",
+            "unexercised_controls",
+        )
+        for key in summary_keys:
+            self.assertEqual(results[key]["granularity"], "summary")
+            self.assertNotIn("turns", results[key])
+        self.assertEqual(
+            results["rejected_harness_run"]["transcript_sha256"],
+            "64376ea52a4e67192df29d8595c180ddc5017638029759a8ac13aff87d5cca81",
+        )
+        self.assertEqual(results["previous_release_gate"]["release_candidate_version"], "1.2.1")
+        historical = results["historical_release_gate"]
+        self.assertEqual(historical["release_candidate_version"], "1.2.0")
+        self.assertEqual(historical["source_commit"], "125146508587d69eab1265b00210a59d1e5b375f")
+        self.assertEqual(historical["total_duration_ms"], 448148)
+        self.assertEqual(historical["total_num_turns"], 22)
+        self.assertEqual(historical["total_client_reported_cost_usd"], Decimal("3.7890481"))
+
+        metric_names = {
+            "duration_ms",
+            "duration_api_ms",
+            "num_turns",
+            "client_reported_cost_usd",
+        }
+
+        def find_nested_metric_invocation(value: object, top_level_turn: bool = False) -> bool:
+            if isinstance(value, dict):
+                if not top_level_turn and (
+                    "interrupted_invocation" in value
+                    or "invocation" in value
+                    or ("cli_invocation" in value and metric_names & value.keys())
+                ):
+                    return True
+                return any(
+                    find_nested_metric_invocation(child, False)
+                    for child in value.values()
+                )
+            if isinstance(value, list):
+                return any(find_nested_metric_invocation(child, False) for child in value)
+            return False
+
+        for record in (final, failed, candidate):
+            self.assertFalse(
+                any(
+                    find_nested_metric_invocation(turn, True)
+                    for turn in record["turns"]
+                )
+            )
+        self.assertNotIn("interrupted_invocation", json.dumps(results, default=str))
 
 
 if __name__ == "__main__":
