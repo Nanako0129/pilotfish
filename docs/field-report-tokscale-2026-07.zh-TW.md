@@ -31,7 +31,7 @@
 | 人類訊息數 | 439 | 186 |
 | 主模型 output tokens | 8.59M | 6.76M |
 
-歸因方法：解析 session JSONL transcript，將每個 `tool_use` 與其 `tool_result` 配對取得前景工具時長；`>10` 分鐘無事件的空窗視為使用者閒置並排除；subagent 各自的 transcript 統計其時長、模型與 output tokens；Bash 指令以 pattern 分類（測試、build、git、GitHub 操作、輪詢等待……）。已知誤差：背景任務的啟動呼叫立即返回，其真實耗時以阻塞式收割（TaskOutput）與 agent transcript 時間戳補回；agent-hours 之間互相平行，不可與 wall-clock 相加。
+歸因方法：解析 session JSONL transcript，將每個 `tool_use` 與其 `tool_result` 配對取得前景工具時長；`>10` 分鐘無事件的空窗視為使用者閒置並排除；subagent 各自的 transcript 統計其時長、模型與 output tokens；Bash 指令以 pattern 分類（測試、build、git、GitHub 操作、輪詢等待……）。已知誤差：背景任務的啟動呼叫立即返回，其真實耗時以阻塞式收割（TaskOutput）與 agent transcript 時間戳補回；agent-hours 之間互相平行，不可與 wall-clock 相加。這些是 remora／GPT-5.6 routing 的實測觀察，用來抽取 backend-neutral failure modes；不把數字轉成原生 Claude 的通用門檻或效率結論。
 
 ## 時間歸因
 
@@ -114,20 +114,20 @@ Subagent 工時（背景平行，agent-hours）：
 | findings 嚴重度 | 全部 P2 | 全部 P2，P1 為零 |
 | 單一 PR 最多 review 輪數 | — | 6 輪 |
 
-findings 內容全是 parser 邊角條件（非 session 檔的略過、缺 action 的 log、巢狀 cache 欄位的解析……）。對一個以 parser 為產品本體的專案，這些 P2 有真實使用者影響，**意見品質不是問題；互動模式才是**：逐修逐推的節奏讓每輪都付一次「push→輪詢→triage→修→驗→再 push→再 review」的全額成本，單 PR 跑到第 6 輪，而 R2 之後的邊際收益趨近於零。修正方向：review findings 合批成一個 commit 一次回覆、每 PR 輪次預算 2（僅 critical/high 可加開）、輪詢一律背景化、無重現路徑的理論性低嚴重度意見允許以證據回覆結案。
+findings 內容全是 parser 邊角條件（非 session 檔的略過、缺 action 的 log、巢狀 cache 欄位的解析……）。對一個以 parser 為產品本體的專案，這些 P2 有真實使用者影響，**意見品質不是問題；互動模式才是**：逐修逐推的節奏讓每輪都付一次「push→輪詢→triage→修→驗→再 push→再 review」的全額成本，單 PR 跑到第 6 輪，而 R2 之後的邊際收益趨近於零。修正方向：review findings 依穩定 brief 合批成一個 commit 一次回覆、輪詢一律背景化，並依嚴重度、可重現性、可逆性與新的證據設定 stop condition；無重現路徑的理論性低嚴重度意見允許以證據回覆結案，不把 GPT-5.6 routing 的輪次觀察硬化成通用數字。
 
 ## 發現與對應修正
 
 | # | 發現 | 修正 | 落點 |
 |---|---|---|---|
-| 1 | 逐條到達的同型小修永遠通過「直接做比較快」測試，聚合後 orchestrator 變 implementer | dispatch 規則加「recurrence」條款：同型小工直接做約三次後仍持續到達，即改合批派工，主 session 只留逐項 triage | pilotfish `templates/claude-md.orchestration.md`（提案 [#15](https://github.com/Nanako0129/pilotfish/issues/15)，須隨 Baton gate 證據重跑一併釋出）；Baton `SKILL.md`（[cablate/baton#1](https://github.com/cablate/baton/pull/1)）；remora `agents/orchestration.md`（[remora-cc#8](https://github.com/Nanako0129/remora-cc/pull/8)，已合入政策鏡像） |
-| 2 | 已診斷、修法已知的 review finding 被「單一 bug 留主 session」規則掩護 | 明確排除：已診斷的 review finding 不是 unknown bug，首修落地後其餘同型 finding 屬可合批執行 | 同上 |
-| 3 | verifier 每小修必驗：201 次、14.1 agent-hours、2.35M frontier tokens | 驗證粒度收斂到 feature／PR 收尾；修正迴圈中段以主 session 測試 gate 為準 | pilotfish（提案 [#15](https://github.com/Nanako0129/pilotfish/issues/15)）；remora（[remora-cc#8](https://github.com/Nanako0129/remora-cc/pull/8)） |
-| 4 | plan-verifier 無上限 REVISE 迴圈（71% 打回、24 次對 2 Plans） | 每 Plan 最多 2 輪 REVISE，之後主 session 自行裁決殘餘分歧並記錄 | 同上 |
-| 5 | 外部 review 逐修逐推、單 PR 6 輪、阻塞 1h42m | 輪次預算 2、findings 合批、輪詢背景化、理論性 P2 可 won't-fix 結案 | 使用者私有 review skill（已修） |
+| 1 | 逐條到達的同型小修都通過「直接做比較快」測試，聚合後 orchestrator 變 implementer | dispatch 規則改用 backend-neutral 條件：只有剩餘項目彼此獨立、同型，且一份 stable one-shot brief 能完整描述 ownership、constraints、done criteria 與逐項 acceptance 時，才可條件式合批；main session 保留 diagnosis、例外判斷、integration 與 acceptance | pilotfish `templates/claude-md.orchestration.md`（提案 [#15](https://github.com/Nanako0129/pilotfish/issues/15)，須隨 Baton gate 證據重跑一併釋出）；Baton `SKILL.md`（[cablate/baton#1](https://github.com/cablate/baton/pull/1)）；remora `agents/orchestration.md`（[remora-cc#8](https://github.com/Nanako0129/remora-cc/pull/8)，已合入政策鏡像） |
+| 2 | 已診斷、修法已知的 review finding 被「單一 bug 留主 session」規則掩護 | 已知 root cause／remedy 的 finding 屬 Execution；若與其他 finding 形狀相同且 brief、ownership、acceptance 與 net-benefit 條件成立，可批次派工，但委派不是強制 | 同上 |
+| 3 | verifier 每小修必驗：201 次、14.1 agent-hours、2.35M frontier tokens | 在能形成完整可反駁主張的 smallest coherent integration boundary 做 fresh verifier；tests、build、static checks 只作迭代中的 intermediate evidence。Security、跨語言／FFI、serialization／pre-aggregation、不可逆或會阻斷後續整合的修改提早驗證 | pilotfish（提案 [#15](https://github.com/Nanako0129/pilotfish/issues/15)）；remora（[remora-cc#8](https://github.com/Nanako0129/remora-cc/pull/8)） |
+| 4 | plan-verifier 的反覆 REVISE（71% 打回、24 次對 2 Plans）顯示 Plan convergence 會失控 | 不得重送 substantially unchanged Plan；再次送審必須有 material revision 或新證據。若仍不收斂，main session 應簡化 Plan、向使用者揭露 blocker，或 defer blocked scope，不得靜默覆寫分歧 | 同上 |
+| 5 | 外部 review 逐修逐推、單 PR 6 輪、阻塞 1h42m | findings 合批、輪詢背景化，並依嚴重度、可重現性與可逆性設定 stop condition；不把單次 remora／GPT-5.6 觀察硬化成通用輪次或效率門檻 | 使用者私有 review skill（已修） |
 
-> **注意：** pilotfish 的 policy 位元組由 `test_baton_gate_snapshot_matches_recorded_hashes` 鎖定為「與 live Baton gate 實測快照完全一致」，且 v1.2.1 起明確拒絕 version-only normalization——所以 #1–#4 的政策文字修改不能只靠 PR 落地，必須跟著一次新的 gate 實測與證據刷新（VERSION、stamp、`results.json`）一併釋出，細節見 [#15](https://github.com/Nanako0129/pilotfish/issues/15)。
+> **注意：** pilotfish 的 policy 位元組由 `test_baton_gate_snapshot_matches_recorded_hashes` 鎖定為「與 live Baton gate 實測快照完全一致」，且 v1.2.1 起明確拒絕 version-only normalization。#1–#4 的政策文字已改為 backend-neutral guardrails；新的 native Baton gate 已在目前 final bytes 上完成，`results.json` 保留 current final evidence、失敗嘗試與舊 candidate history。Gate 只證明 compatibility／exact-byte provenance，不把 GPT-5.6 routing 觀察轉成 native-Claude 效率或數字門檻，細節見 [#15](https://github.com/Nanako0129/pilotfish/issues/15)。
 
 ## 侷限
 
-樣本是同一位使用者的兩場 session、同一個產品家族（TokenBar），且跑在 GPT-5.6 gateway 上而非原生 Claude 路由——模型檔位語意同構（frontier 判斷檔＋便宜執行檔），但絕對數字（尤其生成速度與 effort 表現）不可直接外推到原生配置。時間歸因對背景任務有近似（見方法段）；「主模型產生／決策」是活躍時間減前景工具聯集的殘差，包含少量 harness 排隊時間。發現 #1–#4 的方向不依賴這些近似：token 分佈（92% 對 8%）與呼叫次數（1,267 對 12、201 次 verifier、24 次 plan-verifier 對 2 Plans）都是精確計數。
+樣本是同一位使用者的兩場 session、同一個產品家族（TokenBar），且跑在 GPT-5.6 gateway 上而非原生 Claude 路由——模型檔位語意同構（frontier 判斷檔＋便宜執行檔），但絕對數字（尤其生成速度、effort 表現與成本）不可直接外推到原生配置，也不足以替原生 Claude 設定 universal threshold。時間歸因對背景任務有近似（見方法段）；「主模型產生／決策」是活躍時間減前景工具聯集的殘差，包含少量 harness 排隊時間。發現 #1–#4 的 failure-mode 方向不依賴這些近似：token 分佈（92% 對 8%）與呼叫次數（1,267 對 12、201 次 verifier、24 次 plan-verifier 對 2 Plans）都是精確計數；它們支持 backend-neutral guardrails，不是 native-Claude efficiency A/B 或最佳門檻的證據。

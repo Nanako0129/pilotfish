@@ -6,17 +6,17 @@
 - [合成契約](#合成契約)
 - [隔離與重現](#隔離與重現)
 - [精確 prompts](#精確-prompts)
-- [最終 Gate 結果](#最終-gate-結果)
-- [已取代與被拒絕的 harness runs](#已取代與被拒絕的-harness-runs)
+- [目前 final Gate 結果](#目前-final-gate-結果)
+- [已取代、失敗與被拒絕的 harness runs](#已取代失敗與被拒絕的-harness-runs)
 - [限制與揭露](#限制與揭露)
 
 ## 目的
 
-這項實驗驗證 [Baton](https://github.com/cablate/baton) 與 pilotfish v1.3.0 release candidate，能否在原生 Claude 路由下完成真正的 plan-first lifecycle。Baton 負責選擇最小且有淨效益的 delegation topology；pilotfish 繼續掌管具名角色、角色模型、leaf-agent 邊界、approval、tool capabilities 與 verifier 詞彙。Repo 內 snapshot 與發布 templates 就是 runtime 實測的精確 bytes。
+這項 benchmark 是在原生 first-party Claude 路由下，驗證 [Baton](https://github.com/cablate/baton) 與 pilotfish v1.3.0 release snapshot 的相容性與 provenance。新的 `final_gate` 已在 Claude Code 2.1.215、Fast mode 關閉的條件下成功完成。Baton 負責 delegation topology；pilotfish 繼續掌管具名角色、角色模型、leaf-agent 邊界、approval、tool capabilities 與 verifier 詞彙。Repo 內 snapshot 與發布 templates 是 runtime 實測的精確 bytes。
 
-> **Gate：** Discovery 可以發生在實作結果仍未知時，但 source write 必須等待 main-session Plan 與明確批准。Plan review 回覆 `READY` / `REVISE`；outcome review 回覆 `CONFIRMED` / `REFUTED`。
+> **Gate：** Discovery 可以發生在實作結果仍未知時，但 source write 必須等待 main-session Plan 與明確批准。Plan review 回覆 `READY` / `REVISE`；outcome review 回覆 `CONFIRMED` / `REFUTED`。這項 Gate 是 compatibility／provenance only：不建立效率、延遲、成本或 A/B 比較。
 
-Fixture 是最早發佈於 pilotfish commit `5f027b8c` 的[雙 surface 研究 control](../dispatch-brake/positive-controls/research/fixture)。執行環境為 Claude Code 2.1.215、原生 first-party Claude authentication、v1.3.0 recurrence-batching candidate policy，以及 `SKILL.md` SHA-256 記錄於 [`results.json`](./results.json) 的 Baton skill。
+Fixture 是最早發佈於 pilotfish commit `5f027b8c` 的[雙 surface 研究 control](../dispatch-brake/positive-controls/research/fixture)。成功 run 使用 base HEAD `a38dd2dde000441b24881fa49495e545ff21b9e6`、Claude Code 2.1.215、原生 first-party Claude authentication、Fast mode 關閉、目前 v1.3.0 policy bytes，以及 `SKILL.md` SHA-256 記錄於 [`results.json`](./results.json) 的 Baton skill。政策修正的現場依據是[田野報告](../../docs/field-report-tokscale-2026-07.zh-TW.md)：觀察來自 remora／GPT-5.6 routing，只支持 backend-neutral guardrails，不支持 native-Claude numeric optimization。
 
 ### 設計緣起
 
@@ -65,12 +65,12 @@ flowchart TD
 
 ## 隔離與重現
 
-測試只在可丟棄的 Git repo 執行。最終實測的精確 policy 與八角色 session JSON 已提交於 [`final-gate-snapshot/`](./final-gate-snapshot/)；[`build-agents-json.py`](./build-agents-json.py) 會把 candidate role files 轉成注入的 `--agents` payload。這既避免覆寫已安裝的全域 pilotfish files，也讓實測 working-tree snapshot 可稽核。User memory 仍疊在較具體的 project candidate 下方，並列為限制；session-scoped roles 則會在這次 run 取代 user role definitions。
+測試 fixture 使用可丟棄的 Git repo。現在 v1.3.0 policy 與八角色 session JSON 已提交於 [`final-gate-snapshot/`](./final-gate-snapshot/)；[`build-agents-json.py`](./build-agents-json.py) 會把 candidate role files 轉成注入的 `--agents` payload。這既避免覆寫已安裝的全域 pilotfish files，也讓 runtime-tested working-tree snapshot 可稽核。User memory 仍疊在較具體的 project candidate 下方，並列為限制；session-scoped roles 在這次 run 取代了 user role definitions。
 
 > ⚠️ **安全界線：** `--dangerously-skip-permissions` 只用在可丟棄 fixture。不要在不可信或有價值的 checkout 使用。
 
 ```bash
-SOURCE=/path/to/pilotfish-pr14
+SOURCE=/path/to/pilotfish-checkout
 ROOT="$(mktemp -d /tmp/pilotfish-baton-gate.XXXXXX)"
 WORK="$ROOT/fixture"
 SNAPSHOT="$SOURCE/benchmarks/baton-compatibility/final-gate-snapshot"
@@ -92,21 +92,21 @@ cd "$WORK"
 
 ```bash
 claude --dangerously-skip-permissions \
-  -p --output-format json --max-budget-usd 3 \
+  -p --output-format json --max-budget-usd 6 \
   --session-id "$SESSION_ID" --model best --effort high \
   --setting-sources user,project,local --strict-mcp-config \
   --agents "$AGENTS_JSON" \
   "$(cat "$SOURCE/benchmarks/baton-compatibility/prompts/turn-1.txt")"
 
 claude --dangerously-skip-permissions \
-  -p --output-format json --max-budget-usd 3 \
+  -p --output-format json --max-budget-usd 6 \
   --resume "$SESSION_ID" --model best --effort high \
   --setting-sources user,project,local --strict-mcp-config \
   --agents "$AGENTS_JSON" \
   "$(cat "$SOURCE/benchmarks/baton-compatibility/prompts/turn-2.txt")"
 ```
 
-這項 Gate 驗證 runtime policy composition 與最終精確角色定義。[`final-gate-snapshot/CLAUDE.md`](./final-gate-snapshot/CLAUDE.md) 直接以 repo 內 bytes 計算 hash；`agents.json` 透過 shell command substitution 讀取，注入與計算 hash 前會去掉檔案尾端 newline。Policy 與角色定義都和目前 release templates 完全一致。[`results.json`](./results.json) 記錄 hashes，tests 也要求 policy byte-for-byte 相同。Gate 不另外驗證 global file discovery 或 installer；後兩者仍由 installer review path 與 policy contract tests 覆蓋。
+這個 fixture 驗證了 runtime policy composition 與精確角色定義。[`final-gate-snapshot/CLAUDE.md`](./final-gate-snapshot/CLAUDE.md) 直接以 repo 內 bytes 計算 hash；`agents.json` 透過 shell command substitution 讀取，注入與計算 hash 前會去掉檔案尾端 newline。因 shell command substitution 也會移除 prompt 檔案尾端 newline，[`results.json`](./results.json) 分別記錄每個 prompt file SHA-256 與正規化 runtime-input SHA-256，連同 invocation evidence。Gate 不另外驗證 global file discovery 或 installer；後兩者仍由 installer review path 與 policy contract tests 覆蓋。
 
 ## 精確 prompts
 
@@ -115,47 +115,61 @@ claude --dangerously-skip-permissions \
 | Discovery + Plan | [`prompts/turn-1.txt`](./prompts/turn-1.txt) | Baton 已載入、零寫入、唯讀 `plan-verifier` 只用 `READY` / `REVISE`，接著等待批准 |
 | 批准 + execution | [`prompts/turn-2.txt`](./prompts/turn-2.txt) | 只有 `REPORT.md`、測試通過、fresh outcome verifier 回 `CONFIRMED` |
 
-## 最終 Gate 結果
+## 目前 final Gate 結果
 
-| Turn | Wall time | Client-reported cost | API turns | Models | 結果 |
-|---|---:|---:|---:|---|---|
-| Discovery + Plan | 159.032 s | $1.846658 | 18 | Fable 5 + Opus 4.8 | Baton 已載入；直接 discovery；Git clean；唯讀 `plan-verifier` 對第一版 Plan 即回 `READY` |
-| 已批准 execution（中斷） | 46.941 s | $1.081003 | 2 | Fable 5 | Main session 寫完 `REPORT.md` 後，run 在 `npm test` 前因訂閱模型額度上限停止 |
-| 續跑 execution + verification | 85.021 s | $1.676028 | 3 | Fable 5 + Opus 4.8 | 同一 session 以逐字 Turn 2 prompt 續跑；`npm test` 通過；outcome `verifier` 回 `CONFIRMED` |
-| 合計 | 290.994 s | $4.603686 | 23 | Fable 5 + Opus 4.8 | 完整 lifecycle 跨三次 CLI invocation 通過 |
+`results.json` 將 `final_gate_status` 設為 `complete`，目前 v1.3.0 `final_gate` 是通過的 invocation-granularity record。成功 run 使用 base HEAD `a38dd2dde000441b24881fa49495e545ff21b9e6`、Claude Code 2.1.215、原生 first-party authentication 與 Fast mode 關閉。
 
-Baton 選擇由 main session 直接 discovery，readiness verifier 對第一版 Plan 即回 `READY`。因所有證據已留在 main context，Baton 讓批准後的單檔彙整直接由 main session 完成，只把 fresh outcome verification 委派出去。v1.3.0 的 verification-scoping 規則在 Plan 內文即可看見：budget 段承諾以 `npm test` 作為 fix loop 內的 gate、verifier 只在收尾跑一次。Turn 2 在寫完 `REPORT.md` 後因訂閱模型額度上限中斷；操作者啟用 usage credits 後，同一 session 以逐字 Turn 2 prompt 續跑，完成 `npm test` 與 outcome verification。中斷事件與兩次 invocation 的 metrics 都如實記錄在 [`results.json`](./results.json)，不做合併隱藏。
+| Turn | Prompt file SHA-256 | Wall time | API time | Client-reported cost | API turns | 結果 |
+|---|---|---:|---:|---:|---:|---|
+| Turn 1：Discovery + Plan | `45dbe7b6…fcca7` | 151.241 s | 286.044 s | $2.07174695 | 2 | Baton loaded；兩個 background scouts；零寫入；`READY` |
+| Turn 2：approved execution + verification | `82d83309…1918e7` | 172.737 s | 172.012 s | $1.43709855 | 4 | 只有 `REPORT.md`；`npm test` 通過；`CONFIRMED` |
+| **合計** | | **323.978 s** | **458.056 s** | **$3.5088455** | **6** | 兩次 CLI invocation 通過 |
 
-| Agent call | 排程 | Invocation `model` | 實際 model | Verdict |
-|---|---|---|---|---|
-| `plan-verifier`：Plan readiness | Foreground | 省略 | `claude-opus-4-8` | `READY`；實際只用 `Read` |
-| `verifier`：outcome verification | Foreground | 省略 | `claude-opus-4-8` | `CONFIRMED` |
+Turn 1 使用兩個平行 background scouts。可丟棄 repository 在 approval 前保持 clean、零寫入。唯讀 `plan-verifier` 省略 invocation-level `model`，實際使用 Opus 4.8，回覆 `READY`，並提出一個 non-blocking citation suggestion；該建議在 final Plan 前採用。Turn 2 使用 foreground `mech-executor`，實際 Sonnet 5、`Write` + `Bash`，接著使用 foreground fresh `verifier`，實際 Opus 4.8、`Bash` + `Read`；兩個具名 call 都省略 invocation-level `model`。唯一 fixture 變更是未追蹤的 `REPORT.md`，`npm test` 通過，outcome verdict 為 `CONFIRMED`。本次 runtime 實際觸發 background scout result collection。
 
-| 驗收檢查 | 結果 |
+Verifier 留下一項 non-blocking citation 細節：`architecture.md:63` 是空白行，但 `architecture.md:62` 完整支持該主張。`CONFIRMED` 後沒有修改 fixture；細節記錄於 [`results.json`](./results.json)。
+
+| Runtime provenance | 值 |
 |---|---|
-| Baton 可用性 | Skill tool 回覆 `Launching skill: baton-dispatch` |
-| 批准前寫入 | 無；Turn 1 結束時 Git tree 乾淨 |
-| Plan ownership | Main session |
-| Plan 修正 | 不需要；`plan-verifier` 對第一版 Plan 即回 `READY` |
-| Write scope | 只有 `REPORT.md`；34 行、6,485 bytes |
-| 引用驗證 | 45 個 surface citations；outcome verifier 抽查核對 |
-| Repo 測試 | `REPORT.md covers both independent surfaces with file:line evidence` |
-| Verifier 詞彙 | Plan `READY`；outcome `CONFIRMED`；沒有跨 mode labels |
-| 具名角色路由 | 兩個 Agent call 都省略 invocation-level `model`；Plan／outcome 驗證都走 Opus 4.8 |
-| Startup resend | 不需要；兩個 turn 的 transcript 都正常建立並持續增長 |
-| 中途中斷 | Turn 2 因訂閱模型額度上限拆成兩次 CLI invocation；同一 session 續跑完成，細節揭露於 `results.json` |
+| Policy 與 snapshot SHA-256 | `d41a9d41db21e97176e82614dcfd4d80cba670ec28136666cc96906dd5efda35` |
+| Shell-stripped `agents.json` SHA-256 | `e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61` |
+| Turn 1 prompt file SHA-256 | `45dbe7b6b24cb5838ebf4219011797b61f172fcc18f0ca5039144017e93fcca7` |
+| Turn 1 runtime-input SHA-256 | `d2ad46b7ecfb503f8f7185d6d68f404d326f1a4a480b9141d1a80318a746bb73` |
+| Turn 2 prompt file SHA-256 | `82d833090ba91982651de9ac4beed8fc96311119c6eb9c6f0304c292821918e7` |
+| Turn 2 runtime-input SHA-256 | `93ae95d1cd4eebca91ab42a06d484e180f46dd1f327e471a5a4fd2a27ca2f344` |
+| Final transcript SHA-256 | `98724de501d714dcb58b315b2260147f9cdd43975f16e52297a84ed258a83ac4` |
 
-Machine-readable 資料位於 [`results.json`](./results.json)。最終 raw transcript SHA-256 是 `ff58d7ae7940367ad9921026ed8c7c32db11de032055402a875824b1450ad76f`。
+這項 Gate 只建立 compatibility／provenance。政策的現場依據來自 remora／GPT-5.6 routing 的 field observations，只支持 backend-neutral anti-churn guardrails，不建立 native-Claude threshold、效率改善或 A/B 結論。
 
-Gate 沒有觸發 background recon 結果收集、long-running process，也沒有呼叫 `security-reviewer`。v1.2.1 新增的「結果收集 vs. 繼續工作」區分由 deterministic contract test 鎖定，但這次 run 不對該路徑宣稱 live runtime coverage。Long-process 保留 [@dromsak 的 4 次直接 harness 實測](https://github.com/Nanako0129/pilotfish/pull/10#issuecomment-4958570683)與四角色 contract tests；security-reviewer 邊界由正向 tool allowlist 與 policy tests 驗證。沒有額外把 edge-case Claude run 包裝成證據。
+## 已取代、失敗與被拒絕的 harness runs
 
-## 已取代與被拒絕的 harness runs
+針對目前 policy bytes 的第一次嘗試保留為 [`results.json`](./results.json) 的 `failed_candidate_gate`，沒有靜默丟棄或改標為 rejected。它使用舊 Turn 1 prompt，在 client budget 用盡後以 `budget_exhausted` 終止：218.040 秒、13 API turns、$4.12912975。Baton 已載入、tree 保持 clean，唯讀 `plan-verifier` 回覆 `READY`，但舊 prompt 沒有要求 approved turn 呼叫 closing outcome verifier。因此失敗同時記錄 budget exhaustion 與 acceptance-contract ambiguity；之後修正 prompt 才完成成功 Gate。
 
-較早的完整 Gate 讓同一個雙 mode `verifier` 同時負責 Plan 與 outcome review。它當時通過（494.933 秒、$3.906375、12 turns），但 Codex review 指出 Plan 與批准前 security 邊界只靠 prompt。它已被上方 capability-separated run 取代；精確 inputs 仍保留於 [`gate-snapshot/`](./gate-snapshot/)，transcript hash 也仍在 [`results.json`](./results.json)。
+| 失敗嘗試證據 | 值 |
+|---|---|
+| Turn 1 prompt file SHA-256 | `edce6a591e5879769b89b0fff0f4aa8c64e038f79b93e6a804161e4f9914624f` |
+| Turn 1 runtime-input SHA-256 | `8aa4459acbb2f96df4617dcbf2b147c91222252a48c8fac754f344bc2d32d2fb` |
+| Transcript SHA-256 | `250b8cd8b53e758299b233d16c2753890a46c6284a99a8d21ba5d5e907bf7ebc` |
+| Wall time / API time | 218.040 s / 186.738 s |
+| Client-reported cost / API turns | $4.12912975 / 13 |
+| Terminal disposition | `budget_exhausted`；零寫入；`READY` 但缺 closing outcome verifier |
 
-v1.2.1 release Gate（368.395 秒、$3.710435、17 turns）以 `previous_release_gate` 保留於 [`results.json`](./results.json)，並可由 Git commit `80b5d1f` 重現。v1.2.0 release Gate（448.148 秒、$3.789048、22 turns）仍可由 Git commit `1251465` 重現；[`results.json`](./results.json) 保留它的 source commit、hashes、metrics 與 transcript hash，不在原地改寫歷史證據。
+2026-07-20、commit `40f3815` 的 v1.3.0 candidate 保留在 [`results.json`](./results.json) 的 `superseded_candidate_gate`。它在當時完成 lifecycle，但其 policy bytes 在新的 Gate 前已被替換，因此不能當成目前 final evidence。三筆 additive CLI invocation records 保留了中斷行為：
 
-第一次隔離嘗試不列入相容性證據。它使用 `--setting-sources project,local`，因此看不到安裝在 user 層的 Baton skill。剩餘 pilotfish gate 雖然仍得到乾淨的 `READY`，但該 run 沒有測到指定 composition，也沒有啟動批准回合。
+| CLI invocation | Logical prompt | Wall time | Client-reported cost | API turns | 處置 |
+|---:|---|---:|---:|---:|---|
+| 1 | Turn 1：Discovery + Plan | 159.032 s | $1.8466575 | 18 | 完成；`READY` |
+| 2 | Turn 2：approved execution | 46.941 s | $1.081003 | 2 | `REPORT.md` 後因訂閱模型額度上限中斷 |
+| 3 | Turn 2 resumed | 85.021 s | $1.67602825 | 3 | 完成；`npm test` 通過且 `CONFIRMED` |
+| **合計** | | **290.994 s** | **$4.60368875** | **23** | Superseded candidate，不是目前 final |
+
+舊 candidate 使用 main session 直接 discovery，唯讀 `plan-verifier` 對第一版 Plan 回 `READY`，由 main session 只寫入 `REPORT.md`，再由 fresh outcome verifier 回 `CONFIRMED`。Turn 2 因啟用 usage credits 後，以同一 session ID 與逐字 prompt 續跑。中斷、三筆 invocation metrics 與舊 candidate hashes 都保留在 [`results.json`](./results.json)；它們不是目前 policy 的 final-gate metrics。
+
+較早的完整 Gate 讓同一個雙 mode `verifier` 同時負責 Plan 與 outcome review。它當時通過（494.933 秒、$3.906375、12 turns），但 Codex review 指出 Plan 與批准前 security 邊界只靠 prompt。它現在是 summary-only 的 `superseded_gate`；精確 inputs 仍保留於 [`gate-snapshot/`](./gate-snapshot/)。
+
+v1.2.1 release Gate（368.395 秒、$3.710435、17 turns）以 summary-only 的 `previous_release_gate` 保留於 [`results.json`](./results.json)，並可由 Git commit `80b5d1f` 重現。v1.2.0 release Gate（448.148 秒、$3.789048、22 turns）已從 Git commit `1251465` 還原為 summary-only 的 `historical_release_gate`；沒有杜撰 invocation detail。
+
+第一次隔離嘗試不列入相容性證據。它使用 `--setting-sources project,local`，因此看不到安裝在 user 層的 Baton skill。該 run 沒有測到指定 composition，也沒有啟動批准回合。
 
 | 證據 | 值 |
 |---|---:|
@@ -170,17 +184,19 @@ v1.2.1 release Gate（368.395 秒、$3.710435、17 turns）以 `previous_release
 
 ## 限制與揭露
 
-> **不要把單次通過外推成通用效能主張。** 這項 Gate 只建立一條有效 lifecycle 與 routing trace，不代表預期 topology、latency 或 cost。
+> **不要把單次 compatibility run 外推成通用效能主張。** 新的 Gate 建立一條有效 lifecycle 與 exact-byte provenance，不是 optimization experiment。
 
 | 限制 | 影響 |
 |---|---|
-| 單次 final run | 時間與 cost 是觀察值，不是母體估計 |
-| Client-reported cost field | 不是 provider invoice |
-| 小型 fixture | Baton 選擇直接 discovery 與 main-session 直接撰寫；大型任務可能選擇有界 fan-out 或 delegated writing |
-| 動態角色注入 | 已驗證精確 final snapshot definitions，但 global agent-file discovery 不在這次 runtime Gate 範圍 |
-| 未觸發的 background 結果收集 | Deterministic policy test 覆蓋 collection／continuation contract；這個 fixture 沒有觸發 background recon retrieval |
+| 單次成功的 native run | 時間與 cost 是觀察值，不是母體估計或 provider invoice |
+| Remora／GPT-5.6 field provenance | 報告支持 backend-neutral failure-mode guardrails，不支持 native-Claude numeric threshold 或 efficiency A/B 結論 |
+| Client-reported cost field | 不是 provider invoice；失敗與 superseded candidate 的成本都是歷史觀察 |
+| 小型 fixture | 本次 Baton 選擇兩個 background scouts 與 foreground mechanical executor；大型任務可能選擇不同 topology |
+| 動態角色注入 | 已驗證精確 policy、role 與 prompt bytes，但 global agent-file discovery 仍不在這個 compatibility fixture 範圍 |
+| Runtime background result collection | 成功 run 實際收集兩個 background scouts；其他 background 形狀仍需各自證據 |
 | 未觸發的 security／long-process 路徑 | Tool allowlists、policy tests 與 contributor 專門實測涵蓋其 contract；本 fixture 不宣稱 runtime coverage |
 | Candidate project memory 疊加 user memory | 較具體的 candidate policy 管理 fixture；managed policy 或矛盾的 project instruction 仍可能改變行為 |
-| 單一 Claude Code 2.1.215 runtime | Provider route 是原生 first-party Claude；其他 Claude Code 版本仍需自己的 smoke test |
-| Turn 2 中途訂閱額度中斷 | Lifecycle 主張建立在同一 session 續跑完成之上；兩次 invocation 的 metrics 分開揭露，不做無聲合併 |
+| 單一 Claude Code 2.1.215 target | 其他 Claude Code 版本仍需自己的 smoke test |
+| 失敗 candidate 的 prompt ambiguity | 舊 prompt hash 與 budget exhaustion 都保留；成功 Gate 使用修正後 prompt |
+| Verifier citation note | `architecture.md:63` 為空白行，`:62` 支持該主張；`CONFIRMED` 後沒有修改 fixture |
 | Raw transcript 未提交 | 內含本機絕對路徑與 session metadata；改為公開 prompts、正規化 calls、content hashes、metrics 與 verdicts |
