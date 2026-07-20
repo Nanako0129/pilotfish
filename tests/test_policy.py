@@ -49,6 +49,9 @@ class PolicyContractTests(unittest.TestCase):
 
         current_policy = (ROOT / "templates/claude-md.orchestration.md").read_bytes()
         snapshot_policy = (gate / runtime["final_gate_snapshot_policy"]).read_bytes()
+        snapshot_agents = (
+            gate / runtime["final_gate_snapshot_agents_json"]
+        ).read_bytes().rstrip(b"\n")
         completed = subprocess.run(
             [
                 sys.executable,
@@ -80,9 +83,10 @@ class PolicyContractTests(unittest.TestCase):
             runtime["final_gate_orchestration_sha256"],
         )
         self.assertEqual(
-            hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
+            hashlib.sha256(snapshot_agents).hexdigest(),
             runtime["final_gate_agents_json_sha256"],
         )
+        self.assertEqual(snapshot_agents, completed.stdout.rstrip(b"\n"))
         prompt_1 = (gate / "prompts" / "turn-1.txt").read_bytes()
         prompt_2 = (gate / "prompts" / "turn-2.txt").read_bytes()
         prompt_1_file_hash = hashlib.sha256(prompt_1).hexdigest()
