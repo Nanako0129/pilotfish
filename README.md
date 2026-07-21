@@ -6,6 +6,8 @@
 
 > **Want OpenAI GPT-5.6 inside Claude Code without changing native Claude state?** [remora](https://github.com/Nanako0129/remora-cc) packages pilotfish's role-based orchestration pattern into a session-scoped launcher for an existing Anthropic-compatible gateway. Use pilotfish to study or customize the global policy; use remora for an approval-gated, verifiable install whose model and gateway overrides disappear with the child process.
 
+> **Want the same orchestration on Grok Build?** [pilotfish-grok](https://github.com/Nanako0129/pilotfish-grok) ports the role lifecycle and capability boundaries to `~/.grok/` (agents, roles, and a model-free policy). Use this repo for Claude Code; use pilotfish-grok when the host is Grok Build — separate install surface, does not write `~/.claude/`.
+
 **Where this came from:** my weekly quota reset one morning, and the first thing I did with a fresh Fable 5 allowance was ask it to figure out why the previous week's had evaporated. This repo is the setup that research produced, and it's what I now run daily on every project — three config files, no runtime code. The research notes (with sources) are in [docs/](./docs/).
 
 [繁體中文說明](./README.zh-TW.md)
@@ -208,7 +210,7 @@ The delegation policy in `CLAUDE.md` speaks only of roles (`executor`, `scout`, 
 
 ## Research & design
 
-This repo is the packaged result of a sourced research pass (official docs, Anthropic announcements, community measurements) plus a design rationale:
+This repo is the packaged result of a sourced research pass (official docs, Anthropic announcements, community measurements) plus a design rationale. Host ports that reuse the same orchestration idea live elsewhere: [pilotfish-grok](https://github.com/Nanako0129/pilotfish-grok) for Grok Build, [pilotfish-codex](https://github.com/miyago9267/pilotfish-codex) for Codex CLI, and [remora](https://github.com/Nanako0129/remora-cc) for session-scoped GPT routing inside Claude Code.
 
 | Document | Language | Contents |
 |---|---|---|
