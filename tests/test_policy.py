@@ -215,6 +215,39 @@ class PolicyContractTests(unittest.TestCase):
             self.assertRegex(frontmatter, r"(?m)^model:\s*\S+\s*$")
             self.assertIn(f"`{role}`", policy)
 
+    def test_no_role_collapses_onto_the_main_loop_tier(self) -> None:
+        # Regression for #18: the main session runs "best" (Fable 5, or Opus on
+        # fallback). No role agent may default to the same tier as an Opus
+        # fallback main loop, or delegation to that role becomes Opus talking
+        # to Opus for zero capability gain.
+        expected_models = {
+            "scout": "haiku",
+            "Explore": "haiku",
+            "plan-verifier": "opus",
+            "security-reviewer": "opus",
+            "mech-executor": "sonnet",
+            "executor": "sonnet",
+            "verifier": "opus",
+            "security-executor": "opus",
+        }
+        for role, expected_model in expected_models.items():
+            frontmatter = (
+                (ROOT / "templates" / "agents" / f"{role}.md")
+                .read_text(encoding="utf-8")
+                .split("---", 2)[1]
+            )
+            self.assertRegex(
+                frontmatter,
+                rf"(?m)^model:\s*{re.escape(expected_model)}\s*$",
+                f"{role} should default to {expected_model}",
+            )
+        # executor now shares mech-executor's Sonnet tier: it is the default
+        # delegated implementation path, and must not sit at the same tier as
+        # a fallback Opus main loop. verifier stays a tier above executor so
+        # outcome review is a genuine cross-tier check, not same-tier review.
+        self.assertEqual(expected_models["executor"], expected_models["mech-executor"])
+        self.assertNotEqual(expected_models["executor"], expected_models["verifier"])
+
     def test_policy_uses_phase_specific_dispatch_brakes(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"

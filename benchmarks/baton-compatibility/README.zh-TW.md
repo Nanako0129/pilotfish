@@ -132,7 +132,7 @@ Verifier 留下一項 non-blocking citation 細節：`architecture.md:63` 是空
 | Runtime provenance | 值 |
 |---|---|
 | Policy 與 snapshot SHA-256 | `d41a9d41db21e97176e82614dcfd4d80cba670ec28136666cc96906dd5efda35` |
-| Shell-stripped `agents.json` SHA-256 | `e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61` |
+| Shell-stripped `agents.json` SHA-256 | `27b6f6df289715f302a1022b428c62ddf7a7dadb2e0cae4f9eb4197c5bd916de`（[#18](https://github.com/Nanako0129/pilotfish/issues/18) 之後重新產生；Gate 跑的時候是 `e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61`） |
 | Turn 1 prompt file SHA-256 | `45dbe7b6b24cb5838ebf4219011797b61f172fcc18f0ca5039144017e93fcca7` |
 | Turn 1 runtime-input SHA-256 | `d2ad46b7ecfb503f8f7185d6d68f404d326f1a4a480b9141d1a80318a746bb73` |
 | Turn 2 prompt file SHA-256 | `82d833090ba91982651de9ac4beed8fc96311119c6eb9c6f0304c292821918e7` |
@@ -200,3 +200,4 @@ v1.2.1 release Gate（368.395 秒、$3.710435、17 turns）以 summary-only 的 
 | 失敗 candidate 的 prompt ambiguity | 舊 prompt hash 與 budget exhaustion 都保留；成功 Gate 使用修正後 prompt |
 | Verifier citation note | `architecture.md:63` 為空白行，`:62` 支持該主張；`CONFIRMED` 後沒有修改 fixture |
 | Raw transcript 未提交 | 內含本機絕對路徑與 session metadata；改為公開 prompts、正規化 calls、content hashes、metrics 與 verdicts |
+| Gate 之後的角色 frontmatter 變動（[#18](https://github.com/Nanako0129/pilotfish/issues/18)） | 這次 Gate 跑完之後，`executor` 的 model 從 Opus 改成 Sonnet。已提交的 `agents.json` snapshot 重新產生以與目前 templates 保持 byte 一致，因此記錄的 hash 也跟著改變。這次 Gate 的 turns 從未派送過 `executor`，所以上面的 transcript、cost、verdict 對它實際跑過的角色仍然準確；目前還沒有另外針對新的 Sonnet `executor` 跑過 live Gate。詳見 `results.json` 的 `post_gate_role_frontmatter_change` |

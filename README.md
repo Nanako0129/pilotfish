@@ -66,7 +66,7 @@ flowchart TD
     O -->|Plan challenge| PV["plan-verifier<br>opus · read-only"]
     PV -->|READY / REVISE| O
     O -->|mechanical spec| M["mech-executor<br>sonnet · effort low"]
-    O -->|judgment work| E["executor<br>opus · effort medium"]
+    O -->|judgment work| E["executor<br>sonnet · effort medium"]
     O -->|security evidence| SR["security-reviewer<br>opus · read-only"]
     SR --> O
     O -->|approved security work| SEC["security-executor<br>opus · effort high"]
@@ -85,9 +85,11 @@ The eight roles:
 | `plan-verifier` | opus | medium | Tool-enforced read-only Plan challenge before approval; returns READY/REVISE |
 | `security-reviewer` | opus | high | Tool-enforced read-only security evidence and threat review before approval |
 | `mech-executor` | sonnet | low | Fully-specified mechanical work: pattern refactors, convention tests, docs, bulk edits |
-| `executor` | opus | medium | Implementation needing judgment: features, bug fixes, design-sensitive refactors |
+| `executor` | sonnet | medium | Implementation needing judgment: features, bug fixes, design-sensitive refactors |
 | `verifier` | opus | medium | Fresh-context outcome verification after implementation; returns CONFIRMED/REFUTED and never fixes |
 | `security-executor` | opus | high | Approved security implementation — deliberately kept off Fable 5, whose safety classifiers can refuse benign defensive-security work |
+
+No role agent is pinned to the same tier as the main session, because same-tier delegation is always waste: it pays coordination and context-reconstruction overhead for zero capability difference. `executor` moved from Opus to Sonnet ([#18](https://github.com/Nanako0129/pilotfish/issues/18)) so the default delegated implementation path keeps its cost advantage even when `best` resolves to Opus (no Fable 5 access, or a plan billed through usage credits). The four Opus-only roles stay put for different reasons: `verifier` and `plan-verifier` are the last automated check before a claim or a Plan is accepted, so keeping them a tier above `executor` buys a real cross-tier review instead of a model reviewing its own tier; `security-reviewer` and `security-executor` carry a correctness-over-cost mandate that a lower tier should not absorb without dedicated evidence. An installer profile that swaps tiers by detected main-session model was considered and rejected — see [Deliberately left out](./docs/design.md#deliberately-left-out).
 
 The policy layer now uses phase-specific dispatch brakes rather than requiring a finished implementation outcome before any delegation. Small, stable work stays direct. Large or ambiguous work may begin with bounded read-only discovery, then returns to the main session for one Plan; material Plans can receive a fresh readiness review and wait for user approval before writing agents start. Execution still requires stable scope, exclusive ownership, done criteria, integration, and verification. Every named role takes its model only from its agent definition, independent work runs in the background, and foreground agents remain reserved for immediate dependencies whose net benefit stays positive.
 
@@ -179,14 +181,15 @@ The raw `main` prompt in [Install](#install) remains a mutable convenience path,
 
 ## The fallback story
 
-The whole stack keeps working when the frontier model disappears, because no policy text ever names a model:
+This section is about the stack staying *functional* when the frontier model disappears, not about staying *cheap*. The two used to be conflated: `best` re-resolving to Opus always kept sessions running, but before [#18](https://github.com/Nanako0129/pilotfish/issues/18) it also silently collapsed the cost hierarchy, because the default `executor` was pinned to Opus too — every delegation became Opus talking to Opus, spending the coordination overhead of a subagent call for zero tier savings. No policy text ever names a model, so both properties are still one-line fixes when they slip:
 
 | Failure mode | What catches it | Your action |
 |---|---|---|
-| Fable 5 leaves your plan (e.g. the July 2026 subscription changes) | `best` re-resolves to the latest Opus — the documented rule, and how the June 2026 outage actually behaved (notice banner, new sessions continued on Opus) | Likely none — the exact boundary UX is unpublished; worst case is one `/model` switch or enabling usage credits. Never pin `fable`/full IDs: pinned IDs hard-errored in June |
+| Fable 5 leaves your plan (e.g. the July 2026 subscription changes, or any plan billed through usage credits) | `best` re-resolves to the latest Opus — the documented rule, and how the June 2026 outage actually behaved (notice banner, new sessions continued on Opus). `executor` stays on Sonnet regardless, so the coordinator moving to Opus no longer drags the execution tier up with it | Likely none — the exact boundary UX is unpublished; worst case is one `/model` switch or enabling usage credits. Never pin `fable`/full IDs: pinned IDs hard-errored in June |
 | Model overloaded / API errors | `fallbackModel: ["opus", "sonnet"]` switches automatically with a notice | None |
 | A tier gets deprecated (Opus 4.8 → 4.9, Sonnet 5 → next) | Role agents use aliases (`opus`, `sonnet`, `haiku`) that track the recommended version | None |
 | Frontier refuses a security task mid-run | Security work is pre-routed to `security-executor` (Opus), so it never reaches the classifier | None |
+| A role agent ends up pinned to the same tier as the main session | No general auto-detection — see [Deliberately left out](./docs/design.md#deliberately-left-out) — but `executor` no longer defaults to the same tier Opus-main-loop users actually run | Re-point that one role's `model:` line if your setup still collapses a tier |
 
 The delegation policy in `CLAUDE.md` speaks only of roles (`executor`, `scout`, …). Model bindings live in exactly one place — one line of frontmatter per agent file — so re-pointing a tier is a one-line edit that takes effect everywhere.
 
@@ -194,7 +197,8 @@ The delegation policy in `CLAUDE.md` speaks only of roles (`executor`, `scout`, 
 
 | Question | Answer |
 |---|---|
-| I want to save even more quota | Switch the main session to `/model opusplan` — Opus thinks in plan mode, Sonnet executes. The role agents keep working unchanged underneath. |
+| I want to save even more quota | Switch the main session to `/model opusplan` — Opus thinks in plan mode, Sonnet executes the main session's own turns. That is a main-session model switch, a different mechanism from subagent routing, and it composes cleanly underneath: role agents keep the model bound in their own frontmatter regardless of which model the main session is currently using turn to turn. Before `executor` defaulted to Sonnet ([#18](https://github.com/Nanako0129/pilotfish/issues/18)), this combination could mean a Sonnet-tier main-session turn dispatching to an Opus-tier `executor` subagent — an accidental escalation, not a saving. Now the tiers agree instead of fighting each other. |
+| Why does `executor` use Sonnet while `verifier` stays on Opus? | No role agent should be pinned to the same tier as the main session — same-tier delegation pays coordination overhead for no capability gain, and that is exactly what happened when both the main loop and `executor` were Opus ([#18](https://github.com/Nanako0129/pilotfish/issues/18)). `executor` moved to Sonnet so the default execution path keeps a real cost tier below `best`. `verifier`, `plan-verifier`, `security-reviewer`, and `security-executor` stay on Opus because they are the last automated check before a claim or a Plan is accepted (or before security-sensitive work proceeds): keeping the verifier a tier above the executor buys genuine cross-tier review — a different model catching what the implementer's own tier might miss — instead of a model checking its own output. Same-tier verification still catches context rot and unchecked claims; it does not catch capability-ceiling errors, which is precisely the gap a higher-tier verifier helps close. |
 | Can I force every subagent onto one model? | `CLAUDE_CODE_SUBAGENT_MODEL` overrides *all* per-agent frontmatter — that's why pilotfish doesn't set it. Leave it unset unless you want a temporary global override. |
 | I use `availableModels` as an allowlist | Then it must contain every alias the agents use (`opus`, `sonnet`, `haiku`), or those agents silently fall back to inheriting the main-session model. The installer checks this. |
 | Why `effort: low` on the cheap roles? | Effort is the second big quota lever. Fable-5-generation models at low effort routinely match previous-generation `xhigh`; recon and mechanical work don't need deep thinking. |

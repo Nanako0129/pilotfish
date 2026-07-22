@@ -132,7 +132,7 @@ The verifier noted one non-blocking citation detail: `architecture.md:63` is a b
 | Runtime provenance | Value |
 |---|---|
 | Policy and snapshot SHA-256 | `d41a9d41db21e97176e82614dcfd4d80cba670ec28136666cc96906dd5efda35` |
-| Shell-stripped `agents.json` SHA-256 | `e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61` |
+| Shell-stripped `agents.json` SHA-256 | `27b6f6df289715f302a1022b428c62ddf7a7dadb2e0cae4f9eb4197c5bd916de` (regenerated post-[#18](https://github.com/Nanako0129/pilotfish/issues/18); was `e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61` when this Gate ran) |
 | Turn 1 prompt file SHA-256 | `45dbe7b6b24cb5838ebf4219011797b61f172fcc18f0ca5039144017e93fcca7` |
 | Turn 1 runtime-input SHA-256 | `d2ad46b7ecfb503f8f7185d6d68f404d326f1a4a480b9141d1a80318a746bb73` |
 | Turn 2 prompt file SHA-256 | `82d833090ba91982651de9ac4beed8fc96311119c6eb9c6f0304c292821918e7` |
@@ -202,3 +202,4 @@ This rejection is published because a behavioral pass is not enough when the dep
 | Failed candidate prompt ambiguity | The failed attempt is retained with its old prompt hash and budget exhaustion; the corrected prompt was used for the successful Gate |
 | Verifier citation note | `architecture.md:63` is blank while `:62` supports the claim; no fixture change was made after `CONFIRMED` |
 | Raw transcript not committed | It contains absolute local paths and session metadata; prompts, normalized calls, content hashes, metrics, and verdicts are published instead |
+| Post-Gate role frontmatter change ([#18](https://github.com/Nanako0129/pilotfish/issues/18)) | `executor`'s model changed from Opus to Sonnet after this Gate ran. The committed `agents.json` snapshot was regenerated to stay byte-identical with current templates, which changed its recorded hash. This Gate's turns never dispatched `executor`, so the transcript, costs, and verdicts above remain accurate for the roles they exercised; no live Gate has yet exercised the new Sonnet `executor` specifically. See `results.json`'s `post_gate_role_frontmatter_change` |
