@@ -69,10 +69,8 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("user prompt only", large["claim_boundary"])
         self.assertIn("fully cue-free", large["claim_boundary"])
         self.assertEqual(
-            hashlib.sha256(
-                (ROOT / "templates/claude-md.orchestration.md").read_bytes()
-            ).hexdigest(),
             large["policy_sha256"],
+            "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf",
         )
         self.assertEqual(large["fixture"]["domain_file_count"], 45)
         self.assertEqual(large["fixture"]["domain_total_lines"], 3032)
@@ -242,23 +240,9 @@ class PolicyContractTests(unittest.TestCase):
             "passed_activation_dispatch_ownership_collection_final_byte_correctness",
         )
         self.assertEqual(release["policy_sha256"], large["policy_sha256"])
-        current_agents = subprocess.run(
-            [
-                sys.executable,
-                str(
-                    ROOT
-                    / "benchmarks"
-                    / "baton-compatibility"
-                    / "build-agents-json.py"
-                ),
-                str(ROOT / "templates" / "agents"),
-            ],
-            check=True,
-            capture_output=True,
-        ).stdout.rstrip(b"\n")
         self.assertEqual(
-            hashlib.sha256(current_agents).hexdigest(),
             release["agents_json_sha256"],
+            "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
         )
         self.assertEqual(release["baton_skill_call_count"], 1)
         self.assertEqual(release["agent_call_count"], 4)
@@ -420,27 +404,11 @@ class PolicyContractTests(unittest.TestCase):
         release_input = results["policy_inputs"]["v1.3.1-release-payload"]
         self.assertEqual(
             release_input["policy_sha256"],
-            hashlib.sha256(
-                (ROOT / "templates" / "claude-md.orchestration.md").read_bytes()
-            ).hexdigest(),
+            "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf",
         )
-        current_agents = subprocess.run(
-            [
-                sys.executable,
-                str(
-                    ROOT
-                    / "benchmarks"
-                    / "baton-compatibility"
-                    / "build-agents-json.py"
-                ),
-                str(ROOT / "templates" / "agents"),
-            ],
-            check=True,
-            capture_output=True,
-        ).stdout.rstrip(b"\n")
         self.assertEqual(
             release_input["agents_json_sha256"],
-            hashlib.sha256(current_agents).hexdigest(),
+            "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
         )
 
         release_mechanical = runs["opus-v1.3.1-release-payload-mechanical"]
@@ -557,16 +525,25 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertNotEqual(current_policy, snapshot_policy)
         self.assertEqual(
+            runtime["release_candidate_orchestration_sha256"],
+            "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf",
+        )
+        self.assertEqual(
+            runtime["release_candidate_agents_json_sha256"],
+            "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
+        )
+        self.assertNotEqual(
             hashlib.sha256(current_policy).hexdigest(),
             runtime["release_candidate_orchestration_sha256"],
         )
-        self.assertEqual(
+        self.assertNotEqual(
             hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
             runtime["release_candidate_agents_json_sha256"],
         )
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-        self.assertEqual(runtime["final_gate_candidate_version_stamp"], version)
-        self.assertEqual(runtime["release_candidate_version"], version)
+        self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
+        self.assertEqual(runtime["release_candidate_version"], "1.3.1")
+        self.assertEqual(version, "1.3.2")
         self.assertTrue(
             runtime["release_candidate_policy_delta_from_final_gate"].startswith(
                 "non-empty"
@@ -594,10 +571,23 @@ class PolicyContractTests(unittest.TestCase):
         candidate_payload = json.loads(completed.stdout)
         snapshot_executor = snapshot_payload.pop("executor")
         candidate_executor = candidate_payload.pop("executor")
+        snapshot_plan_verifier = snapshot_payload.pop("plan-verifier")
+        candidate_plan_verifier = candidate_payload.pop("plan-verifier")
         self.assertEqual(snapshot_executor["model"], "opus")
         self.assertEqual(candidate_executor["model"], "sonnet")
         snapshot_executor["model"] = candidate_executor["model"]
         self.assertEqual(snapshot_executor, candidate_executor)
+        self.assertEqual(
+            snapshot_plan_verifier["model"], candidate_plan_verifier["model"]
+        )
+        self.assertEqual(
+            snapshot_plan_verifier["tools"], candidate_plan_verifier["tools"]
+        )
+        self.assertNotEqual(
+            snapshot_plan_verifier["prompt"], candidate_plan_verifier["prompt"]
+        )
+        self.assertIn("program envelope", candidate_plan_verifier["prompt"])
+        self.assertIn("Blocker:", candidate_plan_verifier["prompt"])
         self.assertEqual(snapshot_payload, candidate_payload)
         prompt_1 = (gate / "prompts" / "turn-1.txt").read_bytes()
         prompt_2 = (gate / "prompts" / "turn-2.txt").read_bytes()
@@ -889,6 +879,11 @@ class PolicyContractTests(unittest.TestCase):
         for phrase in (
             "smallest coherent integration boundary",
             "independently refuted",
+            "two consecutive `REFUTED` verdicts for that claim",
+            "stop automatic fix-and-reverify cycling",
+            "the cap is not `CONFIRMED`",
+            "user-directed continuation remains allowed",
+            "substantially unchanged implementation",
             "Tests, builds, and static checks are intermediate evidence",
             "security",
             "cross-language or FFI",
@@ -905,6 +900,14 @@ class PolicyContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         for phrase in (
+            "program envelope",
+            "next executable slice",
+            "Blocker:",
+            "Evidence:",
+            "Minimum revision:",
+            "Acceptance check:",
+            "two automatic `REVISE` verdicts for the same unit",
+            "surface the blockers and options to the user",
             "substantially unchanged Plan",
             "material revision or new evidence",
             "simplify it",
