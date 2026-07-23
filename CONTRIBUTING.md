@@ -85,6 +85,31 @@ python3 -m unittest \
 python3 -m unittest discover -s tests -v
 ```
 
+### Behavioral orchestration changes
+
+Changes to dispatch eligibility, planning-skill activation, ownership,
+background scheduling, result collection, or verifier boundaries need a
+behavioral Gate when the pull request makes a runtime claim. A spontaneous or
+cue-free claim requires a neutral user prompt: scan the prompt and fixture for
+agent, role, skill, policy, delegation, orchestration, parallelism, fan-out, and
+the named planning skill. An explicitly plan-first or user-directed delegation
+Gate may name those mechanisms, but must not be presented as spontaneous.
+
+Record each observable layer separately:
+
+| Layer | Minimum evidence |
+|---|---|
+| Availability | Whether the skill or named role appeared in runtime initialization. |
+| Activation | The observable skill invocation, distinct from mere availability. |
+| Dispatch | Named role, background or foreground mode, and absence of an invocation-level model override. |
+| Completion | Every dispatched result collected before dependent synthesis, with ownership overlap checked. |
+| Acceptance | Repository-owned checks run against the final artifact bytes, after the last write. |
+
+Pin the policy bytes, generated agents payload, client version, model route, and
+skill source used by each run. Retain failed attempts and version differences.
+A single passing Gate can establish reachability for that exact input; it does
+not establish activation frequency, causality, latency, cost, or efficiency.
+
 If the change claims runtime behavior, also run the documented isolated
 reproduction for that behavior and publish the actual disposition. Never run
 `--dangerously-skip-permissions` in a valuable checkout; benchmark instructions
