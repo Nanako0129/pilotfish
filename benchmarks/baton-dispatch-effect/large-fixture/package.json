@@ -1,0 +1,8 @@
+{
+  "name": "baton-dispatch-large-audit",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node verify-audit.mjs"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "schema_version": 2,
+  "description": "Normalized tool evidence. Event indexes refer to raw stream line indexes; raw streams are retained outside the repository and bound by SHA-256 in results.json.",
+  "small_availability_observation": {
+    "control": {
+      "top_level_tools": ["Bash", "Bash", "Read", "Bash", "Read", "Read", "Read", "Read", "Read", "Bash", "Write", "Bash", "Bash"],
+      "skill_calls": [],
+      "agent_calls": []
+    },
+    "treatment": {
+      "top_level_tools": ["Bash", "Read", "Read", "Bash", "Read", "Read", "Read", "Read", "Read", "Bash", "Write", "Bash", "Bash"],
+      "init_skill_inventory_contains_baton_dispatch": true,
+      "skill_calls": [],
+      "agent_calls": []
+    }
+  },
+  "large_policy_activation_gate": {
+    "attempts": {
+      "large-v131-1": {
+        "skill_event_indexes": [17],
+        "agent_event_indexes": [35, 70],
+        "completion_event_indexes": [241, 269],
+        "active_scope_overlap_observed": true,
+        "overlap_summary": "main duplicated active domain-c and domain-d reads"
+      },
+      "large-v131-2": {
+        "skill_event_indexes": [15],
+        "agent_event_indexes": [26, 42],
+        "completion_event_indexes": [293, 298],
+        "active_scope_overlap_observed": true,
+        "overlap_summary": "top-level Bash at event 62 mixed main-owned input with active agent-owned domain-c/VERSION"
+      },
+      "large-v131-3": {
+        "skill_event_indexes": [22],
+        "agent_event_indexes": [37, 55, 90, 129],
+        "completion_event_indexes": [237, 254],
+        "failure_event_indexes": [231, 248],
+        "active_scope_overlap_observed": false,
+        "outcome_complete": false
+      },
+      "large-v131-4": {
+        "top_level_tools": ["Bash", "Read", "Bash", "Skill", "Agent", "Agent", "Agent", "Agent", "ScheduleWakeup", "Bash", "Write", "Bash", "Edit", "ScheduleWakeup"],
+        "skill_event_indexes": [25],
+        "agent_event_indexes": [43, 52, 98, 123],
+        "completion_event_indexes": [199, 236, 252, 258],
+        "post_collection_cross_domain_check_event_indexes": [280],
+        "write_event_indexes": [309, 320],
+        "test_event_indexes": [313],
+        "in_session_test_preceded_final_edit": true,
+        "post_run_verification": {
+          "verification_recorded_at_utc": "2026-07-23T02:01:06Z",
+          "command": "npm test",
+          "exit_code": 0,
+          "final_audit_sha256": "1a23459cb28d91683320d10d17d77617861ece407fcd2b6b3e472d5e19484969"
+        },
+        "terminal_result_event_index": 331,
+        "agent_calls_back_to_back_at_top_level": true,
+        "main_domain_content_tools_while_agents_active": [],
+        "active_scope_overlap_observed": false,
+        "all_results_collected_before_cross_domain_check": true,
+        "only_change": "?? AUDIT.md",
+        "test_passed": true,
+        "terminal_is_error": false
+      }
+    }
+  }
+}

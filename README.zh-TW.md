@@ -101,14 +101,16 @@ flowchart TD
 | Execution | `mech-executor`、`executor` 或 `security-executor` 接收一份穩定且 ownership 獨佔的 contract |
 | Verification | `verifier` 透過 read-and-run tools 嘗試推翻已完成的非平凡工作；最終判斷仍由 main session 負責 |
 
+具備完整 one-shot brief、獨佔 ownership 與逐項驗收的穩定多檔機械性重複工作，預設在主 session 編輯前交給唯一一個 `mech-executor`；只有在編輯前點名具體 blocker 才能推翻此預設，逐項 triage、例外、整合與驗收仍由主 session 擁有。
+
 長時間 process 仍由 main session 擁有。所有可用 Bash 的 leaf role（`mech-executor`、`executor`、`verifier`、`security-executor`）只以前景方式執行有界 command，不會用 `nohup`、`setsid`、尾端 `&` 或 subagent-side background execution 來 detach；若工作無法在 10 分鐘內完成，就把精確 command、絕對 worktree／working directory、必要 environment 與 input paths 交回 orchestrator。Orchestrator 必須在同一個 context 執行，不能默認改到 parent checkout。任何可能執行長 command 的 agent，本身必須用 `run_in_background: true` spawn，才能保留 harness tracking 與 completion notification。
 
 ## 安裝
 
-建議的路徑是先把釘選的 v1.3.0 release clone 到本機，再從該 checkout 啟動 Claude Code，讓它讀取本地 runbook：
+建議的路徑是先把釘選的 v1.3.1 release clone 到本機，再從該 checkout 啟動 Claude Code，讓它讀取本地 runbook：
 
 ```sh
-git clone --branch v1.3.0 --depth 1 https://github.com/Nanako0129/pilotfish.git
+git clone --branch v1.3.1 --depth 1 https://github.com/Nanako0129/pilotfish.git
 cd pilotfish
 claude
 ```
@@ -139,7 +141,7 @@ Show me the full plan of changes and get my approval before writing anything.
 pilotfish 的安裝方式，是讓 Claude 從本 repo 讀取 runbook 與範本檔、合併進你的全域 `~/.claude/` 設定——其中包含一段會載入**未來每一個 session** 的政策區塊。請把它當成任何 `curl | sh` 看待：信任來自這個 repo 與你的 GitHub 連線，而不是那段貼上的文字。建議使用本地 checkout，因為你可以先檢查釘選的 release，再讓 Claude 讀取 runbook。執行前：
 
 - **實際會被裝進去的檔案要親自讀過**，不只是 runbook：就是 [templates/agents/](./templates/agents/) 的八個檔案加上 [templates/claude-md.orchestration.md](./templates/claude-md.orchestration.md)。除此之外不會寫入任何東西。
-- **釘選到 release tag 或 commit**，確保你審過的就是實際裝的——從你讀它、到 Claude 讀它之間，`main` 是可能變動的。上面的建議指令已釘選 `v1.3.0` release tag；要最嚴格保證時，請先 fetch 並 checkout 你審閱過的完整 commit SHA，再在啟動 Claude 前驗證 checkout。
+- **釘選到 release tag 或 commit**，確保你審過的就是實際裝的——從你讀它、到 Claude 讀它之間，`main` 是可能變動的。上面的建議指令已釘選 `v1.3.1` release tag；要最嚴格保證時，請先 fetch 並 checkout 你審閱過的完整 commit SHA，再在啟動 Claude 前驗證 checkout。
 - **保留 approval gate：** 經你同意前 Claude 不會動手，但計畫仍只是 runbook 的摘要。請自行審閱本地 runbook 與範本；若 raw URL 被攔截，也不要削弱或繞過 WebFetch 的 prompt-injection 防護。
 
 ## 安裝內容
@@ -206,7 +208,7 @@ Read the local file install/AGENT-INSTALL.md in the current checkout and follow 
 | 會失去 1M context window 嗎？ | 不會——Fable 5 預設即 1M，`best` 解析到 Fable 5 時就是 1M。若想在 `best` 降級到 Opus 時也*保證* 1M，把 `model` 改設 `"opus[1m]"`（`[1m]` 後綴的文件支援範圍是 `sonnet`/`opus`/`opusplan`/完整 model ID，不含 `best`）。 |
 | Orchestrator 自己完全不動手嗎？ | 會動手——馬上要用的閱讀、少量 repo 檔案掃描、決策、根因探索、trace-driven debugging，以及你明確要*它*判斷的事。其他工作只有在成本、context、時間、隔離或驗證的整體效益高於重建與整合成本時才委派。 |
 | 我的專案有自己的 CLAUDE.md，會衝突嗎？ | 檔案完全不會被動到：pilotfish 只寫 `~/.claude/` 底下。執行時 Claude Code 把專案層與使用者層記憶「疊加」載入——兩者同時生效、互不覆寫。若某個 repo 需要不同行為，在該專案的 CLAUDE.md 寫一條在地規則（例如「這個 repo 內直接動手、不委派」）——實務上較具體的指示會勝出。 |
-| 我也裝了 delegation-planning skill | 請把它視為互補的規劃層。[Baton](https://github.com/cablate/baton) 這類 skill 可以塑造 discovery 問題、worker 數量、ownership、順序與 stop condition；pilotfish 提供具名 Claude 角色、模型分流、leaf-agent 邊界、approval gate 與 verifier contract。[公開雙 turn 相容性 Gate](./benchmarks/baton-compatibility/README.zh-TW.md) 中，Baton 派出兩個 background scouts，main session 彙整 Plan，`plan-verifier` 回覆 `READY`；明確批准後，`mech-executor` 寫入限定範圍的報告、`npm test` 通過，fresh `verifier` 回覆 `CONFIRMED`。這只建立 compatibility 與 exact-byte provenance，不代表效率。pilotfish 不會停用使用者 skills。 |
+| 我也裝了 delegation-planning skill | 請把它視為互補的規劃層。[Baton](https://github.com/cablate/baton) 這類 skill 可以塑造 discovery 問題、worker 數量、ownership、順序與 stop condition；pilotfish 提供具名 Claude 角色、模型分流、leaf-agent 邊界、approval gate 與 verifier contract。[雙 turn 相容性 Gate](./benchmarks/baton-compatibility/README.zh-TW.md) 保留其 exact historical policy bytes 的 `READY` → 批准執行 → `CONFIRMED` 紀錄。更新後的[無提示啟用 Gate](./benchmarks/baton-dispatch-effect/README.zh-TW.md) 使用目前 candidate：Opus 呼叫 Baton、背景派出四個 scouts、零 active-scope overlap 地收回所有結果，只變更 `AUDIT.md`，且 `npm test` 通過。這些只是單次 compatibility 與 reachability 觀察，不代表效率或發生率。pilotfish 不會停用使用者 skills。 |
 | 擔心 subagent 品質 | 兩個獨立 fresh-context role 分別守住邊界：唯讀 `plan-verifier` 在批准前挑戰重要 Plan；outcome `verifier` 在實作後嘗試推翻完成結果。官方口徑：fresh-context 驗證者優於自我批判。剩下的交給升級規則（兩次失敗 → 升一層）。驗證本身也不是免費的——它在 Opus 上重讀 context——所以小型工作會略過。 |
 | Spawn agent 不是有額外成本嗎？ | 有——每次 spawn 都是全新 context、要重讀它負責的那部分 codebase，彙整也花 main session 的 token。因此有界的 task-local 掃描預設直接完成；若互相獨立的證據能實質降低 Plan 不確定性，discovery 仍可 fan-out，而 execution 要等 contract 穩定後才委派。公開機械式 control 的 execution-only 區段中，委派的 reported cost field 降低 36.01%，代價是 wall time 增加 7.92%；兩個比較 run 都沒有包含必要的 outcome verifier，因此只能證明便宜 route 可到達，不能宣稱完整 lifecycle savings。研究 fixture 只證明兩個 scout 在該小型任務上的 overhead，不代表 plan-first discovery 一律錯誤。 |
 | 怎麼快速關掉？ | **只關這個 session：** 直接跟 Claude 說「這個 session 不要委派，全部直接動手」——那只是政策文字，它立刻照辦。**只關這個 repo：** 在該 repo 的 CLAUDE.md 加一條在地規則。**整台機器：** 把 `~/.claude/CLAUDE.md` 裡的 `pilotfish:begin/end` 區塊註解掉——agent 檔留著閒置即可。切回來不必重裝。 |
@@ -223,7 +225,9 @@ Read the local file install/AGENT-INSTALL.md in the current checkout and follow 
 | [docs/design.md](./docs/design.md) | English | 為什麼是三層、為什麼政策以角色撰寫、為什麼用 alias 不釘版本、effort 分層、以及刻意不做的事 |
 | [benchmarks/dispatch-brake/README.zh-TW.md](./benchmarks/dispatch-brake/README.zh-TW.md) | 繁體中文 + 數據 | 可重現 negative／positive controls、淘汰 policy、Agent traces、成本與時間證據 |
 | [benchmarks/dispatch-brake/positive-controls/README.zh-TW.md](./benchmarks/dispatch-brake/positive-controls/README.zh-TW.md) | 繁體中文 + 數據 | 機械式委派證據，以及小型唯讀 fan-out 的 task-local overhead 與解讀限制 |
-| [benchmarks/baton-compatibility/README.zh-TW.md](./benchmarks/baton-compatibility/README.zh-TW.md) | 繁體中文 + 數據 | 完整原生 Claude 雙 turn Baton lifecycle、精確 prompts、被拒絕的 harness run、routing 證據與機器可讀結果 |
+| [benchmarks/spontaneous-dispatch/README.zh-TW.md](./benchmarks/spontaneous-dispatch/README.zh-TW.md) | 繁體中文 + 數據 | 無委派提示的 Opus baseline、v1.3.1 mechanical／bug 拓撲 Gate、sanitized traces 與 Fable credit-gate 揭露 |
+| [benchmarks/baton-dispatch-effect/README.zh-TW.md](./benchmarks/baton-dispatch-effect/README.zh-TW.md) | 繁體中文 + 數據 | 無提示啟用矩陣：小型未啟用觀察，以及四領域 Baton 啟用、四個完成 scouts、exclusive ownership、完整 collection 與 output-shape correctness Gate |
+| [benchmarks/baton-compatibility/README.zh-TW.md](./benchmarks/baton-compatibility/README.zh-TW.md) | 繁體中文 + 數據 | Historical exact-byte 原生 Claude 雙 turn Baton lifecycle、精確 prompts、被拒絕的 harness run、routing 證據與機器可讀結果 |
 
 **先行者與致意。** 「聰明的腦、便宜的手」這個分工不是 pilotfish 發明的：Anthropic 自己的工程文（[Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)）就是這個框架，Claude Code 內建 [`opusplan`](https://code.claude.com/docs/en/model-config)——如果你只想要更省的 session，`/model opusplan` 根本不需要裝任何 repo——而 [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) 早就把同樣的節流理念做成帶 ledger 強制 hook 的 plugin。pilotfish 的貢獻在打包方式：刻意只有八個角色而非上百個 agent 的目錄、寫成角色而能撐過模型換代的政策、動手前先出示計畫的安裝流程、以及經過對抗式查核的宣稱。如果你偏好更重、有 hook 強制力的路線，用他們的。
 
