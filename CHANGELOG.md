@@ -2,6 +2,14 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
+## Unreleased
+
+Fix the main-loop/executor tier collapse reported in [#18](https://github.com/Nanako0129/pilotfish/issues/18). When `best` resolves to Opus (no Fable 5 access or usage-credit billing), the default `executor` was also Opus, so delegated implementation paid subagent coordination overhead with no tier saving. `executor` now defaults to Sonnet. `verifier`, `plan-verifier`, `security-reviewer`, and `security-executor` remain on Opus for their acceptance-boundary and security responsibilities. This is a targeted default-implementation routing fix, not a claim that all same-tier delegation is wasteful or that Sonnet has beaten Opus in a role-specific executor benchmark.
+
+Changing `executor`'s frontmatter changes the generated `--agents` payload used by the Baton exact-byte compatibility gate. The historical `final-gate-snapshot/agents.json` and its `e901e16a…` hash remain unchanged as the exact bytes used by the successful Gate; the current generated candidate is recorded separately at `0b42c137…`. That fixture never dispatched `executor`, so its transcript, costs, and verdicts remain accurate for the roles it exercised. A fresh live Gate exercising the new Sonnet `executor` specifically has not been run.
+
+A new policy contract test, `test_default_implementation_tier_stays_below_opus_main_loop`, locks the eight role bindings and the intended executor/verifier distinction. The Baton provenance test now verifies historical and current candidate hashes independently.
+
 ## v1.3.0 — 2026-07-20
 
 Close the recurrence blind spot in execution dispatch. Per-decision brakes miss same-shape small tasks that arrive one at a time because each instance can individually pass the direct-work test. A field attribution of two long remora sessions routed to GPT-5.6 ([報告](./docs/field-report-tokscale-2026-07.zh-TW.md), proposed in [#15](https://github.com/Nanako0129/pilotfish/issues/15)) measured the aggregate observation: 1,267 direct main-session edits alongside 12 delegations in one 26-hour session, with the frontier tier consuming 92% of all output tokens while milestone worktree fan-out was working correctly. Those exact observations motivate backend-neutral guardrails, not native-Claude numeric thresholds or efficiency claims. The policy now permits batching only when the remaining items are independent and the same shape and one stable one-shot brief fully specifies goal, constraints, done criteria, ownership, and per-item acceptance; delegation remains conditional, while main retains diagnosis, exceptions, integration, and acceptance. An already-diagnosed review finding with a known remedy is Execution work rather than unknown-bug discovery, but it is still delegated only when the stable-brief and net-benefit conditions hold.

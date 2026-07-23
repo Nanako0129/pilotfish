@@ -35,8 +35,9 @@
     "final_gate_candidate_agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
     "release_candidate_version": "1.3.0",
     "release_candidate_orchestration_sha256": "d41a9d41db21e97176e82614dcfd4d80cba670ec28136666cc96906dd5efda35",
-    "release_candidate_agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
+    "release_candidate_agents_json_sha256": "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
     "release_candidate_policy_delta_from_final_gate": "none; exact policy bytes",
+    "release_candidate_agents_json_delta_from_final_gate": "executor role model changed opus to sonnet (issue #18, tier-collapse fix); every other role frontmatter is unchanged",
     "baton_skill_sha256": "48b1e573a9e3de85fdb68c433bd47d69add9ec8491613ca304cfcef2326e3d67"
   },
   "final_gate_status": "complete",
@@ -481,6 +482,17 @@
     "long_process_triggered": false,
     "long_process_evidence": "four dedicated direct harness trials from the contributor plus policy contract tests across every Bash-capable role",
     "security_reviewer_invoked": false,
-    "security_reviewer_evidence": "frontmatter tool allowlist and policy contract tests; no security task was added to this orchestration fixture"
+    "security_reviewer_evidence": "frontmatter tool allowlist and policy contract tests; no security task was added to this orchestration fixture",
+    "executor_role_invoked": false,
+    "executor_role_evidence": "final_gate.agent_calls lists only scout, scout, plan-verifier, mech-executor, and verifier; the executor role was never dispatched in this fixture run"
+  },
+  "post_gate_role_frontmatter_change": {
+    "granularity": "summary",
+    "source": "https://github.com/Nanako0129/pilotfish/issues/18",
+    "change": "executor role model changed from opus to sonnet to stop main-loop/executor tier collapse when the coordinator falls back to Opus",
+    "agents_json_sha256_before": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
+    "agents_json_sha256_after": "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
+    "final_gate_turns_affected": false,
+    "note": "The recorded final_gate transcript, costs, verdicts, and final-gate-snapshot/agents.json preserve the exact historical runtime input. The current release candidate is generated separately from templates and has a different hash because executor moved to Sonnet after the Gate. That run never dispatched executor (see unexercised_controls.executor_role_evidence), so its observations remain accurate for the roles it exercised. A fresh live two-turn Gate that specifically exercises the new Sonnet executor has not been separately run and is a disclosed limit, not claimed evidence."
   }
 }

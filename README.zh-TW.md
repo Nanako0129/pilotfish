@@ -67,7 +67,7 @@ flowchart TD
     O -->|挑戰 Plan| PV["plan-verifier<br>opus · 唯讀"]
     PV -->|READY / REVISE| O
     O -->|機械性規格| M["mech-executor<br>sonnet · effort low"]
-    O -->|需判斷的實作| E["executor<br>opus · effort medium"]
+    O -->|需判斷的實作| E["executor<br>sonnet · effort medium"]
     O -->|資安證據| SR["security-reviewer<br>opus · 唯讀"]
     SR --> O
     O -->|已批准資安實作| SEC["security-executor<br>opus · effort high"]
@@ -86,9 +86,11 @@ flowchart TD
 | `plan-verifier` | opus | medium | 批准前以 tool 強制唯讀挑戰 Plan；回覆 READY/REVISE |
 | `security-reviewer` | opus | high | 批准前以 tool 強制唯讀收集資安證據與 threat review |
 | `mech-executor` | sonnet | low | 規格完整的機械性工作：pattern 重構、照慣例寫測試、文件、批次編輯 |
-| `executor` | opus | medium | 需要判斷的實作：功能開發、bug 修復、涉及設計的重構 |
+| `executor` | sonnet | medium | 需要判斷的實作：功能開發、bug 修復、涉及設計的重構 |
 | `verifier` | opus | medium | 實作後 fresh-context outcome verification；回覆 CONFIRMED/REFUTED，永不動手修 |
 | `security-executor` | opus | high | 已批准的資安實作——刻意不走 Fable 5，其安全分類器可能誤拒良性的防禦性資安工作 |
+
+`executor` 從 Opus 改成 Sonnet（[#18](https://github.com/Nanako0129/pilotfish/issues/18)），這樣即使 `best` 降級到 Opus（沒有 Fable 5、或使用 usage credits 計費），預設的委派實作路徑仍保有較低成本的 tier。這是針對預設實作路徑的修正，不是要求所有角色都必須跟 main session 不同 tier。四個 Opus 角色維持不變：`verifier` 與 `plan-verifier` 在接受結果前提供 fresh-context challenge；`security-reviewer` 與 `security-executor` 則以正確性優先。同 tier 委派沒有 tier 節省，但仍可能提供獨立 context、能力邊界或平行處理。依 main-session model 自動切換 tier map 的安裝程式方案有被考慮過，但被否決——見 [Deliberately left out](./docs/design.md#deliberately-left-out)。
 
 政策層現在依階段套用不同的 dispatch brake，不再要求所有委派開始前就先決定最終實作。小而穩定的工作仍直接完成；大型或模糊工作可以先做有界的唯讀 discovery，再回到 main session 彙整成一份 Plan。重要 Plan 可接受 fresh readiness review，且 writing agent 開始前要先經過使用者批准。進入 execution 後，scope、獨佔 ownership、done criteria、整合與驗證仍必須穩定。所有已命名角色的 model 只來自 agent 定義，可獨立推進的工作放到背景，而前景只保留給立即相依且淨效益仍為正的工作。
 
@@ -180,14 +182,15 @@ Read the local file install/AGENT-INSTALL.md in the current checkout and follow 
 
 ## Fallback 機制
 
-前沿模型消失時整套架構照常運作，因為政策文字從不指名模型：
+這一節談的是前沿模型消失時架構還「能不能動」，不是「省不省錢」。`best` 降級到 Opus 一直都能讓 session 繼續跑，但在 [#18](https://github.com/Nanako0129/pilotfish/issues/18) 之前，預設的 `executor` 同樣釘在 Opus；把實作委派給它就會變成 Opus 跟 Opus 對話，多付 subagent 協調成本卻沒有 tier 節省。政策文字從不指名模型，因此 routing 仍可在角色 frontmatter 修正：
 
 | 失效情境 | 誰接住 | 你要做什麼 |
 |---|---|---|
-| Fable 5 離開你的方案（如 2026 年 7 月的訂閱變動） | `best` 重新解析為最新 Opus——這是文件規則，也是 2026 年 6 月停用期的實際行為（通知橫幅、新 session 自動改跑 Opus） | 大多不用做——邊界當下的確切 UI 官方未發布，最壞情況是手動 `/model` 一次或啟用 usage credits。切勿釘死 `fable`／完整 ID：6 月時釘死 ID 的人收到硬性錯誤 |
+| Fable 5 離開你的方案（如 2026 年 7 月的訂閱變動，或任何用 usage credits 計費的方案） | `best` 重新解析為最新 Opus——這是文件規則，也是 2026 年 6 月停用期的實際行為（通知橫幅、新 session 自動改跑 Opus）。`executor` 不管怎樣都留在 Sonnet，所以 coordinator 降到 Opus 不會再把執行層一起拖上去 | 大多不用做——邊界當下的確切 UI 官方未發布，最壞情況是手動 `/model` 一次或啟用 usage credits。切勿釘死 `fable`／完整 ID：6 月時釘死 ID 的人收到硬性錯誤 |
 | 模型過載／API 錯誤 | `fallbackModel: ["opus", "sonnet"]` 自動切換並顯示通知 | 不用做 |
 | 某層模型被棄用（Opus 4.8 → 4.9、Sonnet 5 → 下一代） | 角色 agent 用 alias（`opus`、`sonnet`、`haiku`），自動跟隨官方推薦版本 | 不用做 |
 | 前沿模型在任務中途拒絕資安工作 | 資安工作一開始就路由給 `security-executor`（Opus），根本不會碰到分類器 | 不用做 |
+| 預設委派實作路徑跟 Opus main loop 疊到同一 tier | 沒有通用的自動偵測機制——見 [Deliberately left out](./docs/design.md#deliberately-left-out)——但 `executor` 現在固定走 Sonnet | 如果環境覆寫了 tier，就改 `executor` 的 `model:` 那一行 |
 
 `CLAUDE.md` 裡的委派政策只提角色（`executor`、`scout`……）。模型綁定只存在一個地方——每個 agent 檔的一行 frontmatter——要改指向，改一行、處處生效。
 
@@ -195,7 +198,8 @@ Read the local file install/AGENT-INSTALL.md in the current checkout and follow 
 
 | 問題 | 回答 |
 |---|---|
-| 想省更多額度 | 主 session 切 `/model opusplan`——plan mode 用 Opus 思考、執行切 Sonnet。底下的角色 agent 照常運作。 |
+| 想省更多額度 | 主 session 切 `/model opusplan`——planning turn 用 Opus、main session 自己的 execution turn 用 Sonnet。這是 main-session 的模型切換，跟 subagent routing 不同；每個角色仍使用自己 frontmatter 綁定的 model。把 `executor` 改成 Sonnet（[#18](https://github.com/Nanako0129/pilotfish/issues/18)）可避免 Opus main-loop fallback 又把預設實作角色升回 Opus；四個明確綁定 Opus 的 review 與 security 角色不變。 |
+| 為什麼 `executor` 用 Sonnet，`verifier` 卻留在 Opus？ | `executor` 是預設的大量實作路徑，所以 Sonnet 能在 `best` 解析成 Opus 時保留較低成本的 tier。`verifier`、`plan-verifier`、`security-reviewer`、`security-executor` 因接受邊界或資安責任而維持 Opus。同 tier 的角色呼叫不代表一定沒用：fresh context、tool capability 邊界與獨立 review 仍可能值得。[#18](https://github.com/Nanako0129/pilotfish/issues/18) 只主張預設實作路徑的 routing 差異與 tier 節省；目前沒有針對 executor 做過 Opus 與 Sonnet 的角色專屬實測。 |
 | 能強制所有 subagent 用同一個模型嗎？ | `CLAUDE_CODE_SUBAGENT_MODEL` 會覆蓋*所有* agent 的 frontmatter——所以 pilotfish 不設它。除非要臨時全域覆寫，否則別設。 |
 | 我有設 `availableModels` 白名單 | 那名單必須包含 agents 用到的所有 alias（`opus`、`sonnet`、`haiku`），否則那些 agent 會被靜默跳過、改為繼承主 session 模型。安裝程式會檢查這件事。 |
 | 為什麼便宜角色都設 `effort: low`？ | Effort 是第二大額度槓桿。Fable 5 世代的模型在 low effort 常已達前代 `xhigh` 的水準；偵察與機械性工作不需要深度思考。 |
