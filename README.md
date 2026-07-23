@@ -23,6 +23,7 @@
 - [The fallback story](#the-fallback-story)
 - [Tuning & FAQ](#tuning--faq)
 - [Research & design](#research--design)
+- [Contributing](#contributing)
 - [Uninstall](#uninstall)
 - [License](#license)
 
@@ -222,6 +223,11 @@ This repo is the packaged result of a sourced research pass (official docs, Anth
 | [benchmarks/baton-compatibility/README.md](./benchmarks/baton-compatibility/README.md) | English + data | Complete native-Claude two-turn Baton lifecycle, exact prompts, rejected harness run, routing evidence, and machine-readable results |
 
 **Prior art & credits.** The "smart brain, cheap hands" split is not pilotfish's invention: Anthropic's own engineering writeup ([Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)) frames it, Claude Code ships [`opusplan`](https://code.claude.com/docs/en/model-config) built in — if all you want is cheaper sessions, `/model opusplan` needs no repo at all — and [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) packages the same frugality thesis as a plugin with ledger-enforcing guard hooks. pilotfish's contribution is the packaging: eight deliberately-few roles instead of a 100-agent catalog, a role-based policy that survives model churn, an installer that shows its plan before touching anything, and claims that were adversarially fact-checked. If a heavier, hook-enforced flavor fits you better, use theirs.
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the test workflow, source-of-truth
+map, exact-byte evidence rules, and pull request checklist.
 
 ## Uninstall
 

@@ -23,6 +23,7 @@
 - [Fallback 機制](#fallback-機制)
 - [調校與常見問題](#調校與常見問題)
 - [研究與設計](#研究與設計)
+- [參與貢獻](#參與貢獻)
 - [移除](#移除)
 - [授權](#授權)
 
@@ -222,6 +223,11 @@ Read the local file install/AGENT-INSTALL.md in the current checkout and follow 
 | [benchmarks/baton-compatibility/README.zh-TW.md](./benchmarks/baton-compatibility/README.zh-TW.md) | 繁體中文 + 數據 | 完整原生 Claude 雙 turn Baton lifecycle、精確 prompts、被拒絕的 harness run、routing 證據與機器可讀結果 |
 
 **先行者與致意。** 「聰明的腦、便宜的手」這個分工不是 pilotfish 發明的：Anthropic 自己的工程文（[Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)）就是這個框架，Claude Code 內建 [`opusplan`](https://code.claude.com/docs/en/model-config)——如果你只想要更省的 session，`/model opusplan` 根本不需要裝任何 repo——而 [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) 早就把同樣的節流理念做成帶 ledger 強制 hook 的 plugin。pilotfish 的貢獻在打包方式：刻意只有八個角色而非上百個 agent 的目錄、寫成角色而能撐過模型換代的政策、動手前先出示計畫的安裝流程、以及經過對抗式查核的宣稱。如果你偏好更重、有 hook 強制力的路線，用他們的。
+
+## 參與貢獻
+
+測試流程、source-of-truth 對照、exact-byte 證據規則與 PR checklist
+請見 [CONTRIBUTING.md](./CONTRIBUTING.md)。
 
 ## 移除
 
