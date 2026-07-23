@@ -15,6 +15,10 @@ Plan before their first readiness review. Outcome verification follows the
 same brake: two consecutive `REFUTED` verdicts for one materially revised claim
 stop automatic fix-and-reverify cycling without being treated as `CONFIRMED`.
 
+Policy tests pin the exact v1.3.2 policy and generated agent payload hashes, but
+the tracked accepted live Baton Gate remains v1.3.1. No accepted live
+Gate/provenance has been recorded for the v1.3.2 bytes.
+
 ## v1.3.1 — 2026-07-23
 
 Fix the main-loop/executor tier collapse reported in [#18](https://github.com/Nanako0129/pilotfish/issues/18). When `best` resolves to Opus (no Fable 5 access or usage-credit billing), the default `executor` was also Opus, so delegated implementation paid subagent coordination overhead with no tier saving. `executor` now defaults to Sonnet. `verifier`, `plan-verifier`, `security-reviewer`, and `security-executor` remain on Opus for their acceptance-boundary and security responsibilities. This is a targeted default-implementation routing fix, not a claim that all same-tier delegation is wasteful or that Sonnet has beaten Opus in a role-specific executor benchmark.
