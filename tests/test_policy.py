@@ -534,11 +534,11 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             hashlib.sha256(current_policy).hexdigest(),
-            "e63c558e9fce1cdf0ae9a4d6ca0b15fc0a79752cfc45cd520b6f7cd9201dc3d7",
+            "b42bd2f0d6c4be23472020cc107d6ceb4ab0eb34553ccfcac5fe6e65c9164b4b",
         )
         self.assertEqual(
             hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
-            "4cb266c5ad8db644ee8d7c7c2bf5f175f6a0d2bbf200f864ce60b043833e4087",
+            "183c1b4ecfa7e40fcff5dca80abbcf339bbfd9530722dab9feac5e1ecceae1d1",
         )
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
@@ -902,6 +902,8 @@ class PolicyContractTests(unittest.TestCase):
         for phrase in (
             "program envelope",
             "next executable slice",
+            "scope, non-goals",
+            "acceptance that proves the slice outcome",
             "Blocker:",
             "Evidence:",
             "Minimum revision:",
@@ -959,6 +961,8 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("excludes Bash, Write, Edit", plan_verifier)
         self.assertIn("READY", plan_verifier)
         self.assertIn("REVISE", plan_verifier)
+        self.assertIn("explicit outcome, scope and non-goals", plan_verifier)
+        self.assertIn("acceptance that proves the slice outcome", plan_verifier)
         self.assertNotIn("CONFIRMED", plan_verifier)
         self.assertIn("CONFIRMED", verifier)
         self.assertIn("REFUTED", verifier)
