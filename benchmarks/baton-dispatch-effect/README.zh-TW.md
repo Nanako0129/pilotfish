@@ -27,10 +27,24 @@
 | Release replay role payload | 八個 pilotfish roles，SHA `0b42c137…9723c`；#18 後 `executor` 由 Opus 改為 Sonnet |
 | Policy | v1.3.1 release policy，SHA `17d272b6…b39bf` |
 | Prompt | [`prompts/large-audit.txt`](./prompts/large-audit.txt)，SHA `c0cebdce…ffba` |
-| Fixture baseline | Commit `34ebabe2…245f`、tree `3773149b…2574`；45 個 domain files／3,032 行 |
+| Fixture baseline | 可取得的 ref [`benchmark/v1.3.1-baton-large-fixture`](https://github.com/Nanako0129/pilotfish/tree/34ebabe2a26dd53de1a019607992f1ac10af245f)；commit `34ebabe2…245f`、tree `3773149b…2574`；45 個 domain files／3,032 行 |
 | Budget | 每次上限 $5 |
 
 Disposable fixture 把四組 repository surfaces 映射成 `domain-a` 至 `domain-d`，將目前 policy 複製成 `CLAUDE.md`，以 project skill 安裝 pinned Baton，並加入只驗證輸出形狀的 [`verify-audit.mjs`](./large-fixture/verify-audit.mjs)。
+
+可從專用 evidence ref 重建精確的 pre-run baseline，內容包含所有 domain
+files 與 pinned project skill：
+
+```bash
+git fetch origin refs/heads/benchmark/v1.3.1-baton-large-fixture
+git worktree add --detach ../pilotfish-v131-baton-fixture FETCH_HEAD
+git -C ../pilotfish-v131-baton-fixture rev-parse HEAD HEAD^{tree}
+```
+
+最後一行必須輸出 commit
+`34ebabe2a26dd53de1a019607992f1ac10af245f` 與 tree
+`3773149bae5c514abe6d141d6fc5216e86d02574`。Baseline 刻意不包含
+`AUDIT.md`；該檔案是 Gate 產出，並由 `npm test` 驗證。
 
 ## 嘗試矩陣
 

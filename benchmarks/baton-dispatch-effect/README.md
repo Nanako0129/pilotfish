@@ -27,10 +27,24 @@ Both prompt files pass a case-insensitive scan for Baton, agent, subagent, worke
 | Release-replay role payload | Eight pilotfish roles, SHA `0b42c137…9723c`; `executor` changed from Opus to Sonnet after #18 |
 | Policy | v1.3.1 release policy, SHA `17d272b6…b39bf` |
 | Prompt | [`prompts/large-audit.txt`](./prompts/large-audit.txt), SHA `c0cebdce…ffba` |
-| Fixture baseline | Commit `34ebabe2…245f`, tree `3773149b…2574`; 45 domain files / 3,032 lines |
+| Fixture baseline | Reachable ref [`benchmark/v1.3.1-baton-large-fixture`](https://github.com/Nanako0129/pilotfish/tree/34ebabe2a26dd53de1a019607992f1ac10af245f); commit `34ebabe2…245f`, tree `3773149b…2574`; 45 domain files / 3,032 lines |
 | Budget | $5 maximum per attempt |
 
 The disposable fixture mapped four repository surfaces into `domain-a` through `domain-d`, copied the current policy to `CLAUDE.md`, installed the pinned Baton dependency as a project skill, and added the shape-only [`verify-audit.mjs`](./large-fixture/verify-audit.mjs) harness.
+
+Reconstruct the exact pre-run baseline, including every domain file and the
+pinned project skill, from its dedicated evidence ref:
+
+```bash
+git fetch origin refs/heads/benchmark/v1.3.1-baton-large-fixture
+git worktree add --detach ../pilotfish-v131-baton-fixture FETCH_HEAD
+git -C ../pilotfish-v131-baton-fixture rev-parse HEAD HEAD^{tree}
+```
+
+The last command must print commit
+`34ebabe2a26dd53de1a019607992f1ac10af245f` and tree
+`3773149bae5c514abe6d141d6fc5216e86d02574`. The baseline intentionally has no
+`AUDIT.md`; that file is the Gate output consumed by `npm test`.
 
 ## Attempt matrix
 

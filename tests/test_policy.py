@@ -76,6 +76,28 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(large["fixture"]["domain_file_count"], 45)
         self.assertEqual(large["fixture"]["domain_total_lines"], 3032)
+        baseline_ref = "refs/heads/benchmark/v1.3.1-baton-large-fixture"
+        baseline_commit = "34ebabe2a26dd53de1a019607992f1ac10af245f"
+        baseline_tree = "3773149bae5c514abe6d141d6fc5216e86d02574"
+        self.assertEqual(large["fixture"]["baseline_ref"], baseline_ref)
+        self.assertEqual(large["fixture"]["baseline_commit"], baseline_commit)
+        self.assertEqual(large["fixture"]["baseline_tree"], baseline_tree)
+        self.assertEqual(
+            large["fixture"]["baseline_url"],
+            f"https://github.com/Nanako0129/pilotfish/tree/{baseline_commit}",
+        )
+        replay = results["release_payload_replay"]
+        self.assertEqual(replay["fixture_baseline_ref"], baseline_ref)
+        self.assertEqual(replay["fixture_baseline_commit"], baseline_commit)
+        self.assertEqual(replay["fixture_baseline_tree"], baseline_tree)
+        self.assertEqual(
+            replay["fixture_baseline_url"], large["fixture"]["baseline_url"]
+        )
+        for readme_name in ("README.md", "README.zh-TW.md"):
+            readme = (benchmark / readme_name).read_text(encoding="utf-8")
+            self.assertIn(baseline_ref.removeprefix("refs/heads/"), readme)
+            self.assertIn(f"tree/{baseline_commit}", readme)
+            self.assertIn("git fetch origin", readme)
         self.assertEqual(
             set(large["fixture"]["construction"]),
             {"domain-a", "domain-b", "domain-c", "domain-d"},
