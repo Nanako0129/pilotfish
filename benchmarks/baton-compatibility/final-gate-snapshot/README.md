@@ -1,6 +1,6 @@
 # Runtime-tested Baton Gate snapshot
 
-> Exact pilotfish v1.3.1 policy and eight-role `--agents` payload used by the successful Opus compatibility Gate. This directory is immutable historical runtime-tested evidence; the current policy and role templates have since changed and are tracked separately by the sibling Baton activation Gate and current candidate hashes. Prompt provenance records both file bytes and shell-normalized runtime-input bytes. Install pilotfish from [`templates/`](../../../templates/), not from this directory.
+> Exact pilotfish v1.3.1 policy and eight-role `--agents` payload used by the successful Opus compatibility Gate. This directory is immutable historical runtime-tested evidence; the current policy and role templates have since changed and are tracked separately by the sibling Baton activation Gate and current release hashes. Prompt provenance records both file bytes and shell-normalized runtime-input bytes. Install pilotfish from [`templates/`](../../../templates/), not from this directory.
 
 | File | Runtime use | Hash convention |
 |---|---|---|
@@ -13,11 +13,11 @@ The successful lifecycle returned `READY` for Plan readiness and `CONFIRMED` for
 
 Historical records remain additive in [`../results.json`](../results.json): v1.3.0 under `previous_final_gate`, the earlier `40f3815` candidate, and summary-only v1.2.1 / v1.2.0 release Gates.
 
-> **Post-Gate frontmatter update ([#18](https://github.com/Nanako0129/pilotfish/issues/18)):** the `executor` role's model changed from Opus to Sonnet after this Gate ran. This historical `agents.json` therefore remains at the exact `e901e16a…` bytes injected during the Gate; the current release candidate is generated separately from `templates/agents` and hashes to `0b42c137…`. The recorded run never dispatched `executor` (only `scout`, `plan-verifier`, `mech-executor`, and `verifier` ran), so its observations remain accurate for the roles exercised. A fresh live Gate that specifically exercises the new Sonnet `executor` has not been separately run.
+> **Post-Gate frontmatter update ([#18](https://github.com/Nanako0129/pilotfish/issues/18)):** the `executor` role's model changed from Opus to Sonnet after this Gate ran. This historical `agents.json` therefore remains at the exact `e901e16a…` bytes injected during the Gate; the current release payload is generated separately from `templates/agents` and hashes to `0b42c137…`. The recorded run never dispatched `executor`, so its observations remain accurate for the roles exercised. Later live replays accepted the changed payload but dispatched the distinct `mech-executor` or `scout` roles; the changed `executor` itself was not live-exercised.
 
 ## 中文
 
-> 這是成功的 Opus 相容性 Gate 所使用 pilotfish v1.3.1 policy 與八角色 `--agents` payload 精確副本。本目錄是不可改寫的 historical runtime-tested evidence；目前 policy 與角色 templates 後來已有變更，另由相鄰 Baton activation Gate 與 current candidate hashes 記錄。Prompt provenance 分別記錄 file bytes 與 shell 正規化後的 runtime-input bytes。安裝時請使用 [`templates/`](../../../templates/)，不要從本目錄安裝。
+> 這是成功的 Opus 相容性 Gate 所使用 pilotfish v1.3.1 policy 與八角色 `--agents` payload 精確副本。本目錄是不可改寫的 historical runtime-tested evidence；目前 policy 與角色 templates 後來已有變更，另由相鄰 Baton activation Gate 與 current release hashes 記錄。Prompt provenance 分別記錄 file bytes 與 shell 正規化後的 runtime-input bytes。安裝時請使用 [`templates/`](../../../templates/)，不要從本目錄安裝。
 
 | 檔案 | Runtime 用途 | Hash 規則 |
 |---|---|---|
@@ -30,4 +30,4 @@ Historical records remain additive in [`../results.json`](../results.json): v1.3
 
 歷史記錄持續 additive 保留於 [`../results.json`](../results.json)：v1.3.0 的 `previous_final_gate`、較早的 `40f3815` candidate，以及 summary-only v1.2.1／v1.2.0 release Gates。
 
-> **Gate 之後的 frontmatter 更新（[#18](https://github.com/Nanako0129/pilotfish/issues/18)）：** 這次 Gate 跑完之後，`executor` 角色的 model 從 Opus 改成 Sonnet。因此這份歷史 `agents.json` 保留 Gate 當時實際注入的 `e901e16a…` bytes；目前 release candidate 另由 `templates/agents` 產生，hash 是 `0b42c137…`。這個 run 從未派送過 `executor`（只跑了 `plan-verifier`、`mech-executor`、`verifier`），所以它對實際執行角色的觀察仍然準確。目前還沒有另外針對新的 Sonnet `executor` 重跑 live Gate。
+> **Gate 之後的 frontmatter 更新（[#18](https://github.com/Nanako0129/pilotfish/issues/18)）：** 這次 Gate 跑完之後，`executor` 角色的 model 從 Opus 改成 Sonnet。因此這份歷史 `agents.json` 保留 Gate 當時實際注入的 `e901e16a…` bytes；目前 release payload 另由 `templates/agents` 產生，hash 是 `0b42c137…`。這個 run 從未派送過 `executor`，所以它對實際執行角色的觀察仍然準確。後續 live replays 接受 changed payload，但派出的是不同的 `mech-executor` 或 `scout` roles；被修改的 `executor` 本身沒有 live-exercise。

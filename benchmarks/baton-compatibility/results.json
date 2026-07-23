@@ -646,7 +646,7 @@
     "security_reviewer_invoked": false,
     "security_reviewer_evidence": "frontmatter tool allowlist and policy contract tests; no security task was added to this orchestration fixture",
     "executor_role_invoked": false,
-    "executor_role_evidence": "final_gate.agent_calls lists only scout, scout, plan-verifier, mech-executor, and verifier; the executor role was never dispatched in this fixture run"
+    "executor_role_evidence": "final_gate.agent_calls lists only plan-verifier, mech-executor, and verifier; the executor and scout roles were not dispatched in this fixture run"
   },
   "post_gate_role_frontmatter_change": {
     "granularity": "summary",
@@ -655,6 +655,6 @@
     "agents_json_sha256_before": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
     "agents_json_sha256_after": "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
     "final_gate_turns_affected": false,
-    "note": "The recorded final_gate transcript, costs, verdicts, and final-gate-snapshot/agents.json preserve the exact historical runtime input. The current release candidate is generated separately from templates and has a different hash because executor moved to Sonnet after the Gate. That run never dispatched executor (see unexercised_controls.executor_role_evidence), so its observations remain accurate for the roles it exercised. A fresh live two-turn Gate that specifically exercises the new Sonnet executor has not been separately run and is a disclosed limit, not claimed evidence."
+    "note": "The recorded final_gate transcript, costs, verdicts, and final-gate-snapshot/agents.json preserve the exact historical runtime input. The current release payload is generated separately from templates and has a different hash because executor moved to Sonnet after the Gate. That run never dispatched executor (see unexercised_controls.executor_role_evidence), so its observations remain accurate for the roles it exercised. Later live replays accepted the changed payload but dispatched the distinct mech-executor or scout roles; the changed executor itself was not live-exercised and remains a disclosed limit."
   }
 }

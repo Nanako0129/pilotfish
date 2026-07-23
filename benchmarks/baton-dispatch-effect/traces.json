@@ -63,5 +63,60 @@
         "terminal_is_error": false
       }
     }
+  },
+  "release_payload_replay": {
+    "large-v131-release-payload-replay": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Skill",
+        "Agent",
+        "Agent",
+        "Agent",
+        "Agent",
+        "Bash",
+        "Write",
+        "Bash"
+      ],
+      "skill_event_indexes": [
+        23
+      ],
+      "agent_event_indexes": [
+        46,
+        62,
+        105,
+        127
+      ],
+      "completion_event_indexes": [
+        278,
+        320,
+        348,
+        360
+      ],
+      "post_collection_cross_domain_check_event_indexes": [
+        394
+      ],
+      "write_event_indexes": [
+        402
+      ],
+      "test_event_indexes": [
+        405
+      ],
+      "terminal_result_event_index": 417,
+      "agent_calls_back_to_back_at_top_level": true,
+      "main_domain_content_tools_while_agents_active": [],
+      "active_scope_overlap_observed": false,
+      "all_results_collected_before_cross_domain_check": true,
+      "in_session_test_followed_final_write": true,
+      "post_run_verification": {
+        "verification_recorded_at_utc": "2026-07-23T03:36:58Z",
+        "command": "npm test",
+        "exit_code": 0,
+        "final_audit_sha256": "92a111ddc624a41a8e3ab877aefdbc593db80a032dd637156fdf44a1854a617a"
+      },
+      "only_change": "?? AUDIT.md",
+      "test_passed": true,
+      "terminal_is_error": false
+    }
   }
 }

@@ -12,7 +12,7 @@
 
 ## 目的
 
-這項 benchmark 是在原生 first-party Claude 路由下，驗證 [Baton](https://github.com/cablate/baton) 與一份尚未發布的 pilotfish v1.3.1 candidate 的相容性與 provenance。`final_gate` 已在 Claude Code 2.1.217、Fast mode 關閉、明確 `--model opus` 的條件下成功完成。Baton 負責 delegation topology；pilotfish 繼續掌管具名角色、角色模型、leaf-agent 邊界、approval、tool capabilities 與 verifier 詞彙。Repo 內 snapshot 保留這項 approval-lifecycle Gate 實測的精確 policy bytes；目前 candidate 後來又加強 activation 與 discovery ownership，其 exact bytes 由另一項[四領域啟用 Gate](../baton-dispatch-effect/README.zh-TW.md) 覆蓋。
+這項 benchmark 是在原生 first-party Claude 路由下，驗證 [Baton](https://github.com/cablate/baton) 與當時尚未發布的 pilotfish v1.3.1 policy 的相容性與 provenance。`final_gate` 已在 Claude Code 2.1.217、Fast mode 關閉、明確 `--model opus` 的條件下成功完成。Baton 負責 delegation topology；pilotfish 繼續掌管具名角色、角色模型、leaf-agent 邊界、approval、tool capabilities 與 verifier 詞彙。Repo 內 snapshot 保留這項 approval-lifecycle Gate 實測的精確 policy bytes；v1.3.1 release policy 後來又加強 activation 與 discovery ownership，其 exact bytes 由另一項[四領域啟用 Gate](../baton-dispatch-effect/README.zh-TW.md) 覆蓋。
 
 > **Gate：** Discovery 可以發生在實作結果仍未知時，但 source write 必須等待 main-session Plan 與明確批准。Plan review 回覆 `READY` / `REVISE`；outcome review 回覆 `CONFIRMED` / `REFUTED`。這項 Gate 是 compatibility／provenance only：不建立效率、延遲、成本或 A/B 比較。
 
@@ -133,7 +133,7 @@ Turn 1 載入 Baton；Baton 判定這個小型 fixture 拆分後沒有正 net be
 |---|---|
 | Policy 與 snapshot SHA-256 | `7ff86564cd4cd8469cf3d24646fd395c57be09dc1fc7e1efa9d0d77c61ecfb21` |
 | Shell-stripped 歷史 `agents.json` SHA-256 | `e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61` |
-| 目前產生的 candidate SHA-256 | `0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c`（[#18](https://github.com/Nanako0129/pilotfish/issues/18) 之後；與這項 historical Gate 分開記錄） |
+| 目前產生的 release payload SHA-256 | `0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c`（[#18](https://github.com/Nanako0129/pilotfish/issues/18) 之後；與這項 historical Gate 分開記錄） |
 | Turn 1 prompt file SHA-256 | `45dbe7b6b24cb5838ebf4219011797b61f172fcc18f0ca5039144017e93fcca7` |
 | Turn 1 runtime-input SHA-256 | `d2ad46b7ecfb503f8f7185d6d68f404d326f1a4a480b9141d1a80318a746bb73` |
 | Turn 2 prompt file SHA-256 | `82d833090ba91982651de9ac4beed8fc96311119c6eb9c6f0304c292821918e7` |
@@ -204,4 +204,4 @@ v1.2.1 release Gate（368.395 秒、$3.710435、17 turns）以 summary-only 的 
 | Verifier wording note | `architecture.md:72-78` 含兩個非角色 row，因此把整段稱為逐角色 tier table 稍微過寬；`CONFIRMED` 後沒有修改 fixture |
 | 本 session 無法使用 Fable | Gate 明確使用 Opus，不宣稱 Fable coverage 或效率 |
 | Raw transcript 未提交 | 內含本機絕對路徑與 session metadata；改為公開 prompts、正規化 calls、content hashes、metrics 與 verdicts |
-| Gate 之後的角色 frontmatter 變動（[#18](https://github.com/Nanako0129/pilotfish/issues/18)） | 這次 Gate 跑完之後，`executor` 的 model 從 Opus 改成 Sonnet。已提交的歷史 `agents.json` 仍與當時實際 runtime input 完全一致；目前產生的 candidate 與其 hash 另行記錄。這次 Gate 的 turns 從未派送過 `executor`，所以上面的 transcript、cost、verdict 對它實際跑過的角色仍然準確；目前還沒有另外針對新的 Sonnet `executor` 跑過 live Gate。詳見 `results.json` 的 `post_gate_role_frontmatter_change` |
+| Gate 之後的角色 frontmatter 變動（[#18](https://github.com/Nanako0129/pilotfish/issues/18)） | 這次 Gate 跑完之後，`executor` 的 model 從 Opus 改成 Sonnet。已提交的歷史 `agents.json` 仍與當時實際 runtime input 完全一致；目前產生的 release payload 與其 hash 另行記錄。這次 Gate 的 turns 從未派送過 `executor`，所以上面的 transcript、cost、verdict 對它實際跑過的角色仍然準確。後續 live replays 接受 changed payload，但派出的是 `mech-executor` 或 `scout`，不是被修改的 `executor`；該 role 仍沒有 dedicated live Gate。詳見 `results.json` 的 `post_gate_role_frontmatter_change` |

@@ -1,8 +1,8 @@
-# 無提示 Baton 啟用與委派矩陣
+# Prompt-neutral Baton 啟用與委派矩陣
 
 這組 behavioral matrix 分開問兩件事：小型任務只讓 Baton 可見時是否會呼叫它，以及目前 pilotfish policy 遇到沒有點名 Baton／Agent 的大型跨 surface user prompt 時，是否能同時觀察到 Baton invocation 與完整、可驗證的委派流程。
 
-> **結果：**小型 availability observation 仍由 main inline 完成；大型 v1.3.1 Gate 則通過。Opus 主動呼叫 Baton，連續背景派出四個 `scout`，收回四份結果後才進行跨域工作，期間沒有碰 active agent-owned scope；最後只新增 `AUDIT.md`，`npm test` 通過。
+> **結果：**小型 availability observation 仍由 main inline 完成；大型 v1.3.1 Gate 則通過。之後以 post-PR-19 exact release payload 重跑，也通過相同的 activation、四-scout dispatch、ownership、collection 與 final-byte correctness 邊界；agents SHA 是 `0b42c137…9723c`。
 
 ## 測試內容
 
@@ -10,9 +10,10 @@
 |---|---|---|---|
 | Small control | 雙 surface research task；沒有 Baton | 較早的 v1.3.1 candidate | 0 `Skill`、0 `Agent`、correctness 通過 |
 | Small treatment | 同一任務；可見 project-scoped Baton 0.1.1 | 同一份較早 candidate | 0 `Skill`、0 `Agent`、correctness 通過 |
-| Large Gate | 四個 substantial domains；可見 project-scoped Baton 0.1.1 | 目前 v1.3.1 candidate，SHA `17d272b6…b39bf` | 1 次 Baton `Skill`、4 個完成的 background `scout`；ownership／collection／correctness 通過 |
+| Large Gate | 四個 substantial domains；可見 project-scoped Baton 0.1.1 | v1.3.1 release policy，SHA `17d272b6…b39bf` | 1 次 Baton `Skill`、4 個完成的 background `scout`；ownership／collection／correctness 通過 |
+| Release-payload replay | 相同 substantial prompt 與 pinned fixture | Policy SHA `17d272b6…b39bf`；post-PR-19 agents SHA `0b42c137…9723c` | 相同的 1 Skill／4 completed scouts topology；in-session 與獨立 final-byte tests 都通過 |
 
-兩份 prompt 都通過大小寫不敏感掃描，不含 Baton、agent、subagent、worker、role、skill、delegation、orchestration、parallelism 或 fan-out 字樣。但這只描述 prompt；small fixture 本身含 orchestration 內容，因此 small ordered pair 只保留為 availability observation，不再宣稱是無提示的 causal A/B experiment。
+兩份 prompt 都通過大小寫不敏感掃描，不含 Baton、agent、subagent、worker、role、skill、delegation、orchestration、parallelism 或 fan-out 字樣。但這只描述 prompt；兩個 fixtures 都含 orchestration 內容。因此 small ordered pair 只保留為 availability observation，大型 Gate 只建立 prompt-neutral policy reachability，不宣稱是完整 cue-free causal experiment。另一項 [`spontaneous-dispatch`](../spontaneous-dispatch/README.zh-TW.md) matrix 才會同時掃描 user prompts 與 task fixtures，支撐 cue-free topology claim。
 
 ## 大型 Gate 契約
 
@@ -22,8 +23,9 @@
 | Requested / observed main model | `opus` / `claude-opus-4-8` |
 | Settings | `project,local`；strict MCP；不保留 session |
 | Baton | 0.1.1、commit `77f12e6`、`SKILL.md` SHA `48b1e573…3d67` |
-| Role payload | 八個 pilotfish roles，SHA `e901e16a…c61` |
-| Policy | v1.3.1 candidate，SHA `17d272b6…b39bf` |
+| 歷史 attempts role payload | 八個 pilotfish roles，SHA `e901e16a…c61` |
+| Release replay role payload | 八個 pilotfish roles，SHA `0b42c137…9723c`；#18 後 `executor` 由 Opus 改為 Sonnet |
+| Policy | v1.3.1 release policy，SHA `17d272b6…b39bf` |
 | Prompt | [`prompts/large-audit.txt`](./prompts/large-audit.txt)，SHA `c0cebdce…ffba` |
 | Fixture baseline | Commit `34ebabe2…245f`、tree `3773149b…2574`；45 個 domain files／3,032 行 |
 | Budget | 每次上限 $5 |
@@ -63,11 +65,17 @@ Bash → Read → Bash → Skill(baton-dispatch)
 
 最終 run 的 wall time 是 400.00 秒，client cost 欄位為 $1.8456953。平行 agent 的 API time 是 655.635 秒，因此可以大於 wall time。一位 fresh verifier 拒絕原本的 completed claim；後續檢查發現 in-session test 早於最後 Edit，所以再對 final bytes 獨立重跑，結果通過，並在 `2026-07-23T02:01:06Z` 記錄這份證據。Raw streams 的 initialization events 含本機 path 與 session metadata，所以不提交原文；[`results.json`](./results.json) 用 SHA-256 綁定每份 stream 與 report，[`traces.json`](./traces.json) 與 [`agent-calls.json`](./agent-calls.json) 公開正規化證據。
 
+## Exact release-payload replay
+
+Replay 使用 Claude Code 2.1.218、相同 committed fixture baseline 與 prompt-neutral user request、精確 current policy SHA `17d272b6…b39bf`，以及 generated agents SHA `0b42c137…9723c`。Init inventory 可見 Baton，dispatch 前也確實呼叫；之後四個 background `scout` back-to-back 啟動，所有 invocation 都未帶 model override。Completion events 278、320、348、360 全部早於第一個跨域 sanity check event 394。
+
+唯一變更是新增 `AUDIT.md`。單一 Write 在 event 402，in-session `npm test` 在 event 405；另一次獨立重跑也對相同 final SHA `92a111dd…17a` 通過。Replay 的 client duration 是 168.156 秒，client cost 欄位為 $1.6609134，並 additive 記錄於 `release_payload_replay`，不會改寫歷史 attempts。
+
 ## 結論邊界
 
 | 已建立 | 未建立 |
 |---|---|
-| 一個 substantial、沒有委派提示的 user prompt 透過目前 policy rule 啟用 Baton | 多次樣本中的啟用頻率或可靠度 |
+| Substantial prompt-neutral request 在 final Gate 啟用 Baton，exact release payload 重跑時也再次啟用 | 完整 cue-free 環境，或具代表性樣本中的啟用頻率與可靠度 |
 | Baton invocation 之後觀察到四個完成的 named-role calls | 與大型 no-Baton control 的 causal comparison |
 | 最終 run 遵守 exclusive discovery ownership 並收回每份結果 | 更低 latency、cost 或更高效率 |
 | 產物通過 repository-owned shape test | Audit 內每一條語意 claim 都正確 |

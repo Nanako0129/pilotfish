@@ -81,6 +81,50 @@
       "post_fix_ownership_probe_tool_index": 10,
       "changed_path": "src/reducer.js",
       "note": "The main session owned the contiguous diagnosis, Edit, 2/2 post-fix test, and cloned-message identity probe."
+    },
+    "opus-v1.3.1-release-payload-mechanical": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Agent"
+      ],
+      "top_level_bash_actions": [
+        "list adapters and project root",
+        "inspect representative adapters and tests"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [
+        {
+          "subagent_type": "mech-executor",
+          "run_in_background": false,
+          "invocation_model_present": false,
+          "observed_model": "claude-sonnet-5"
+        }
+      ],
+      "worker_is_sole_source_mutation_path": true,
+      "only_changed_paths": "src/adapters/*.js (12 files)",
+      "independent_post_run_test_passed": true
+    },
+    "opus-v1.3.1-release-payload-bug": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Bash",
+        "Edit",
+        "Bash"
+      ],
+      "agent_calls": [],
+      "first_minimal_fix_tool_index": 10,
+      "post_fix_passing_test_tool_index": 11,
+      "changed_path": "src/reducer.js",
+      "independent_post_run_test_passed": true,
+      "note": "The current release payload kept the contiguous diagnosis, first minimal fix, and 2/2 post-fix test in the Opus main session."
     }
   }
 }

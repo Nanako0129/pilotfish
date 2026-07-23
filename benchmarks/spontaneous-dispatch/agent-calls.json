@@ -13,6 +13,17 @@
         "prompt": "Repo: <fixture-root> (work in this checkout; do not create worktrees).\n\nGOAL\nUpdate normalize(record) in each of the 12 modules in src/adapters/ so it returns a new object that preserves all record fields, trims record.label, maps enabled to true only for boolean true or string true, and never mutates the input.\n\nSCOPE AND OWNERSHIP\nThe worker exclusively owns src/adapters/{alpha,bravo,charlie,delta,echo,foxtrot,golf,hotel,india,juliet,kilo,lima}.js. No other file may change.\n\nCONSTRAINTS\nKeep every module self-contained, add no helper or import, preserve the named export, do not edit tests/package/CLAUDE.md, apply the supplied identical target body, and report any unexpected starting content instead of improvising.\n\nDONE\nAll 12 files contain the target body, git status lists only those files, npm test passes, and the worker reports changed files and evidence."
       }
     ],
-    "opus-v1.3.1-candidate-1-bug": []
+    "opus-v1.3.1-candidate-1-bug": [],
+    "opus-v1.3.1-release-payload-mechanical": [
+      {
+        "subagent_type": "mech-executor",
+        "description": "Update adapter normalize functions",
+        "run_in_background": false,
+        "invocation_model_present": false,
+        "observed_model": "claude-sonnet-5",
+        "prompt": "Repo: <fixture-root>.\n\nGOAL\nUpdate normalize(record) in each of the 12 modules in src/adapters/ so it returns a new object that preserves all fields, trims record.label, and maps enabled to true only for boolean true or string true.\n\nSCOPE AND OWNERSHIP\nThe worker exclusively owns src/adapters/{alpha,bravo,charlie,delta,echo,foxtrot,golf,hotel,india,juliet,kilo,lima}.js. No other file may change.\n\nCONSTRAINTS\nKeep each module self-contained, add no helper or import, preserve the named export, do not edit tests, do not mutate record, and use the supplied identical target body.\n\nDONE\nAll 12 files contain the target body and npm test passes. Report pass/fail counts and the changed-file count."
+      }
+    ],
+    "opus-v1.3.1-release-payload-bug": []
   }
 }

@@ -1,11 +1,11 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "run_date": "2026-07-23",
   "timezone": "Asia/Taipei",
   "client": {
     "name": "Claude Code",
     "versions_observed": ["2.1.217", "2.1.218"],
-    "version_note": "small observation and large attempts 1-3 used 2.1.217; final large-v131-4 used 2.1.218"
+    "version_note": "small observation and large attempts 1-3 used 2.1.217; final large-v131-4 and the exact release-payload replay used 2.1.218"
   },
   "treatment_dependency": {
     "name": "baton-dispatch",
@@ -21,7 +21,8 @@
     "strict_mcp_config": true,
     "session_persistence": false,
     "permission_bypass_scope": "fresh disposable fixtures only",
-    "agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61"
+    "agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
+    "scope": "small availability observation and large-v131-1 through large-v131-4; the later release-payload replay records its post-PR-19 payload separately"
   },
   "small_availability_observation": {
     "client_version": "2.1.217",
@@ -105,6 +106,7 @@
     "prompt_file_sha256": "c0cebdcebe1186f41bed2ff442bd35bf3df68719530c1f4555f8b609d735ffba",
     "prompt_runtime_input_sha256": "246a68b72299d8b4cd56871cebd9297cc5748c7e21b77154cadaecb3530f97ae",
     "prompt_cue_scan_result": "no matches for Baton, agent, subagent, worker, role, skill, delegation, orchestration, parallelism, or fan-out vocabulary",
+    "claim_boundary": "The cue scan applies to the user prompt only. The four-domain fixture contains orchestration material, so this Gate establishes prompt-neutral reachability rather than a fully cue-free or causal experiment.",
     "policy_sha256": "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf",
     "max_budget_usd_per_attempt": 5,
     "attempts": [
@@ -227,6 +229,93 @@
       "conclusion": "In one substantial task on Claude Code 2.1.218 whose user prompt contains no delegation cues, Baton was invoked under the current policy and was followed by downstream dispatch with exclusive discovery ownership and complete result collection. Attempts 1-3 used Claude Code 2.1.217, so cross-attempt outcome changes cannot be attributed solely to policy revisions. The Gate does not establish activation frequency, efficiency, audit-semantic correctness, or a causal comparison against a no-Baton large control."
     },
     "total_client_reported_cost_usd": 9.3182632499999988
+  },
+  "release_payload_replay": {
+    "name": "large-v131-release-payload-replay",
+    "run_date": "2026-07-23",
+    "client_version": "2.1.218",
+    "requested_model": "opus",
+    "observed_main_model": "claude-opus-4-8",
+    "setting_sources": "project,local",
+    "strict_mcp_config": true,
+    "session_persistence": false,
+    "permission_bypass_scope": "fresh disposable fixture only",
+    "fixture_baseline_commit": "34ebabe2a26dd53de1a019607992f1ac10af245f",
+    "fixture_baseline_tree": "3773149bae5c514abe6d141d6fc5216e86d02574",
+    "fixture_note": "Cloned from the final large-v131-4 committed baseline so content and the pinned Baton project skill remain controlled; current release policy and generated agents payload were injected explicitly.",
+    "baton_version": "0.1.1",
+    "baton_skill_sha256": "48b1e573a9e3de85fdb68c433bd47d69add9ec8491613ca304cfcef2326e3d67",
+    "prompt_file_sha256": "c0cebdcebe1186f41bed2ff442bd35bf3df68719530c1f4555f8b609d735ffba",
+    "prompt_runtime_input_sha256": "246a68b72299d8b4cd56871cebd9297cc5748c7e21b77154cadaecb3530f97ae",
+    "prompt_cue_scan_result": "no matches for Baton, agent, subagent, worker, role, skill, delegation, orchestration, parallelism, or fan-out vocabulary",
+    "claim_boundary": "The cue scan applies to the user prompt only. The committed fixture contains orchestration material, so this replay is prompt-neutral reachability evidence rather than a fully cue-free or causal experiment.",
+    "policy_sha256": "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf",
+    "agents_json_sha256": "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
+    "max_budget_usd": 5,
+    "status": "passed_activation_dispatch_ownership_collection_final_byte_correctness",
+    "duration_ms": 168156,
+    "duration_api_ms": 574306,
+    "num_turns": 4,
+    "client_reported_cost_usd": 1.6609133999999997,
+    "terminal_is_error": false,
+    "baton_listed_at_init": true,
+    "baton_skill_call_count": 1,
+    "agent_call_count": 4,
+    "completed_agent_count": 4,
+    "agent_role": "scout",
+    "observed_agent_model": "claude-haiku-4-5-20251001",
+    "all_agents_background": true,
+    "all_agent_invocations_omit_model": true,
+    "agent_calls_back_to_back": true,
+    "all_results_collected_before_cross_domain_check": true,
+    "active_scope_overlap_observed": false,
+    "only_change": "?? AUDIT.md",
+    "test_command": "npm test",
+    "in_session_test": {
+      "status": "passed_after_final_write",
+      "write_event_index": 402,
+      "test_event_index": 405
+    },
+    "post_run_verification": {
+      "verification_recorded_at_utc": "2026-07-23T03:36:58Z",
+      "command": "npm test",
+      "exit_code": 0,
+      "test_output": "AUDIT.md covers all four domains with file:line evidence",
+      "audit_sha256": "92a111ddc624a41a8e3ab877aefdbc593db80a032dd637156fdf44a1854a617a",
+      "only_change": "?? AUDIT.md"
+    },
+    "test_passed": true,
+    "test_output": "AUDIT.md covers all four domains with file:line evidence",
+    "audit_sha256": "92a111ddc624a41a8e3ab877aefdbc593db80a032dd637156fdf44a1854a617a",
+    "audit_lines": 66,
+    "audit_bytes": 12152,
+    "raw_stream_sha256": "d726ce891bdfb3ece2177c24d5cf20d4b27315137643dc47eddb0d7573e65693",
+    "model_usage": {
+      "claude-haiku-4-5-20251001": {
+        "input_tokens": 4302,
+        "output_tokens": 21532,
+        "cache_read_input_tokens": 845589,
+        "cache_creation_input_tokens": 138784,
+        "cost_usd": 0.3700009000000001
+      },
+      "claude-opus-4-8": {
+        "input_tokens": 24,
+        "output_tokens": 19757,
+        "cache_read_input_tokens": 379695,
+        "cache_creation_input_tokens": 60702,
+        "cost_usd": 1.2909125
+      }
+    },
+    "effect_gate": {
+      "status": "passed",
+      "capability_visibility": "passed; Baton appeared in the init skill inventory",
+      "policy_activation": "passed; Baton was invoked before dispatch",
+      "agent_topology": "passed; four background scouts were launched back-to-back without invocation-level model overrides",
+      "ownership": "passed; no main content read or analysis touched an active agent-owned domain",
+      "collection": "passed; all four completion notifications preceded the cross-domain sanity-check and synthesis",
+      "correctness": "passed; the in-session npm test followed the only write, and an independent post-run rerun passed against the same final AUDIT.md bytes",
+      "conclusion": "The exact current v1.3.1 policy and post-PR-19 agents payload reached Baton activation plus four-call named-role dispatch while respecting ownership, collection, and final-byte correctness. This single replay does not establish activation frequency, efficiency, or semantic correctness of every audit claim."
+    }
   },
   "metric_note": "Client-reported cost is not a provider invoice. These single runs do not establish population frequency, latency, cost, or efficiency effects."
 }

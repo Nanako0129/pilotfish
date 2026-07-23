@@ -14,7 +14,7 @@ The exact prompts are in [`prompts/`](./prompts/). Recorded outcomes, normalized
 | Control | Rule |
 |---|---|
 | Prompt vocabulary | Reject case-insensitive matches for `agent`, `subagent`, `worker`, `role`, `policy`, `baton`, `parallel`, `independent`, `delegat`, `orchestrat`, or `fan-out` |
-| Fixture vocabulary | Apply the same scan to the mechanical fixture |
+| Fixture vocabulary | Apply the same scan to both the mechanical and tightly coupled bug fixtures |
 | Model attribution | Record the model from the stream initialization event; a requested alias is not proof of the observed model |
 | Role attribution | Require an observable `Agent` call with `subagent_type: mech-executor`; reject an invocation-level model override |
 | Mutation attribution | Reject top-level `Edit` or `Write`; classify every top-level Bash command conservatively and reject redirection or commands capable of source writes |
@@ -39,6 +39,17 @@ The Opus run completed in one disposable fixture and cannot establish a delegati
 | Opus 4.8, v1.3.1 candidate 1 bug | Main diagnosis → main minimal fix → main test and identity probe | Main session | 2/2 | Pass |
 
 The mechanical Agent invocation omitted `model`, leaving model routing to the named role definition. Its nested trace contains all source-writing tools; the main trace contains no `Edit`, `Write`, redirection, or write-capable Bash command. The bug trace contains no Agent call before or after its main-owned fix and 2/2 pass.
+
+## Exact release-payload replay
+
+After PR #19 and PR #20 merged into the release branch, both cells were rerun on Claude Code 2.1.218 with policy SHA `17d272b6…b39bf` and generated agents SHA `0b42c137…9723c`.
+
+| Run | Observable topology | Correctness | Gate |
+|---|---|---|---|
+| Mechanical | Opus main → one foreground `mech-executor`; invocation omitted `model`; nested model resolved to `claude-sonnet-5`; worker was the only source-mutation path | In-session 12/12; independent post-run 12/12 | Pass |
+| Bug | Opus main owned diagnosis, first minimal fix, and post-fix test; zero Agent calls | In-session 2/2; independent post-run 2/2 | Pass |
+
+These additive replay records are named `opus-v1.3.1-release-payload-mechanical` and `opus-v1.3.1-release-payload-bug` in the JSON evidence. They establish both sides of the routing boundary for these two exact inputs and show that Claude Code accepted the post-[#18](https://github.com/Nanako0129/pilotfish/issues/18) generated payload. The mechanical role is `mech-executor`, not the separately defined `executor` changed by #18; this replay does not live-exercise that role or establish a dispatch frequency.
 
 ## Reproduce
 
@@ -86,7 +97,7 @@ For the negative cell, copy `benchmarks/dispatch-brake/fixture`, read [`prompts/
 | Client-reported cost field | It is not a provider invoice |
 | Fable usage-credit gate | No Fable behavior, correctness, or efficiency comparison is available |
 | Opus-only candidate evaluation | A passing Opus gate does not prove identical routing by another model |
-| Candidate count | Candidate 1 passed both cells, so the approved two-candidate ceiling was not consumed |
+| Policy iteration count | Candidate 1 passed both cells; the later exact release-payload replay retested the same cells after the executor frontmatter change |
 | Normalized evidence | Raw-stream hashes support identity checks, while published traces intentionally exclude sensitive local metadata |
 
 This gate is additive. It does not overwrite the earlier [`dispatch-brake`](../dispatch-brake/README.md) or [`baton-compatibility`](../baton-compatibility/README.md) evidence.

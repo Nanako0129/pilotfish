@@ -24,12 +24,13 @@ ROLES = (
 
 
 class PolicyContractTests(unittest.TestCase):
-    def test_baton_dispatch_matrix_inputs_are_prompt_cue_free_and_recorded(self) -> None:
+    def test_baton_dispatch_matrix_prompts_are_neutral_and_recorded(self) -> None:
         benchmark = ROOT / "benchmarks" / "baton-dispatch-effect"
         results = json.loads(
             (benchmark / "results.json").read_text(encoding="utf-8"),
             parse_float=Decimal,
         )
+        self.assertEqual(results["schema_version"], 3)
         cue_pattern = re.compile(
             r"baton|agent|subagent|worker|\brole\b|policy|skill|delegat|"
             r"orchestrat|parallel|independent|fan-out",
@@ -65,6 +66,8 @@ class PolicyContractTests(unittest.TestCase):
         self.assertEqual(runtime["observed_main_model"], "claude-opus-4-8")
         self.assertEqual(runtime["setting_sources"], "project,local")
         large = results["large_policy_activation_gate"]
+        self.assertIn("user prompt only", large["claim_boundary"])
+        self.assertIn("fully cue-free", large["claim_boundary"])
         self.assertEqual(
             hashlib.sha256(
                 (ROOT / "templates/claude-md.orchestration.md").read_bytes()
@@ -209,15 +212,95 @@ class PolicyContractTests(unittest.TestCase):
             self.assertEqual(call["status"], "completed")
             self.assertEqual(call["observed_model"], "claude-haiku-4-5-20251001")
 
+        release = results["release_payload_replay"]
+        self.assertIn("user prompt only", release["claim_boundary"])
+        self.assertIn("fully cue-free", release["claim_boundary"])
+        self.assertEqual(
+            release["status"],
+            "passed_activation_dispatch_ownership_collection_final_byte_correctness",
+        )
+        self.assertEqual(release["policy_sha256"], large["policy_sha256"])
+        current_agents = subprocess.run(
+            [
+                sys.executable,
+                str(
+                    ROOT
+                    / "benchmarks"
+                    / "baton-compatibility"
+                    / "build-agents-json.py"
+                ),
+                str(ROOT / "templates" / "agents"),
+            ],
+            check=True,
+            capture_output=True,
+        ).stdout.rstrip(b"\n")
+        self.assertEqual(
+            hashlib.sha256(current_agents).hexdigest(),
+            release["agents_json_sha256"],
+        )
+        self.assertEqual(release["baton_skill_call_count"], 1)
+        self.assertEqual(release["agent_call_count"], 4)
+        self.assertEqual(release["completed_agent_count"], 4)
+        self.assertTrue(release["all_agents_background"])
+        self.assertTrue(release["all_agent_invocations_omit_model"])
+        self.assertTrue(release["agent_calls_back_to_back"])
+        self.assertTrue(release["all_results_collected_before_cross_domain_check"])
+        self.assertFalse(release["active_scope_overlap_observed"])
+        self.assertEqual(release["only_change"], "?? AUDIT.md")
+        self.assertTrue(release["test_passed"])
+        self.assertFalse(release["terminal_is_error"])
+        self.assertEqual(
+            release["in_session_test"]["status"], "passed_after_final_write"
+        )
+        self.assertLess(
+            release["in_session_test"]["write_event_index"],
+            release["in_session_test"]["test_event_index"],
+        )
+        self.assertEqual(
+            release["post_run_verification"]["audit_sha256"],
+            release["audit_sha256"],
+        )
+
+        release_trace = traces["release_payload_replay"][
+            "large-v131-release-payload-replay"
+        ]
+        self.assertEqual(release_trace["top_level_tools"].count("Skill"), 1)
+        self.assertEqual(release_trace["top_level_tools"].count("Agent"), 4)
+        self.assertEqual(
+            release_trace["main_domain_content_tools_while_agents_active"], []
+        )
+        self.assertTrue(release_trace["in_session_test_followed_final_write"])
+        self.assertLess(
+            max(release_trace["completion_event_indexes"]),
+            min(release_trace["post_collection_cross_domain_check_event_indexes"]),
+        )
+        release_calls = calls["release_payload_replay"][
+            "large-v131-release-payload-replay"
+        ]
+        self.assertEqual(len(release_calls), 4)
+        self.assertEqual(
+            {call["exclusive_read_scope"] for call in release_calls},
+            {"domain-a", "domain-b", "domain-c", "domain-d"},
+        )
+        for call in release_calls:
+            self.assertEqual(call["subagent_type"], "scout")
+            self.assertTrue(call["run_in_background"])
+            self.assertFalse(call["invocation_model_present"])
+            self.assertEqual(call["status"], "completed")
+            self.assertEqual(call["observed_model"], "claude-haiku-4-5-20251001")
+
         for readme in ("README.md", "README.zh-TW.md"):
             content = (benchmark / readme).read_text(encoding="utf-8")
             self.assertIn("large-v131-4", content)
+            self.assertIn("0b42c137", content)
+            self.assertIn("release-payload", content)
             self.assertIn("0.1.1", content)
             self.assertIn("results.json", content)
 
     def test_spontaneous_dispatch_inputs_are_cue_free_and_recorded(self) -> None:
         benchmark = ROOT / "benchmarks" / "spontaneous-dispatch"
         results = json.loads((benchmark / "results.json").read_text(encoding="utf-8"))
+        self.assertEqual(results["schema_version"], 2)
         contract = results["input_contract"]
         prompts = {
             "mechanical": benchmark / "prompts" / "mechanical.txt",
@@ -241,23 +324,29 @@ class PolicyContractTests(unittest.TestCase):
                 contract[f"{name}_runtime_prompt_sha256"],
             )
 
-        fixture = (
-            ROOT
-            / "benchmarks"
-            / "dispatch-brake"
-            / "positive-controls"
-            / "mechanical"
-            / "fixture"
-        )
-        fixture_hash_lines = []
-        for path in sorted(path for path in fixture.rglob("*") if path.is_file()):
-            self.assertIsNone(cue_pattern.search(path.read_text(encoding="utf-8")))
-            relative = path.relative_to(ROOT)
-            fixture_hash_lines.append(
-                f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {relative}\n"
-            )
-        fixture_digest = hashlib.sha256("".join(fixture_hash_lines).encode()).hexdigest()
-        self.assertEqual(fixture_digest, contract["mechanical_fixture_digest"])
+        fixtures = {
+            "mechanical": (
+                ROOT
+                / "benchmarks"
+                / "dispatch-brake"
+                / "positive-controls"
+                / "mechanical"
+                / "fixture"
+            ),
+            "bug": ROOT / "benchmarks" / "dispatch-brake" / "fixture",
+        }
+        for name, fixture in fixtures.items():
+            fixture_hash_lines = []
+            for path in sorted(path for path in fixture.rglob("*") if path.is_file()):
+                self.assertIsNone(cue_pattern.search(path.read_text(encoding="utf-8")))
+                relative = path.relative_to(ROOT)
+                fixture_hash_lines.append(
+                    f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {relative}\n"
+                )
+            fixture_digest = hashlib.sha256(
+                "".join(fixture_hash_lines).encode()
+            ).hexdigest()
+            self.assertEqual(fixture_digest, contract[f"{name}_fixture_digest"])
         self.assertNotIn(
             "Do not optimize for or against delegation",
             (benchmark / "README.md").read_text(encoding="utf-8"),
@@ -306,6 +395,55 @@ class PolicyContractTests(unittest.TestCase):
         self.assertTrue(candidate_bug["main_observed_post_fix_pass"])
         self.assertEqual(candidate_bug["tests_after"], "2/2 passed")
 
+        release_input = results["policy_inputs"]["v1.3.1-release-payload"]
+        self.assertEqual(
+            release_input["policy_sha256"],
+            hashlib.sha256(
+                (ROOT / "templates" / "claude-md.orchestration.md").read_bytes()
+            ).hexdigest(),
+        )
+        current_agents = subprocess.run(
+            [
+                sys.executable,
+                str(
+                    ROOT
+                    / "benchmarks"
+                    / "baton-compatibility"
+                    / "build-agents-json.py"
+                ),
+                str(ROOT / "templates" / "agents"),
+            ],
+            check=True,
+            capture_output=True,
+        ).stdout.rstrip(b"\n")
+        self.assertEqual(
+            release_input["agents_json_sha256"],
+            hashlib.sha256(current_agents).hexdigest(),
+        )
+
+        release_mechanical = runs["opus-v1.3.1-release-payload-mechanical"]
+        self.assertEqual(release_mechanical["status"], "passed")
+        self.assertEqual(release_mechanical["agent_call_count"], 1)
+        self.assertEqual(release_mechanical["agent_type"], "mech-executor")
+        self.assertFalse(release_mechanical["agent_invocation_model_present"])
+        self.assertEqual(
+            release_mechanical["observed_agent_model"], "claude-sonnet-5"
+        )
+        self.assertFalse(release_mechanical["main_source_mutation_observed"])
+        self.assertTrue(release_mechanical["worker_is_sole_source_mutation_path"])
+        self.assertEqual(release_mechanical["tests_after"], "12/12 passed")
+        self.assertEqual(
+            release_mechanical["independent_post_run_test"]["tests_failed"], 0
+        )
+
+        release_bug = runs["opus-v1.3.1-release-payload-bug"]
+        self.assertEqual(release_bug["status"], "passed")
+        self.assertEqual(release_bug["agent_call_count"], 0)
+        self.assertTrue(release_bug["main_owned_first_minimal_fix"])
+        self.assertTrue(release_bug["main_observed_post_fix_pass"])
+        self.assertEqual(release_bug["tests_after"], "2/2 passed")
+        self.assertEqual(release_bug["independent_post_run_test"]["tests_failed"], 0)
+
         for run_name in runs:
             self.assertIn(run_name, traces["runs"])
             self.assertIn(run_name, calls["runs"])
@@ -337,6 +475,25 @@ class PolicyContractTests(unittest.TestCase):
         self.assertLess(
             bug_trace["first_minimal_fix_tool_index"],
             bug_trace["post_fix_passing_test_tool_index"],
+        )
+        release_call = calls["runs"][
+            "opus-v1.3.1-release-payload-mechanical"
+        ][0]
+        self.assertEqual(release_call["observed_model"], "claude-sonnet-5")
+        release_mechanical_trace = traces["runs"][
+            "opus-v1.3.1-release-payload-mechanical"
+        ]
+        self.assertEqual(
+            release_mechanical_trace["top_level_source_write_tools"], []
+        )
+        self.assertEqual(
+            release_mechanical_trace["top_level_tools"].count("Agent"), 1
+        )
+        release_bug_trace = traces["runs"]["opus-v1.3.1-release-payload-bug"]
+        self.assertEqual(release_bug_trace["agent_calls"], [])
+        self.assertLess(
+            release_bug_trace["first_minimal_fix_tool_index"],
+            release_bug_trace["post_fix_passing_test_tool_index"],
         )
 
     def test_baton_gate_snapshot_matches_recorded_hashes(self) -> None:
@@ -988,6 +1145,16 @@ class PolicyContractTests(unittest.TestCase):
             [call["role"] for call in final["agent_calls"]],
             ["plan-verifier", "mech-executor", "verifier"],
         )
+        executor_evidence = results["unexercised_controls"][
+            "executor_role_evidence"
+        ]
+        for role in ("plan-verifier", "mech-executor", "verifier"):
+            self.assertIn(role, executor_evidence)
+        self.assertNotIn("scout, scout", executor_evidence)
+        self.assertIn("executor and scout roles were not dispatched", executor_evidence)
+        post_gate_note = results["post_gate_role_frontmatter_change"]["note"]
+        self.assertIn("changed executor itself was not live-exercised", post_gate_note)
+        self.assertIn("distinct mech-executor or scout roles", post_gate_note)
         self.assertTrue(all(call["invocation_model"] is None for call in final["agent_calls"]))
         self.assertTrue(all(not call["background"] for call in final["agent_calls"]))
         self.assertEqual(final["agent_calls"][0]["observed_tools"], ["Read", "Grep"])
