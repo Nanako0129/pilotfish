@@ -532,13 +532,13 @@ class PolicyContractTests(unittest.TestCase):
             runtime["release_candidate_agents_json_sha256"],
             "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
         )
-        self.assertNotEqual(
+        self.assertEqual(
             hashlib.sha256(current_policy).hexdigest(),
-            runtime["release_candidate_orchestration_sha256"],
+            "e63c558e9fce1cdf0ae9a4d6ca0b15fc0a79752cfc45cd520b6f7cd9201dc3d7",
         )
-        self.assertNotEqual(
+        self.assertEqual(
             hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
-            runtime["release_candidate_agents_json_sha256"],
+            "4cb266c5ad8db644ee8d7c7c2bf5f175f6a0d2bbf200f864ce60b043833e4087",
         )
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
