@@ -540,6 +540,30 @@ class PolicyContractTests(unittest.TestCase):
             hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
             "183c1b4ecfa7e40fcff5dca80abbcf339bbfd9530722dab9feac5e1ecceae1d1",
         )
+        release = results["v1_3_2_release_gate"]
+        release_policy = (gate / release["snapshot_policy"]).read_bytes()
+        release_agents_file = (gate / release["snapshot_agents_json"]).read_bytes()
+        self.assertEqual(release_policy, current_policy)
+        self.assertEqual(release_agents_file.rstrip(b"\n"), completed.stdout.rstrip(b"\n"))
+        self.assertEqual(
+            hashlib.sha256(release_policy).hexdigest(),
+            release["orchestration_sha256"],
+        )
+        self.assertEqual(
+            hashlib.sha256(release_agents_file).hexdigest(),
+            release["agents_json_file_sha256"],
+        )
+        self.assertEqual(
+            hashlib.sha256(release_agents_file.rstrip(b"\n")).hexdigest(),
+            release["agents_json_runtime_sha256"],
+        )
+        for prompt_name, expected in release["prompt_file_hashes"].items():
+            prompt = (gate / "prompts" / prompt_name).read_bytes()
+            self.assertEqual(hashlib.sha256(prompt).hexdigest(), expected)
+            self.assertEqual(
+                hashlib.sha256(prompt.rstrip(b"\n")).hexdigest(),
+                release["prompt_runtime_input_hashes"][prompt_name],
+            )
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
         self.assertEqual(runtime["release_candidate_version"], "1.3.1")
@@ -1192,6 +1216,47 @@ class PolicyContractTests(unittest.TestCase):
         self.assertTrue(final["agent_calls"][1]["direct_write_blocked_by_hook"])
         self.assertEqual(final["turns"][1]["integration_write_owner"], "main_session")
         self.assertEqual(final["agent_calls"][-1]["verdicts"], ["CONFIRMED"])
+
+        release = results["v1_3_2_release_gate"]
+        self.assertEqual(release["status"], "passed")
+        self.assertEqual(release["granularity"], "invocation")
+        self.assertEqual(release["release_candidate_version"], "1.3.2")
+        self.assertEqual(len(release["turns"]), release["total_cli_invocations"])
+        self.assertEqual(release["total_cli_invocations"], 2)
+        self.assertEqual(release["total_duration_ms"], 445010)
+        self.assertEqual(release["total_duration_api_ms"], 443416)
+        self.assertEqual(release["total_num_turns"], 19)
+        self.assertEqual(
+            sum(
+                (turn["client_reported_cost_usd"] for turn in release["turns"]),
+                Decimal("0"),
+            ),
+            release["total_client_reported_cost_usd"],
+        )
+        self.assertEqual(
+            release["total_client_reported_cost_usd"], Decimal("2.77709775")
+        )
+        self.assertEqual(
+            [
+                unit["id"]
+                for unit in release["turns"][0]["readiness_units"]
+            ],
+            ["ENV-report-audit", "S1-report"],
+        )
+        self.assertTrue(
+            all(
+                unit["verdict"] == "READY"
+                and unit["invocation_model"] is None
+                and not unit["background"]
+                for unit in release["turns"][0]["readiness_units"]
+            )
+        )
+        self.assertEqual(
+            release["turns"][1]["verifier"]["verdict"], "CONFIRMED"
+        )
+        self.assertTrue(release["turns"][1]["independent_final_byte_test_passed"])
+        self.assertFalse(release["turns"][1]["deferred_unit_executed"])
+        self.assertTrue(release["passed"])
 
         previous_final = results["previous_final_gate"]
         self.assertEqual(previous_final["granularity"], "invocation")

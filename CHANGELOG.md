@@ -15,9 +15,12 @@ Plan before their first readiness review. Outcome verification follows the
 same brake: two consecutive `REFUTED` verdicts for one materially revised claim
 stop automatic fix-and-reverify cycling without being treated as `CONFIRMED`.
 
-Policy tests pin the exact v1.3.2 policy and generated agent payload hashes, but
-the tracked accepted live Baton Gate remains v1.3.1. No accepted live
-Gate/provenance has been recorded for the v1.3.2 bytes.
+An exact-byte two-turn Baton Gate on Claude Code 2.1.218 exercised the v1.3.2
+split: `ENV-report-audit` and only the next slice `S1-report` reached `READY`,
+approval preceded the sole `REPORT.md` write, `npm test` passed, and a fresh
+Opus verifier returned `CONFIRMED`; deferred `S2-followup` was not executed.
+The run reported $2.77709775 across 19 API turns. This is one compatibility and
+provenance observation, not a cost, latency, frequency, or quality claim.
 
 ## v1.3.1 — 2026-07-23
 

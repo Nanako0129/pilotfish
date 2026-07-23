@@ -1,0 +1,9 @@
+Use the installed baton-dispatch skill together with the active pilotfish orchestration policy. This is turn 1 of an explicitly plan-first release gate for a large Plan. The Baton skill must load successfully; if it is unavailable, stop immediately without continuing the audit.
+
+Plan an audit of the two independent orchestration surfaces in this repository. The program outcome is one REPORT.md that determines each surface role roster, model-source rule, delegation eligibility rule, background or foreground behavior, and verifier boundary, with file:line evidence and npm test as acceptance.
+
+The main session must synthesize one program envelope with stable ID ENV-report-audit and only the next executable slice with stable ID S1-report. Keep later work deferred as stable ID S2-followup with outcome and prerequisites only. The envelope and S1 must each state outcome, non-goals, scope, exclusive ownership, prerequisites, acceptance that proves the unit outcome, rollback, budget, and stop conditions.
+
+Read-only discovery is authorized, including bounded named read-only agents when Baton finds positive net benefit. For any existing named role omit the invocation-level model. Invoke a fresh existing named plan-verifier first for ENV-report-audit and then for S1-report. Each brief must include a `## Target readiness unit` block with `- ID:` and `- Kind:`. Request bare READY or structured REVISE with Blocker:, Evidence:, Minimum revision:, and Acceptance check:. Materially revise the same unit after REVISE; after two REVISE verdicts for one unit, stop and return control to the user without treating it as READY.
+
+The approved execution turn must run npm test and then invoke a fresh existing named verifier, requesting only CONFIRMED or REFUTED. Do not create or edit REPORT.md or any source file, do not send an implementation brief, and stop after both ENV-report-audit and S1-report are READY and the verified scope is presented for explicit approval.

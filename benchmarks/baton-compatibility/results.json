@@ -394,6 +394,135 @@
     "security_reviewer_runtime_exercised": false,
     "passed": true
   },
+  "v1_3_2_release_gate": {
+    "granularity": "invocation",
+    "status": "passed",
+    "source_base_head": "fc0a2aa7caaf89d00fd2111642b13e28ce8e2bd5",
+    "fixture_baseline_commit": "61d47a7c4f67534ec75fa49797184cc43eae05b7",
+    "fixture_baseline_tree": "f199b0d2a5a141ae6ae904bd9f14205d89e9891e",
+    "release_candidate_version": "1.3.2",
+    "claude_code": "2.1.218",
+    "requested_main_model": "opus",
+    "observed_main_model": "claude-opus-4-8",
+    "provider_route": "native Claude first-party authentication",
+    "fast_mode": false,
+    "baton_skill_sha256": "48b1e573a9e3de85fdb68c433bd47d69add9ec8491613ca304cfcef2326e3d67",
+    "snapshot_policy": "v1.3.2-gate-snapshot/CLAUDE.md",
+    "snapshot_agents_json": "v1.3.2-gate-snapshot/agents.json",
+    "orchestration_sha256": "b42bd2f0d6c4be23472020cc107d6ceb4ab0eb34553ccfcac5fe6e65c9164b4b",
+    "agents_json_file_sha256": "483cd8d9160657fa611bb4595168155be571da8d4ad3dc1c8ef3cf991f3678f0",
+    "agents_json_runtime_sha256": "183c1b4ecfa7e40fcff5dca80abbcf339bbfd9530722dab9feac5e1ecceae1d1",
+    "transcript_sha256": "282146ad3eaaa94227c7ff2f6a1959ae210459af59dfab9939c3b96daec4cd44",
+    "prompt_file_hashes": {
+      "v1.3.2-turn-1.txt": "70f97a143f52e2d7f8dbced3819cc8766ada7d4ec47af8e6c6147e0bf0431a25",
+      "v1.3.2-turn-2.txt": "a09fe1d190f2cb434d14153690f3b455ae661d5b48e3cdd369a7cd1f7533e8e2"
+    },
+    "prompt_runtime_input_hashes": {
+      "v1.3.2-turn-1.txt": "4ccd65a3339b275d6fce1e2935acca74dd03b8220a935f22071b63b56fa52375",
+      "v1.3.2-turn-2.txt": "c730e9383004bb0aea943b78f4cddea44bc3eeace3262d2a85772f20fab28c83"
+    },
+    "turns": [
+      {
+        "cli_invocation": 1,
+        "prompt_turn": "v1.3.2-turn-1",
+        "max_budget_usd": 6,
+        "phase": "discovery_sliced_plan_approval_wait",
+        "disposition": "completed",
+        "duration_ms": 273977,
+        "duration_api_ms": 273017,
+        "num_turns": 15,
+        "client_reported_cost_usd": 1.49627725,
+        "models": [
+          "claude-opus-4-8"
+        ],
+        "baton_loaded": true,
+        "discovery_topology": "direct main-session read",
+        "git_clean": true,
+        "writes_before_approval": false,
+        "readiness_units": [
+          {
+            "id": "ENV-report-audit",
+            "kind": "program envelope",
+            "role": "plan-verifier",
+            "background": false,
+            "invocation_model": null,
+            "observed_model": "claude-opus-4-8",
+            "observed_tools": [
+              "Read",
+              "Grep"
+            ],
+            "verdict": "READY"
+          },
+          {
+            "id": "S1-report",
+            "kind": "execution slice",
+            "role": "plan-verifier",
+            "background": false,
+            "invocation_model": null,
+            "observed_model": "claude-opus-4-8",
+            "observed_tools": [
+              "Read",
+              "Grep"
+            ],
+            "verdict": "READY"
+          }
+        ],
+        "deferred_unit": "S2-followup"
+      },
+      {
+        "cli_invocation": 2,
+        "prompt_turn": "v1.3.2-turn-2",
+        "max_budget_usd": 6,
+        "phase": "approved_slice_execution_verification",
+        "disposition": "completed",
+        "duration_ms": 171033,
+        "duration_api_ms": 170399,
+        "num_turns": 4,
+        "client_reported_cost_usd": 1.2808205,
+        "models": [
+          "claude-opus-4-8"
+        ],
+        "approved_units": [
+          "ENV-report-audit",
+          "S1-report"
+        ],
+        "writer": "main_session",
+        "only_change": "?? REPORT.md",
+        "git_status": "?? REPORT.md",
+        "report_sha256": "d77785dd310ddddae8f99e64b3622c2012101142636ae3ec5081f4a0dbb5ee3d",
+        "report_lines": 31,
+        "report_bytes": 3723,
+        "citation_count": 23,
+        "test_command": "npm test",
+        "test_passed": true,
+        "independent_final_byte_test_passed": true,
+        "verifier": {
+          "role": "verifier",
+          "background": false,
+          "invocation_model": null,
+          "observed_model": "claude-opus-4-8",
+          "observed_tools": [
+            "Bash",
+            "Read"
+          ],
+          "verdict": "CONFIRMED"
+        },
+        "deferred_unit_executed": false
+      }
+    ],
+    "total_duration_ms": 445010,
+    "total_duration_api_ms": 443416,
+    "total_num_turns": 19,
+    "total_cli_invocations": 2,
+    "total_client_reported_cost_usd": 2.77709775,
+    "approval_tool_boundary_exercised": true,
+    "program_envelope_ready": true,
+    "current_slice_ready": true,
+    "downstream_slice_deferred": true,
+    "security_reviewer_runtime_exercised": false,
+    "security_reviewer_reason": "The audit fixture did not touch authentication, authorization, secrets, crypto, validation, dependencies, privacy, or other security-sensitive scope.",
+    "passed": true
+  },
   "failed_candidate_gate": {
     "granularity": "invocation",
     "status": "failed",

@@ -6,13 +6,14 @@
 - [Composition contract](#composition-contract)
 - [Isolation and reproduction](#isolation-and-reproduction)
 - [Exact prompts](#exact-prompts)
+- [Recorded v1.3.2 sliced lifecycle](#recorded-v132-sliced-lifecycle)
 - [Recorded v1.3.1 approval-lifecycle result](#recorded-v131-approval-lifecycle-result)
 - [Superseded, failed, and rejected harness runs](#superseded-failed-and-rejected-harness-runs)
 - [Limits and disclosure](#limits-and-disclosure)
 
 ## Purpose
 
-This benchmark is a compatibility and provenance gate for [Baton](https://github.com/cablate/baton) and the then-unreleased pilotfish v1.3.1 policy under native first-party Claude routing. The `final_gate` completed successfully on Claude Code 2.1.217 with Fast mode off and explicit `--model opus`. Baton owns delegation topology; pilotfish remains authoritative for named roles, role models, leaf-agent boundaries, approval, tool capabilities, and verifier vocabulary. The committed snapshot preserves the exact policy and role bytes tested by this approval-lifecycle Gate. The v1.3.1 release policy later tightened activation and discovery ownership and moved `executor` from Opus to Sonnet; current behavior and generated role hashes are tracked separately rather than rewriting this historical snapshot.
+This benchmark records compatibility and provenance Gates for [Baton](https://github.com/cablate/baton) under native first-party Claude routing. The additive v1.3.2 run exercises one program envelope and only its next executable slice; the historical `final_gate` preserves the earlier v1.3.1 approval lifecycle. Baton owns delegation topology; pilotfish remains authoritative for named roles, role models, leaf-agent boundaries, approval, tool capabilities, and verifier vocabulary.
 
 > **Gate:** Discovery may happen before the implementation outcome is known, but writes wait for a main-session Plan and explicit approval. Plan review returns `READY` / `REVISE`; outcome review returns `CONFIRMED` / `REFUTED`. This Gate is compatibility/provenance only: it does not establish efficiency, latency, cost, or an A/B comparison.
 
@@ -114,6 +115,24 @@ This fixture exercises the documented runtime composition and exact role definit
 |---|---|---|
 | Discovery + Plan | [`prompts/turn-1.txt`](./prompts/turn-1.txt) | Baton loaded, no writes, read-only `plan-verifier` uses only `READY` / `REVISE`, then wait for approval |
 | Approval + execution | [`prompts/turn-2.txt`](./prompts/turn-2.txt) | Only `REPORT.md`, tests pass, fresh outcome verifier returns `CONFIRMED` |
+
+## Recorded v1.3.2 sliced lifecycle
+
+Claude Code 2.1.218 ran the exact
+[`v1.3.2-gate-snapshot`](./v1.3.2-gate-snapshot/) with the versioned
+[Turn 1](./prompts/v1.3.2-turn-1.txt) and
+[Turn 2](./prompts/v1.3.2-turn-2.txt) prompts.
+
+| Turn | Wall / API time | Cost field / turns | Result |
+|---|---:|---:|---|
+| Plan | 273.977 / 273.017 s | $1.49627725 / 15 | Baton loaded; `ENV-report-audit` then `S1-report` reached foreground Opus `READY`; no write |
+| Approved S1 | 171.033 / 170.399 s | $1.2808205 / 4 | Only `REPORT.md`; `npm test` and an independent final-byte rerun passed; fresh Opus verifier returned `CONFIRMED` |
+| **Total** | **445.010 / 443.416 s** | **$2.77709775 / 19** | `S2-followup` remained deferred |
+
+`results.json#v1_3_2_release_gate` binds the snapshot, shell-normalized
+payload, prompts, transcript, fixture baseline, and final report by SHA-256.
+This single run establishes only the exact sliced lifecycle it exercised; it
+does not establish cost, latency, quality, or activation frequency.
 
 ## Recorded v1.3.1 approval-lifecycle result
 
