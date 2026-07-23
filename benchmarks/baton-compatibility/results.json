@@ -1,6 +1,6 @@
 {
-  "schema_version": 3,
-  "run_date": "2026-07-20",
+  "schema_version": 4,
+  "run_date": "2026-07-22",
   "timezone": "Asia/Taipei",
   "fixture": {
     "repository": "https://github.com/Nanako0129/pilotfish",
@@ -8,11 +8,11 @@
     "path": "benchmarks/dispatch-brake/positive-controls/research/fixture"
   },
   "runtime": {
-    "claude_code": "2.1.215",
+    "claude_code": "2.1.217",
     "calico_patched_binary": false,
     "provider_route": "native Claude first-party authentication",
     "fast_mode": false,
-    "initial_candidate_base_head": "a38dd2dde000441b24881fa49495e545ff21b9e6",
+    "initial_candidate_base_head": "4d65cc94b59acec2debec37983ad0a021440d643",
     "superseded_gate_orchestration_sha256": "b2854ae1a32875144108c69f68d1a75ec4c755e935bbd9fb25214a95c449b0f7",
     "superseded_gate_agents_json_sha256": "9d9b4f80ce8aa1f7f3e1386655a991dee9025726f2882ae0ac9cd2a32f788b46",
     "superseded_gate_snapshot_policy": "gate-snapshot/CLAUDE.md",
@@ -22,26 +22,31 @@
     "final_gate_status": "complete",
     "final_gate_snapshot_policy": "final-gate-snapshot/CLAUDE.md",
     "final_gate_snapshot_agents_json": "final-gate-snapshot/agents.json",
-    "final_gate_orchestration_sha256": "d41a9d41db21e97176e82614dcfd4d80cba670ec28136666cc96906dd5efda35",
+    "previous_final_gate_source_commit": "4d65cc94b59acec2debec37983ad0a021440d643",
+    "previous_final_gate_orchestration_sha256": "d41a9d41db21e97176e82614dcfd4d80cba670ec28136666cc96906dd5efda35",
+    "previous_final_gate_agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
+    "previous_final_gate_transcript_sha256": "98724de501d714dcb58b315b2260147f9cdd43975f16e52297a84ed258a83ac4",
+    "final_gate_orchestration_sha256": "7ff86564cd4cd8469cf3d24646fd395c57be09dc1fc7e1efa9d0d77c61ecfb21",
     "final_gate_agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
     "final_gate_prompt_turn_1_file_sha256": "45dbe7b6b24cb5838ebf4219011797b61f172fcc18f0ca5039144017e93fcca7",
     "final_gate_prompt_turn_1_runtime_input_sha256": "d2ad46b7ecfb503f8f7185d6d68f404d326f1a4a480b9141d1a80318a746bb73",
     "final_gate_prompt_turn_2_file_sha256": "82d833090ba91982651de9ac4beed8fc96311119c6eb9c6f0304c292821918e7",
     "final_gate_prompt_turn_2_runtime_input_sha256": "93ae95d1cd4eebca91ab42a06d484e180f46dd1f327e471a5a4fd2a27ca2f344",
-    "final_gate_transcript_sha256": "98724de501d714dcb58b315b2260147f9cdd43975f16e52297a84ed258a83ac4",
+    "final_gate_transcript_sha256": "6563b1c5f3d15f2640688a8509fa093364c5534f9246e0ee700e67c3469ac0b5",
     "agents_hash_input": "shell command substitution bytes; repository trailing newline stripped",
-    "final_gate_candidate_version_stamp": "1.3.0",
-    "final_gate_candidate_orchestration_sha256": "d41a9d41db21e97176e82614dcfd4d80cba670ec28136666cc96906dd5efda35",
+    "final_gate_candidate_version_stamp": "1.3.1",
+    "final_gate_candidate_orchestration_sha256": "7ff86564cd4cd8469cf3d24646fd395c57be09dc1fc7e1efa9d0d77c61ecfb21",
     "final_gate_candidate_agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
-    "release_candidate_version": "1.3.0",
-    "release_candidate_orchestration_sha256": "d41a9d41db21e97176e82614dcfd4d80cba670ec28136666cc96906dd5efda35",
+    "release_candidate_version": "1.3.1",
+    "release_candidate_orchestration_sha256": "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf",
     "release_candidate_agents_json_sha256": "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
-    "release_candidate_policy_delta_from_final_gate": "none; exact policy bytes",
+    "release_candidate_policy_delta_from_final_gate": "non-empty; current policy adds proactive Baton capability activation and temporary exclusive discovery read scopes; these bytes are covered by baton-dispatch-effect large-v131-4, not by this historical approval-lifecycle Gate",
     "release_candidate_agents_json_delta_from_final_gate": "executor role model changed opus to sonnet (issue #18, tier-collapse fix); every other role frontmatter is unchanged",
+    "release_candidate_runtime_evidence": "../baton-dispatch-effect/results.json#large_policy_activation_gate",
     "baton_skill_sha256": "48b1e573a9e3de85fdb68c433bd47d69add9ec8491613ca304cfcef2326e3d67"
   },
   "final_gate_status": "complete",
-  "final_gate": {
+  "previous_final_gate": {
     "granularity": "invocation",
     "status": "passed",
     "source_base_head": "a38dd2dde000441b24881fa49495e545ff21b9e6",
@@ -231,6 +236,161 @@
     ],
     "approval_tool_boundary_exercised": true,
     "result_collection_runtime_exercised": true,
+    "security_reviewer_runtime_exercised": false,
+    "passed": true
+  },
+  "final_gate": {
+    "granularity": "invocation",
+    "status": "passed",
+    "source_base_head": "4d65cc94b59acec2debec37983ad0a021440d643",
+    "release_candidate_version": "1.3.1",
+    "requested_main_model": "opus",
+    "observed_main_model": "claude-opus-4-8",
+    "fast_mode": false,
+    "transcript_sha256": "6563b1c5f3d15f2640688a8509fa093364c5534f9246e0ee700e67c3469ac0b5",
+    "prompt_file_hashes": {
+      "turn-1.txt": "45dbe7b6b24cb5838ebf4219011797b61f172fcc18f0ca5039144017e93fcca7",
+      "turn-2.txt": "82d833090ba91982651de9ac4beed8fc96311119c6eb9c6f0304c292821918e7"
+    },
+    "prompt_runtime_input_hashes": {
+      "turn-1.txt": "d2ad46b7ecfb503f8f7185d6d68f404d326f1a4a480b9141d1a80318a746bb73",
+      "turn-2.txt": "93ae95d1cd4eebca91ab42a06d484e180f46dd1f327e471a5a4fd2a27ca2f344"
+    },
+    "startup_resend_required": false,
+    "turns": [
+      {
+        "cli_invocation": 1,
+        "prompt_turn": "turn-1",
+        "prompt_file_sha256": "45dbe7b6b24cb5838ebf4219011797b61f172fcc18f0ca5039144017e93fcca7",
+        "prompt_runtime_input_sha256": "d2ad46b7ecfb503f8f7185d6d68f404d326f1a4a480b9141d1a80318a746bb73",
+        "max_budget_usd": 6,
+        "phase": "discovery_plan_approval_wait",
+        "disposition": "completed",
+        "wall_seconds": 168.41,
+        "duration_ms": 166668,
+        "duration_api_ms": 165928,
+        "num_turns": 8,
+        "client_reported_cost_usd": 1.104294,
+        "models": [
+          "claude-opus-4-8"
+        ],
+        "baton_loaded": true,
+        "discovery_topology": "direct main-session read; Baton found no positive net benefit in splitting the small fixture",
+        "scout_calls": [],
+        "git_clean": true,
+        "writes_before_approval": false,
+        "plan_verifier_role": "plan-verifier",
+        "plan_verifier_invocation_model": null,
+        "plan_verifier_observed_model": "claude-opus-4-8",
+        "plan_verifier_observed_tools": [
+          "Read",
+          "Grep"
+        ],
+        "verifier_sequence": [
+          "READY"
+        ],
+        "plan_revision_applied": false,
+        "plan_revision_summary": "none required; the readiness pass returned READY on the first Plan"
+      },
+      {
+        "cli_invocation": 2,
+        "prompt_turn": "turn-2",
+        "prompt_file_sha256": "82d833090ba91982651de9ac4beed8fc96311119c6eb9c6f0304c292821918e7",
+        "prompt_runtime_input_sha256": "93ae95d1cd4eebca91ab42a06d484e180f46dd1f327e471a5a4fd2a27ca2f344",
+        "max_budget_usd": 6,
+        "phase": "approved_execution_verification",
+        "disposition": "completed",
+        "wall_seconds": 278.34,
+        "duration_ms": 276613,
+        "duration_api_ms": 275037,
+        "num_turns": 5,
+        "client_reported_cost_usd": 1.7779397,
+        "models": [
+          "claude-opus-4-8",
+          "claude-sonnet-5"
+        ],
+        "writer": "mech-executor",
+        "writer_invocation_model": null,
+        "writer_observed_model": "claude-sonnet-5",
+        "writer_observed_tools": [
+          "Bash",
+          "Write"
+        ],
+        "writer_direct_write_blocked_by_hook": true,
+        "integration_write_owner": "main_session",
+        "integration_note": "The worker returned the complete report content after the existing hook rejected its Write; the main session integrated that content without changing scope.",
+        "verifier": "verifier",
+        "verifier_invocation_model": null,
+        "verifier_observed_model": "claude-opus-4-8",
+        "verifier_observed_tools": [
+          "Bash"
+        ],
+        "only_change": "?? REPORT.md",
+        "git_status": "?? REPORT.md",
+        "report_sha256": "71357915fed0d4572a1cff5cda78816bad46b4d1a10f4c3750eb63f6b8783cdf",
+        "report_lines": 64,
+        "report_bytes": 7274,
+        "citation_surfaces": [
+          "surface-a/",
+          "surface-b/"
+        ],
+        "test_command": "npm test",
+        "test_passed": true,
+        "test_output": "REPORT.md covers both independent surfaces with file:line evidence",
+        "verifier_sequence": [
+          "CONFIRMED"
+        ],
+        "verifier_note": "The verifier disclosed one non-blocking wording issue: architecture.md:72-78 includes two non-role rows, so calling the whole range a per-role tier table is broader than the source. It did not refute the audited claim."
+      }
+    ],
+    "total_duration_ms": 443281,
+    "total_duration_api_ms": 440965,
+    "total_num_turns": 13,
+    "total_cli_invocations": 2,
+    "total_client_reported_cost_usd": 2.8822337,
+    "agent_calls": [
+      {
+        "role": "plan-verifier",
+        "mode": "plan_readiness",
+        "background": false,
+        "invocation_model": null,
+        "observed_model": "claude-opus-4-8",
+        "observed_tools": [
+          "Read",
+          "Grep"
+        ],
+        "verdicts": [
+          "READY"
+        ]
+      },
+      {
+        "role": "mech-executor",
+        "mode": "approved_execution_writer",
+        "background": false,
+        "invocation_model": null,
+        "observed_model": "claude-sonnet-5",
+        "observed_tools": [
+          "Bash",
+          "Write"
+        ],
+        "direct_write_blocked_by_hook": true
+      },
+      {
+        "role": "verifier",
+        "mode": "outcome_verification",
+        "background": false,
+        "invocation_model": null,
+        "observed_model": "claude-opus-4-8",
+        "observed_tools": [
+          "Bash"
+        ],
+        "verdicts": [
+          "CONFIRMED"
+        ]
+      }
+    ],
+    "approval_tool_boundary_exercised": true,
+    "result_collection_runtime_exercised": false,
     "security_reviewer_runtime_exercised": false,
     "passed": true
   },
@@ -452,7 +612,7 @@
     "security_reviewer_runtime_exercised": false,
     "passed": true,
     "passed_at_the_time": true,
-    "superseded_reason": "The policy bytes were rewritten to backend-neutral guardrails before a fresh final gate; this old candidate is retained as superseded evidence, not current final evidence."
+    "superseded_reason": "The policy bytes were rewritten to backend-neutral guardrails before the recorded v1.3.1 approval-lifecycle gate; this old candidate is retained as superseded evidence, not that compatibility cycle's selected final evidence."
   },
   "superseded_gate": {
     "granularity": "summary",
@@ -481,10 +641,12 @@
     "source": "https://github.com/Nanako0129/pilotfish/pull/10#issuecomment-4958570683",
     "long_process_triggered": false,
     "long_process_evidence": "four dedicated direct harness trials from the contributor plus policy contract tests across every Bash-capable role",
+    "result_collection_background_recon_triggered": false,
+    "result_collection_evidence": "Baton selected direct main-session discovery in the current small fixture; the preserved v1.3.0 previous_final_gate contains the historical two-background-scout collection evidence",
     "security_reviewer_invoked": false,
     "security_reviewer_evidence": "frontmatter tool allowlist and policy contract tests; no security task was added to this orchestration fixture",
     "executor_role_invoked": false,
-    "executor_role_evidence": "final_gate.agent_calls lists only scout, scout, plan-verifier, mech-executor, and verifier; the executor role was never dispatched in this fixture run"
+    "executor_role_evidence": "final_gate.agent_calls lists only plan-verifier, mech-executor, and verifier; the executor and scout roles were not dispatched in this fixture run"
   },
   "post_gate_role_frontmatter_change": {
     "granularity": "summary",
@@ -493,6 +655,6 @@
     "agents_json_sha256_before": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
     "agents_json_sha256_after": "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
     "final_gate_turns_affected": false,
-    "note": "The recorded final_gate transcript, costs, verdicts, and final-gate-snapshot/agents.json preserve the exact historical runtime input. The current release candidate is generated separately from templates and has a different hash because executor moved to Sonnet after the Gate. That run never dispatched executor (see unexercised_controls.executor_role_evidence), so its observations remain accurate for the roles it exercised. A fresh live two-turn Gate that specifically exercises the new Sonnet executor has not been separately run and is a disclosed limit, not claimed evidence."
+    "note": "The recorded final_gate transcript, costs, verdicts, and final-gate-snapshot/agents.json preserve the exact historical runtime input. The current release payload is generated separately from templates and has a different hash because executor moved to Sonnet after the Gate. That run never dispatched executor (see unexercised_controls.executor_role_evidence), so its observations remain accurate for the roles it exercised. Later live replays accepted the changed payload but dispatched the distinct mech-executor or scout roles; the changed executor itself was not live-exercised and remains a disclosed limit."
   }
 }

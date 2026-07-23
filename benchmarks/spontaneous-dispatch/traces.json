@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "description": "Normalized observable top-level tool sequences. Absolute paths, session identifiers, hook payloads, plugin inventory, and hidden reasoning are excluded.",
+  "runs": {
+    "fable-v1.3.0-mechanical-baseline": {
+      "tools": [],
+      "bash_actions": [],
+      "note": "Execution stopped at the usage-credit gate before any tool call."
+    },
+    "opus-v1.3.0-mechanical-baseline": {
+      "tools": [
+        "Bash",
+        "Bash",
+        "Read",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "bash_actions": [
+        "list src/adapters and read package.json",
+        "read every adapter and find test files",
+        "attempt a shell-loop source rewrite with ordinary redirection; zsh noclobber rejected it",
+        "rewrite all 12 adapters with a shell loop and forced redirection",
+        "run npm test and inspect git status"
+      ],
+      "main_source_write_tools": [
+        "Bash"
+      ],
+      "agent_calls": []
+    },
+    "opus-v1.3.1-candidate-1-mechanical": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Agent",
+        "Bash"
+      ],
+      "top_level_bash_actions": [
+        "list repository and adapter directories",
+        "read representative adapters, package metadata, and tests",
+        "inspect final diff scope, adapter consistency, and 12/12 test result"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [
+        {
+          "subagent_type": "mech-executor",
+          "run_in_background": false,
+          "invocation_model_present": false
+        }
+      ],
+      "worker_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Edit",
+        "Bash",
+        "Bash"
+      ],
+      "worker_source_write_tools": [
+        "Edit",
+        "Bash"
+      ],
+      "note": "Two worker Bash rewrite attempts were rejected by zsh noclobber before the worker used Edit for alpha and a noclobber-disabled Bash loop for the remaining 11 files."
+    },
+    "opus-v1.3.1-candidate-1-bug": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Read",
+        "Read",
+        "Bash",
+        "Read",
+        "Read",
+        "Edit",
+        "Bash",
+        "Bash"
+      ],
+      "agent_calls": [],
+      "first_minimal_fix_tool_index": 8,
+      "post_fix_passing_test_tool_index": 9,
+      "post_fix_ownership_probe_tool_index": 10,
+      "changed_path": "src/reducer.js",
+      "note": "The main session owned the contiguous diagnosis, Edit, 2/2 post-fix test, and cloned-message identity probe."
+    },
+    "opus-v1.3.1-release-payload-mechanical": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Agent"
+      ],
+      "top_level_bash_actions": [
+        "list adapters and project root",
+        "inspect representative adapters and tests"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [
+        {
+          "subagent_type": "mech-executor",
+          "run_in_background": false,
+          "invocation_model_present": false,
+          "observed_model": "claude-sonnet-5"
+        }
+      ],
+      "worker_is_sole_source_mutation_path": true,
+      "only_changed_paths": "src/adapters/*.js (12 files)",
+      "independent_post_run_test_passed": true
+    },
+    "opus-v1.3.1-release-payload-bug": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Bash",
+        "Edit",
+        "Bash"
+      ],
+      "agent_calls": [],
+      "first_minimal_fix_tool_index": 10,
+      "post_fix_passing_test_tool_index": 11,
+      "changed_path": "src/reducer.js",
+      "independent_post_run_test_passed": true,
+      "note": "The current release payload kept the contiguous diagnosis, first minimal fix, and 2/2 post-fix test in the Opus main session."
+    }
+  }
+}

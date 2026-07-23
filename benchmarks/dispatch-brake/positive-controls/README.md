@@ -96,6 +96,6 @@ git -C "$HARNESS" worktree remove "$SNAPSHOT"
 | Client-reported cost field | It is not a provider invoice |
 | Historical Baton probes | GPT-5.6 Sol auto-loaded [baton-dispatch v0.1.1](https://github.com/cablate/baton) and selected two read-only discovery calls. Both probes stopped before Plan synthesis, approval, execution, or verification, so those runs alone did not evaluate the complete composition |
 | Product/model asymmetry | A decision observed under Claude Opus is not automatically proven under GPT-5.6 Sol with a planning skill active |
-| Complete lifecycle | The later [pilotfish + Baton compatibility gate](../../baton-compatibility/README.md) completed the native-Claude two-turn lifecycle; it is a separate single-run gate, not a reinterpretation of these probes |
+| Complete lifecycle | The later, now-historical [pilotfish + Baton compatibility gate](../../baton-compatibility/README.md) completed the native-Claude two-turn lifecycle for its exact recorded bytes; it is a separate single-run gate, not a reinterpretation of these probes |
 
 The historical remora/Baton observation remains a composition probe, not a standalone compatibility finding. Baton selected a plausible discovery topology and remora supplied the named roles and GPT model routing, but the probes stopped before closure. End-to-end compatibility evidence is published separately so the earlier observations keep their original scope.

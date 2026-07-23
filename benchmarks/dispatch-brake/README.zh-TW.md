@@ -114,7 +114,7 @@ Hard candidate 不能原樣發布：pilotfish 在 12 檔機械式工作中選擇
 | 小型唯讀稽核 | 2 scouts，261.52 s，$1.036893 | Inline，228.96 s，$0.918431 | 在這個 task-local fixture 中，直接做更快且更便宜 |
 | 緊密耦合 bug | remora baseline scout → executor → verifier | Inline 診斷／修正 → verifier，200.86 s，$0.817504 | Main 持續擁有同一條演進中的證據鏈 |
 
-完整 fixtures、prompts、所有完成 run、刻意中止的決策 probe、正規化 Agent inputs、model usage 與 raw-stream hashes 都位於 [`positive-controls/`](./positive-controls/)。GPT-5.6 Sol 自動載入另外安裝的 [baton-dispatch v0.1.1](https://github.com/cablate/baton) 後，Baton 選擇了兩個互相獨立的唯讀 discovery call。兩個歷史 probe 都刻意停在這個觀察點，沒有繼續 main-session Plan 彙整、使用者批准、execution 或 verification，因此只記錄不同的分解方式，而不是衝突。後續的 [pilotfish + Baton 相容性 Gate](../baton-compatibility/README.zh-TW.md) 已在原生 Claude 路由下完成整個 lifecycle。
+完整 fixtures、prompts、所有完成 run、刻意中止的決策 probe、正規化 Agent inputs、model usage 與 raw-stream hashes 都位於 [`positive-controls/`](./positive-controls/)。GPT-5.6 Sol 自動載入另外安裝的 [baton-dispatch v0.1.1](https://github.com/cablate/baton) 後，Baton 選擇了兩個互相獨立的唯讀 discovery call。兩個歷史 probe 都刻意停在這個觀察點，沒有繼續 main-session Plan 彙整、使用者批准、execution 或 verification，因此只記錄不同的分解方式，而不是衝突。後續、現在已是 historical 的 [pilotfish + Baton 相容性 Gate](../baton-compatibility/README.zh-TW.md) 已為其 exact recorded bytes 在原生 Claude 路由下完成整個 lifecycle。
 
 [`results.json`](./results.json) 包含 raw stream SHA-256。Repo 公開的是正規化後的 observable trace，不直接提交 Claude raw stream JSON，因為 raw init／hook event 會包含與 dispatch 主張無關的本機絕對路徑、session identifier 與 plugin inventory。這份報告不宣稱也不公開 chain-of-thought 或隱藏推理；可稽核證據是公開 prompt、fixture、policies、Agent tool inputs、tool sequence、result metrics、diff 與測試結果。
 
@@ -146,4 +146,4 @@ Repo 的 policy contract tests 應持續鎖住 dispatch-brake 語意；未來只
 | 能否泛化到大型真實 repo？ | 使用固定 source snapshot 重放匿名化的 trace-heavy bug，並維持相同 acceptance gates。 |
 | Verifier 的 latency 是否總是值得？ | 依風險分類比較 workload，維持相同 correctness probes；不能由單一 fixture 外推。 |
 | Client cost field 是否符合 provider 實際成本？ | 未來有 privacy-safe 且 model-comparable 的 provider usage export 時再交叉核對。 |
-| Phase-aware lifecycle 能否跨 provider 與大型任務泛化？ | 原生 Claude 的 [pilotfish Gate](../baton-compatibility/README.zh-TW.md) 與 GPT 路由的 [remora Gate](https://github.com/Nanako0129/remora-cc/tree/main/benchmarks/baton-compatibility) 都只涵蓋一個小型 fixture；要外推 topology 或效能前，需在更大型且真正獨立的 workload 重跑。 |
+| Phase-aware lifecycle 能否跨 provider 與大型任務泛化？ | Historical 原生 Claude [pilotfish approval-lifecycle Gate](../baton-compatibility/README.zh-TW.md) 與 GPT 路由的 [remora Gate](https://github.com/Nanako0129/remora-cc/tree/main/benchmarks/baton-compatibility) 都只涵蓋一個小型 fixture。目前 pilotfish bytes 另有[四領域 activation Gate](../baton-dispatch-effect/README.zh-TW.md)；這些都不支持外推 topology 或效能。 |

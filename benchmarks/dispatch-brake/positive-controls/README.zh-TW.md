@@ -96,6 +96,6 @@ git -C "$HARNESS" worktree remove "$SNAPSHOT"
 | Client-reported cost field | 不是 provider 帳單 |
 | 歷史 Baton probes | GPT-5.6 Sol 自動載入 [baton-dispatch v0.1.1](https://github.com/cablate/baton) 並選擇兩個唯讀 discovery call；兩個 probe 都在 Plan 彙整、批准、execution 與 verification 前停止，因此那些 run 本身沒有評估完整組合 |
 | Product／model 不對稱 | Claude Opus 觀察到的決策，不能自動外推到啟用 planning skill 的 GPT-5.6 Sol |
-| 完整 lifecycle | 後續的 [pilotfish + Baton 相容性 Gate](../../baton-compatibility/README.zh-TW.md) 已完成原生 Claude 雙 turn lifecycle；那是另一個單次 Gate，不是重新解讀這兩次 probe |
+| 完整 lifecycle | 後續、現在已是 historical 的 [pilotfish + Baton 相容性 Gate](../../baton-compatibility/README.zh-TW.md) 已為其 exact recorded bytes 完成原生 Claude 雙 turn lifecycle；那是另一個單次 Gate，不是重新解讀這兩次 probe |
 
 歷史 remora／Baton 觀察仍是 composition probe，不是獨立的 compatibility finding。Baton 選擇可成立的 discovery topology，remora 提供具名角色與 GPT 模型分流，但兩次 probe 都在 closure 前停止。完整 E2E 證據另行公開，讓早期觀察維持原本範圍。

@@ -1,0 +1,1 @@
+Create AUDIT.md auditing domain-a through domain-d. For each domain, evaluate version consistency, provenance, runtime-evidence boundaries, and automated coverage, with file:line citations. Synthesize cross-domain contradictions, preserve existing files, run npm test, and report the outcome.

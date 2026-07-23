@@ -24,6 +24,500 @@ ROLES = (
 
 
 class PolicyContractTests(unittest.TestCase):
+    def test_baton_dispatch_matrix_prompts_are_neutral_and_recorded(self) -> None:
+        benchmark = ROOT / "benchmarks" / "baton-dispatch-effect"
+        results = json.loads(
+            (benchmark / "results.json").read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        self.assertEqual(results["schema_version"], 3)
+        cue_pattern = re.compile(
+            r"baton|agent|subagent|worker|\brole\b|policy|skill|delegat|"
+            r"orchestrat|parallel|independent|fan-out",
+            re.IGNORECASE,
+        )
+        prompt_contracts = (
+            (
+                benchmark / "prompts" / "task.txt",
+                results["small_availability_observation"],
+            ),
+            (
+                benchmark / "prompts" / "large-audit.txt",
+                results["large_policy_activation_gate"],
+            ),
+        )
+        for path, contract in prompt_contracts:
+            prompt = path.read_bytes()
+            self.assertIsNone(cue_pattern.search(prompt.decode("utf-8")))
+            self.assertEqual(
+                hashlib.sha256(prompt).hexdigest(),
+                contract["prompt_file_sha256"],
+            )
+            self.assertEqual(
+                hashlib.sha256(prompt.rstrip(b"\n")).hexdigest(),
+                contract["prompt_runtime_input_sha256"],
+            )
+
+        runtime = results["shared_runtime"]
+        self.assertEqual(
+            results["client"]["versions_observed"], ["2.1.217", "2.1.218"]
+        )
+        self.assertEqual(runtime["requested_model"], "opus")
+        self.assertEqual(runtime["observed_main_model"], "claude-opus-4-8")
+        self.assertEqual(runtime["setting_sources"], "project,local")
+        large = results["large_policy_activation_gate"]
+        self.assertIn("user prompt only", large["claim_boundary"])
+        self.assertIn("fully cue-free", large["claim_boundary"])
+        self.assertEqual(
+            hashlib.sha256(
+                (ROOT / "templates/claude-md.orchestration.md").read_bytes()
+            ).hexdigest(),
+            large["policy_sha256"],
+        )
+        self.assertEqual(large["fixture"]["domain_file_count"], 45)
+        self.assertEqual(large["fixture"]["domain_total_lines"], 3032)
+        baseline_ref = "refs/heads/benchmark/v1.3.1-baton-large-fixture"
+        baseline_commit = "34ebabe2a26dd53de1a019607992f1ac10af245f"
+        baseline_tree = "3773149bae5c514abe6d141d6fc5216e86d02574"
+        self.assertEqual(large["fixture"]["baseline_ref"], baseline_ref)
+        self.assertEqual(large["fixture"]["baseline_commit"], baseline_commit)
+        self.assertEqual(large["fixture"]["baseline_tree"], baseline_tree)
+        self.assertEqual(
+            large["fixture"]["baseline_url"],
+            f"https://github.com/Nanako0129/pilotfish/tree/{baseline_commit}",
+        )
+        replay = results["release_payload_replay"]
+        self.assertEqual(replay["fixture_baseline_ref"], baseline_ref)
+        self.assertEqual(replay["fixture_baseline_commit"], baseline_commit)
+        self.assertEqual(replay["fixture_baseline_tree"], baseline_tree)
+        self.assertEqual(
+            replay["fixture_baseline_url"], large["fixture"]["baseline_url"]
+        )
+        for readme_name in ("README.md", "README.zh-TW.md"):
+            readme = (benchmark / readme_name).read_text(encoding="utf-8")
+            self.assertIn(baseline_ref.removeprefix("refs/heads/"), readme)
+            self.assertIn(f"tree/{baseline_commit}", readme)
+            self.assertIn("git fetch origin", readme)
+        self.assertEqual(
+            set(large["fixture"]["construction"]),
+            {"domain-a", "domain-b", "domain-c", "domain-d"},
+        )
+        package = json.loads(
+            (benchmark / "large-fixture" / "package.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(package["scripts"]["test"], "node verify-audit.mjs")
+        harness = (benchmark / "large-fixture" / "verify-audit.mjs").read_text(
+            encoding="utf-8"
+        )
+        for domain in ("domain-a", "domain-b", "domain-c", "domain-d"):
+            self.assertIn(domain, harness)
+
+    def test_baton_dispatch_matrix_records_activation_and_complete_dispatch(self) -> None:
+        benchmark = ROOT / "benchmarks" / "baton-dispatch-effect"
+        results = json.loads(
+            (benchmark / "results.json").read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        traces = json.loads((benchmark / "traces.json").read_text(encoding="utf-8"))
+        calls = json.loads(
+            (benchmark / "agent-calls.json").read_text(encoding="utf-8")
+        )
+        small = results["small_availability_observation"]
+        cells = {cell["name"]: cell for cell in small["cells"]}
+        control = cells["control"]
+        treatment = cells["treatment"]
+
+        self.assertFalse(control["baton_listed_at_init"])
+        self.assertTrue(treatment["baton_listed_at_init"])
+        for cell in (control, treatment):
+            self.assertTrue(cell["test_passed"])
+            self.assertEqual(cell["only_change"], "?? REPORT.md")
+            self.assertEqual(cell["baton_skill_call_count"], 0)
+            self.assertEqual(cell["agent_call_count"], 0)
+            self.assertEqual(cell["topology"], "direct main-session execution")
+
+        self.assertEqual(
+            small["gate"]["status"], "no_activation_observed_for_bounded_task"
+        )
+        self.assertIn("not presented as a cue-free causal A/B", small["claim_boundary"])
+        self.assertEqual(
+            traces["small_availability_observation"]["control"]["skill_calls"],
+            [],
+        )
+        self.assertEqual(
+            traces["small_availability_observation"]["treatment"]["skill_calls"],
+            [],
+        )
+        self.assertEqual(calls["small_availability_observation"]["control"], [])
+        self.assertEqual(calls["small_availability_observation"]["treatment"], [])
+        self.assertEqual(
+            sum((cell["client_reported_cost_usd"] for cell in cells.values()), Decimal("0")),
+            small["total_client_reported_cost_usd"],
+        )
+
+        large = results["large_policy_activation_gate"]
+        attempts = {attempt["name"]: attempt for attempt in large["attempts"]}
+        self.assertEqual(small["client_version"], "2.1.217")
+        self.assertEqual(
+            [attempts[f"large-v131-{n}"]["client_version"] for n in (1, 2, 3, 4)],
+            ["2.1.217", "2.1.217", "2.1.217", "2.1.218"],
+        )
+        self.assertEqual(
+            sum(
+                (
+                    attempt["client_reported_cost_usd"]
+                    for attempt in large["attempts"]
+                ),
+                Decimal("0"),
+            ),
+            large["total_client_reported_cost_usd"],
+        )
+        self.assertTrue(attempts["large-v131-1"]["status"].endswith("ownership_fail"))
+        self.assertTrue(attempts["large-v131-2"]["status"].endswith("ownership_fail"))
+        self.assertEqual(
+            attempts["large-v131-3"]["status"],
+            "topology_pass_runtime_limit_outcome_incomplete",
+        )
+        final = attempts["large-v131-4"]
+        self.assertEqual(
+            final["status"],
+            "passed_activation_dispatch_ownership_collection_correctness",
+        )
+        self.assertEqual(final["baton_skill_call_count"], 1)
+        self.assertEqual(final["agent_call_count"], 4)
+        self.assertEqual(final["completed_agent_count"], 4)
+        self.assertTrue(final["all_agents_background"])
+        self.assertTrue(final["all_agent_invocations_omit_model"])
+        self.assertTrue(final["agent_calls_back_to_back"])
+        self.assertTrue(final["all_results_collected_before_cross_domain_check"])
+        self.assertFalse(final["active_scope_overlap_observed"])
+        self.assertTrue(final["test_passed"])
+        self.assertFalse(final["terminal_is_error"])
+        self.assertEqual(final["only_change"], "?? AUDIT.md")
+        self.assertEqual(
+            final["in_session_test"]["status"], "passed_before_final_edit"
+        )
+        self.assertLess(
+            final["in_session_test"]["test_event_index"],
+            final["in_session_test"]["final_edit_event_index"],
+        )
+        post_run = final["post_run_verification"]
+        self.assertEqual(post_run["exit_code"], 0)
+        self.assertEqual(post_run["audit_sha256"], final["audit_sha256"])
+        self.assertEqual(post_run["only_change"], "?? AUDIT.md")
+        self.assertEqual(large["effect_gate"]["status"], "passed")
+
+        final_trace = traces["large_policy_activation_gate"]["attempts"][
+            "large-v131-4"
+        ]
+        self.assertEqual(final_trace["top_level_tools"].count("Skill"), 1)
+        self.assertEqual(final_trace["top_level_tools"].count("Agent"), 4)
+        self.assertEqual(final_trace["main_domain_content_tools_while_agents_active"], [])
+        self.assertTrue(final_trace["in_session_test_preceded_final_edit"])
+        self.assertEqual(final_trace["post_run_verification"]["exit_code"], 0)
+        self.assertLess(
+            max(final_trace["completion_event_indexes"]),
+            min(final_trace["post_collection_cross_domain_check_event_indexes"]),
+        )
+        final_calls = calls["large_policy_activation_gate"]["large-v131-4"]
+        self.assertEqual(len(final_calls), 4)
+        self.assertEqual(
+            {call["exclusive_read_scope"] for call in final_calls},
+            {"domain-a", "domain-b", "domain-c", "domain-d"},
+        )
+        for call in final_calls:
+            self.assertEqual(call["subagent_type"], "scout")
+            self.assertTrue(call["run_in_background"])
+            self.assertFalse(call["invocation_model_present"])
+            self.assertEqual(call["status"], "completed")
+            self.assertEqual(call["observed_model"], "claude-haiku-4-5-20251001")
+
+        release = results["release_payload_replay"]
+        self.assertIn("user prompt only", release["claim_boundary"])
+        self.assertIn("fully cue-free", release["claim_boundary"])
+        self.assertEqual(
+            release["status"],
+            "passed_activation_dispatch_ownership_collection_final_byte_correctness",
+        )
+        self.assertEqual(release["policy_sha256"], large["policy_sha256"])
+        current_agents = subprocess.run(
+            [
+                sys.executable,
+                str(
+                    ROOT
+                    / "benchmarks"
+                    / "baton-compatibility"
+                    / "build-agents-json.py"
+                ),
+                str(ROOT / "templates" / "agents"),
+            ],
+            check=True,
+            capture_output=True,
+        ).stdout.rstrip(b"\n")
+        self.assertEqual(
+            hashlib.sha256(current_agents).hexdigest(),
+            release["agents_json_sha256"],
+        )
+        self.assertEqual(release["baton_skill_call_count"], 1)
+        self.assertEqual(release["agent_call_count"], 4)
+        self.assertEqual(release["completed_agent_count"], 4)
+        self.assertTrue(release["all_agents_background"])
+        self.assertTrue(release["all_agent_invocations_omit_model"])
+        self.assertTrue(release["agent_calls_back_to_back"])
+        self.assertTrue(release["all_results_collected_before_cross_domain_check"])
+        self.assertFalse(release["active_scope_overlap_observed"])
+        self.assertEqual(release["only_change"], "?? AUDIT.md")
+        self.assertTrue(release["test_passed"])
+        self.assertFalse(release["terminal_is_error"])
+        self.assertEqual(
+            release["in_session_test"]["status"], "passed_after_final_write"
+        )
+        self.assertLess(
+            release["in_session_test"]["write_event_index"],
+            release["in_session_test"]["test_event_index"],
+        )
+        self.assertEqual(
+            release["post_run_verification"]["audit_sha256"],
+            release["audit_sha256"],
+        )
+
+        release_trace = traces["release_payload_replay"][
+            "large-v131-release-payload-replay"
+        ]
+        self.assertEqual(release_trace["top_level_tools"].count("Skill"), 1)
+        self.assertEqual(release_trace["top_level_tools"].count("Agent"), 4)
+        self.assertEqual(
+            release_trace["main_domain_content_tools_while_agents_active"], []
+        )
+        self.assertTrue(release_trace["in_session_test_followed_final_write"])
+        self.assertLess(
+            max(release_trace["completion_event_indexes"]),
+            min(release_trace["post_collection_cross_domain_check_event_indexes"]),
+        )
+        release_calls = calls["release_payload_replay"][
+            "large-v131-release-payload-replay"
+        ]
+        self.assertEqual(len(release_calls), 4)
+        self.assertEqual(
+            {call["exclusive_read_scope"] for call in release_calls},
+            {"domain-a", "domain-b", "domain-c", "domain-d"},
+        )
+        for call in release_calls:
+            self.assertEqual(call["subagent_type"], "scout")
+            self.assertTrue(call["run_in_background"])
+            self.assertFalse(call["invocation_model_present"])
+            self.assertEqual(call["status"], "completed")
+            self.assertEqual(call["observed_model"], "claude-haiku-4-5-20251001")
+
+        for readme in ("README.md", "README.zh-TW.md"):
+            content = (benchmark / readme).read_text(encoding="utf-8")
+            self.assertIn("large-v131-4", content)
+            self.assertIn("0b42c137", content)
+            self.assertIn("release-payload", content)
+            self.assertIn("0.1.1", content)
+            self.assertIn("results.json", content)
+
+    def test_spontaneous_dispatch_inputs_are_cue_free_and_recorded(self) -> None:
+        benchmark = ROOT / "benchmarks" / "spontaneous-dispatch"
+        results = json.loads((benchmark / "results.json").read_text(encoding="utf-8"))
+        self.assertEqual(results["schema_version"], 2)
+        contract = results["input_contract"]
+        prompts = {
+            "mechanical": benchmark / "prompts" / "mechanical.txt",
+            "bug": benchmark / "prompts" / "bug.txt",
+        }
+        cue_pattern = re.compile(
+            r"agent|subagent|worker|\brole\b|policy|baton|parallel|independent|"
+            r"delegat|orchestrat|fan-out",
+            re.IGNORECASE,
+        )
+
+        for name, path in prompts.items():
+            prompt = path.read_bytes()
+            self.assertIsNone(cue_pattern.search(prompt.decode("utf-8")))
+            self.assertEqual(
+                hashlib.sha256(prompt).hexdigest(),
+                contract[f"{name}_prompt_file_sha256"],
+            )
+            self.assertEqual(
+                hashlib.sha256(prompt.rstrip(b"\n")).hexdigest(),
+                contract[f"{name}_runtime_prompt_sha256"],
+            )
+
+        fixtures = {
+            "mechanical": (
+                ROOT
+                / "benchmarks"
+                / "dispatch-brake"
+                / "positive-controls"
+                / "mechanical"
+                / "fixture"
+            ),
+            "bug": ROOT / "benchmarks" / "dispatch-brake" / "fixture",
+        }
+        for name, fixture in fixtures.items():
+            fixture_hash_lines = []
+            for path in sorted(path for path in fixture.rglob("*") if path.is_file()):
+                self.assertIsNone(cue_pattern.search(path.read_text(encoding="utf-8")))
+                relative = path.relative_to(ROOT)
+                fixture_hash_lines.append(
+                    f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {relative}\n"
+                )
+            fixture_digest = hashlib.sha256(
+                "".join(fixture_hash_lines).encode()
+            ).hexdigest()
+            self.assertEqual(fixture_digest, contract[f"{name}_fixture_digest"])
+        self.assertNotIn(
+            "Do not optimize for or against delegation",
+            (benchmark / "README.md").read_text(encoding="utf-8"),
+        )
+
+    def test_spontaneous_dispatch_baseline_is_additive_and_evidence_bound(self) -> None:
+        benchmark = ROOT / "benchmarks" / "spontaneous-dispatch"
+        results = json.loads((benchmark / "results.json").read_text(encoding="utf-8"))
+        traces = json.loads((benchmark / "traces.json").read_text(encoding="utf-8"))
+        calls = json.loads((benchmark / "agent-calls.json").read_text(encoding="utf-8"))
+        runs = {run["name"]: run for run in results["runs"]}
+
+        fable = runs["fable-v1.3.0-mechanical-baseline"]
+        self.assertEqual(fable["observed_main_model"], "claude-fable-5")
+        self.assertEqual(fable["status"], "usage_credits_required")
+        self.assertEqual(fable["duration_api_ms"], 0)
+        self.assertEqual(fable["reported_cost_usd"], 0)
+        self.assertEqual(fable["agent_call_count"], 0)
+        self.assertFalse(fable["source_mutation_observed"])
+        self.assertIn("No behavior", fable["claim"])
+
+        opus = runs["opus-v1.3.0-mechanical-baseline"]
+        self.assertEqual(opus["observed_main_model"], "claude-opus-4-8")
+        self.assertEqual(opus["status"], "success_topology_fail")
+        self.assertEqual((opus["tests_passed"], opus["tests_failed"]), (12, 0))
+        self.assertEqual(opus["agent_call_count"], 0)
+        self.assertTrue(opus["source_mutation_observed"])
+        self.assertIn("topology failed", opus["claim"])
+
+        candidate_mechanical = runs["opus-v1.3.1-candidate-1-mechanical"]
+        self.assertEqual(candidate_mechanical["status"], "passed")
+        self.assertEqual(
+            candidate_mechanical["observed_main_model"], "claude-opus-4-8"
+        )
+        self.assertEqual(candidate_mechanical["agent_call_count"], 1)
+        self.assertEqual(candidate_mechanical["agent_type"], "mech-executor")
+        self.assertFalse(candidate_mechanical["agent_invocation_model_present"])
+        self.assertFalse(candidate_mechanical["main_source_mutation_observed"])
+        self.assertTrue(candidate_mechanical["worker_is_sole_source_mutation_path"])
+        self.assertEqual(candidate_mechanical["tests_after"], "12/12 passed")
+
+        candidate_bug = runs["opus-v1.3.1-candidate-1-bug"]
+        self.assertEqual(candidate_bug["status"], "passed")
+        self.assertEqual(candidate_bug["agent_call_count"], 0)
+        self.assertTrue(candidate_bug["main_owned_first_minimal_fix"])
+        self.assertTrue(candidate_bug["main_observed_post_fix_pass"])
+        self.assertEqual(candidate_bug["tests_after"], "2/2 passed")
+
+        release_input = results["policy_inputs"]["v1.3.1-release-payload"]
+        self.assertEqual(
+            release_input["policy_sha256"],
+            hashlib.sha256(
+                (ROOT / "templates" / "claude-md.orchestration.md").read_bytes()
+            ).hexdigest(),
+        )
+        current_agents = subprocess.run(
+            [
+                sys.executable,
+                str(
+                    ROOT
+                    / "benchmarks"
+                    / "baton-compatibility"
+                    / "build-agents-json.py"
+                ),
+                str(ROOT / "templates" / "agents"),
+            ],
+            check=True,
+            capture_output=True,
+        ).stdout.rstrip(b"\n")
+        self.assertEqual(
+            release_input["agents_json_sha256"],
+            hashlib.sha256(current_agents).hexdigest(),
+        )
+
+        release_mechanical = runs["opus-v1.3.1-release-payload-mechanical"]
+        self.assertEqual(release_mechanical["status"], "passed")
+        self.assertEqual(release_mechanical["agent_call_count"], 1)
+        self.assertEqual(release_mechanical["agent_type"], "mech-executor")
+        self.assertFalse(release_mechanical["agent_invocation_model_present"])
+        self.assertEqual(
+            release_mechanical["observed_agent_model"], "claude-sonnet-5"
+        )
+        self.assertFalse(release_mechanical["main_source_mutation_observed"])
+        self.assertTrue(release_mechanical["worker_is_sole_source_mutation_path"])
+        self.assertEqual(release_mechanical["tests_after"], "12/12 passed")
+        self.assertEqual(
+            release_mechanical["independent_post_run_test"]["tests_failed"], 0
+        )
+
+        release_bug = runs["opus-v1.3.1-release-payload-bug"]
+        self.assertEqual(release_bug["status"], "passed")
+        self.assertEqual(release_bug["agent_call_count"], 0)
+        self.assertTrue(release_bug["main_owned_first_minimal_fix"])
+        self.assertTrue(release_bug["main_observed_post_fix_pass"])
+        self.assertEqual(release_bug["tests_after"], "2/2 passed")
+        self.assertEqual(release_bug["independent_post_run_test"]["tests_failed"], 0)
+
+        for run_name in runs:
+            self.assertIn(run_name, traces["runs"])
+            self.assertIn(run_name, calls["runs"])
+        self.assertEqual(calls["runs"]["fable-v1.3.0-mechanical-baseline"], [])
+        self.assertEqual(calls["runs"]["opus-v1.3.0-mechanical-baseline"], [])
+        self.assertEqual(
+            calls["runs"]["opus-v1.3.1-candidate-1-mechanical"][0][
+                "subagent_type"
+            ],
+            "mech-executor",
+        )
+        self.assertFalse(
+            calls["runs"]["opus-v1.3.1-candidate-1-mechanical"][0][
+                "invocation_model_present"
+            ]
+        )
+        self.assertEqual(calls["runs"]["opus-v1.3.1-candidate-1-bug"], [])
+        self.assertIn(
+            "Bash",
+            traces["runs"]["opus-v1.3.0-mechanical-baseline"][
+                "main_source_write_tools"
+            ],
+        )
+        candidate_trace = traces["runs"]["opus-v1.3.1-candidate-1-mechanical"]
+        self.assertEqual(candidate_trace["top_level_source_write_tools"], [])
+        self.assertEqual(candidate_trace["top_level_tools"].count("Agent"), 1)
+        bug_trace = traces["runs"]["opus-v1.3.1-candidate-1-bug"]
+        self.assertEqual(bug_trace["agent_calls"], [])
+        self.assertLess(
+            bug_trace["first_minimal_fix_tool_index"],
+            bug_trace["post_fix_passing_test_tool_index"],
+        )
+        release_call = calls["runs"][
+            "opus-v1.3.1-release-payload-mechanical"
+        ][0]
+        self.assertEqual(release_call["observed_model"], "claude-sonnet-5")
+        release_mechanical_trace = traces["runs"][
+            "opus-v1.3.1-release-payload-mechanical"
+        ]
+        self.assertEqual(
+            release_mechanical_trace["top_level_source_write_tools"], []
+        )
+        self.assertEqual(
+            release_mechanical_trace["top_level_tools"].count("Agent"), 1
+        )
+        release_bug_trace = traces["runs"]["opus-v1.3.1-release-payload-bug"]
+        self.assertEqual(release_bug_trace["agent_calls"], [])
+        self.assertLess(
+            release_bug_trace["first_minimal_fix_tool_index"],
+            release_bug_trace["post_fix_passing_test_tool_index"],
+        )
+
     def test_baton_gate_snapshot_matches_recorded_hashes(self) -> None:
         gate = ROOT / "benchmarks" / "baton-compatibility"
         results = json.loads(
@@ -61,7 +555,7 @@ class PolicyContractTests(unittest.TestCase):
             check=True,
             capture_output=True,
         )
-        self.assertEqual(current_policy, snapshot_policy)
+        self.assertNotEqual(current_policy, snapshot_policy)
         self.assertEqual(
             hashlib.sha256(current_policy).hexdigest(),
             runtime["release_candidate_orchestration_sha256"],
@@ -73,9 +567,10 @@ class PolicyContractTests(unittest.TestCase):
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], version)
         self.assertEqual(runtime["release_candidate_version"], version)
-        self.assertEqual(
-            runtime["release_candidate_policy_delta_from_final_gate"],
-            "none; exact policy bytes",
+        self.assertTrue(
+            runtime["release_candidate_policy_delta_from_final_gate"].startswith(
+                "non-empty"
+            )
         )
         self.assertEqual(
             runtime["release_candidate_agents_json_delta_from_final_gate"],
@@ -289,8 +784,61 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("sequential `scout` → `executor` pipeline", policy)
         self.assertIn("does not own or block the main diagnosis", policy)
         self.assertIn("without rediscovery", policy)
-        self.assertIn("eligible rather than mandatory", policy)
-        self.assertIn("net benefit remains positive", policy)
+        self.assertIn("non-positive net benefit", policy)
+
+    def test_policy_uses_rebuttable_mechanical_default(self) -> None:
+        policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("stable multi-file mechanical repetition", policy)
+        self.assertIn("complete one-shot brief", policy)
+        self.assertIn("exclusive ownership", policy)
+        self.assertIn("per-item acceptance", policy)
+        self.assertIn(
+            "dispatch exactly one `mech-executor` before the main session edits by default",
+            policy,
+        )
+        self.assertIn("before editing", policy)
+        for blocker in (
+            "evolving/coupled evidence",
+            "ownership or integration conflict",
+            "worker unavailable",
+            "non-positive net benefit",
+        ):
+            self.assertIn(blocker, policy)
+        self.assertIn(
+            "main session owns per-item triage, exceptions, integration, and acceptance",
+            policy,
+        )
+        self.assertIn("default is rebuttable, not unconditional", policy)
+        self.assertNotIn("eligible rather than mandatory", policy)
+        self.assertNotIn("direct execution being slightly faster is not a veto", policy)
+
+    def test_policy_preserves_single_bug_and_task_local_read_guards(self) -> None:
+        policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("single unknown bug", policy)
+        self.assertIn("initial root-cause discovery", policy)
+        self.assertIn("first minimal fix", policy)
+        self.assertIn("bounded task-local search/read pass stays in the main session by default", policy)
+        self.assertIn("does not own or block the main diagnosis", policy)
+
+    def test_policy_prevents_duplicate_recon_after_dispatch(self) -> None:
+        policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("declared read scope is temporarily exclusive", policy)
+        self.assertIn("must not read or analyze that same scope", policy)
+        self.assertIn("cancels or redirects the agent", policy)
+        self.assertIn("declare the main-owned and agent-owned read scopes", policy)
+        self.assertIn("Check every path in each subsequent Read, Glob, Grep, or Bash call", policy)
+        self.assertIn("a mixed-scope command violates ownership", policy)
+        self.assertIn("Do not begin cross-surface comparison", policy)
+        self.assertIn("Post-result sanity checks", policy)
+        self.assertIn("launch every call back-to-back", policy)
+        self.assertIn("before beginning the main session's remaining work", policy)
+        self.assertIn("do not interleave duplicated reconnaissance", policy)
 
     def test_policy_preserves_positive_delegation_paths(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
@@ -299,13 +847,12 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("choose by net benefit", policy)
         self.assertIn("lower model cost or quota use", policy)
         self.assertIn("preserving scarce main-session context", policy)
-        self.assertIn("direct execution being slightly faster is not a veto", policy)
         self.assertIn("smallest read-only structure", policy)
         self.assertIn("stays in the main session by default", policy)
         self.assertIn("surfaces are genuinely independent and substantial", policy)
         self.assertIn("external or tool latency overlaps", policy)
         self.assertIn("independent evidence or perspectives", policy)
-        self.assertIn("stable multi-file repetition", policy)
+        self.assertIn("stable multi-file mechanical repetition", policy)
 
     def test_policy_uses_backend_neutral_recurrence_conditions(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
@@ -316,9 +863,9 @@ class PolicyContractTests(unittest.TestCase):
             "one-shot brief",
             "independent and the same shape",
             "done criteria",
-            "ownership",
+            "exclusive ownership",
             "per-item acceptance",
-            "Delegation is conditional, not mandatory",
+            "default is rebuttable, not unconditional",
             "main session",
             "diagnosis",
             "integration",
@@ -372,10 +919,27 @@ class PolicyContractTests(unittest.TestCase):
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("A delegation-planning skill may shape discovery questions", policy)
+        self.assertIn(
+            "inspect the session's available skill names",
+            policy,
+        )
+        self.assertIn("before applying the dispatch brake", policy)
+        self.assertIn("deciding between direct and delegated work", policy)
+        self.assertIn("if `baton-dispatch` is listed, invoke it", policy)
+        self.assertIn("Do not pre-screen it away", policy)
+        self.assertIn("topology selection is why the planning skill is present", policy)
+        self.assertIn("Loading Baton is not a command to delegate", policy)
+        self.assertIn("Baton may still select direct work", policy)
+        self.assertIn("If it is not listed, apply this policy directly", policy)
+        self.assertIn("do not search for or install it during the task", policy)
+        self.assertIn("Baton may shape discovery questions", policy)
         self.assertIn("This policy remains the source for the available named roles", policy)
         self.assertIn("The two layers compose", policy)
         self.assertIn("final judgment and synthesis in the main session", policy)
+        self.assertLess(
+            policy.index("inspect the session's available skill names"),
+            policy.index("not every task needs a ceremony"),
+        )
 
     def test_plan_and_outcome_verification_have_separate_capabilities(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
@@ -527,14 +1091,17 @@ class PolicyContractTests(unittest.TestCase):
             ROOT / "benchmarks/baton-compatibility/final-gate-snapshot/README.md"
         ).read_text(encoding="utf-8")
         for phrase in (
-            "v1.3.0",
-            "v1.2.1",
-            "v1.2.0",
-            "40f3815",
+            "v1.3.1",
+            "Claude Code 2.1.217",
+            "--model opus",
             "runtime-tested",
             "CONFIRMED",
         ):
             self.assertIn(phrase, snapshot)
+        self.assertIn("previous_final_gate", english)
+        self.assertIn("previous_final_gate", chinese)
+        self.assertIn("v1.3.0", english)
+        self.assertIn("v1.3.0", chinese)
 
     def test_baton_evidence_record_granularity_and_totals(self) -> None:
         results = json.loads(
@@ -543,14 +1110,17 @@ class PolicyContractTests(unittest.TestCase):
             ).read_text(encoding="utf-8"),
             parse_float=Decimal,
         )
-        self.assertEqual(results["schema_version"], 3)
+        self.assertEqual(results["schema_version"], 4)
         self.assertEqual(results["final_gate_status"], "complete")
         final = results["final_gate"]
         self.assertEqual(final["status"], "passed")
         self.assertEqual(final["granularity"], "invocation")
         self.assertEqual(len(final["turns"]), final["total_cli_invocations"])
-        self.assertEqual(final["source_base_head"], "a38dd2dde000441b24881fa49495e545ff21b9e6")
-        self.assertEqual(final["transcript_sha256"], "98724de501d714dcb58b315b2260147f9cdd43975f16e52297a84ed258a83ac4")
+        self.assertEqual(final["source_base_head"], "4d65cc94b59acec2debec37983ad0a021440d643")
+        self.assertEqual(final["release_candidate_version"], "1.3.1")
+        self.assertEqual(final["requested_main_model"], "opus")
+        self.assertEqual(final["observed_main_model"], "claude-opus-4-8")
+        self.assertEqual(final["transcript_sha256"], "6563b1c5f3d15f2640688a8509fa093364c5534f9246e0ee700e67c3469ac0b5")
         self.assertEqual(final["total_cli_invocations"], 2)
         final_metric_keys = {
             "duration_ms",
@@ -574,9 +1144,9 @@ class PolicyContractTests(unittest.TestCase):
                 sum((turn[field] for turn in final["turns"]), 0),
                 final[total_field],
             )
-        self.assertEqual(final["total_duration_ms"], 323978)
-        self.assertEqual(final["total_duration_api_ms"], 458056)
-        self.assertEqual(final["total_num_turns"], 6)
+        self.assertEqual(final["total_duration_ms"], 443281)
+        self.assertEqual(final["total_duration_api_ms"], 440965)
+        self.assertEqual(final["total_num_turns"], 13)
         self.assertEqual(
             sum(
                 (turn["client_reported_cost_usd"] for turn in final["turns"]),
@@ -584,26 +1154,47 @@ class PolicyContractTests(unittest.TestCase):
             ),
             final["total_client_reported_cost_usd"],
         )
-        self.assertEqual(final["total_client_reported_cost_usd"], Decimal("3.5088455"))
-        self.assertTrue(final["result_collection_runtime_exercised"])
+        self.assertEqual(final["total_client_reported_cost_usd"], Decimal("2.8822337"))
+        self.assertFalse(final["result_collection_runtime_exercised"])
         self.assertFalse(final["security_reviewer_runtime_exercised"])
-        self.assertNotIn(
+        self.assertIn(
             "result_collection_background_recon_triggered",
             results["unexercised_controls"],
         )
-        self.assertNotIn("result_collection_evidence", results["unexercised_controls"])
+        self.assertIn("result_collection_evidence", results["unexercised_controls"])
         self.assertTrue(final["passed"])
         self.assertEqual(
             [call["role"] for call in final["agent_calls"]],
-            ["scout", "scout", "plan-verifier", "mech-executor", "verifier"],
+            ["plan-verifier", "mech-executor", "verifier"],
         )
+        executor_evidence = results["unexercised_controls"][
+            "executor_role_evidence"
+        ]
+        for role in ("plan-verifier", "mech-executor", "verifier"):
+            self.assertIn(role, executor_evidence)
+        self.assertNotIn("scout, scout", executor_evidence)
+        self.assertIn("executor and scout roles were not dispatched", executor_evidence)
+        post_gate_note = results["post_gate_role_frontmatter_change"]["note"]
+        self.assertIn("changed executor itself was not live-exercised", post_gate_note)
+        self.assertIn("distinct mech-executor or scout roles", post_gate_note)
         self.assertTrue(all(call["invocation_model"] is None for call in final["agent_calls"]))
-        self.assertTrue(all(call["background"] for call in final["agent_calls"][:2]))
-        self.assertEqual(final["agent_calls"][0]["observed_tools"], ["Read"])
-        self.assertEqual(final["agent_calls"][1]["observed_tools"], ["Read", "Glob"])
-        self.assertEqual(final["agent_calls"][3]["observed_model"], "claude-sonnet-5")
-        self.assertEqual(final["agent_calls"][3]["observed_tools"], ["Write", "Bash"])
+        self.assertTrue(all(not call["background"] for call in final["agent_calls"]))
+        self.assertEqual(final["agent_calls"][0]["observed_tools"], ["Read", "Grep"])
+        self.assertEqual(final["agent_calls"][1]["observed_model"], "claude-sonnet-5")
+        self.assertEqual(final["agent_calls"][1]["observed_tools"], ["Bash", "Write"])
+        self.assertTrue(final["agent_calls"][1]["direct_write_blocked_by_hook"])
+        self.assertEqual(final["turns"][1]["integration_write_owner"], "main_session")
         self.assertEqual(final["agent_calls"][-1]["verdicts"], ["CONFIRMED"])
+
+        previous_final = results["previous_final_gate"]
+        self.assertEqual(previous_final["granularity"], "invocation")
+        self.assertEqual(previous_final["status"], "passed")
+        self.assertEqual(previous_final["release_candidate_version"], "1.3.0")
+        self.assertEqual(previous_final["total_cli_invocations"], 2)
+        self.assertEqual(
+            previous_final["transcript_sha256"],
+            "98724de501d714dcb58b315b2260147f9cdd43975f16e52297a84ed258a83ac4",
+        )
 
         failed = results["failed_candidate_gate"]
         self.assertEqual(failed["granularity"], "invocation")
@@ -712,7 +1303,7 @@ class PolicyContractTests(unittest.TestCase):
                 return any(find_nested_metric_invocation(child, False) for child in value)
             return False
 
-        for record in (final, failed, candidate):
+        for record in (final, previous_final, failed, candidate):
             self.assertFalse(
                 any(
                     find_nested_metric_invocation(turn, True)
