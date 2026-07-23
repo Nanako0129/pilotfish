@@ -23,8 +23,7 @@
     "final_gate_snapshot_policy": "final-gate-snapshot/CLAUDE.md",
     "final_gate_snapshot_agents_json": "final-gate-snapshot/agents.json",
     "final_gate_orchestration_sha256": "d41a9d41db21e97176e82614dcfd4d80cba670ec28136666cc96906dd5efda35",
-    "final_gate_agents_json_sha256": "27b6f6df289715f302a1022b428c62ddf7a7dadb2e0cae4f9eb4197c5bd916de",
-    "final_gate_agents_json_sha256_pre_issue_18": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
+    "final_gate_agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
     "final_gate_prompt_turn_1_file_sha256": "45dbe7b6b24cb5838ebf4219011797b61f172fcc18f0ca5039144017e93fcca7",
     "final_gate_prompt_turn_1_runtime_input_sha256": "d2ad46b7ecfb503f8f7185d6d68f404d326f1a4a480b9141d1a80318a746bb73",
     "final_gate_prompt_turn_2_file_sha256": "82d833090ba91982651de9ac4beed8fc96311119c6eb9c6f0304c292821918e7",
@@ -33,10 +32,10 @@
     "agents_hash_input": "shell command substitution bytes; repository trailing newline stripped",
     "final_gate_candidate_version_stamp": "1.3.0",
     "final_gate_candidate_orchestration_sha256": "d41a9d41db21e97176e82614dcfd4d80cba670ec28136666cc96906dd5efda35",
-    "final_gate_candidate_agents_json_sha256": "27b6f6df289715f302a1022b428c62ddf7a7dadb2e0cae4f9eb4197c5bd916de",
+    "final_gate_candidate_agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
     "release_candidate_version": "1.3.0",
     "release_candidate_orchestration_sha256": "d41a9d41db21e97176e82614dcfd4d80cba670ec28136666cc96906dd5efda35",
-    "release_candidate_agents_json_sha256": "27b6f6df289715f302a1022b428c62ddf7a7dadb2e0cae4f9eb4197c5bd916de",
+    "release_candidate_agents_json_sha256": "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
     "release_candidate_policy_delta_from_final_gate": "none; exact policy bytes",
     "release_candidate_agents_json_delta_from_final_gate": "executor role model changed opus to sonnet (issue #18, tier-collapse fix); every other role frontmatter is unchanged",
     "baton_skill_sha256": "48b1e573a9e3de85fdb68c433bd47d69add9ec8491613ca304cfcef2326e3d67"
@@ -492,8 +491,8 @@
     "source": "https://github.com/Nanako0129/pilotfish/issues/18",
     "change": "executor role model changed from opus to sonnet to stop main-loop/executor tier collapse when the coordinator falls back to Opus",
     "agents_json_sha256_before": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
-    "agents_json_sha256_after": "27b6f6df289715f302a1022b428c62ddf7a7dadb2e0cae4f9eb4197c5bd916de",
+    "agents_json_sha256_after": "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
     "final_gate_turns_affected": false,
-    "note": "The recorded final_gate transcript, costs, and verdicts remain accurate for the roles it actually exercised (see unexercised_controls.executor_role_evidence), because that run never dispatched executor. The committed final-gate-snapshot/agents.json is regenerated to byte-match current templates per the single-source-of-truth invariant enforced by tests/test_policy.py. A fresh live two-turn Gate that specifically exercises the new Sonnet executor has not been separately run and is a disclosed limit, not claimed evidence."
+    "note": "The recorded final_gate transcript, costs, verdicts, and final-gate-snapshot/agents.json preserve the exact historical runtime input. The current release candidate is generated separately from templates and has a different hash because executor moved to Sonnet after the Gate. That run never dispatched executor (see unexercised_controls.executor_role_evidence), so its observations remain accurate for the roles it exercised. A fresh live two-turn Gate that specifically exercises the new Sonnet executor has not been separately run and is a disclosed limit, not claimed evidence."
   }
 }

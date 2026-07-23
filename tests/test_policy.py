@@ -77,6 +77,10 @@ class PolicyContractTests(unittest.TestCase):
             runtime["release_candidate_policy_delta_from_final_gate"],
             "none; exact policy bytes",
         )
+        self.assertEqual(
+            runtime["release_candidate_agents_json_delta_from_final_gate"],
+            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); every other role frontmatter is unchanged",
+        )
         final_policy = (gate / runtime["final_gate_snapshot_policy"]).read_bytes()
         self.assertEqual(
             hashlib.sha256(final_policy).hexdigest(),
@@ -86,7 +90,20 @@ class PolicyContractTests(unittest.TestCase):
             hashlib.sha256(snapshot_agents).hexdigest(),
             runtime["final_gate_agents_json_sha256"],
         )
-        self.assertEqual(snapshot_agents, completed.stdout.rstrip(b"\n"))
+        self.assertEqual(
+            runtime["final_gate_candidate_agents_json_sha256"],
+            runtime["final_gate_agents_json_sha256"],
+        )
+        self.assertNotEqual(snapshot_agents, completed.stdout.rstrip(b"\n"))
+        snapshot_payload = json.loads(snapshot_agents)
+        candidate_payload = json.loads(completed.stdout)
+        snapshot_executor = snapshot_payload.pop("executor")
+        candidate_executor = candidate_payload.pop("executor")
+        self.assertEqual(snapshot_executor["model"], "opus")
+        self.assertEqual(candidate_executor["model"], "sonnet")
+        snapshot_executor["model"] = candidate_executor["model"]
+        self.assertEqual(snapshot_executor, candidate_executor)
+        self.assertEqual(snapshot_payload, candidate_payload)
         prompt_1 = (gate / "prompts" / "turn-1.txt").read_bytes()
         prompt_2 = (gate / "prompts" / "turn-2.txt").read_bytes()
         prompt_1_file_hash = hashlib.sha256(prompt_1).hexdigest()
@@ -215,11 +232,11 @@ class PolicyContractTests(unittest.TestCase):
             self.assertRegex(frontmatter, r"(?m)^model:\s*\S+\s*$")
             self.assertIn(f"`{role}`", policy)
 
-    def test_no_role_collapses_onto_the_main_loop_tier(self) -> None:
+    def test_default_implementation_tier_stays_below_opus_main_loop(self) -> None:
         # Regression for #18: the main session runs "best" (Fable 5, or Opus on
-        # fallback). No role agent may default to the same tier as an Opus
-        # fallback main loop, or delegation to that role becomes Opus talking
-        # to Opus for zero capability gain.
+        # fallback). The default delegated implementation role must stay below
+        # an Opus main loop. Review and security roles deliberately remain on
+        # Opus for their separate capability and trust-boundary requirements.
         expected_models = {
             "scout": "haiku",
             "Explore": "haiku",
@@ -243,8 +260,8 @@ class PolicyContractTests(unittest.TestCase):
             )
         # executor now shares mech-executor's Sonnet tier: it is the default
         # delegated implementation path, and must not sit at the same tier as
-        # a fallback Opus main loop. verifier stays a tier above executor so
-        # outcome review is a genuine cross-tier check, not same-tier review.
+        # a fallback Opus main loop. verifier deliberately retains its separate
+        # Opus binding for the acceptance-boundary role.
         self.assertEqual(expected_models["executor"], expected_models["mech-executor"])
         self.assertNotEqual(expected_models["executor"], expected_models["verifier"])
 

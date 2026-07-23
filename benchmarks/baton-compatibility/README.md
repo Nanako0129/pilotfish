@@ -12,7 +12,7 @@
 
 ## Purpose
 
-This benchmark is a compatibility and provenance gate for [Baton](https://github.com/cablate/baton) and the pilotfish v1.3.0 release snapshot under native first-party Claude routing. The fresh `final_gate` completed successfully on Claude Code 2.1.215 with Fast mode off. Baton owns delegation topology; pilotfish remains authoritative for named roles, role models, leaf-agent boundaries, approval, tool capabilities, and verifier vocabulary. The committed snapshot and release templates are the exact runtime-tested bytes.
+This benchmark is a compatibility and provenance gate for [Baton](https://github.com/cablate/baton) and the pilotfish v1.3.0 release snapshot under native first-party Claude routing. The fresh `final_gate` completed successfully on Claude Code 2.1.215 with Fast mode off. Baton owns delegation topology; pilotfish remains authoritative for named roles, role models, leaf-agent boundaries, approval, tool capabilities, and verifier vocabulary. The committed snapshot preserves the exact runtime-tested bytes; current templates can differ after a separately recorded post-Gate change.
 
 > **Gate:** Discovery may happen before the implementation outcome is known, but writes wait for a main-session Plan and explicit approval. Plan review returns `READY` / `REVISE`; outcome review returns `CONFIRMED` / `REFUTED`. This Gate is compatibility/provenance only: it does not establish efficiency, latency, cost, or an A/B comparison.
 
@@ -65,7 +65,7 @@ flowchart TD
 
 ## Isolation and reproduction
 
-The test fixture is a disposable Git repository. The exact current v1.3.0 policy and eight-role session JSON are committed under [`final-gate-snapshot/`](./final-gate-snapshot/); [`build-agents-json.py`](./build-agents-json.py) converts the candidate role files to the injected `--agents` payload. This avoids overwriting the installed global pilotfish files and makes the runtime-tested working-tree snapshot auditable. User memory still stacks underneath the more-specific project candidate and is disclosed as a limit; session-scoped role definitions replaced user role definitions for this run.
+The test fixture is a disposable Git repository. The exact v1.3.0 policy and eight-role session JSON used by the successful run are committed under [`final-gate-snapshot/`](./final-gate-snapshot/); [`build-agents-json.py`](./build-agents-json.py) converts current candidate role files into a separate `--agents` payload. This avoids overwriting the installed global pilotfish files and keeps historical runtime evidence distinct from later template changes. User memory still stacks underneath the more-specific project candidate and is disclosed as a limit; session-scoped role definitions replaced user role definitions for this run.
 
 > ⚠️ **Safety boundary:** `--dangerously-skip-permissions` was used only in the disposable fixture. Do not reuse it in an untrusted or valuable checkout.
 
@@ -132,7 +132,8 @@ The verifier noted one non-blocking citation detail: `architecture.md:63` is a b
 | Runtime provenance | Value |
 |---|---|
 | Policy and snapshot SHA-256 | `d41a9d41db21e97176e82614dcfd4d80cba670ec28136666cc96906dd5efda35` |
-| Shell-stripped `agents.json` SHA-256 | `27b6f6df289715f302a1022b428c62ddf7a7dadb2e0cae4f9eb4197c5bd916de` (regenerated post-[#18](https://github.com/Nanako0129/pilotfish/issues/18); was `e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61` when this Gate ran) |
+| Shell-stripped historical `agents.json` SHA-256 | `e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61` |
+| Current generated candidate SHA-256 | `0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c` (post-[#18](https://github.com/Nanako0129/pilotfish/issues/18); not presented as runtime-tested) |
 | Turn 1 prompt file SHA-256 | `45dbe7b6b24cb5838ebf4219011797b61f172fcc18f0ca5039144017e93fcca7` |
 | Turn 1 runtime-input SHA-256 | `d2ad46b7ecfb503f8f7185d6d68f404d326f1a4a480b9141d1a80318a746bb73` |
 | Turn 2 prompt file SHA-256 | `82d833090ba91982651de9ac4beed8fc96311119c6eb9c6f0304c292821918e7` |
@@ -202,4 +203,4 @@ This rejection is published because a behavioral pass is not enough when the dep
 | Failed candidate prompt ambiguity | The failed attempt is retained with its old prompt hash and budget exhaustion; the corrected prompt was used for the successful Gate |
 | Verifier citation note | `architecture.md:63` is blank while `:62` supports the claim; no fixture change was made after `CONFIRMED` |
 | Raw transcript not committed | It contains absolute local paths and session metadata; prompts, normalized calls, content hashes, metrics, and verdicts are published instead |
-| Post-Gate role frontmatter change ([#18](https://github.com/Nanako0129/pilotfish/issues/18)) | `executor`'s model changed from Opus to Sonnet after this Gate ran. The committed `agents.json` snapshot was regenerated to stay byte-identical with current templates, which changed its recorded hash. This Gate's turns never dispatched `executor`, so the transcript, costs, and verdicts above remain accurate for the roles they exercised; no live Gate has yet exercised the new Sonnet `executor` specifically. See `results.json`'s `post_gate_role_frontmatter_change` |
+| Post-Gate role frontmatter change ([#18](https://github.com/Nanako0129/pilotfish/issues/18)) | `executor`'s model changed from Opus to Sonnet after this Gate ran. The committed historical `agents.json` remains byte-identical to the actual runtime input; the current generated candidate and its hash are recorded separately. This Gate's turns never dispatched `executor`, so the transcript, costs, and verdicts above remain accurate for the roles they exercised; no live Gate has yet exercised the new Sonnet `executor` specifically. See `results.json`'s `post_gate_role_frontmatter_change` |
