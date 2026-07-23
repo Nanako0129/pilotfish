@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "run_date": "2026-07-22",
+  "timezone": "Asia/Taipei",
+  "client": {
+    "name": "Claude Code",
+    "version": "2.1.217"
+  },
+  "input_contract": {
+    "mechanical_prompt_file_sha256": "8e583b26dcc1b4cb63601bb538b29e65677dce8009428e551d7906a30c3dc707",
+    "mechanical_runtime_prompt_sha256": "dbbae64359910875b53fe0d41102109b4861066863686d34054ae5008c0fb303",
+    "bug_prompt_file_sha256": "9934c6a72f8b739d4201460010639a11ca48aed54a84fd3241bccbf1c6ee24a2",
+    "bug_runtime_prompt_sha256": "295b6fe3746890d1742395bb132717163544bfdad1a62f7bb337332506f89c3a",
+    "mechanical_fixture_digest": "4dffc6efd10a630fd1e5842c133252f857314bb564d98bb7dac92bb1c315ea7b",
+    "cue_vocabulary": "agent|subagent|worker|role|policy|baton|parallel|independent|delegat|orchestrat|fan-out",
+    "cue_scan_result": "no matches in either prompt or the mechanical fixture"
+  },
+  "policy_inputs": {
+    "v1.3.0-baseline": {
+      "policy_sha256": "d41a9d41db21e97176e82614dcfd4d80cba670ec28136666cc96906dd5efda35",
+      "agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61"
+    },
+    "v1.3.1-candidate-1": {
+      "policy_sha256": "7ff86564cd4cd8469cf3d24646fd395c57be09dc1fc7e1efa9d0d77c61ecfb21",
+      "agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61"
+    }
+  },
+  "metric_note": "reported_cost_usd is Claude Code's client-reported field, not a provider invoice. These are single observations, not frequency or performance estimates.",
+  "runs": [
+    {
+      "name": "fable-v1.3.0-mechanical-baseline",
+      "fixture": "stable-mechanical-12-file",
+      "policy_version": "1.3.0",
+      "requested_model": "fable",
+      "observed_main_model": "claude-fable-5",
+      "status": "usage_credits_required",
+      "duration_ms": 615,
+      "duration_api_ms": 0,
+      "num_turns": 1,
+      "reported_cost_usd": 0,
+      "agent_call_count": 0,
+      "source_mutation_observed": false,
+      "raw_stream_sha256": "e51f29427f6919ee7503b9c1370bc287f8a3c9ef0b41b261016235c8c1f609ab",
+      "claim": "No behavior, cost-efficiency, or delegation conclusion is drawn because execution stopped at the usage-credit gate."
+    },
+    {
+      "name": "opus-v1.3.0-mechanical-baseline",
+      "fixture": "stable-mechanical-12-file",
+      "policy_version": "1.3.0",
+      "requested_model": "opus",
+      "observed_main_model": "claude-opus-4-8",
+      "status": "success_topology_fail",
+      "duration_ms": 44938,
+      "duration_api_ms": 45775,
+      "num_turns": 7,
+      "reported_cost_usd": 0.375402,
+      "tests_passed": 12,
+      "tests_failed": 0,
+      "agent_call_count": 0,
+      "source_mutation_observed": true,
+      "changed_paths": "src/adapters/*.js (12 files)",
+      "diff_stat": "72 insertions, 12 deletions",
+      "raw_stream_sha256": "59e576004c8eae9e2d833307c4785f9b67013bf327f9c0d17b52a6e5a801dd23",
+      "model_usage": {
+        "claude-haiku-4-5-20251001": {
+          "input_tokens": 593,
+          "output_tokens": 15,
+          "cost_usd": 0.000668
+        },
+        "claude-opus-4-8": {
+          "input_tokens": 14,
+          "output_tokens": 2840,
+          "cache_read_input_tokens": 112768,
+          "cache_creation_input_tokens": 24728,
+          "cost_usd": 0.374734
+        }
+      },
+      "claim": "Correctness passed, but spontaneous-dispatch topology failed because the main session made every source mutation and invoked no named worker."
+    },
+    {
+      "name": "opus-v1.3.1-candidate-1-mechanical",
+      "fixture": "stable-mechanical-12-file",
+      "policy_version": "1.3.1",
+      "requested_model": "opus",
+      "observed_main_model": "claude-opus-4-8",
+      "status": "passed",
+      "wall_seconds": 70.07,
+      "duration_ms": 68618,
+      "duration_api_ms": 71438,
+      "num_turns": 5,
+      "reported_cost_usd": 0.39226725,
+      "tests_before": "0/12 passed",
+      "tests_after": "12/12 passed",
+      "agent_call_count": 1,
+      "agent_type": "mech-executor",
+      "agent_run_in_background": false,
+      "agent_invocation_model_present": false,
+      "main_source_mutation_observed": false,
+      "worker_is_sole_source_mutation_path": true,
+      "changed_paths": "src/adapters/*.js (12 files)",
+      "diff_stat": "72 insertions, 12 deletions",
+      "raw_stream_sha256": "c454562a5fd7368588c62f8f1aec5f60b554677c60f849f6a41c376c91fdcb07",
+      "model_usage": {
+        "claude-haiku-4-5-20251001": {
+          "input_tokens": 593,
+          "output_tokens": 18,
+          "cost_usd": 0.000683
+        },
+        "claude-opus-4-8": {
+          "input_tokens": 10,
+          "output_tokens": 2373,
+          "cache_read_input_tokens": 85480,
+          "cache_creation_input_tokens": 15093,
+          "cost_usd": 0.253045
+        },
+        "claude-sonnet-5": {
+          "input_tokens": 14,
+          "output_tokens": 1920,
+          "cache_read_input_tokens": 110895,
+          "cache_creation_input_tokens": 20381,
+          "cost_usd": 0.13853925
+        }
+      },
+      "claim": "The mechanical positive cell passed: exactly one named mech-executor owned every source mutation, the main session performed read-only triage and acceptance, and the expected 12-file diff passed 12/12 tests."
+    },
+    {
+      "name": "opus-v1.3.1-candidate-1-bug",
+      "fixture": "tightly-coupled-state-clone",
+      "policy_version": "1.3.1",
+      "requested_model": "opus",
+      "observed_main_model": "claude-opus-4-8",
+      "status": "passed",
+      "wall_seconds": 32.71,
+      "duration_ms": 31275,
+      "duration_api_ms": 32506,
+      "num_turns": 11,
+      "reported_cost_usd": 0.272897,
+      "tests_before": "0/2 passed",
+      "tests_after": "2/2 passed",
+      "agent_call_count": 0,
+      "main_owned_first_minimal_fix": true,
+      "main_observed_post_fix_pass": true,
+      "changed_paths": "src/reducer.js",
+      "diff_stat": "14 insertions, 2 deletions",
+      "raw_stream_sha256": "527574982172db5373fe532d08dd70da14c8b69915b03e4aa87a80726fb7a049",
+      "model_usage": {
+        "claude-haiku-4-5-20251001": {
+          "input_tokens": 573,
+          "output_tokens": 15,
+          "cost_usd": 0.000648
+        },
+        "claude-opus-4-8": {
+          "input_tokens": 16,
+          "output_tokens": 1946,
+          "cache_read_input_tokens": 147518,
+          "cache_creation_input_tokens": 14976,
+          "cost_usd": 0.272249
+        }
+      },
+      "claim": "The tightly coupled negative cell passed: the main session diagnosed and made the first minimal fix, observed 2/2 passing tests, and invoked no discovery or implementation agent."
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "description": "Normalized top-level tool sequences. Absolute paths, session identifiers, hook payloads, local inventory outside the compared skill name, and hidden reasoning are excluded.",
+  "cells": {
+    "control": {
+      "tools": [
+        "Bash",
+        "Bash",
+        "Read",
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Bash",
+        "Write",
+        "Bash",
+        "Bash"
+      ],
+      "skill_calls": [],
+      "agent_calls": []
+    },
+    "treatment": {
+      "tools": [
+        "Bash",
+        "Read",
+        "Read",
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Bash",
+        "Write",
+        "Bash",
+        "Bash"
+      ],
+      "init_skill_inventory_contains_baton_dispatch": true,
+      "skill_calls": [],
+      "agent_calls": []
+    }
+  }
+}

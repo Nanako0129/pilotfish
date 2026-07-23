@@ -1,0 +1,1 @@
+The repository has one failing status-line usage test. Find the cause, implement the smallest correct fix, and run the relevant tests. Preserve the boundary that status-line state owns cloned messages rather than canonical stream wrappers. Report the outcome and evidence concisely.

@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "run_date": "2026-07-22",
+  "timezone": "Asia/Taipei",
+  "client": {
+    "name": "Claude Code",
+    "version": "2.1.217"
+  },
+  "shared_inputs": {
+    "fixture": "../dispatch-brake/positive-controls/research/fixture",
+    "fixture_digest": "8c90ca5b673272f3e954e535d3c7c88417e888f27e30a4dfda25b8675621ede8",
+    "policy_version": "1.3.1",
+    "policy_sha256": "7ff86564cd4cd8469cf3d24646fd395c57be09dc1fc7e1efa9d0d77c61ecfb21",
+    "agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
+    "prompt_file_sha256": "720d5727022137dfd17a99049e70c19158618a9182b2a2d591b1c169670f2241",
+    "prompt_runtime_input_sha256": "26e16f5047b91205f8d0dec72116891475ad3e25be3b3aba00d1ca40927bd23c",
+    "prompt_forbidden_vocabulary": "baton|agent|subagent|worker|role|policy|skill|delegat|orchestrat|parallel|independent|fan-out",
+    "prompt_cue_scan_result": "no matches",
+    "requested_model": "opus",
+    "observed_main_model": "claude-opus-4-8",
+    "setting_sources": "project,local",
+    "strict_mcp_config": true,
+    "max_budget_usd_per_cell": 3,
+    "order": [
+      "control",
+      "treatment"
+    ]
+  },
+  "treatment_dependency": {
+    "name": "baton-dispatch",
+    "version": "0.1.1",
+    "source": "https://github.com/cablate/baton.git",
+    "commit": "77f12e600406065a6e62a22a66347355e278a9d7",
+    "skill_sha256": "48b1e573a9e3de85fdb68c433bd47d69add9ec8491613ca304cfcef2326e3d67",
+    "injection": "project-scoped .claude/skills/baton-dispatch copied before the treatment baseline commit"
+  },
+  "metric_note": "Client-reported cost is not a provider invoice. One ordered pair cannot establish frequency, latency, cost, or causal performance effects.",
+  "cells": [
+    {
+      "name": "control",
+      "baton_visibility": "absent",
+      "status": "correctness_pass",
+      "wall_seconds": 129.27,
+      "duration_ms": 127731,
+      "duration_api_ms": 128484,
+      "num_turns": 14,
+      "client_reported_cost_usd": 0.718764,
+      "observed_main_model": "claude-opus-4-8",
+      "baton_listed_at_init": false,
+      "baton_skill_call_count": 0,
+      "agent_call_count": 0,
+      "topology": "direct main-session execution",
+      "only_change": "?? REPORT.md",
+      "test_passed": true,
+      "test_output": "REPORT.md covers both independent surfaces with file:line evidence",
+      "report_sha256": "1521654b737d7064bc6ca120cd00d1f4b1d3c8f22e634cfbccd6ed7efd260262",
+      "report_lines": 184,
+      "report_bytes": 12645,
+      "raw_stream_sha256": "451fca5f9eb2ed0b70a06fffbc3d697b7987fa19f2491cc6391e1601393171a8",
+      "model_usage": {
+        "claude-haiku-4-5-20251001": {
+          "input_tokens": 565,
+          "output_tokens": 14,
+          "cost_usd": 0.000635
+        },
+        "claude-opus-4-8": {
+          "input_tokens": 20,
+          "output_tokens": 9143,
+          "cache_read_input_tokens": 264148,
+          "cache_creation_input_tokens": 35738,
+          "cost_usd": 0.718129
+        }
+      }
+    },
+    {
+      "name": "treatment",
+      "baton_visibility": "project skill",
+      "status": "correctness_pass_no_dispatch_effect",
+      "wall_seconds": 130.17,
+      "duration_ms": 128324,
+      "duration_api_ms": 130704,
+      "num_turns": 14,
+      "client_reported_cost_usd": 0.741686,
+      "observed_main_model": "claude-opus-4-8",
+      "baton_listed_at_init": true,
+      "baton_skill_call_count": 0,
+      "agent_call_count": 0,
+      "topology": "direct main-session execution",
+      "only_change": "?? REPORT.md",
+      "test_passed": true,
+      "test_output": "REPORT.md covers both independent surfaces with file:line evidence",
+      "report_sha256": "7c8bf3b458c6d1b2c6d0df12e62d16e076585da15b01045d87e1ff31583df800",
+      "report_lines": 225,
+      "report_bytes": 13872,
+      "raw_stream_sha256": "fcbab2ee80c39dce11725d150b1d1d668669bb665bfc8373cacaade591298e05",
+      "model_usage": {
+        "claude-haiku-4-5-20251001": {
+          "input_tokens": 565,
+          "output_tokens": 14,
+          "cost_usd": 0.000635
+        },
+        "claude-opus-4-8": {
+          "input_tokens": 20,
+          "output_tokens": 9262,
+          "cache_read_input_tokens": 272422,
+          "cache_creation_input_tokens": 37319,
+          "cost_usd": 0.741051
+        }
+      }
+    }
+  ],
+  "effect_gate": {
+    "status": "failed_no_dispatch_effect_observed",
+    "capability_visibility": "passed; baton-dispatch appeared only in the treatment init skill inventory",
+    "spontaneous_activation": "failed; treatment emitted zero Skill calls",
+    "agent_topology_delta": "failed; both cells emitted zero Agent calls and completed inline",
+    "correctness_control": "passed in both cells",
+    "conclusion": "This pair does not show Baton dispatch affecting execution. Availability alone did not cause spontaneous skill activation or an Agent-topology change."
+  },
+  "total_client_reported_cost_usd": 1.46045
+}

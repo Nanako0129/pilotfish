@@ -1,0 +1,1 @@
+Update every module in src/adapters so normalize(record) returns a new object that preserves all fields, trims record.label, and sets enabled to true only when record.enabled is true or the string "true". Keep each module self-contained. Do not add a shared helper, change exports, or edit tests. Run the test suite and report the outcome.
