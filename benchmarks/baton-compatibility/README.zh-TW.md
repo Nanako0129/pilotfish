@@ -141,10 +141,10 @@ final-byte coverage 失效，所以必須加第三次 invocation。`results.json
 覆蓋的是同一份 bytes。
 
 被拒絕的 user-source attempt 在 approval 前停止，Opus 4.8 花費
-$1.5908975；明確 route probe 另花 $0.169445。連同更早的 $0.034744
-one-turn route smoke，整個 Opus-default 驗證 campaign 的 client cost
-field 合計 $7.34386145。這些是單次觀察，不是 invoice 或比較性能結果。
-這輪沒有觸發 `fallbackModel`、security routing 或 Fable。
+$1.5908975；明確 route probe 另花 $0.169445。連同成功 lifecycle，
+有紀錄的 Opus-default 驗證 campaign client cost field 合計
+$7.30911745。這些是單次觀察，不是 invoice 或比較性能結果。這輪沒有
+觸發 `fallbackModel`、security routing 或 Fable。
 
 ## 已記錄的 v1.3.2 sliced lifecycle
 

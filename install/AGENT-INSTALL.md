@@ -66,7 +66,7 @@ Never rewrite the whole file; edit only these keys and preserve everything else:
 |---|---|
 | `model` | If absent → set `"opus"`. If present and different → **ask** the user: keep their value, or switch to `"opus"` (a provider-resolved family alias; the isolated Claude Code 2.1.219 first-party Gate observed Opus 5, but exact resolution can vary by provider, account, and settings). Never replace an existing `best`, `fable`, full model ID, or other user choice without approval. If already `"opus"` → no change. |
 | `fallbackModel` | If absent → add `["sonnet"]` (handles primary-model overload/unavailability). If present → leave it and note it in the summary. |
-| `availableModels` | **Only if the key already exists** (it is an allowlist): ensure it contains `"opus"`, `"sonnet"`, `"haiku"`, and the chosen main-model value — append whatever is missing. If the key is absent → do not add it (absent = unrestricted, which is fine). |
+| `availableModels` | **Only if the key already exists** (it is an allowlist): ensure it contains `"opus"`, `"fable"`, `"sonnet"`, `"haiku"`, and the chosen main-model value — append whatever is missing. This keeps the documented `/model fable` opt-in reachable. If the key is absent → do not add it (absent = unrestricted, which is fine). |
 
 Validate afterwards: `jq empty ~/.claude/settings.json`.
 

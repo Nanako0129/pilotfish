@@ -110,10 +110,10 @@ flowchart TD
 
 ## 安裝
 
-建議的路徑是先把釘選的 v1.3.2 release clone 到本機，再從該 checkout 啟動 Claude Code，讓它讀取本地 runbook：
+建議的路徑是先把釘選的 v1.3.3 release clone 到本機，再從該 checkout 啟動 Claude Code，讓它讀取本地 runbook：
 
 ```sh
-git clone --branch v1.3.2 --depth 1 https://github.com/Nanako0129/pilotfish.git
+git clone --branch v1.3.3 --depth 1 https://github.com/Nanako0129/pilotfish.git
 cd pilotfish
 claude
 ```
@@ -144,14 +144,14 @@ Show me the full plan of changes and get my approval before writing anything.
 pilotfish 的安裝方式，是讓 Claude 從本 repo 讀取 runbook 與範本檔、合併進你的全域 `~/.claude/` 設定——其中包含一段會載入**未來每一個 session** 的政策區塊。請把它當成任何 `curl | sh` 看待：信任來自這個 repo 與你的 GitHub 連線，而不是那段貼上的文字。建議使用本地 checkout，因為你可以先檢查釘選的 release，再讓 Claude 讀取 runbook。執行前：
 
 - **實際會被裝進去的檔案要親自讀過**，不只是 runbook：就是 [templates/agents/](./templates/agents/) 的八個檔案加上 [templates/claude-md.orchestration.md](./templates/claude-md.orchestration.md)。除此之外不會寫入任何東西。
-- **釘選到 release tag 或 commit**，確保你審過的就是實際裝的——從你讀它、到 Claude 讀它之間，`main` 是可能變動的。上面的建議指令已釘選 `v1.3.2` release tag；要最嚴格保證時，請先 fetch 並 checkout 你審閱過的完整 commit SHA，再在啟動 Claude 前驗證 checkout。
+- **釘選到 release tag 或 commit**，確保你審過的就是實際裝的——從你讀它、到 Claude 讀它之間，`main` 是可能變動的。上面的建議指令已釘選 `v1.3.3` release tag；要最嚴格保證時，請先 fetch 並 checkout 你審閱過的完整 commit SHA，再在啟動 Claude 前驗證 checkout。
 - **保留 approval gate：** 經你同意前 Claude 不會動手，但計畫仍只是 runbook 的摘要。請自行審閱本地 runbook 與範本；若 raw URL 被攔截，也不要削弱或繞過 WebFetch 的 prompt-injection 防護。
 
 ## 安裝內容
 
 | 目標 | 變更 | 可還原 |
 |---|---|---|
-| `~/.claude/settings.json` | Key 缺少時設定 `model` → `"opus"`、`fallbackModel` → `["sonnet"]`；既有選擇除非經你批准否則保留；只有原本就有限制時才擴充 `availableModels` | 可——各 key 彼此獨立 |
+| `~/.claude/settings.json` | Key 缺少時設定 `model` → `"opus"`、`fallbackModel` → `["sonnet"]`；既有選擇除非經你批准否則保留；若 `availableModels` 原本就有限制，確保 `opus`、`fable`、`sonnet`、`haiku` 仍可選 | 可——各 key 彼此獨立 |
 | `~/.claude/agents/` | 八個角色 agent 檔（如上表） | 可——刪檔即可 |
 | `~/.claude/CLAUDE.md` | 一段 `## Orchestration`，包在 `<!-- pilotfish:begin/end -->` 標記之間 | 可——移除標記區塊 |
 

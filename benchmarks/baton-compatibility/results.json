@@ -527,10 +527,13 @@
     "granularity": "invocation",
     "status": "passed_with_corrective_verification",
     "run_date": "2026-07-25",
-    "source_base_head": "40c55d258fedba7e156523335430c8f69d1cdd9e",
+    "source_pr_url": "https://github.com/Nanako0129/pilotfish/pull/25",
     "fixture_baseline_commit": "b0f8a14e976c93adcebdddfede8c9f7c33b72d65",
     "fixture_baseline_tree": "b7d4ec2c125fcbccfc1ef8629df1168ad28ee600",
-    "release_candidate_version": "1.3.2",
+    "gate_policy_version": "1.3.2",
+    "proposed_install_version": "1.3.3",
+    "post_gate_v1_3_3_policy_sha256": "90e3d06409e8769b71c8807cce67876bebd9eaea65ec11ec6f947f597b44229b",
+    "post_gate_v1_3_3_policy_delta": "version stamp only: pilotfish v1.3.2 became v1.3.3; orchestration behavior is byte-identical after normalizing that marker",
     "claude_code": "2.1.219",
     "requested_main_model": "opus",
     "observed_main_model": "claude-opus-5",
@@ -543,7 +546,20 @@
     "user_source_exclusion_reason": "A rejected pre-approval attempt and a separate explicit --model opus probe both resolved to claude-opus-4-8 when the user setting source was included. The successful Gate copied the exact installed Baton skill into the disposable project and excluded user settings; this establishes a source-dependent route difference without attributing its cause.",
     "fast_mode": false,
     "baton_skill_sha256": "48b1e573a9e3de85fdb68c433bd47d69add9ec8491613ca304cfcef2326e3d67",
-    "baton_skill_source": "project-local copy of the installed user skill",
+    "baton_skill_source": {
+      "repository": "https://github.com/Nanako0129/baton",
+      "commit": "77f12e600406065a6e62a22a66347355e278a9d7",
+      "tree": "75a30fb6f54f852aa46b3ab5bbf33d7cbd3513c9",
+      "files": {
+        "SKILL.md": "48b1e573a9e3de85fdb68c433bd47d69add9ec8491613ca304cfcef2326e3d67",
+        "references/dispatch-planning.md": "91d84a81230a95249e212ee9227d348c8946cde21c4153d8f1c0719d15ae2286",
+        "references/context-and-briefs.md": "021ecc301ac53c390c513d27ad2bf2b3f390dadb62a3e8d0bc42cfa7ab170a6a",
+        "references/execution-and-verification.md": "daafef501df071b5846173024f01da01c4ccd52913f1560740844d8e364ed6e7",
+        "references/examples.md": "b9e7ad77c2e882601338e504d1e2116b51e8cd2c165b60304a06ac8435b6dc73",
+        "references/claude-code-ultracode.md": "80c9734863fdd42fbdcdc5c0085bc8647d12673c4cfc07d57f90a03ff4a120e1",
+        "references/codegraph.md": "30d70ea9ac9d739af240a3f9e16e8ba600833cdfa7d9a84dcbfd1319d060485b"
+      }
+    },
     "snapshot_policy": "v1.3.2-gate-snapshot/CLAUDE.md",
     "snapshot_agents_json": "v1.3.2-opus5-gate-snapshot/agents.json",
     "snapshot_settings": "v1.3.2-opus5-gate-snapshot/settings.snippet.json",
@@ -551,6 +567,27 @@
     "agents_json_file_sha256": "61bb008bcc491e0b90c7ed131c090ec196fef22593ae90725baadb87b5a28541",
     "agents_json_runtime_sha256": "f272948d82cd4320f24ca849f884f5e1b74c04c23d28271753281bfdd9ffcaba",
     "settings_sha256": "108da7014d44b2078581f9f98008b6f9d6c7ed08e5c9c7e93a7dd2f083f1a5d9",
+    "source_input_manifest": {
+      "policy": {
+        "path": "v1.3.2-gate-snapshot/CLAUDE.md",
+        "sha256": "b42bd2f0d6c4be23472020cc107d6ceb4ab0eb34553ccfcac5fe6e65c9164b4b"
+      },
+      "agents_file": {
+        "path": "v1.3.2-opus5-gate-snapshot/agents.json",
+        "sha256": "61bb008bcc491e0b90c7ed131c090ec196fef22593ae90725baadb87b5a28541"
+      },
+      "agents_runtime": {
+        "path": "v1.3.2-opus5-gate-snapshot/agents.json",
+        "transform": "strip one trailing newline",
+        "sha256": "f272948d82cd4320f24ca849f884f5e1b74c04c23d28271753281bfdd9ffcaba"
+      },
+      "settings": {
+        "path": "v1.3.2-opus5-gate-snapshot/settings.snippet.json",
+        "sha256": "108da7014d44b2078581f9f98008b6f9d6c7ed08e5c9c7e93a7dd2f083f1a5d9"
+      },
+      "prompts": "prompt_file_hashes and prompt_runtime_input_hashes",
+      "baton": "baton_skill_source"
+    },
     "transcript_sha256": "c27c8de57e3c059879cac7caf6f184703af5f3a75bb7d0e9fa5653d6a6cbcd1f",
     "raw_result_sha256": {
       "v1.3.2-turn-1": "30e4035c22091fca0435469b97943c9437982997a3b48857d462ca5513947bed",
@@ -779,7 +816,7 @@
     "status": "rejected",
     "run_date": "2026-07-25",
     "reason": "The attempt included the user setting source so the installed Baton skill would load. Both this attempt and a separate explicit --model opus probe resolved to claude-opus-4-8, so neither exercised the proposed Opus 5 default. The evidence records the source-dependent difference without attributing its cause.",
-    "source_base_head": "40c55d258fedba7e156523335430c8f69d1cdd9e",
+    "source_pr_url": "https://github.com/Nanako0129/pilotfish/pull/25",
     "claude_code": "2.1.219",
     "setting_sources": [
       "user",

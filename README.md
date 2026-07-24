@@ -110,10 +110,10 @@ Long-running processes remain main-session owned. Every Bash-capable leaf role (
 
 ## Install
 
-The recommended path is to clone the pinned v1.3.2 release locally, then start Claude Code from that checkout so it can read the runbook as a local file:
+The recommended path is to clone the pinned v1.3.3 release locally, then start Claude Code from that checkout so it can read the runbook as a local file:
 
 ```sh
-git clone --branch v1.3.2 --depth 1 https://github.com/Nanako0129/pilotfish.git
+git clone --branch v1.3.3 --depth 1 https://github.com/Nanako0129/pilotfish.git
 cd pilotfish
 claude
 ```
@@ -144,14 +144,14 @@ Prefer to do it by hand? The same steps are written for humans in [install/AGENT
 pilotfish installs by having Claude read a runbook and template files from this repo and merge them into your global `~/.claude/` config — including a policy block that then loads into **every future session**. Treat it like any `curl | sh`: trust flows from this repo and your GitHub connection, not from the paste. The local checkout path is recommended because you can inspect the pinned release before Claude reads the runbook. Before running it:
 
 - **Read the actual bytes that get installed**, not just the runbook: the eight files in [templates/agents/](./templates/agents/) and [templates/claude-md.orchestration.md](./templates/claude-md.orchestration.md). Nothing else is written to disk.
-- **Pin to a release tag or commit** so what you reviewed is what installs — `main` can change between the moment you read it and the moment Claude reads it. The recommended command above pins to the `v1.3.2` release tag; for the strictest guarantee, fetch and check out the full commit SHA you reviewed, then verify that checkout before launching Claude.
+- **Pin to a release tag or commit** so what you reviewed is what installs — `main` can change between the moment you read it and the moment Claude reads it. The recommended command above pins to the `v1.3.3` release tag; for the strictest guarantee, fetch and check out the full commit SHA you reviewed, then verify that checkout before launching Claude.
 - **Keep the approval gate:** Claude writes nothing until you approve the merge plan, but the plan is still a summary of the runbook. Review the local runbook and templates yourself, and do not weaken or bypass WebFetch's prompt-injection protection if the raw URL is intercepted.
 
 ## What gets installed
 
 | Target | Change | Reversible |
 |---|---|---|
-| `~/.claude/settings.json` | For a missing key, sets `model` → `"opus"` and `fallbackModel` → `["sonnet"]`; preserves existing choices unless you approve a change; extends `availableModels` only if you already restrict it | Yes — keys are independent |
+| `~/.claude/settings.json` | For a missing key, sets `model` → `"opus"` and `fallbackModel` → `["sonnet"]`; preserves existing choices unless you approve a change; if `availableModels` already restricts selection, keeps `opus`, `fable`, `sonnet`, and `haiku` selectable | Yes — keys are independent |
 | `~/.claude/agents/` | Eight role agent files (listed above) | Yes — delete the files |
 | `~/.claude/CLAUDE.md` | One `## Orchestration` section between `<!-- pilotfish:begin/end -->` markers | Yes — remove the marker block |
 

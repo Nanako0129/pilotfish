@@ -143,10 +143,10 @@ test, scope check, SHA check, and fresh verifier all covered the same bytes.
 
 The rejected user-source attempt stopped before approval after spending
 $1.5908975 on Opus 4.8; its explicit route probe added $0.169445. Together with
-the earlier $0.034744 one-turn route smoke, the complete Opus-default validation
-campaign reported $7.34386145. These are client cost observations, not an
-invoice or a comparative performance result. The run did not trigger
-`fallbackModel`, security routing, or Fable.
+the successful lifecycle, the recorded Opus-default validation campaign
+reported $7.30911745. These are client cost observations, not an invoice or a
+comparative performance result. The run did not trigger `fallbackModel`,
+security routing, or Fable.
 
 ## Recorded v1.3.2 sliced lifecycle
 
