@@ -538,13 +538,24 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
-            "183c1b4ecfa7e40fcff5dca80abbcf339bbfd9530722dab9feac5e1ecceae1d1",
+            "f272948d82cd4320f24ca849f884f5e1b74c04c23d28271753281bfdd9ffcaba",
         )
         release = results["v1_3_2_release_gate"]
+        post_gate = results["v1_3_2_post_gate_role_change"]
         release_policy = (gate / release["snapshot_policy"]).read_bytes()
         release_agents_file = (gate / release["snapshot_agents_json"]).read_bytes()
         self.assertEqual(release_policy, current_policy)
-        self.assertEqual(release_agents_file.rstrip(b"\n"), completed.stdout.rstrip(b"\n"))
+        self.assertNotEqual(
+            release_agents_file.rstrip(b"\n"), completed.stdout.rstrip(b"\n")
+        )
+        self.assertEqual(
+            hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
+            post_gate["agents_json_runtime_sha256_after"],
+        )
+        self.assertEqual(
+            release["agents_json_runtime_sha256"],
+            post_gate["agents_json_runtime_sha256_before"],
+        )
         self.assertEqual(
             hashlib.sha256(release_policy).hexdigest(),
             release["orchestration_sha256"],
@@ -987,6 +998,8 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("REVISE", plan_verifier)
         self.assertIn("explicit outcome, scope and non-goals", plan_verifier)
         self.assertIn("acceptance that proves the slice outcome", plan_verifier)
+        self.assertIn("a slice-local budget", plan_verifier)
+        self.assertIn("explicit stop conditions", plan_verifier)
         self.assertNotIn("CONFIRMED", plan_verifier)
         self.assertIn("CONFIRMED", verifier)
         self.assertIn("REFUTED", verifier)
@@ -1257,6 +1270,13 @@ class PolicyContractTests(unittest.TestCase):
         self.assertTrue(release["turns"][1]["independent_final_byte_test_passed"])
         self.assertFalse(release["turns"][1]["deferred_unit_executed"])
         self.assertTrue(release["passed"])
+        post_gate = results["v1_3_2_post_gate_role_change"]
+        self.assertEqual(post_gate["role"], "plan-verifier")
+        self.assertTrue(post_gate["recorded_gate_role_exercised"])
+        self.assertFalse(post_gate["live_gate_rerun"])
+        self.assertIn("slice-local budget", post_gate["change"])
+        self.assertIn("explicit stop conditions", post_gate["change"])
+        self.assertIn("static contract coverage only", post_gate["note"])
 
         previous_final = results["previous_final_gate"]
         self.assertEqual(previous_final["granularity"], "invocation")

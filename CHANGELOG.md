@@ -21,6 +21,10 @@ approval preceded the sole `REPORT.md` write, `npm test` passed, and a fresh
 Opus verifier returned `CONFIRMED`; deferred `S2-followup` was not executed.
 The run reported $2.77709775 across 19 API turns. This is one compatibility and
 provenance observation, not a cost, latency, frequency, or quality claim.
+Post-Gate review made the installed `plan-verifier` explicitly require the
+slice-local budget and stop conditions that this run's `S1-report` Plan already
+contained. The historical snapshot remains unchanged; the stricter role payload
+has static contract coverage and was not rerun through a second paid live Gate.
 
 ## v1.3.1 — 2026-07-23
 

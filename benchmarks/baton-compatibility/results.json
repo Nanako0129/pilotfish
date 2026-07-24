@@ -523,6 +523,16 @@
     "security_reviewer_reason": "The audit fixture did not touch authentication, authorization, secrets, crypto, validation, dependencies, privacy, or other security-sensitive scope.",
     "passed": true
   },
+  "v1_3_2_post_gate_role_change": {
+    "granularity": "summary",
+    "role": "plan-verifier",
+    "change": "require every execution slice to include a slice-local budget and explicit stop conditions before READY",
+    "agents_json_runtime_sha256_before": "183c1b4ecfa7e40fcff5dca80abbcf339bbfd9530722dab9feac5e1ecceae1d1",
+    "agents_json_runtime_sha256_after": "f272948d82cd4320f24ca849f884f5e1b74c04c23d28271753281bfdd9ffcaba",
+    "recorded_gate_role_exercised": true,
+    "live_gate_rerun": false,
+    "note": "The recorded v1.3.2 Gate keeps its exact historical agents payload and remains valid for the bytes it ran. Its Turn 1 prompt required budgets and stop conditions for both ENV-report-audit and S1-report, and the recorded plan-verifier returned READY for each. The stricter installed role prompt now makes that exercised slice shape mandatory for future Plans, but these changed role bytes have static contract coverage only and were not rerun through a paid live Gate."
+  },
   "failed_candidate_gate": {
     "granularity": "invocation",
     "status": "failed",
