@@ -2,7 +2,7 @@
 
 > 領航魚與海中最大的掠食者同游——小而快，把例行工作攬下來，讓大傢伙專心做只有牠能做的事。
 
-**pilotfish** 是 [Claude Code](https://code.claude.com) 的多模型協作層：前沿模型（Claude Fable 5 / Opus）在主 session 負責規劃、決策與審查，便宜的模型（Opus / Sonnet / Haiku）透過全域 subagent 承接大量執行工作。品質靠 fresh-context 驗證把關，而不是靠處處使用最大的模型。所有設定安裝在全域層——設定一次、所有專案生效——而且整套架構在前沿模型不可用時能無感降級。
+**pilotfish** 是 [Claude Code](https://code.claude.com) 的多模型協作層：`opus` family 在主 session 負責規劃與決策，Sonnet 與 Haiku 透過全域 subagent 承接大量執行工作，再由 fresh Opus context 挑戰 Plan 與完成結果。品質靠獨立驗證把關，而不是靠處處使用最大的模型。所有設定安裝在全域層——設定一次、所有專案生效——而且整套架構在主模型不可用時能無感降級。
 
 > **想在 Claude Code 裡使用 OpenAI GPT-5.6，又不改動原生 Claude state？** [remora](https://github.com/Nanako0129/remora-cc) 把 pilotfish 的角色分工模式包裝成 session-scoped launcher，連接既有的 Anthropic-compatible gateway。想研究或客製全域 orchestration policy，可以使用 pilotfish；想要經過批准、可驗證，而且 model 與 gateway override 會隨 child process 消失的安裝方式，可以使用 remora。
 
@@ -29,7 +29,9 @@
 
 ## 為什麼
 
-前沿模型的 session 貴在訂閱者最痛的地方：Claude Fable 5 消耗訂閱額度的速度**約為 Opus 的 2 倍**（官方 UI 原文），而重度使用工具的 agentic session 實際消耗還要陡得多。但一個 coding session 裡大多數 token 並不是「判斷」——是搜尋、機械性編輯、跑測試、更新文件，這些工作便宜的模型做得一樣好。
+Anthropic 在 2026-07-24 發布 [Opus 5](https://www.anthropic.com/news/claude-opus-5)，官方定位是接近 Fable 5 的智慧、API 價格只有一半。Opus 5 在 Anthropic 公布的多項評測領先，但不是每一項都贏。因此 pilotfish 把**新安裝**預設改成 `opus` family alias，Fable 5 改為明確使用 `/model fable` 才啟用。這是成本導向的預設值，不是宣稱 Opus 5 全面勝過 Fable 5；決策與 rollback 條件記錄在 [#23](https://github.com/Nanako0129/pilotfish/issues/23)。
+
+原本 7 月的研究仍然解釋了這套架構：前沿模型 session 昂貴，但 coding session 裡大多數 token 是搜尋、機械性編輯、跑測試與更新文件，而不是判斷。這些高量工作可以交給 Sonnet 或 Haiku，接受邊界再用 fresh Opus context 審查。
 
 這套做法的每一塊現在都有 Anthropic 背書。[Fable 5 prompting 指南](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5)建議頻繁委派 subagent，並指出「**獨立的 fresh-context 驗證者 subagent 效果優於模型自我批判**」；而 2026-07-08 起，「便宜模型執行」也有了官方 benchmark：Anthropic 自家測試中 **Fable 5 orchestrator + Sonnet 5 workers 達到全 Fable 效能的 96%、成本只要 46%**（BrowseComp：準確率 86.8% vs 90.8%、每題 $18.53 vs $40.56），反向的 advisor 模式（Sonnet 執行、諮詢 Fable）則是約 92% 效能、63% 成本（SWE-bench Pro）——pilotfish 採用的 orchestrator 分工在兩個軸上都勝出（[multi-agent 文件](https://platform.claude.com/docs/en/managed-agents/multi-agent)）。社群實驗在業餘規模指向同一方向——高度委派的 12-worker 稽核（[Developers Digest](https://www.developersdigest.tech/blog/fable-5-orchestrator-model-playbook)），偏最佳情境、API 美元計價：
 
@@ -45,7 +47,7 @@
 
 > ⚠️ **警告：** Claude Code v2.1.198 起，內建的 `Explore` subagent 會繼承主 session 的模型。如果你的主 session 跑 Fable 5 或 Opus，每一次背景搜尋都在燒 Opus 級的 token（Claude API 上 Explore 繼承的模型以 Opus 封頂；第三方平台無此上限）。pilotfish 會把它覆寫回 Haiku。（坦白揭露一個代價：自訂的 Explore 會像一般 subagent 一樣載入你的使用者記憶，而內建版會跳過——政策區塊對 subagent 角色會自我停用，把這個開銷壓到最小。）
 
-> **注意：** 上面兩點是訂閱方案的機制。在按 token 計費的 API 上，單價層面的節省依然成立（但沒有週額度桶）；在 Bedrock / Vertex / Foundry 上，alias 解析到各平台的內建預設版本、Fable 5 未必開通——依賴 `best` 之前，先用 `ANTHROPIC_DEFAULT_*_MODEL` 環境變數釘選版本。
+> **注意：** 上面兩點是訂閱方案的機制。在按 token 計費的 API 上，單價層面的節省依然成立（但沒有週額度桶）。Model alias 仍受 provider、帳號與 settings 影響：已記錄的乾淨 first-party Gate 把 `opus` 解析成 Opus 5，同一版 client 載入 user setting source 時則解析成 Opus 4.8。若需要精確 deployment，請使用完整 model ID 或平台的 `ANTHROPIC_DEFAULT_*_MODEL` 環境變數。
 
 ## 運作方式
 
@@ -53,14 +55,14 @@
 
 | 層 | 檔案 | 職責 |
 |---|---|---|
-| 機器層 | `~/.claude/settings.json` | 決定誰當 orchestrator（`best`）＋自動 `fallbackModel` 切換鏈 |
+| 機器層 | `~/.claude/settings.json` | 決定誰當 orchestrator（`opus`）＋自動 `fallbackModel` 切換鏈 |
 | 角色層 | `~/.claude/agents/*.md` | 八個角色 agent，以 frontmatter 綁定正確模型層級與 capability surface |
 | 政策層 | `~/.claude/CLAUDE.md` | 規範「怎麼委派」——只寫角色，永不寫模型名 |
 
 ```mermaid
 flowchart TD
     U[你] --> O
-    subgraph MAIN["主 session — best alias（Fable 5 可用時用 Fable，否則最新 Opus）"]
+    subgraph MAIN["主 session — opus family alias"]
         O["Orchestrator<br>規劃 / 決策 / 撰寫規格 / 審查"]
     end
     O -->|偵察搜尋| S["scout / Explore<br>haiku · effort low"]
@@ -90,7 +92,7 @@ flowchart TD
 | `verifier` | opus | medium | 實作後 fresh-context outcome verification；回覆 CONFIRMED/REFUTED，永不動手修 |
 | `security-executor` | opus | high | 已批准的資安實作——刻意不走 Fable 5，其安全分類器可能誤拒良性的防禦性資安工作 |
 
-`executor` 從 Opus 改成 Sonnet（[#18](https://github.com/Nanako0129/pilotfish/issues/18)），這樣即使 `best` 降級到 Opus（沒有 Fable 5、或使用 usage credits 計費），預設的委派實作路徑仍保有較低成本的 tier。這是針對預設實作路徑的修正，不是要求所有角色都必須跟 main session 不同 tier。四個 Opus 角色維持不變：`verifier` 與 `plan-verifier` 在接受結果前提供 fresh-context challenge；`security-reviewer` 與 `security-executor` 則以正確性優先。同 tier 委派沒有 tier 節省，但仍可能提供獨立 context、能力邊界或平行處理。依 main-session model 自動切換 tier map 的安裝程式方案有被考慮過，但被否決——見 [Deliberately left out](./docs/design.md#deliberately-left-out)。
+`executor` 從 Opus 改成 Sonnet（[#18](https://github.com/Nanako0129/pilotfish/issues/18)），讓預設的委派實作路徑維持在 Opus 主 session 之下。這是針對預設實作路徑的修正，不是要求所有角色都必須跟 main session 不同 tier。四個 Opus 角色維持不變：`verifier` 與 `plan-verifier` 在接受結果前提供 fresh-context challenge；`security-reviewer` 與 `security-executor` 則以正確性優先。同 tier 委派沒有 tier 節省，但仍可能提供獨立 context、能力邊界或平行處理。依 main-session model 自動切換 tier map 的安裝程式方案有被考慮過，但被否決——見 [Deliberately left out](./docs/design.md#deliberately-left-out)。
 
 政策層依階段套用不同的 dispatch brake。小而穩定的工作直接完成；大型工作把共享限制放在 program envelope，只拆真正獨立的 execution slice。Envelope 與下一個可執行 slice 通過 review 後即可交付批准，不必先審完無關的下游 slice。同一 unit 自動 `REVISE` 兩次後停止重送，改由使用者決定下一步。Execution 仍要求穩定 scope、ownership、acceptance、rollback 與 verification。
 
@@ -108,10 +110,10 @@ flowchart TD
 
 ## 安裝
 
-建議的路徑是先把釘選的 v1.3.2 release clone 到本機，再從該 checkout 啟動 Claude Code，讓它讀取本地 runbook：
+建議的路徑是先把釘選的 v1.3.3 release clone 到本機，再從該 checkout 啟動 Claude Code，讓它讀取本地 runbook：
 
 ```sh
-git clone --branch v1.3.2 --depth 1 https://github.com/Nanako0129/pilotfish.git
+git clone --branch v1.3.3 --depth 1 https://github.com/Nanako0129/pilotfish.git
 cd pilotfish
 claude
 ```
@@ -125,7 +127,7 @@ Show me the full plan of changes and get my approval before writing anything.
 
 Claude 會讀取本地安裝 runbook、檢查你既有的設定、先給你一份合併計畫（不會盲目覆寫任何東西），經你同意後才動手。安裝是冪等的——重跑一次等於原地升級。
 
-> **Runtime 要求：** Claude Code **2.1.207 或更新版本**。這是已驗證會強制執行 agent `tools` allowlist 的最低基準；pilotfish 仰賴這項強制力，確保 `plan-verifier` 與 `security-reviewer` 在批准前保持唯讀。若版本更舊或無法辨識，安裝程式會在變更任何檔案前停止。更舊版本也可能拒絕 `best` 或忽略 `effort`。原生 Windows（無 WSL）下 runbook 的 shell 指令假設 POSIX 環境，安裝代理已被指示改用自身檔案工具處理。安裝後請重啟 session：agents 目錄在 session 啟動時掃描，`model` 設定在重啟後生效。
+> **Runtime 要求：** Claude Code **2.1.219 或更新版本**。這是 pilotfish 對 Opus 5-aware alias routing 的已測試最低版本，也比已驗證的 agent `tools` 強制執行基準更新；它不保證每個 provider、帳號或 settings stack 都解析到同一個 backend。若版本更舊或無法辨識，安裝程式會在變更任何檔案前停止。原生 Windows（無 WSL）下 runbook 的 shell 指令假設 POSIX 環境，安裝代理已被指示改用自身檔案工具處理。安裝後請重啟 session：agents 目錄在 session 啟動時掃描，`model` 設定在重啟後生效。
 
 為方便起見，也可以貼上下面的 GitHub raw prompt。這是可變動、未釘選的便利路徑：它跟著 `main` 走，因此從審閱到安裝之間，runbook 與範本可能各自變動；此外，Claude Code 的 WebFetch prompt-injection 防護可能會攔截一份直接對 AI 下達安裝指示的遠端文件。若被攔截，請改用上面的本地 checkout 路徑；不要停用或繞過安全檢查。
 
@@ -142,14 +144,14 @@ Show me the full plan of changes and get my approval before writing anything.
 pilotfish 的安裝方式，是讓 Claude 從本 repo 讀取 runbook 與範本檔、合併進你的全域 `~/.claude/` 設定——其中包含一段會載入**未來每一個 session** 的政策區塊。請把它當成任何 `curl | sh` 看待：信任來自這個 repo 與你的 GitHub 連線，而不是那段貼上的文字。建議使用本地 checkout，因為你可以先檢查釘選的 release，再讓 Claude 讀取 runbook。執行前：
 
 - **實際會被裝進去的檔案要親自讀過**，不只是 runbook：就是 [templates/agents/](./templates/agents/) 的八個檔案加上 [templates/claude-md.orchestration.md](./templates/claude-md.orchestration.md)。除此之外不會寫入任何東西。
-- **釘選到 release tag 或 commit**，確保你審過的就是實際裝的——從你讀它、到 Claude 讀它之間，`main` 是可能變動的。上面的建議指令已釘選 `v1.3.2` release tag；要最嚴格保證時，請先 fetch 並 checkout 你審閱過的完整 commit SHA，再在啟動 Claude 前驗證 checkout。
+- **釘選到 release tag 或 commit**，確保你審過的就是實際裝的——從你讀它、到 Claude 讀它之間，`main` 是可能變動的。上面的建議指令已釘選 `v1.3.3` release tag；要最嚴格保證時，請先 fetch 並 checkout 你審閱過的完整 commit SHA，再在啟動 Claude 前驗證 checkout。
 - **保留 approval gate：** 經你同意前 Claude 不會動手，但計畫仍只是 runbook 的摘要。請自行審閱本地 runbook 與範本；若 raw URL 被攔截，也不要削弱或繞過 WebFetch 的 prompt-injection 防護。
 
 ## 安裝內容
 
 | 目標 | 變更 | 可還原 |
 |---|---|---|
-| `~/.claude/settings.json` | `model` → `"best"`、新增 `fallbackModel: ["opus", "sonnet"]`、擴充 `availableModels`（僅在你原本就有此限制時） | 可——各 key 彼此獨立 |
+| `~/.claude/settings.json` | Key 缺少時設定 `model` → `"opus"`、`fallbackModel` → `["sonnet"]`；既有選擇除非經你批准否則保留；若 `availableModels` 原本就有限制，確保 `opus`、`fable`、`sonnet`、`haiku` 仍可選 | 可——各 key 彼此獨立 |
 | `~/.claude/agents/` | 八個角色 agent 檔（如上表） | 可——刪檔即可 |
 | `~/.claude/CLAUDE.md` | 一段 `## Orchestration`，包在 `<!-- pilotfish:begin/end -->` 標記之間 | 可——移除標記區塊 |
 
@@ -184,15 +186,14 @@ Read the local file install/AGENT-INSTALL.md in the current checkout and follow 
 
 ## Fallback 機制
 
-這一節談的是前沿模型消失時架構還「能不能動」，不是「省不省錢」。`best` 降級到 Opus 一直都能讓 session 繼續跑，但在 [#18](https://github.com/Nanako0129/pilotfish/issues/18) 之前，預設的 `executor` 同樣釘在 Opus；把實作委派給它就會變成 Opus 跟 Opus 對話，多付 subagent 協調成本卻沒有 tier 節省。政策文字從不指名模型，因此 routing 仍可在角色 frontmatter 修正：
+這一節談的是主模型消失時架構還「能不能動」，不是「省不省錢」。新安裝使用 `opus` family alias，平台更換 Opus 版本時不必修改政策；另外用 Sonnet fallback 接住主模型的暫時性失敗。政策文字不指名模型，因此角色 routing 仍獨立留在 agent frontmatter：
 
 | 失效情境 | 誰接住 | 你要做什麼 |
 |---|---|---|
-| Fable 5 離開你的方案（如 2026 年 7 月的訂閱變動，或任何用 usage credits 計費的方案） | `best` 重新解析為最新 Opus——這是文件規則，也是 2026 年 6 月停用期的實際行為（通知橫幅、新 session 自動改跑 Opus）。`executor` 不管怎樣都留在 Sonnet，所以 coordinator 降到 Opus 不會再把執行層一起拖上去 | 大多不用做——邊界當下的確切 UI 官方未發布，最壞情況是手動 `/model` 一次或啟用 usage credits。切勿釘死 `fable`／完整 ID：6 月時釘死 ID 的人收到硬性錯誤 |
-| 模型過載／API 錯誤 | `fallbackModel: ["opus", "sonnet"]` 自動切換並顯示通知 | 不用做 |
+| 主 Opus 過載／不可用 | `fallbackModel: ["sonnet"]` 自動切換並顯示通知 | 不用做 |
 | 某層模型被棄用（Opus 4.8 → 4.9、Sonnet 5 → 下一代） | 角色 agent 用 alias（`opus`、`sonnet`、`haiku`），自動跟隨官方推薦版本 | 不用做 |
-| 前沿模型在任務中途拒絕資安工作 | 資安工作一開始就路由給 `security-executor`（Opus），根本不會碰到分類器 | 不用做 |
-| 預設委派實作路徑跟 Opus main loop 疊到同一 tier | 沒有通用的自動偵測機制——見 [Deliberately left out](./docs/design.md#deliberately-left-out)——但 `executor` 現在固定走 Sonnet | 如果環境覆寫了 tier，就改 `executor` 的 `model:` 那一行 |
+| 已 opt-in 的 Fable session 在任務中途拒絕資安工作 | 資安工作一開始就路由給 `security-executor`（Opus），不會碰到 Fable 的分類器 | 不用做 |
+| 預設委派實作路徑跟 Opus main loop 疊到同一 tier | `executor` 固定走 Sonnet | 如果環境覆寫了 tier，就改 `executor` 的 `model:` 那一行 |
 
 `CLAUDE.md` 裡的委派政策只提角色（`executor`、`scout`……）。模型綁定只存在一個地方——每個 agent 檔的一行 frontmatter——要改指向，改一行、處處生效。
 
@@ -201,15 +202,15 @@ Read the local file install/AGENT-INSTALL.md in the current checkout and follow 
 | 問題 | 回答 |
 |---|---|
 | 想省更多額度 | 主 session 切 `/model opusplan`——planning turn 用 Opus、main session 自己的 execution turn 用 Sonnet。這是 main-session 的模型切換，跟 subagent routing 不同；每個角色仍使用自己 frontmatter 綁定的 model。把 `executor` 改成 Sonnet（[#18](https://github.com/Nanako0129/pilotfish/issues/18)）可避免 Opus main-loop fallback 又把預設實作角色升回 Opus；四個明確綁定 Opus 的 review 與 security 角色不變。 |
-| 為什麼 `executor` 用 Sonnet，`verifier` 卻留在 Opus？ | `executor` 是預設的大量實作路徑，所以 Sonnet 能在 `best` 解析成 Opus 時保留較低成本的 tier。`verifier`、`plan-verifier`、`security-reviewer`、`security-executor` 因接受邊界或資安責任而維持 Opus。同 tier 的角色呼叫不代表一定沒用：fresh context、tool capability 邊界與獨立 review 仍可能值得。[#18](https://github.com/Nanako0129/pilotfish/issues/18) 只主張預設實作路徑的 routing 差異與 tier 節省；目前沒有針對 executor 做過 Opus 與 Sonnet 的角色專屬實測。 |
+| 為什麼 `executor` 用 Sonnet，`verifier` 卻留在 Opus？ | `executor` 是預設的大量實作路徑，所以 Sonnet 能在 Opus 主 session 之下保留較低成本的 tier。`verifier`、`plan-verifier`、`security-reviewer`、`security-executor` 因接受邊界或資安責任而維持 Opus。同 tier 的角色呼叫不代表一定沒用：fresh context、tool capability 邊界與獨立 review 仍可能值得。[#18](https://github.com/Nanako0129/pilotfish/issues/18) 只主張預設實作路徑的 routing 差異與 tier 節省；目前沒有針對 executor 做過 Opus 與 Sonnet 的角色專屬實測。 |
 | 能強制所有 subagent 用同一個模型嗎？ | `CLAUDE_CODE_SUBAGENT_MODEL` 會覆蓋*所有* agent 的 frontmatter——所以 pilotfish 不設它。除非要臨時全域覆寫，否則別設。 |
 | 我有設 `availableModels` 白名單 | 那名單必須包含 agents 用到的所有 alias（`opus`、`sonnet`、`haiku`），否則那些 agent 會被靜默跳過、改為繼承主 session 模型。安裝程式會檢查這件事。 |
 | 為什麼便宜角色都設 `effort: low`？ | Effort 是第二大額度槓桿。Fable 5 世代的模型在 low effort 常已達前代 `xhigh` 的水準；偵察與機械性工作不需要深度思考。 |
-| 主 session 用哪個 effort？ | `high`。Fable 5 官方建議：大多數工作用 `high`，`xhigh` 留給最長時程的任務，`max` 少用——報酬遞減。 |
-| 會失去 1M context window 嗎？ | 不會——Fable 5 預設即 1M，`best` 解析到 Fable 5 時就是 1M。若想在 `best` 降級到 Opus 時也*保證* 1M，把 `model` 改設 `"opus[1m]"`（`[1m]` 後綴的文件支援範圍是 `sonnet`/`opus`/`opusplan`/完整 model ID，不含 `best`）。 |
+| 主 session 用哪個 effort？ | 需要重判斷的 orchestration 先用 `high`；若額度或延遲更重要再往下降。若 opt-in Fable，請依它的模型專屬 prompting 指南調整。 |
+| 如何明確要求 1M context window？ | 純 `opus` alias 跟隨平台預設。若支援的平台上明確需要 1M，把 `model` 設為 `"opus[1m]"`；pilotfish 不會覆蓋既有選擇。 |
 | Orchestrator 自己完全不動手嗎？ | 會動手——馬上要用的閱讀、少量 repo 檔案掃描、決策、根因探索、trace-driven debugging，以及你明確要*它*判斷的事。其他工作只有在成本、context、時間、隔離或驗證的整體效益高於重建與整合成本時才委派。 |
 | 我的專案有自己的 CLAUDE.md，會衝突嗎？ | 檔案完全不會被動到：pilotfish 只寫 `~/.claude/` 底下。執行時 Claude Code 把專案層與使用者層記憶「疊加」載入——兩者同時生效、互不覆寫。若某個 repo 需要不同行為，在該專案的 CLAUDE.md 寫一條在地規則（例如「這個 repo 內直接動手、不委派」）——實務上較具體的指示會勝出。 |
-| 我也裝了 delegation-planning skill | 請把它視為互補的規劃層。[Baton](https://github.com/cablate/baton) 這類 skill 可以塑造 discovery 問題、worker 數量、ownership、順序與 stop condition；pilotfish 提供具名 Claude 角色、模型分流、leaf-agent 邊界、approval gate 與 verifier contract。[雙 turn 相容性 Gate](./benchmarks/baton-compatibility/README.zh-TW.md) 記錄 v1.3.2 的 envelope → current slice → 批准執行 → `CONFIRMED` lifecycle；[prompt-neutral 啟用 Gate](./benchmarks/baton-dispatch-effect/README.zh-TW.md) 另行覆蓋 v1.3.1 的四-scout dispatch。這些是有界的 compatibility 與 reachability 觀察，不代表效率或發生率。pilotfish 不會停用使用者 skills。 |
+| 我也裝了 delegation-planning skill | 請把它視為互補的規劃層。[Baton](https://github.com/cablate/baton) 這類 skill 可以塑造 discovery 問題、worker 數量、ownership、順序與 stop condition；pilotfish 提供具名 Claude 角色、模型分流、leaf-agent 邊界、approval gate 與 verifier contract。[相容性 Gates](./benchmarks/baton-compatibility/README.zh-TW.md) 記錄 v1.3.2 的 envelope → current slice → 批准執行 → `CONFIRMED` lifecycle，也包含因 post-verdict 編輯而必須用第三次 invocation 補驗的 Opus 5 rerun；[prompt-neutral 啟用 Gate](./benchmarks/baton-dispatch-effect/README.zh-TW.md) 另行覆蓋 v1.3.1 的四-scout dispatch。這些是有界的 compatibility 與 reachability 觀察，不代表效率或發生率。pilotfish 不會停用使用者 skills。 |
 | 擔心 subagent 品質 | `plan-verifier` 在批准前一次審一個 envelope 或 slice；outcome `verifier` 在實作後嘗試推翻完成結果。`REVISE` 必須列 blocker、evidence、最小修訂與 acceptance check；同一 unit 自動修訂兩次後改由使用者決定。小型工作略過 verification。 |
 | Spawn agent 不是有額外成本嗎？ | 有——每次 spawn 都是全新 context、要重讀它負責的那部分 codebase，彙整也花 main session 的 token。因此有界的 task-local 掃描預設直接完成；若互相獨立的證據能實質降低 Plan 不確定性，discovery 仍可 fan-out，而 execution 要等 contract 穩定後才委派。公開機械式 control 的 execution-only 區段中，委派的 reported cost field 降低 36.01%，代價是 wall time 增加 7.92%；兩個比較 run 都沒有包含必要的 outcome verifier，因此只能證明便宜 route 可到達，不能宣稱完整 lifecycle savings。研究 fixture 只證明兩個 scout 在該小型任務上的 overhead，不代表 plan-first discovery 一律錯誤。 |
 | 怎麼快速關掉？ | **只關這個 session：** 直接跟 Claude 說「這個 session 不要委派，全部直接動手」——那只是政策文字，它立刻照辦。**只關這個 repo：** 在該 repo 的 CLAUDE.md 加一條在地規則。**整台機器：** 把 `~/.claude/CLAUDE.md` 裡的 `pilotfish:begin/end` 區塊註解掉——agent 檔留著閒置即可。切回來不必重裝。 |
@@ -228,7 +229,7 @@ Read the local file install/AGENT-INSTALL.md in the current checkout and follow 
 | [benchmarks/dispatch-brake/positive-controls/README.zh-TW.md](./benchmarks/dispatch-brake/positive-controls/README.zh-TW.md) | 繁體中文 + 數據 | 機械式委派證據，以及小型唯讀 fan-out 的 task-local overhead 與解讀限制 |
 | [benchmarks/spontaneous-dispatch/README.zh-TW.md](./benchmarks/spontaneous-dispatch/README.zh-TW.md) | 繁體中文 + 數據 | 無委派提示的 Opus baseline、v1.3.1 mechanical／bug 拓撲 Gate、sanitized traces 與 Fable credit-gate 揭露 |
 | [benchmarks/baton-dispatch-effect/README.zh-TW.md](./benchmarks/baton-dispatch-effect/README.zh-TW.md) | 繁體中文 + 數據 | Prompt-neutral 啟用矩陣：小型未啟用觀察，以及四領域 Baton 啟用、四個完成 scouts、exclusive ownership、完整 collection 與 output-shape correctness Gate |
-| [benchmarks/baton-compatibility/README.zh-TW.md](./benchmarks/baton-compatibility/README.zh-TW.md) | 繁體中文 + 數據 | Historical exact-byte 原生 Claude 雙 turn Baton lifecycle、精確 prompts、被拒絕的 harness run、routing 證據與機器可讀結果 |
+| [benchmarks/baton-compatibility/README.zh-TW.md](./benchmarks/baton-compatibility/README.zh-TW.md) | 繁體中文 + 數據 | Historical exact-byte 原生 Claude 雙 turn lifecycle，加上 Opus 5 rerun 與 corrective 第三次 invocation、精確 prompts、被拒絕的 routing 證據與機器可讀結果 |
 
 **先行者與致意。** 「聰明的腦、便宜的手」這個分工不是 pilotfish 發明的：Anthropic 自己的工程文（[Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)）就是這個框架，Claude Code 內建 [`opusplan`](https://code.claude.com/docs/en/model-config)——如果你只想要更省的 session，`/model opusplan` 根本不需要裝任何 repo——而 [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) 早就把同樣的節流理念做成帶 ledger 強制 hook 的 plugin。pilotfish 的貢獻在打包方式：刻意只有八個角色而非上百個 agent 的目錄、寫成角色而能撐過模型換代的政策、動手前先出示計畫的安裝流程、以及經過對抗式查核的宣稱。如果你偏好更重、有 hook 強制力的路線，用他們的。
 

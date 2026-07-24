@@ -2,6 +2,37 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
+## v1.3.3 — 2026-07-25
+
+Default fresh installs to the provider-resolved `opus` family alias and raise
+the tested Claude Code floor to 2.1.219 for Opus 5-aware routing. Exact alias
+resolution remains provider-, account-, and settings-dependent. The default
+`fallbackModel` becomes `["sonnet"]`; existing model and fallback choices are
+preserved unless the user explicitly approves a change. Fable 5 remains
+available as an opt-in through `/model fable`. This is a compatibility and
+cost-default decision, not a claim that Opus 5 is universally better than
+Fable 5. See [#23](https://github.com/Nanako0129/pilotfish/issues/23).
+
+The v1.3.2 policy lifecycle was rerun with the proposed v1.3.3 settings under
+Opus 5. Two background Haiku scouts completed; the program envelope and S1
+slice each received one substantive `REVISE` before fresh Opus 5
+`plan-verifier` calls returned `READY`; approval preceded the only `REPORT.md`
+write; `npm test` passed; and a fresh Opus 5 verifier confirmed the final
+bytes. A post-verdict wording edit invalidated the first outcome verdict, so a
+disclosed third CLI invocation performed corrective final-byte verification
+instead of presenting the original two-invocation shape as passed. The
+successful lifecycle reported $5.54877495 across 12 API turns. A rejected
+user-source attempt and route probe reported another $1.7603425 after both
+resolved `opus` to Opus 4.8; the successful Gate excluded that source by
+copying Baton into the disposable project. The evidence establishes the route
+difference but does not attribute its cause. The recorded validation campaign
+reported $7.30911745. These single-run client fields establish compatibility
+and provenance only; fallback activation, security routing, model quality,
+latency, and efficiency remain untested.
+
+When an existing `availableModels` allowlist is present, the installer now
+ensures `fable` remains selectable alongside `opus`, `sonnet`, and `haiku`.
+
 ## v1.3.2 — 2026-07-23
 
 Bound Plan review loops without weakening approval. Large work may use a shared

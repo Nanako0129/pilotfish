@@ -510,6 +510,11 @@ class PolicyContractTests(unittest.TestCase):
         )
 
         current_policy = (ROOT / "templates/claude-md.orchestration.md").read_bytes()
+        normalize_version_marker = lambda payload: re.sub(
+            rb"<!-- pilotfish v\d+\.\d+\.\d+ -->",
+            b"<!-- pilotfish vX.Y.Z -->",
+            payload,
+        )
         snapshot_policy = (gate / runtime["final_gate_snapshot_policy"]).read_bytes()
         snapshot_agents = (
             gate / runtime["final_gate_snapshot_agents_json"]
@@ -534,7 +539,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             hashlib.sha256(current_policy).hexdigest(),
-            "b42bd2f0d6c4be23472020cc107d6ceb4ab0eb34553ccfcac5fe6e65c9164b4b",
+            "90e3d06409e8769b71c8807cce67876bebd9eaea65ec11ec6f947f597b44229b",
         )
         self.assertEqual(
             hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
@@ -544,7 +549,11 @@ class PolicyContractTests(unittest.TestCase):
         post_gate = results["v1_3_2_post_gate_role_change"]
         release_policy = (gate / release["snapshot_policy"]).read_bytes()
         release_agents_file = (gate / release["snapshot_agents_json"]).read_bytes()
-        self.assertEqual(release_policy, current_policy)
+        self.assertNotEqual(release_policy, current_policy)
+        self.assertEqual(
+            normalize_version_marker(release_policy),
+            normalize_version_marker(current_policy),
+        )
         self.assertNotEqual(
             release_agents_file.rstrip(b"\n"), completed.stdout.rstrip(b"\n")
         )
@@ -575,10 +584,50 @@ class PolicyContractTests(unittest.TestCase):
                 hashlib.sha256(prompt.rstrip(b"\n")).hexdigest(),
                 release["prompt_runtime_input_hashes"][prompt_name],
             )
+        opus5 = results["v1_3_2_opus5_release_gate"]
+        opus5_policy = (gate / opus5["snapshot_policy"]).read_bytes()
+        opus5_agents = (gate / opus5["snapshot_agents_json"]).read_bytes()
+        opus5_settings = (gate / opus5["snapshot_settings"]).read_bytes()
+        self.assertNotEqual(opus5_policy, current_policy)
+        self.assertEqual(
+            normalize_version_marker(opus5_policy),
+            normalize_version_marker(current_policy),
+        )
+        self.assertEqual(
+            hashlib.sha256(opus5_policy).hexdigest(),
+            opus5["orchestration_sha256"],
+        )
+        self.assertEqual(
+            hashlib.sha256(opus5_agents).hexdigest(),
+            opus5["agents_json_file_sha256"],
+        )
+        self.assertEqual(
+            hashlib.sha256(opus5_agents.rstrip(b"\n")).hexdigest(),
+            opus5["agents_json_runtime_sha256"],
+        )
+        self.assertEqual(
+            opus5_agents.rstrip(b"\n"),
+            completed.stdout.rstrip(b"\n"),
+        )
+        self.assertEqual(
+            hashlib.sha256(opus5_settings).hexdigest(),
+            opus5["settings_sha256"],
+        )
+        self.assertEqual(
+            json.loads(opus5_settings),
+            {"model": "opus", "fallbackModel": ["sonnet"]},
+        )
+        for prompt_name, expected in opus5["prompt_file_hashes"].items():
+            prompt = (gate / "prompts" / prompt_name).read_bytes()
+            self.assertEqual(hashlib.sha256(prompt).hexdigest(), expected)
+            self.assertEqual(
+                hashlib.sha256(prompt.rstrip(b"\n")).hexdigest(),
+                opus5["prompt_runtime_input_hashes"][prompt_name],
+            )
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
         self.assertEqual(runtime["release_candidate_version"], "1.3.1")
-        self.assertEqual(version, "1.3.2")
+        self.assertEqual(version, "1.3.3")
         self.assertTrue(
             runtime["release_candidate_policy_delta_from_final_gate"].startswith(
                 "non-empty"
@@ -710,16 +759,35 @@ class PolicyContractTests(unittest.TestCase):
     def test_installer_requires_tool_enforcing_runtime(self) -> None:
         installer = (ROOT / "install/AGENT-INSTALL.md").read_text(encoding="utf-8")
         self.assertIn("claude --version", installer)
-        self.assertIn("Claude Code 2.1.207 or newer", installer)
+        self.assertIn("Claude Code 2.1.219 or newer", installer)
+        self.assertIn("does not guarantee one exact backend", installer)
         self.assertIn("stop before presenting a write plan or changing anything", installer)
         self.assertIn("depend on enforced tool exclusion", installer)
 
         for readme in ("README.md", "README.zh-TW.md"):
             content = (ROOT / readme).read_text(encoding="utf-8")
-            self.assertIn("2.1.207", content)
+            self.assertIn("2.1.219", content)
             self.assertIn("remove the eight pilotfish agent files", content)
             self.assertIn("`mech-executor`", content)
             self.assertIn("`verifier`", content)
+
+    def test_fresh_install_defaults_to_opus_with_sonnet_fallback(self) -> None:
+        settings = json.loads(
+            (ROOT / "templates/settings.snippet.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(settings["model"], "opus")
+        self.assertEqual(settings["fallbackModel"], ["sonnet"])
+
+        installer = (ROOT / "install/AGENT-INSTALL.md").read_text(encoding="utf-8")
+        self.assertIn('If absent → set `"opus"`', installer)
+        self.assertIn('If absent → add `["sonnet"]`', installer)
+        self.assertIn("Never replace an existing", installer)
+        self.assertIn("Claude Code 2.1.219", installer)
+        self.assertIn("provider, account, and settings", installer)
+        self.assertIn(
+            'ensure it contains `"opus"`, `"fable"`, `"sonnet"`, `"haiku"`',
+            installer,
+        )
 
     def test_mechanical_replay_fetches_pinned_snapshot(self) -> None:
         pinned = "863b117b9da42179c5bb77a05158920fbc092ee2"
@@ -753,10 +821,10 @@ class PolicyContractTests(unittest.TestCase):
             self.assertIn(f"`{role}`", policy)
 
     def test_default_implementation_tier_stays_below_opus_main_loop(self) -> None:
-        # Regression for #18: the main session runs "best" (Fable 5, or Opus on
-        # fallback). The default delegated implementation role must stay below
-        # an Opus main loop. Review and security roles deliberately remain on
-        # Opus for their separate capability and trust-boundary requirements.
+        # Regression for #18: the main session defaults to Opus. The default
+        # delegated implementation role must stay below that tier. Review and
+        # security roles deliberately remain on Opus for their separate
+        # capability and trust-boundary requirements.
         expected_models = {
             "scout": "haiku",
             "Explore": "haiku",
@@ -780,7 +848,7 @@ class PolicyContractTests(unittest.TestCase):
             )
         # executor now shares mech-executor's Sonnet tier: it is the default
         # delegated implementation path, and must not sit at the same tier as
-        # a fallback Opus main loop. verifier deliberately retains its separate
+        # the Opus main loop. verifier deliberately retains its separate
         # Opus binding for the acceptance-boundary role.
         self.assertEqual(expected_models["executor"], expected_models["mech-executor"])
         self.assertNotEqual(expected_models["executor"], expected_models["verifier"])
@@ -1270,6 +1338,135 @@ class PolicyContractTests(unittest.TestCase):
         self.assertTrue(release["turns"][1]["independent_final_byte_test_passed"])
         self.assertFalse(release["turns"][1]["deferred_unit_executed"])
         self.assertTrue(release["passed"])
+        opus5 = results["v1_3_2_opus5_release_gate"]
+        self.assertEqual(opus5["status"], "passed_with_corrective_verification")
+        self.assertEqual(opus5["observed_main_model"], "claude-opus-5")
+        self.assertEqual(opus5["claude_code"], "2.1.219")
+        self.assertEqual(opus5["gate_policy_version"], "1.3.2")
+        self.assertEqual(opus5["proposed_install_version"], "1.3.3")
+        self.assertNotIn("source_base_head", opus5)
+        self.assertEqual(
+            opus5["post_gate_v1_3_3_policy_sha256"],
+            "90e3d06409e8769b71c8807cce67876bebd9eaea65ec11ec6f947f597b44229b",
+        )
+        self.assertIn(
+            "version stamp only",
+            opus5["post_gate_v1_3_3_policy_delta"],
+        )
+        source_manifest = opus5["source_input_manifest"]
+        self.assertEqual(
+            source_manifest["policy"]["sha256"],
+            opus5["orchestration_sha256"],
+        )
+        self.assertEqual(
+            source_manifest["agents_file"]["sha256"],
+            opus5["agents_json_file_sha256"],
+        )
+        self.assertEqual(
+            source_manifest["agents_runtime"]["sha256"],
+            opus5["agents_json_runtime_sha256"],
+        )
+        self.assertEqual(
+            source_manifest["settings"]["sha256"],
+            opus5["settings_sha256"],
+        )
+        baton_source = opus5["baton_skill_source"]
+        self.assertEqual(
+            baton_source["commit"],
+            "77f12e600406065a6e62a22a66347355e278a9d7",
+        )
+        self.assertEqual(
+            baton_source["files"]["SKILL.md"],
+            opus5["baton_skill_sha256"],
+        )
+        self.assertEqual(
+            set(baton_source["files"]),
+            {
+                "SKILL.md",
+                "references/dispatch-planning.md",
+                "references/context-and-briefs.md",
+                "references/execution-and-verification.md",
+                "references/examples.md",
+                "references/claude-code-ultracode.md",
+                "references/codegraph.md",
+            },
+        )
+        opus5_snapshot_readme = (
+            ROOT
+            / "benchmarks"
+            / "baton-compatibility"
+            / "v1.3.2-opus5-gate-snapshot"
+            / "README.md"
+        ).read_text(encoding="utf-8")
+        for pinned_value in (
+            baton_source["commit"],
+            baton_source["tree"],
+            *baton_source["files"].values(),
+        ):
+            self.assertIn(pinned_value, opus5_snapshot_readme)
+        self.assertEqual(len(opus5["turns"]), opus5["total_cli_invocations"])
+        self.assertEqual(opus5["total_cli_invocations"], 3)
+        self.assertEqual(opus5["total_duration_ms"], 453853)
+        self.assertEqual(opus5["total_duration_api_ms"], 969791)
+        self.assertEqual(opus5["total_num_turns"], 12)
+        self.assertEqual(
+            sum(
+                (turn["client_reported_cost_usd"] for turn in opus5["turns"]),
+                Decimal("0"),
+            ),
+            opus5["total_client_reported_cost_usd"],
+        )
+        self.assertEqual(
+            opus5["total_client_reported_cost_usd"], Decimal("5.54877495")
+        )
+        self.assertEqual(
+            [
+                unit["verdicts"]
+                for unit in opus5["turns"][0]["readiness_units"]
+            ],
+            [["REVISE", "READY"], ["REVISE", "READY"]],
+        )
+        self.assertTrue(
+            all(
+                unit["invocation_model"] is None
+                and unit["observed_model"] == "claude-opus-5"
+                for unit in opus5["turns"][0]["readiness_units"]
+            )
+        )
+        self.assertTrue(opus5["turns"][1]["post_verdict_edit"])
+        self.assertFalse(opus5["turns"][1]["initial_verdict_covers_final_bytes"])
+        self.assertFalse(opus5["turns"][1]["accepted_as_final"])
+        self.assertEqual(opus5["turns"][2]["verifier"]["verdict"], "CONFIRMED")
+        self.assertTrue(opus5["turns"][2]["independent_final_byte_test_passed"])
+        self.assertFalse(opus5["exact_two_cli_invocation_contract_passed"])
+        self.assertTrue(opus5["corrective_verification_closed_final_bytes"])
+        self.assertTrue(opus5["result_collection_runtime_exercised"])
+        self.assertFalse(opus5["fallback_model_runtime_exercised"])
+        self.assertTrue(opus5["passed"])
+
+        rejected_opus5 = results["v1_3_2_opus5_rejected_user_source_attempt"]
+        self.assertEqual(rejected_opus5["status"], "rejected")
+        self.assertEqual(rejected_opus5["observed_main_model"], "claude-opus-4-8")
+        self.assertFalse(rejected_opus5["turn_1"]["turn_2_started"])
+        self.assertEqual(
+            rejected_opus5["total_client_reported_cost_usd"],
+            Decimal("1.7603425"),
+        )
+        recorded_campaign_cost = (
+            opus5["total_client_reported_cost_usd"]
+            + rejected_opus5["total_client_reported_cost_usd"]
+        )
+        self.assertEqual(recorded_campaign_cost, Decimal("7.30911745"))
+        for evidence_doc in (
+            ROOT / "CHANGELOG.md",
+            ROOT / "benchmarks" / "baton-compatibility" / "README.md",
+            ROOT / "benchmarks" / "baton-compatibility" / "README.zh-TW.md",
+        ):
+            content = evidence_doc.read_text(encoding="utf-8")
+            self.assertIn("$7.30911745", content)
+            self.assertNotIn("OPUS5_DEFAULT_GATE_OK", content)
+            self.assertNotIn("$7.34386145", content)
+        self.assertFalse(rejected_opus5["passed"])
         post_gate = results["v1_3_2_post_gate_role_change"]
         self.assertEqual(post_gate["role"], "plan-verifier")
         self.assertTrue(post_gate["recorded_gate_role_exercised"])
