@@ -4,8 +4,9 @@ All notable changes to pilotfish. The installed version is stamped inside the po
 
 ## v1.3.2 — 2026-07-23
 
-Default fresh installs to the `opus` family alias, which resolves to Opus 5 on
-the Anthropic API with Claude Code 2.1.219 or newer. The default
+Default fresh installs to the provider-resolved `opus` family alias and raise
+the tested Claude Code floor to 2.1.219 for Opus 5-aware routing. Exact alias
+resolution remains provider-, account-, and settings-dependent. The default
 `fallbackModel` becomes `["sonnet"]`; existing model and fallback choices are
 preserved unless the user explicitly approves a change. Fable 5 remains
 available as an opt-in through `/model fable`. This is a compatibility and
@@ -28,11 +29,12 @@ so a disclosed third CLI invocation performed corrective final-byte
 verification instead of presenting the original two-invocation shape as
 passed. The successful lifecycle reported $5.54877495 across 12 API turns. A
 rejected user-source attempt and route probe reported another $1.7603425 after
-both resolved `opus` to Opus 4.8; project-local Baton isolation removed that
-override. Including the earlier route smoke, the validation campaign reported
-$7.34386145. These single-run client fields establish compatibility and
-provenance only; fallback activation, security routing, model quality, latency,
-and efficiency remain untested.
+both resolved `opus` to Opus 4.8; the successful Gate excluded that source by
+copying Baton into the disposable project. The evidence establishes the route
+difference but does not attribute its cause. Including the earlier route smoke,
+the validation campaign reported $7.34386145. These single-run client fields
+establish compatibility and provenance only; fallback activation, security
+routing, model quality, latency, and efficiency remain untested.
 
 Bound Plan review loops without weakening approval. Large work may use a shared
 program envelope plus independently approvable execution slices. The envelope

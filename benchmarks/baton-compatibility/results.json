@@ -540,7 +540,7 @@
       "local"
     ],
     "user_source_excluded": true,
-    "user_source_exclusion_reason": "A rejected pre-approval attempt and a separate explicit --model opus probe both resolved to claude-opus-4-8 when the user setting source was included. The successful Gate copied the exact installed Baton skill into the disposable project and excluded user settings so the proposed settings snippet governed the main-model route.",
+    "user_source_exclusion_reason": "A rejected pre-approval attempt and a separate explicit --model opus probe both resolved to claude-opus-4-8 when the user setting source was included. The successful Gate copied the exact installed Baton skill into the disposable project and excluded user settings; this establishes a source-dependent route difference without attributing its cause.",
     "fast_mode": false,
     "baton_skill_sha256": "48b1e573a9e3de85fdb68c433bd47d69add9ec8491613ca304cfcef2326e3d67",
     "baton_skill_source": "project-local copy of the installed user skill",
@@ -778,7 +778,7 @@
     "granularity": "invocation",
     "status": "rejected",
     "run_date": "2026-07-25",
-    "reason": "The attempt included the user setting source so the installed Baton skill would load. Both this attempt and a separate explicit --model opus probe resolved to claude-opus-4-8, so neither exercised the proposed Opus 5 default.",
+    "reason": "The attempt included the user setting source so the installed Baton skill would load. Both this attempt and a separate explicit --model opus probe resolved to claude-opus-4-8, so neither exercised the proposed Opus 5 default. The evidence records the source-dependent difference without attributing its cause.",
     "source_base_head": "40c55d258fedba7e156523335430c8f69d1cdd9e",
     "claude_code": "2.1.219",
     "setting_sources": [

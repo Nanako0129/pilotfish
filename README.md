@@ -2,7 +2,7 @@
 
 > Pilot fish swim alongside the ocean's largest predators — small, fast, and doing the routine work so the big one doesn't have to.
 
-**pilotfish** is a multi-model orchestration layer for [Claude Code](https://code.claude.com): Opus 5 plans and decides in your main session, Sonnet and Haiku execute the volume work through global subagents, and fresh Opus contexts challenge Plans and completed outcomes. Quality is protected by independent verification, not by using the biggest model everywhere. Everything installs globally — one setup, every project — and the whole stack degrades gracefully when the primary model becomes unavailable.
+**pilotfish** is a multi-model orchestration layer for [Claude Code](https://code.claude.com): the `opus` family plans and decides in your main session, Sonnet and Haiku execute the volume work through global subagents, and fresh Opus contexts challenge Plans and completed outcomes. Quality is protected by independent verification, not by using the biggest model everywhere. Everything installs globally — one setup, every project — and the whole stack degrades gracefully when the primary model becomes unavailable.
 
 > **Want OpenAI GPT-5.6 inside Claude Code without changing native Claude state?** [remora](https://github.com/Nanako0129/remora-cc) packages pilotfish's role-based orchestration pattern into a session-scoped launcher for an existing Anthropic-compatible gateway. Use pilotfish to study or customize the global policy; use remora for an approval-gated, verifiable install whose model and gateway overrides disappear with the child process.
 
@@ -47,7 +47,7 @@ Two subscription-specific bonuses stack on top:
 
 > ⚠️ **Warning:** Since Claude Code v2.1.198 the built-in `Explore` subagent inherits your main-session model. If your main session runs Fable 5 or Opus, every background search burns Opus-tier tokens (the Claude API caps Explore's inherited model at Opus; third-party platforms have no cap). pilotfish overrides it back to Haiku. (Trade-off, stated openly: a custom Explore loads your user memory like any subagent, which the built-in skips — the policy block self-disables for subagent roles to keep that overhead small.)
 
-> **Note:** The two bullets above are subscription-plan mechanics. On the pay-per-token API the per-token savings still apply (there is no weekly bucket). On Bedrock / Vertex / Foundry, aliases resolve to each platform's configured defaults; use the `ANTHROPIC_DEFAULT_*_MODEL` environment variables when you need an exact deployment instead of the provider's current `opus`.
+> **Note:** The two bullets above are subscription-plan mechanics. On the pay-per-token API the per-token savings still apply (there is no weekly bucket). Model aliases remain provider-, account-, and settings-dependent: the recorded clean first-party Gate resolved `opus` to Opus 5, while the same client with its user setting source loaded resolved it to Opus 4.8. Use a full model ID or the platform's `ANTHROPIC_DEFAULT_*_MODEL` environment variable when an exact deployment matters.
 
 ## How it works
 
@@ -62,7 +62,7 @@ Three layers, three files' worth of configuration, all under `~/.claude/`:
 ```mermaid
 flowchart TD
     U[You] --> O
-    subgraph MAIN["main session — opus alias (Opus 5 on Anthropic API)"]
+    subgraph MAIN["main session — opus family alias"]
         O["Orchestrator<br>plan / decide / spec / review"]
     end
     O -->|recon| S["scout / Explore<br>haiku · effort low"]
@@ -127,7 +127,7 @@ Show me the full plan of changes and get my approval before writing anything.
 
 Claude reads the local install runbook, inspects your existing configuration, shows you a merge plan (nothing is overwritten blindly), and applies it after you approve. Installation is idempotent — running it again upgrades in place.
 
-> **Runtime requirement:** Claude Code **2.1.219 or newer**. That release is required for the Anthropic API to resolve `opus` to Opus 5, and is newer than pilotfish's verified agent-`tools` enforcement baseline. The installer stops before making changes on an older or unidentifiable build. On native Windows without WSL, the runbook's shell snippets assume a POSIX shell; the installing agent is instructed to fall back to its own file tools. Restart your session afterwards: the agents directory is scanned at session start, and the `model` setting applies on restart.
+> **Runtime requirement:** Claude Code **2.1.219 or newer**. This is pilotfish's tested floor for Opus 5-aware alias routing and is newer than its verified agent-`tools` enforcement baseline; it does not guarantee one exact backend for every provider, account, or settings stack. The installer stops before making changes on an older or unidentifiable build. On native Windows without WSL, the runbook's shell snippets assume a POSIX shell; the installing agent is instructed to fall back to its own file tools. Restart your session afterwards: the agents directory is scanned at session start, and the `model` setting applies on restart.
 
 For convenience, you can also paste the raw GitHub prompt below. This is a mutable, unpinned convenience path: it follows `main`, so the runbook and templates may change independently between review and installation, and Claude Code's WebFetch prompt-injection protection may intercept a remote document that directly instructs an AI to install software. If it is intercepted, use the local-checkout path above; do not disable or bypass the safety check.
 

@@ -9,8 +9,10 @@
 > **2026-07-24 更新：** 本文保留為最初 Fable 5 決策的時點紀錄。
 > [Opus 5](https://www.anthropic.com/news/claude-opus-5) 改變了 pilotfish
 > 的預設選擇：新安裝現在採用 `opus` family alias，Fable 則保留為
-> `/model fable` opt-in。Alias 的現行行為與 Claude Code 2.1.219 要求見
-> [模型設定文件](https://code.claude.com/docs/en/model-config)，決策與
+> `/model fable` opt-in。Alias 設定見
+> [模型設定文件](https://code.claude.com/docs/en/model-config)；隔離環境的
+> Opus 5 觀察與 user-source routing 限制記錄在
+> [相容性 Gate](../benchmarks/baton-compatibility/README.zh-TW.md)，決策與
 > rollback 條件記錄在
 > [#23](https://github.com/Nanako0129/pilotfish/issues/23)。這不會改寫下方
 > 的歷史測量，也不宣稱 Opus 5 全面勝過 Fable 5。

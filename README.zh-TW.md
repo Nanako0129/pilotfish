@@ -2,7 +2,7 @@
 
 > 領航魚與海中最大的掠食者同游——小而快，把例行工作攬下來，讓大傢伙專心做只有牠能做的事。
 
-**pilotfish** 是 [Claude Code](https://code.claude.com) 的多模型協作層：Opus 5 在主 session 負責規劃與決策，Sonnet 與 Haiku 透過全域 subagent 承接大量執行工作，再由 fresh Opus context 挑戰 Plan 與完成結果。品質靠獨立驗證把關，而不是靠處處使用最大的模型。所有設定安裝在全域層——設定一次、所有專案生效——而且整套架構在主模型不可用時能無感降級。
+**pilotfish** 是 [Claude Code](https://code.claude.com) 的多模型協作層：`opus` family 在主 session 負責規劃與決策，Sonnet 與 Haiku 透過全域 subagent 承接大量執行工作，再由 fresh Opus context 挑戰 Plan 與完成結果。品質靠獨立驗證把關，而不是靠處處使用最大的模型。所有設定安裝在全域層——設定一次、所有專案生效——而且整套架構在主模型不可用時能無感降級。
 
 > **想在 Claude Code 裡使用 OpenAI GPT-5.6，又不改動原生 Claude state？** [remora](https://github.com/Nanako0129/remora-cc) 把 pilotfish 的角色分工模式包裝成 session-scoped launcher，連接既有的 Anthropic-compatible gateway。想研究或客製全域 orchestration policy，可以使用 pilotfish；想要經過批准、可驗證，而且 model 與 gateway override 會隨 child process 消失的安裝方式，可以使用 remora。
 
@@ -47,7 +47,7 @@ Anthropic 在 2026-07-24 發布 [Opus 5](https://www.anthropic.com/news/claude-o
 
 > ⚠️ **警告：** Claude Code v2.1.198 起，內建的 `Explore` subagent 會繼承主 session 的模型。如果你的主 session 跑 Fable 5 或 Opus，每一次背景搜尋都在燒 Opus 級的 token（Claude API 上 Explore 繼承的模型以 Opus 封頂；第三方平台無此上限）。pilotfish 會把它覆寫回 Haiku。（坦白揭露一個代價：自訂的 Explore 會像一般 subagent 一樣載入你的使用者記憶，而內建版會跳過——政策區塊對 subagent 角色會自我停用，把這個開銷壓到最小。）
 
-> **注意：** 上面兩點是訂閱方案的機制。在按 token 計費的 API 上，單價層面的節省依然成立（但沒有週額度桶）；在 Bedrock / Vertex / Foundry 上，alias 會解析到各平台設定的預設版本。若需要精確 deployment，而不是平台目前的 `opus`，請使用 `ANTHROPIC_DEFAULT_*_MODEL` 環境變數。
+> **注意：** 上面兩點是訂閱方案的機制。在按 token 計費的 API 上，單價層面的節省依然成立（但沒有週額度桶）。Model alias 仍受 provider、帳號與 settings 影響：已記錄的乾淨 first-party Gate 把 `opus` 解析成 Opus 5，同一版 client 載入 user setting source 時則解析成 Opus 4.8。若需要精確 deployment，請使用完整 model ID 或平台的 `ANTHROPIC_DEFAULT_*_MODEL` 環境變數。
 
 ## 運作方式
 
@@ -62,7 +62,7 @@ Anthropic 在 2026-07-24 發布 [Opus 5](https://www.anthropic.com/news/claude-o
 ```mermaid
 flowchart TD
     U[你] --> O
-    subgraph MAIN["主 session — opus alias（Anthropic API 上為 Opus 5）"]
+    subgraph MAIN["主 session — opus family alias"]
         O["Orchestrator<br>規劃 / 決策 / 撰寫規格 / 審查"]
     end
     O -->|偵察搜尋| S["scout / Explore<br>haiku · effort low"]
@@ -127,7 +127,7 @@ Show me the full plan of changes and get my approval before writing anything.
 
 Claude 會讀取本地安裝 runbook、檢查你既有的設定、先給你一份合併計畫（不會盲目覆寫任何東西），經你同意後才動手。安裝是冪等的——重跑一次等於原地升級。
 
-> **Runtime 要求：** Claude Code **2.1.219 或更新版本**。Anthropic API 要從 `opus` 解析到 Opus 5，至少需要這個版本；它也比 pilotfish 已驗證的 agent `tools` 強制執行基準更新。若版本更舊或無法辨識，安裝程式會在變更任何檔案前停止。原生 Windows（無 WSL）下 runbook 的 shell 指令假設 POSIX 環境，安裝代理已被指示改用自身檔案工具處理。安裝後請重啟 session：agents 目錄在 session 啟動時掃描，`model` 設定在重啟後生效。
+> **Runtime 要求：** Claude Code **2.1.219 或更新版本**。這是 pilotfish 對 Opus 5-aware alias routing 的已測試最低版本，也比已驗證的 agent `tools` 強制執行基準更新；它不保證每個 provider、帳號或 settings stack 都解析到同一個 backend。若版本更舊或無法辨識，安裝程式會在變更任何檔案前停止。原生 Windows（無 WSL）下 runbook 的 shell 指令假設 POSIX 環境，安裝代理已被指示改用自身檔案工具處理。安裝後請重啟 session：agents 目錄在 session 啟動時掃描，`model` 設定在重啟後生效。
 
 為方便起見，也可以貼上下面的 GitHub raw prompt。這是可變動、未釘選的便利路徑：它跟著 `main` 走，因此從審閱到安裝之間，runbook 與範本可能各自變動；此外，Claude Code 的 WebFetch prompt-injection 防護可能會攔截一份直接對 AI 下達安裝指示的遠端文件。若被攔截，請改用上面的本地 checkout 路徑；不要停用或繞過安全檢查。
 

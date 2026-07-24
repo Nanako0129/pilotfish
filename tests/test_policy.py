@@ -747,6 +747,7 @@ class PolicyContractTests(unittest.TestCase):
         installer = (ROOT / "install/AGENT-INSTALL.md").read_text(encoding="utf-8")
         self.assertIn("claude --version", installer)
         self.assertIn("Claude Code 2.1.219 or newer", installer)
+        self.assertIn("does not guarantee one exact backend", installer)
         self.assertIn("stop before presenting a write plan or changing anything", installer)
         self.assertIn("depend on enforced tool exclusion", installer)
 
@@ -769,6 +770,7 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn('If absent → add `["sonnet"]`', installer)
         self.assertIn("Never replace an existing", installer)
         self.assertIn("Claude Code 2.1.219", installer)
+        self.assertIn("provider, account, and settings", installer)
 
     def test_mechanical_replay_fetches_pinned_snapshot(self) -> None:
         pinned = "863b117b9da42179c5bb77a05158920fbc092ee2"

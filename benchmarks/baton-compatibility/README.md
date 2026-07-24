@@ -123,7 +123,8 @@ Claude Code 2.1.219 loaded the proposed `model: "opus"` settings, the unchanged
 v1.3.2 policy, the current generated eight-role payload, and a project-local
 copy of the installed Baton skill. Project-local skill loading deliberately
 excluded the user setting source: a rejected attempt and an explicit route
-probe both resolved `opus` to Opus 4.8 when that source was present.
+probe both resolved `opus` to Opus 4.8 when that source was present. This
+records a source-dependent difference, not a proven cause.
 
 | Invocation | Client duration / summed API time | Cost field / turns | Result |
 |---|---:|---:|---|

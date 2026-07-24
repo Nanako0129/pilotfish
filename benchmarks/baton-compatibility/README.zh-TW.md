@@ -123,7 +123,7 @@ Claude Code 2.1.219 載入提案中的 `model: "opus"` settings、未改動的
 v1.3.2 policy、目前生成的八角色 payload，以及安裝中 Baton skill 的
 project-local 副本。這次刻意排除 user setting source：被拒絕的 attempt
 與額外明確指定 `--model opus` 的 probe，在包含該 source 時都解析成
-Opus 4.8。
+Opus 4.8。這是 setting source 相關的差異紀錄，不是已證明的根因。
 
 | Invocation | Client duration / summed API time | Cost field / turns | 結果 |
 |---|---:|---:|---|
