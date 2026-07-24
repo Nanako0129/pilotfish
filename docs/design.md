@@ -58,11 +58,17 @@ The `Explore` override exists because Claude Code v2.1.198 changed the built-in 
 The intuitive objection to cheap executors is quality. pilotfish's answer is structural, not hopeful:
 
 1. The orchestrator writes complete one-shot Plans and execution specs (goal, constraints, done-criteria, the *why*) — most cheap-model failures are actually spec failures.
-2. Material Plans can receive a tool-enforced read-only `plan-verifier` pass before approval; the main session still owns synthesis and revisions.
+2. Material Plans use a program envelope plus independently approvable slices. A tool-enforced read-only `plan-verifier` reviews the envelope, then only the next executable slice; the main session still owns synthesis and revisions.
 3. Escalation is bounded: two failed attempts on a tier, then escalate or take over. No infinite cheap retries that burn more than they save.
 4. Non-trivial completed work passes through `verifier` — an adversarial, fresh-context pass that tries to *refute* the claimed outcome before the orchestrator reports it done.
 
 Fresh verification isn't free — both verification roles run on Opus and re-read context in a fresh session. They are reserved for material Plans and non-trivial outcomes; small work skips them. What they buy is a change of question: from "does this look right to its author?" to "did it survive an independent refutation attempt?" Two known limits remain: same-tier verification catches context rot and unchecked claims, not capability-ceiling errors; and neither verifier certifies every scout fact. The main session must reconcile contradictory discovery and sanity-check load-bearing evidence. Security Plans use the dedicated read-only `security-reviewer`; security-sensitive outcomes make the outcome verifier probe abuse cases at maximum thoroughness.
+
+Readiness is tracked per stable envelope or slice. `READY` is bare; `REVISE`
+names each blocker, evidence, minimum revision, and acceptance check. Two
+automatic revisions for one unit are the limit before user direction. This
+pauses that unit without treating it as ready or blocking unrelated ready
+slices; shared constraints and prerequisites still gate dependent work.
 
 ## Phase-specific dispatch brakes
 

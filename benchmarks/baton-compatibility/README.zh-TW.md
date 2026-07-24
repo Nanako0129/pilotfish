@@ -6,13 +6,14 @@
 - [合成契約](#合成契約)
 - [隔離與重現](#隔離與重現)
 - [精確 prompts](#精確-prompts)
+- [已記錄的 v1.3.2 sliced lifecycle](#已記錄的-v132-sliced-lifecycle)
 - [已記錄的 v1.3.1 approval-lifecycle 結果](#已記錄的-v131-approval-lifecycle-結果)
 - [已取代、失敗與被拒絕的 harness runs](#已取代失敗與被拒絕的-harness-runs)
 - [限制與揭露](#限制與揭露)
 
 ## 目的
 
-這項 benchmark 是在原生 first-party Claude 路由下，驗證 [Baton](https://github.com/cablate/baton) 與當時尚未發布的 pilotfish v1.3.1 policy 的相容性與 provenance。`final_gate` 已在 Claude Code 2.1.217、Fast mode 關閉、明確 `--model opus` 的條件下成功完成。Baton 負責 delegation topology；pilotfish 繼續掌管具名角色、角色模型、leaf-agent 邊界、approval、tool capabilities 與 verifier 詞彙。Repo 內 snapshot 保留這項 approval-lifecycle Gate 實測的精確 policy bytes；v1.3.1 release policy 後來又加強 activation 與 discovery ownership，其 exact bytes 由另一項[四領域啟用 Gate](../baton-dispatch-effect/README.zh-TW.md) 覆蓋。
+這項 benchmark 記錄 [Baton](https://github.com/cablate/baton) 在原生 first-party Claude 路由下的 compatibility 與 provenance Gates。新增的 v1.3.2 run 驗證一個 program envelope 與唯一 next executable slice；歷史 `final_gate` 保留 v1.3.1 approval lifecycle。Baton 負責 delegation topology；pilotfish 繼續掌管具名角色、角色模型、leaf-agent 邊界、approval、tool capabilities 與 verifier 詞彙。
 
 > **Gate：** Discovery 可以發生在實作結果仍未知時，但 source write 必須等待 main-session Plan 與明確批准。Plan review 回覆 `READY` / `REVISE`；outcome review 回覆 `CONFIRMED` / `REFUTED`。這項 Gate 是 compatibility／provenance only：不建立效率、延遲、成本或 A/B 比較。
 
@@ -114,6 +115,24 @@ claude --dangerously-skip-permissions \
 |---|---|---|
 | Discovery + Plan | [`prompts/turn-1.txt`](./prompts/turn-1.txt) | Baton 已載入、零寫入、唯讀 `plan-verifier` 只用 `READY` / `REVISE`，接著等待批准 |
 | 批准 + execution | [`prompts/turn-2.txt`](./prompts/turn-2.txt) | 只有 `REPORT.md`、測試通過、fresh outcome verifier 回 `CONFIRMED` |
+
+## 已記錄的 v1.3.2 sliced lifecycle
+
+Claude Code 2.1.218 使用精確
+[`v1.3.2-gate-snapshot`](./v1.3.2-gate-snapshot/)，以及版本化的
+[Turn 1](./prompts/v1.3.2-turn-1.txt) 與
+[Turn 2](./prompts/v1.3.2-turn-2.txt) prompts。
+
+| Turn | Wall / API time | Cost field / turns | 結果 |
+|---|---:|---:|---|
+| Plan | 273.977 / 273.017 s | $1.49627725 / 15 | Baton 載入；`ENV-report-audit` 再 `S1-report` 取得 foreground Opus `READY`；零寫入 |
+| 已批准 S1 | 171.033 / 170.399 s | $1.2808205 / 4 | 只有 `REPORT.md`；`npm test` 與獨立 final-byte rerun 通過；fresh Opus verifier 回 `CONFIRMED` |
+| **合計** | **445.010 / 443.416 s** | **$2.77709775 / 19** | `S2-followup` 維持 deferred |
+
+`results.json#v1_3_2_release_gate` 以 SHA-256 綁定 snapshot、
+shell-normalized payload、prompts、transcript、fixture baseline 與最終報告。
+這筆單次 run 只建立其實際跑過的 sliced lifecycle，不代表成本、延遲、
+品質或 activation frequency。
 
 ## 已記錄的 v1.3.1 approval-lifecycle 結果
 

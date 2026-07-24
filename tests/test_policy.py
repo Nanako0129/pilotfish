@@ -69,10 +69,8 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("user prompt only", large["claim_boundary"])
         self.assertIn("fully cue-free", large["claim_boundary"])
         self.assertEqual(
-            hashlib.sha256(
-                (ROOT / "templates/claude-md.orchestration.md").read_bytes()
-            ).hexdigest(),
             large["policy_sha256"],
+            "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf",
         )
         self.assertEqual(large["fixture"]["domain_file_count"], 45)
         self.assertEqual(large["fixture"]["domain_total_lines"], 3032)
@@ -242,23 +240,9 @@ class PolicyContractTests(unittest.TestCase):
             "passed_activation_dispatch_ownership_collection_final_byte_correctness",
         )
         self.assertEqual(release["policy_sha256"], large["policy_sha256"])
-        current_agents = subprocess.run(
-            [
-                sys.executable,
-                str(
-                    ROOT
-                    / "benchmarks"
-                    / "baton-compatibility"
-                    / "build-agents-json.py"
-                ),
-                str(ROOT / "templates" / "agents"),
-            ],
-            check=True,
-            capture_output=True,
-        ).stdout.rstrip(b"\n")
         self.assertEqual(
-            hashlib.sha256(current_agents).hexdigest(),
             release["agents_json_sha256"],
+            "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
         )
         self.assertEqual(release["baton_skill_call_count"], 1)
         self.assertEqual(release["agent_call_count"], 4)
@@ -420,27 +404,11 @@ class PolicyContractTests(unittest.TestCase):
         release_input = results["policy_inputs"]["v1.3.1-release-payload"]
         self.assertEqual(
             release_input["policy_sha256"],
-            hashlib.sha256(
-                (ROOT / "templates" / "claude-md.orchestration.md").read_bytes()
-            ).hexdigest(),
+            "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf",
         )
-        current_agents = subprocess.run(
-            [
-                sys.executable,
-                str(
-                    ROOT
-                    / "benchmarks"
-                    / "baton-compatibility"
-                    / "build-agents-json.py"
-                ),
-                str(ROOT / "templates" / "agents"),
-            ],
-            check=True,
-            capture_output=True,
-        ).stdout.rstrip(b"\n")
         self.assertEqual(
             release_input["agents_json_sha256"],
-            hashlib.sha256(current_agents).hexdigest(),
+            "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
         )
 
         release_mechanical = runs["opus-v1.3.1-release-payload-mechanical"]
@@ -557,16 +525,60 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertNotEqual(current_policy, snapshot_policy)
         self.assertEqual(
-            hashlib.sha256(current_policy).hexdigest(),
             runtime["release_candidate_orchestration_sha256"],
+            "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf",
+        )
+        self.assertEqual(
+            runtime["release_candidate_agents_json_sha256"],
+            "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
+        )
+        self.assertEqual(
+            hashlib.sha256(current_policy).hexdigest(),
+            "b42bd2f0d6c4be23472020cc107d6ceb4ab0eb34553ccfcac5fe6e65c9164b4b",
         )
         self.assertEqual(
             hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
-            runtime["release_candidate_agents_json_sha256"],
+            "f272948d82cd4320f24ca849f884f5e1b74c04c23d28271753281bfdd9ffcaba",
         )
+        release = results["v1_3_2_release_gate"]
+        post_gate = results["v1_3_2_post_gate_role_change"]
+        release_policy = (gate / release["snapshot_policy"]).read_bytes()
+        release_agents_file = (gate / release["snapshot_agents_json"]).read_bytes()
+        self.assertEqual(release_policy, current_policy)
+        self.assertNotEqual(
+            release_agents_file.rstrip(b"\n"), completed.stdout.rstrip(b"\n")
+        )
+        self.assertEqual(
+            hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
+            post_gate["agents_json_runtime_sha256_after"],
+        )
+        self.assertEqual(
+            release["agents_json_runtime_sha256"],
+            post_gate["agents_json_runtime_sha256_before"],
+        )
+        self.assertEqual(
+            hashlib.sha256(release_policy).hexdigest(),
+            release["orchestration_sha256"],
+        )
+        self.assertEqual(
+            hashlib.sha256(release_agents_file).hexdigest(),
+            release["agents_json_file_sha256"],
+        )
+        self.assertEqual(
+            hashlib.sha256(release_agents_file.rstrip(b"\n")).hexdigest(),
+            release["agents_json_runtime_sha256"],
+        )
+        for prompt_name, expected in release["prompt_file_hashes"].items():
+            prompt = (gate / "prompts" / prompt_name).read_bytes()
+            self.assertEqual(hashlib.sha256(prompt).hexdigest(), expected)
+            self.assertEqual(
+                hashlib.sha256(prompt.rstrip(b"\n")).hexdigest(),
+                release["prompt_runtime_input_hashes"][prompt_name],
+            )
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-        self.assertEqual(runtime["final_gate_candidate_version_stamp"], version)
-        self.assertEqual(runtime["release_candidate_version"], version)
+        self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
+        self.assertEqual(runtime["release_candidate_version"], "1.3.1")
+        self.assertEqual(version, "1.3.2")
         self.assertTrue(
             runtime["release_candidate_policy_delta_from_final_gate"].startswith(
                 "non-empty"
@@ -594,10 +606,23 @@ class PolicyContractTests(unittest.TestCase):
         candidate_payload = json.loads(completed.stdout)
         snapshot_executor = snapshot_payload.pop("executor")
         candidate_executor = candidate_payload.pop("executor")
+        snapshot_plan_verifier = snapshot_payload.pop("plan-verifier")
+        candidate_plan_verifier = candidate_payload.pop("plan-verifier")
         self.assertEqual(snapshot_executor["model"], "opus")
         self.assertEqual(candidate_executor["model"], "sonnet")
         snapshot_executor["model"] = candidate_executor["model"]
         self.assertEqual(snapshot_executor, candidate_executor)
+        self.assertEqual(
+            snapshot_plan_verifier["model"], candidate_plan_verifier["model"]
+        )
+        self.assertEqual(
+            snapshot_plan_verifier["tools"], candidate_plan_verifier["tools"]
+        )
+        self.assertNotEqual(
+            snapshot_plan_verifier["prompt"], candidate_plan_verifier["prompt"]
+        )
+        self.assertIn("program envelope", candidate_plan_verifier["prompt"])
+        self.assertIn("Blocker:", candidate_plan_verifier["prompt"])
         self.assertEqual(snapshot_payload, candidate_payload)
         prompt_1 = (gate / "prompts" / "turn-1.txt").read_bytes()
         prompt_2 = (gate / "prompts" / "turn-2.txt").read_bytes()
@@ -889,6 +914,11 @@ class PolicyContractTests(unittest.TestCase):
         for phrase in (
             "smallest coherent integration boundary",
             "independently refuted",
+            "two consecutive `REFUTED` verdicts for that claim",
+            "stop automatic fix-and-reverify cycling",
+            "the cap is not `CONFIRMED`",
+            "user-directed continuation remains allowed",
+            "substantially unchanged implementation",
             "Tests, builds, and static checks are intermediate evidence",
             "security",
             "cross-language or FFI",
@@ -905,6 +935,16 @@ class PolicyContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         for phrase in (
+            "program envelope",
+            "next executable slice",
+            "scope, non-goals",
+            "acceptance that proves the slice outcome",
+            "Blocker:",
+            "Evidence:",
+            "Minimum revision:",
+            "Acceptance check:",
+            "two automatic `REVISE` verdicts for the same unit",
+            "surface the blockers and options to the user",
             "substantially unchanged Plan",
             "material revision or new evidence",
             "simplify it",
@@ -956,6 +996,10 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("excludes Bash, Write, Edit", plan_verifier)
         self.assertIn("READY", plan_verifier)
         self.assertIn("REVISE", plan_verifier)
+        self.assertIn("explicit outcome, scope and non-goals", plan_verifier)
+        self.assertIn("acceptance that proves the slice outcome", plan_verifier)
+        self.assertIn("a slice-local budget", plan_verifier)
+        self.assertIn("explicit stop conditions", plan_verifier)
         self.assertNotIn("CONFIRMED", plan_verifier)
         self.assertIn("CONFIRMED", verifier)
         self.assertIn("REFUTED", verifier)
@@ -1185,6 +1229,54 @@ class PolicyContractTests(unittest.TestCase):
         self.assertTrue(final["agent_calls"][1]["direct_write_blocked_by_hook"])
         self.assertEqual(final["turns"][1]["integration_write_owner"], "main_session")
         self.assertEqual(final["agent_calls"][-1]["verdicts"], ["CONFIRMED"])
+
+        release = results["v1_3_2_release_gate"]
+        self.assertEqual(release["status"], "passed")
+        self.assertEqual(release["granularity"], "invocation")
+        self.assertEqual(release["release_candidate_version"], "1.3.2")
+        self.assertEqual(len(release["turns"]), release["total_cli_invocations"])
+        self.assertEqual(release["total_cli_invocations"], 2)
+        self.assertEqual(release["total_duration_ms"], 445010)
+        self.assertEqual(release["total_duration_api_ms"], 443416)
+        self.assertEqual(release["total_num_turns"], 19)
+        self.assertEqual(
+            sum(
+                (turn["client_reported_cost_usd"] for turn in release["turns"]),
+                Decimal("0"),
+            ),
+            release["total_client_reported_cost_usd"],
+        )
+        self.assertEqual(
+            release["total_client_reported_cost_usd"], Decimal("2.77709775")
+        )
+        self.assertEqual(
+            [
+                unit["id"]
+                for unit in release["turns"][0]["readiness_units"]
+            ],
+            ["ENV-report-audit", "S1-report"],
+        )
+        self.assertTrue(
+            all(
+                unit["verdict"] == "READY"
+                and unit["invocation_model"] is None
+                and not unit["background"]
+                for unit in release["turns"][0]["readiness_units"]
+            )
+        )
+        self.assertEqual(
+            release["turns"][1]["verifier"]["verdict"], "CONFIRMED"
+        )
+        self.assertTrue(release["turns"][1]["independent_final_byte_test_passed"])
+        self.assertFalse(release["turns"][1]["deferred_unit_executed"])
+        self.assertTrue(release["passed"])
+        post_gate = results["v1_3_2_post_gate_role_change"]
+        self.assertEqual(post_gate["role"], "plan-verifier")
+        self.assertTrue(post_gate["recorded_gate_role_exercised"])
+        self.assertFalse(post_gate["live_gate_rerun"])
+        self.assertIn("slice-local budget", post_gate["change"])
+        self.assertIn("explicit stop conditions", post_gate["change"])
+        self.assertIn("static contract coverage only", post_gate["note"])
 
         previous_final = results["previous_final_gate"]
         self.assertEqual(previous_final["granularity"], "invocation")
