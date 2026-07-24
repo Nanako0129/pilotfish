@@ -523,6 +523,296 @@
     "security_reviewer_reason": "The audit fixture did not touch authentication, authorization, secrets, crypto, validation, dependencies, privacy, or other security-sensitive scope.",
     "passed": true
   },
+  "v1_3_2_opus5_release_gate": {
+    "granularity": "invocation",
+    "status": "passed_with_corrective_verification",
+    "run_date": "2026-07-25",
+    "source_base_head": "40c55d258fedba7e156523335430c8f69d1cdd9e",
+    "fixture_baseline_commit": "b0f8a14e976c93adcebdddfede8c9f7c33b72d65",
+    "fixture_baseline_tree": "b7d4ec2c125fcbccfc1ef8629df1168ad28ee600",
+    "release_candidate_version": "1.3.2",
+    "claude_code": "2.1.219",
+    "requested_main_model": "opus",
+    "observed_main_model": "claude-opus-5",
+    "provider_route": "native Claude first-party authentication",
+    "setting_sources": [
+      "project",
+      "local"
+    ],
+    "user_source_excluded": true,
+    "user_source_exclusion_reason": "A rejected pre-approval attempt and a separate explicit --model opus probe both resolved to claude-opus-4-8 when the user setting source was included. The successful Gate copied the exact installed Baton skill into the disposable project and excluded user settings so the proposed settings snippet governed the main-model route.",
+    "fast_mode": false,
+    "baton_skill_sha256": "48b1e573a9e3de85fdb68c433bd47d69add9ec8491613ca304cfcef2326e3d67",
+    "baton_skill_source": "project-local copy of the installed user skill",
+    "snapshot_policy": "v1.3.2-gate-snapshot/CLAUDE.md",
+    "snapshot_agents_json": "v1.3.2-opus5-gate-snapshot/agents.json",
+    "snapshot_settings": "v1.3.2-opus5-gate-snapshot/settings.snippet.json",
+    "orchestration_sha256": "b42bd2f0d6c4be23472020cc107d6ceb4ab0eb34553ccfcac5fe6e65c9164b4b",
+    "agents_json_file_sha256": "61bb008bcc491e0b90c7ed131c090ec196fef22593ae90725baadb87b5a28541",
+    "agents_json_runtime_sha256": "f272948d82cd4320f24ca849f884f5e1b74c04c23d28271753281bfdd9ffcaba",
+    "settings_sha256": "108da7014d44b2078581f9f98008b6f9d6c7ed08e5c9c7e93a7dd2f083f1a5d9",
+    "transcript_sha256": "c27c8de57e3c059879cac7caf6f184703af5f3a75bb7d0e9fa5653d6a6cbcd1f",
+    "raw_result_sha256": {
+      "v1.3.2-turn-1": "30e4035c22091fca0435469b97943c9437982997a3b48857d462ca5513947bed",
+      "v1.3.2-turn-2": "79ca39ad323baef2f90b839e12ebdada50970fd3d6cf0b67dedefceb8af9d86a",
+      "v1.3.2-opus5-turn-2b": "92313c31ace333c8b5b524fc1d017fb7372dcc8d9fbf70ce5689c76b05bbf9fa"
+    },
+    "prompt_file_hashes": {
+      "v1.3.2-turn-1.txt": "70f97a143f52e2d7f8dbced3819cc8766ada7d4ec47af8e6c6147e0bf0431a25",
+      "v1.3.2-turn-2.txt": "a09fe1d190f2cb434d14153690f3b455ae661d5b48e3cdd369a7cd1f7533e8e2",
+      "v1.3.2-opus5-turn-2b.txt": "639ccd4913d297b3012baea4482bf25eaf06602574c9f85dcbbfb6dc739ec403"
+    },
+    "prompt_runtime_input_hashes": {
+      "v1.3.2-turn-1.txt": "4ccd65a3339b275d6fce1e2935acca74dd03b8220a935f22071b63b56fa52375",
+      "v1.3.2-turn-2.txt": "c730e9383004bb0aea943b78f4cddea44bc3eeace3262d2a85772f20fab28c83",
+      "v1.3.2-opus5-turn-2b.txt": "576740a282bc4bad63d7d9cd0b0a33fdf379848d71935beee55410d92dca3111"
+    },
+    "turns": [
+      {
+        "cli_invocation": 1,
+        "prompt_turn": "v1.3.2-turn-1",
+        "max_budget_usd": 6,
+        "phase": "discovery_sliced_plan_approval_wait",
+        "disposition": "completed",
+        "duration_ms": 408315,
+        "duration_api_ms": 562239,
+        "num_turns": 7,
+        "client_reported_cost_usd": 2.66763805,
+        "models": [
+          "claude-haiku-4-5-20251001",
+          "claude-opus-5"
+        ],
+        "baton_loaded": true,
+        "discovery_topology": "two disjoint background scouts",
+        "git_clean": true,
+        "writes_before_approval": false,
+        "readiness_units": [
+          {
+            "id": "ENV-report-audit",
+            "kind": "program envelope",
+            "role": "plan-verifier",
+            "background": false,
+            "invocation_model": null,
+            "observed_model": "claude-opus-5",
+            "observed_tools": [
+              "Glob",
+              "Read"
+            ],
+            "verdicts": [
+              "REVISE",
+              "READY"
+            ]
+          },
+          {
+            "id": "S1-report",
+            "kind": "execution slice",
+            "role": "plan-verifier",
+            "background": false,
+            "invocation_model": null,
+            "observed_model": "claude-opus-5",
+            "observed_tools": [
+              "Glob",
+              "Read"
+            ],
+            "verdicts": [
+              "REVISE",
+              "READY"
+            ]
+          }
+        ],
+        "deferred_unit": "S2-followup"
+      },
+      {
+        "cli_invocation": 2,
+        "prompt_turn": "v1.3.2-turn-2",
+        "max_budget_usd": 6,
+        "phase": "approved_slice_execution_initial_verification",
+        "disposition": "completed_with_post_verdict_edit",
+        "duration_ms": 34671,
+        "duration_api_ms": 292368,
+        "num_turns": 3,
+        "client_reported_cost_usd": 1.4412844,
+        "models": [
+          "claude-opus-5",
+          "claude-sonnet-5"
+        ],
+        "approved_units": [
+          "ENV-report-audit",
+          "S1-report"
+        ],
+        "writer": "main_session_after_mech_executor_write_guard",
+        "only_change": "?? REPORT.md",
+        "git_status": "?? REPORT.md",
+        "test_command": "npm test",
+        "test_passed": true,
+        "initial_verifier": {
+          "role": "verifier",
+          "background": true,
+          "invocation_model": null,
+          "observed_model": "claude-opus-5",
+          "observed_tools": [
+            "Bash",
+            "Read"
+          ],
+          "verdict": "CONFIRMED"
+        },
+        "post_verdict_edit": true,
+        "initial_verdict_covers_final_bytes": false,
+        "accepted_as_final": false,
+        "deferred_unit_executed": false
+      },
+      {
+        "cli_invocation": 3,
+        "prompt_turn": "v1.3.2-opus5-turn-2b",
+        "max_budget_usd": 2,
+        "phase": "corrective_final_byte_verification",
+        "disposition": "completed",
+        "duration_ms": 10867,
+        "duration_api_ms": 115184,
+        "num_turns": 2,
+        "client_reported_cost_usd": 1.4398525,
+        "models": [
+          "claude-opus-5"
+        ],
+        "only_change": "?? REPORT.md",
+        "git_status": "?? REPORT.md",
+        "report_sha256": "bcbc74b759884816c6b065ba1026a4c7a765e4a925dfd5d4e3b8f30d270393e1",
+        "report_lines": 87,
+        "report_bytes": 7385,
+        "citation_occurrences": 38,
+        "distinct_citations": 30,
+        "test_command": "npm test",
+        "test_passed": true,
+        "independent_final_byte_test_passed": true,
+        "verifier": {
+          "role": "verifier",
+          "background": true,
+          "invocation_model": null,
+          "observed_model": "claude-opus-5",
+          "observed_tools": [
+            "Bash",
+            "Read"
+          ],
+          "verdict": "CONFIRMED"
+        },
+        "writes_during_corrective_verification": false,
+        "deferred_unit_executed": false
+      }
+    ],
+    "agent_calls": [
+      {
+        "role": "scout",
+        "count": 2,
+        "background": true,
+        "invocation_model": null,
+        "observed_model": "claude-haiku-4-5-20251001",
+        "observed_tools": [
+          "Glob",
+          "Read"
+        ]
+      },
+      {
+        "role": "plan-verifier",
+        "count": 4,
+        "background": false,
+        "invocation_model": null,
+        "observed_model": "claude-opus-5",
+        "observed_tools": [
+          "Glob",
+          "Read"
+        ],
+        "verdicts": [
+          "REVISE",
+          "READY",
+          "REVISE",
+          "READY"
+        ]
+      },
+      {
+        "role": "mech-executor",
+        "count": 1,
+        "background": false,
+        "invocation_model": null,
+        "observed_model": "claude-sonnet-5",
+        "observed_tools": [
+          "Bash",
+          "Write"
+        ],
+        "direct_write_blocked_by_hook": true
+      },
+      {
+        "role": "verifier",
+        "count": 2,
+        "background": true,
+        "invocation_model": null,
+        "observed_model": "claude-opus-5",
+        "observed_tools": [
+          "Bash",
+          "Read"
+        ],
+        "verdicts": [
+          "CONFIRMED",
+          "CONFIRMED"
+        ]
+      }
+    ],
+    "total_duration_ms": 453853,
+    "total_duration_api_ms": 969791,
+    "total_num_turns": 12,
+    "total_cli_invocations": 3,
+    "total_client_reported_cost_usd": 5.54877495,
+    "exact_two_cli_invocation_contract_passed": false,
+    "corrective_verification_required": true,
+    "corrective_verification_closed_final_bytes": true,
+    "approval_tool_boundary_exercised": true,
+    "program_envelope_ready": true,
+    "current_slice_ready": true,
+    "downstream_slice_deferred": true,
+    "result_collection_runtime_exercised": true,
+    "security_reviewer_runtime_exercised": false,
+    "security_reviewer_reason": "The audit fixture did not touch authentication, authorization, secrets, crypto, validation, dependencies, privacy, or other security-sensitive scope.",
+    "fallback_model_runtime_exercised": false,
+    "passed": true
+  },
+  "v1_3_2_opus5_rejected_user_source_attempt": {
+    "granularity": "invocation",
+    "status": "rejected",
+    "run_date": "2026-07-25",
+    "reason": "The attempt included the user setting source so the installed Baton skill would load. Both this attempt and a separate explicit --model opus probe resolved to claude-opus-4-8, so neither exercised the proposed Opus 5 default.",
+    "source_base_head": "40c55d258fedba7e156523335430c8f69d1cdd9e",
+    "claude_code": "2.1.219",
+    "setting_sources": [
+      "user",
+      "project",
+      "local"
+    ],
+    "requested_main_model": "opus",
+    "observed_main_model": "claude-opus-4-8",
+    "turn_1": {
+      "duration_ms": 231717,
+      "duration_api_ms": 230556,
+      "num_turns": 15,
+      "client_reported_cost_usd": 1.5908975,
+      "git_clean": true,
+      "writes_before_approval": false,
+      "both_readiness_units_ready": true,
+      "turn_2_started": false,
+      "raw_result_sha256": "177af0ccf60210631676f2c3fde9215980a91cdbb67d90d743c744316d6a0b4d",
+      "transcript_sha256": "f864be1dc4c9abbc6c54758005c7e2b5b9ddd6cf9fd21c83a7cf087ac5a412ff"
+    },
+    "explicit_route_probe": {
+      "no_session_persistence": true,
+      "duration_ms": 1606,
+      "duration_api_ms": 1463,
+      "num_turns": 1,
+      "client_reported_cost_usd": 0.169445,
+      "result": "EXPLICIT_OPUS_ROUTE_OK",
+      "observed_model": "claude-opus-4-8",
+      "raw_result_persisted": false
+    },
+    "total_client_reported_cost_usd": 1.7603425,
+    "passed": false
+  },
   "v1_3_2_post_gate_role_change": {
     "granularity": "summary",
     "role": "plan-verifier",

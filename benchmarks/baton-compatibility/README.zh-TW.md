@@ -6,6 +6,7 @@
 - [合成契約](#合成契約)
 - [隔離與重現](#隔離與重現)
 - [精確 prompts](#精確-prompts)
+- [已記錄的 v1.3.2 Opus 5 lifecycle](#已記錄的-v132-opus-5-lifecycle)
 - [已記錄的 v1.3.2 sliced lifecycle](#已記錄的-v132-sliced-lifecycle)
 - [已記錄的 v1.3.1 approval-lifecycle 結果](#已記錄的-v131-approval-lifecycle-結果)
 - [已取代、失敗與被拒絕的 harness runs](#已取代失敗與被拒絕的-harness-runs)
@@ -115,6 +116,35 @@ claude --dangerously-skip-permissions \
 |---|---|---|
 | Discovery + Plan | [`prompts/turn-1.txt`](./prompts/turn-1.txt) | Baton 已載入、零寫入、唯讀 `plan-verifier` 只用 `READY` / `REVISE`，接著等待批准 |
 | 批准 + execution | [`prompts/turn-2.txt`](./prompts/turn-2.txt) | 只有 `REPORT.md`、測試通過、fresh outcome verifier 回 `CONFIRMED` |
+
+## 已記錄的 v1.3.2 Opus 5 lifecycle
+
+Claude Code 2.1.219 載入提案中的 `model: "opus"` settings、未改動的
+v1.3.2 policy、目前生成的八角色 payload，以及安裝中 Baton skill 的
+project-local 副本。這次刻意排除 user setting source：被拒絕的 attempt
+與額外明確指定 `--model opus` 的 probe，在包含該 source 時都解析成
+Opus 4.8。
+
+| Invocation | Client duration / summed API time | Cost field / turns | 結果 |
+|---|---:|---:|---|
+| Plan | 408.315 / 562.239 s | $2.66763805 / 7 | 兩個 background Haiku scouts 完成；ENV 與 S1 各回一次 `REVISE`，修訂後 fresh Opus 5 `plan-verifier` 都回 `READY`；零寫入 |
+| 已批准 S1 | 34.671 / 292.368 s | $1.4412844 / 3 | Sonnet writer 被既有 report-file guard 擋下；main 只整合 `REPORT.md`；`npm test` 通過且 Opus 5 verifier 回 `CONFIRMED`，但 main 隨後又改了一個 clause |
+| Corrective final-byte verification | 10.867 / 115.184 s | $1.4398525 / 2 | 零寫入；`npm test` 通過；新的 Opus 5 verifier 對 SHA `bcbc74b7…93e1` 回 `CONFIRMED` |
+| **成功 lifecycle 合計** | **453.853 / 969.791 s** | **$5.54877495 / 12** | **3 次 CLI invocation 後通過；S2 維持 deferred** |
+
+Client 的 `duration_ms` 不包含部分 tracked background wait，而 API 欄位
+會加總彼此重疊的 agents；兩欄都不當成端到端 wall-time 測量。原本兩次
+CLI 的形狀**沒有**通過：第一個 outcome verdict 後又發生編輯，導致
+final-byte coverage 失效，所以必須加第三次 invocation。`results.json`
+保留這個 sequencing defect，沒有把 corrective verifier 塞回 Turn 2。
+最後 repository-owned test、scope check、SHA check 與 fresh verifier
+覆蓋的是同一份 bytes。
+
+被拒絕的 user-source attempt 在 approval 前停止，Opus 4.8 花費
+$1.5908975；明確 route probe 另花 $0.169445。連同更早的 $0.034744
+one-turn route smoke，整個 Opus-default 驗證 campaign 的 client cost
+field 合計 $7.34386145。這些是單次觀察，不是 invoice 或比較性能結果。
+這輪沒有觸發 `fallbackModel`、security routing 或 Fable。
 
 ## 已記錄的 v1.3.2 sliced lifecycle
 

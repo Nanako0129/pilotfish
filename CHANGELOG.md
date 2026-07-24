@@ -18,6 +18,22 @@ Claude Code 2.1.219 and returned `OPUS5_DEFAULT_GATE_OK`; the client reported
 the `opus` route for that exact environment, not Sonnet fallback activation,
 comparative quality, latency, or efficiency.
 
+The full v1.3.2 Baton lifecycle was then rerun with the current policy, roles,
+and proposed settings under Opus 5. Two background Haiku scouts completed;
+the program envelope and S1 slice each received one substantive `REVISE` before
+fresh Opus 5 `plan-verifier` calls returned `READY`; approval preceded the only
+`REPORT.md` write; `npm test` passed; and a fresh Opus 5 verifier confirmed the
+final bytes. A post-verdict wording edit invalidated the first outcome verdict,
+so a disclosed third CLI invocation performed corrective final-byte
+verification instead of presenting the original two-invocation shape as
+passed. The successful lifecycle reported $5.54877495 across 12 API turns. A
+rejected user-source attempt and route probe reported another $1.7603425 after
+both resolved `opus` to Opus 4.8; project-local Baton isolation removed that
+override. Including the earlier route smoke, the validation campaign reported
+$7.34386145. These single-run client fields establish compatibility and
+provenance only; fallback activation, security routing, model quality, latency,
+and efficiency remain untested.
+
 Bound Plan review loops without weakening approval. Large work may use a shared
 program envelope plus independently approvable execution slices. The envelope
 and next executable slice are reviewed first; unrelated downstream slices do

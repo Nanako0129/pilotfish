@@ -575,6 +575,42 @@ class PolicyContractTests(unittest.TestCase):
                 hashlib.sha256(prompt.rstrip(b"\n")).hexdigest(),
                 release["prompt_runtime_input_hashes"][prompt_name],
             )
+        opus5 = results["v1_3_2_opus5_release_gate"]
+        opus5_policy = (gate / opus5["snapshot_policy"]).read_bytes()
+        opus5_agents = (gate / opus5["snapshot_agents_json"]).read_bytes()
+        opus5_settings = (gate / opus5["snapshot_settings"]).read_bytes()
+        self.assertEqual(opus5_policy, current_policy)
+        self.assertEqual(
+            hashlib.sha256(opus5_policy).hexdigest(),
+            opus5["orchestration_sha256"],
+        )
+        self.assertEqual(
+            hashlib.sha256(opus5_agents).hexdigest(),
+            opus5["agents_json_file_sha256"],
+        )
+        self.assertEqual(
+            hashlib.sha256(opus5_agents.rstrip(b"\n")).hexdigest(),
+            opus5["agents_json_runtime_sha256"],
+        )
+        self.assertEqual(
+            opus5_agents.rstrip(b"\n"),
+            completed.stdout.rstrip(b"\n"),
+        )
+        self.assertEqual(
+            hashlib.sha256(opus5_settings).hexdigest(),
+            opus5["settings_sha256"],
+        )
+        self.assertEqual(
+            json.loads(opus5_settings),
+            {"model": "opus", "fallbackModel": ["sonnet"]},
+        )
+        for prompt_name, expected in opus5["prompt_file_hashes"].items():
+            prompt = (gate / "prompts" / prompt_name).read_bytes()
+            self.assertEqual(hashlib.sha256(prompt).hexdigest(), expected)
+            self.assertEqual(
+                hashlib.sha256(prompt.rstrip(b"\n")).hexdigest(),
+                opus5["prompt_runtime_input_hashes"][prompt_name],
+            )
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
         self.assertEqual(runtime["release_candidate_version"], "1.3.1")
@@ -1283,6 +1319,59 @@ class PolicyContractTests(unittest.TestCase):
         self.assertTrue(release["turns"][1]["independent_final_byte_test_passed"])
         self.assertFalse(release["turns"][1]["deferred_unit_executed"])
         self.assertTrue(release["passed"])
+        opus5 = results["v1_3_2_opus5_release_gate"]
+        self.assertEqual(opus5["status"], "passed_with_corrective_verification")
+        self.assertEqual(opus5["observed_main_model"], "claude-opus-5")
+        self.assertEqual(opus5["claude_code"], "2.1.219")
+        self.assertEqual(len(opus5["turns"]), opus5["total_cli_invocations"])
+        self.assertEqual(opus5["total_cli_invocations"], 3)
+        self.assertEqual(opus5["total_duration_ms"], 453853)
+        self.assertEqual(opus5["total_duration_api_ms"], 969791)
+        self.assertEqual(opus5["total_num_turns"], 12)
+        self.assertEqual(
+            sum(
+                (turn["client_reported_cost_usd"] for turn in opus5["turns"]),
+                Decimal("0"),
+            ),
+            opus5["total_client_reported_cost_usd"],
+        )
+        self.assertEqual(
+            opus5["total_client_reported_cost_usd"], Decimal("5.54877495")
+        )
+        self.assertEqual(
+            [
+                unit["verdicts"]
+                for unit in opus5["turns"][0]["readiness_units"]
+            ],
+            [["REVISE", "READY"], ["REVISE", "READY"]],
+        )
+        self.assertTrue(
+            all(
+                unit["invocation_model"] is None
+                and unit["observed_model"] == "claude-opus-5"
+                for unit in opus5["turns"][0]["readiness_units"]
+            )
+        )
+        self.assertTrue(opus5["turns"][1]["post_verdict_edit"])
+        self.assertFalse(opus5["turns"][1]["initial_verdict_covers_final_bytes"])
+        self.assertFalse(opus5["turns"][1]["accepted_as_final"])
+        self.assertEqual(opus5["turns"][2]["verifier"]["verdict"], "CONFIRMED")
+        self.assertTrue(opus5["turns"][2]["independent_final_byte_test_passed"])
+        self.assertFalse(opus5["exact_two_cli_invocation_contract_passed"])
+        self.assertTrue(opus5["corrective_verification_closed_final_bytes"])
+        self.assertTrue(opus5["result_collection_runtime_exercised"])
+        self.assertFalse(opus5["fallback_model_runtime_exercised"])
+        self.assertTrue(opus5["passed"])
+
+        rejected_opus5 = results["v1_3_2_opus5_rejected_user_source_attempt"]
+        self.assertEqual(rejected_opus5["status"], "rejected")
+        self.assertEqual(rejected_opus5["observed_main_model"], "claude-opus-4-8")
+        self.assertFalse(rejected_opus5["turn_1"]["turn_2_started"])
+        self.assertEqual(
+            rejected_opus5["total_client_reported_cost_usd"],
+            Decimal("1.7603425"),
+        )
+        self.assertFalse(rejected_opus5["passed"])
         post_gate = results["v1_3_2_post_gate_role_change"]
         self.assertEqual(post_gate["role"], "plan-verifier")
         self.assertTrue(post_gate["recorded_gate_role_exercised"])

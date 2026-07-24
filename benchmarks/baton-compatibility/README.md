@@ -6,6 +6,7 @@
 - [Composition contract](#composition-contract)
 - [Isolation and reproduction](#isolation-and-reproduction)
 - [Exact prompts](#exact-prompts)
+- [Recorded v1.3.2 Opus 5 lifecycle](#recorded-v132-opus-5-lifecycle)
 - [Recorded v1.3.2 sliced lifecycle](#recorded-v132-sliced-lifecycle)
 - [Recorded v1.3.1 approval-lifecycle result](#recorded-v131-approval-lifecycle-result)
 - [Superseded, failed, and rejected harness runs](#superseded-failed-and-rejected-harness-runs)
@@ -115,6 +116,36 @@ This fixture exercises the documented runtime composition and exact role definit
 |---|---|---|
 | Discovery + Plan | [`prompts/turn-1.txt`](./prompts/turn-1.txt) | Baton loaded, no writes, read-only `plan-verifier` uses only `READY` / `REVISE`, then wait for approval |
 | Approval + execution | [`prompts/turn-2.txt`](./prompts/turn-2.txt) | Only `REPORT.md`, tests pass, fresh outcome verifier returns `CONFIRMED` |
+
+## Recorded v1.3.2 Opus 5 lifecycle
+
+Claude Code 2.1.219 loaded the proposed `model: "opus"` settings, the unchanged
+v1.3.2 policy, the current generated eight-role payload, and a project-local
+copy of the installed Baton skill. Project-local skill loading deliberately
+excluded the user setting source: a rejected attempt and an explicit route
+probe both resolved `opus` to Opus 4.8 when that source was present.
+
+| Invocation | Client duration / summed API time | Cost field / turns | Result |
+|---|---:|---:|---|
+| Plan | 408.315 / 562.239 s | $2.66763805 / 7 | Two background Haiku scouts completed; ENV and S1 each returned `REVISE` once, then fresh Opus 5 `plan-verifier` calls returned `READY`; no writes |
+| Approved S1 | 34.671 / 292.368 s | $1.4412844 / 3 | Sonnet writer hit the disclosed report-file guard; main integrated only `REPORT.md`; `npm test` passed and an Opus 5 verifier returned `CONFIRMED`, but main then changed one clause |
+| Corrective final-byte verification | 10.867 / 115.184 s | $1.4398525 / 2 | No writes; `npm test` passed; a new Opus 5 verifier returned `CONFIRMED` for SHA `bcbc74b7…93e1` |
+| **Successful lifecycle total** | **453.853 / 969.791 s** | **$5.54877495 / 12** | **Passed after 3 CLI invocations; S2 stayed deferred** |
+
+The client `duration_ms` field excludes some tracked background wait, while its
+API field sums overlapping agents; neither column is presented as an
+end-to-end wall-time measurement. The original two-CLI shape did **not** pass:
+editing after the first outcome verdict broke final-byte coverage, so a third
+invocation was required. `results.json` keeps that sequencing defect instead of
+collapsing the corrective verifier into Turn 2. The final repository-owned
+test, scope check, SHA check, and fresh verifier all covered the same bytes.
+
+The rejected user-source attempt stopped before approval after spending
+$1.5908975 on Opus 4.8; its explicit route probe added $0.169445. Together with
+the earlier $0.034744 one-turn route smoke, the complete Opus-default validation
+campaign reported $7.34386145. These are client cost observations, not an
+invoice or a comparative performance result. The run did not trigger
+`fallbackModel`, security routing, or Fable.
 
 ## Recorded v1.3.2 sliced lifecycle
 
