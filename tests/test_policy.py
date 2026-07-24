@@ -710,16 +710,29 @@ class PolicyContractTests(unittest.TestCase):
     def test_installer_requires_tool_enforcing_runtime(self) -> None:
         installer = (ROOT / "install/AGENT-INSTALL.md").read_text(encoding="utf-8")
         self.assertIn("claude --version", installer)
-        self.assertIn("Claude Code 2.1.207 or newer", installer)
+        self.assertIn("Claude Code 2.1.219 or newer", installer)
         self.assertIn("stop before presenting a write plan or changing anything", installer)
         self.assertIn("depend on enforced tool exclusion", installer)
 
         for readme in ("README.md", "README.zh-TW.md"):
             content = (ROOT / readme).read_text(encoding="utf-8")
-            self.assertIn("2.1.207", content)
+            self.assertIn("2.1.219", content)
             self.assertIn("remove the eight pilotfish agent files", content)
             self.assertIn("`mech-executor`", content)
             self.assertIn("`verifier`", content)
+
+    def test_fresh_install_defaults_to_opus_with_sonnet_fallback(self) -> None:
+        settings = json.loads(
+            (ROOT / "templates/settings.snippet.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(settings["model"], "opus")
+        self.assertEqual(settings["fallbackModel"], ["sonnet"])
+
+        installer = (ROOT / "install/AGENT-INSTALL.md").read_text(encoding="utf-8")
+        self.assertIn('If absent → set `"opus"`', installer)
+        self.assertIn('If absent → add `["sonnet"]`', installer)
+        self.assertIn("Never replace an existing", installer)
+        self.assertIn("Claude Code 2.1.219", installer)
 
     def test_mechanical_replay_fetches_pinned_snapshot(self) -> None:
         pinned = "863b117b9da42179c5bb77a05158920fbc092ee2"
@@ -753,10 +766,10 @@ class PolicyContractTests(unittest.TestCase):
             self.assertIn(f"`{role}`", policy)
 
     def test_default_implementation_tier_stays_below_opus_main_loop(self) -> None:
-        # Regression for #18: the main session runs "best" (Fable 5, or Opus on
-        # fallback). The default delegated implementation role must stay below
-        # an Opus main loop. Review and security roles deliberately remain on
-        # Opus for their separate capability and trust-boundary requirements.
+        # Regression for #18: the main session defaults to Opus. The default
+        # delegated implementation role must stay below that tier. Review and
+        # security roles deliberately remain on Opus for their separate
+        # capability and trust-boundary requirements.
         expected_models = {
             "scout": "haiku",
             "Explore": "haiku",
@@ -780,7 +793,7 @@ class PolicyContractTests(unittest.TestCase):
             )
         # executor now shares mech-executor's Sonnet tier: it is the default
         # delegated implementation path, and must not sit at the same tier as
-        # a fallback Opus main loop. verifier deliberately retains its separate
+        # the Opus main loop. verifier deliberately retains its separate
         # Opus binding for the acceptance-boundary role.
         self.assertEqual(expected_models["executor"], expected_models["mech-executor"])
         self.assertNotEqual(expected_models["executor"], expected_models["verifier"])

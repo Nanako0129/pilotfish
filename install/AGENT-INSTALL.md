@@ -8,7 +8,7 @@ pilotfish is a global multi-model orchestration layer for Claude Code. It touche
 
 | Target | Change |
 |---|---|
-| `~/.claude/settings.json` | Set `model` to `"best"`, add `fallbackModel`, conditionally extend `availableModels` |
+| `~/.claude/settings.json` | Set `model` to `"opus"`, add `fallbackModel`, conditionally extend `availableModels` |
 | `~/.claude/agents/` | Install eight role agent files: `scout.md`, `Explore.md`, `plan-verifier.md`, `security-reviewer.md`, `mech-executor.md`, `executor.md`, `verifier.md`, `security-executor.md` |
 | `~/.claude/CLAUDE.md` | Insert one `## Orchestration` section between `<!-- pilotfish:begin -->` and `<!-- pilotfish:end -->` markers |
 
@@ -31,7 +31,7 @@ When the user asks to **update** (rather than fresh-install), run this before St
 
 Gather the current state before proposing anything:
 
-1. Run `claude --version` and parse its semantic version. pilotfish requires **Claude Code 2.1.207 or newer**, the verified baseline that enforces agent `tools` allowlists. If the command is unavailable, its version cannot be parsed, or it reports an older version, **stop before presenting a write plan or changing anything** and ask the user to update Claude Code. Do not install a prompt-only approximation: `plan-verifier` and `security-reviewer` depend on enforced tool exclusion to preserve the pre-approval read-only boundary.
+1. Run `claude --version` and parse its semantic version. pilotfish requires **Claude Code 2.1.219 or newer** so the `opus` alias resolves to Opus 5 on the Anthropic API; this is also newer than the verified baseline that enforces agent `tools` allowlists. If the command is unavailable, its version cannot be parsed, or it reports an older version, **stop before presenting a write plan or changing anything** and ask the user to update Claude Code. Do not install a prompt-only approximation: `plan-verifier` and `security-reviewer` depend on enforced tool exclusion to preserve the pre-approval read-only boundary.
 2. Read `~/.claude/settings.json` (note the current `model`, and whether `fallbackModel` / `availableModels` exist). If the file is missing, you will create a minimal one.
 3. Read `~/.claude/CLAUDE.md` if it exists. Check for existing `<!-- pilotfish:begin -->` / `<!-- pilotfish:end -->` markers — their presence means this is an **upgrade**, not a fresh install.
 4. List `~/.claude/agents/` and note which of the eight pilotfish filenames already exist. **Also read the `name:` frontmatter of every existing agent file (any filename)** — Claude Code resolves collisions by the `name` field, not the filename, and loads only one definition per name. If any existing agent already declares `name: scout`, `Explore`, `plan-verifier`, `security-reviewer`, `mech-executor`, `executor`, `verifier`, or `security-executor`, flag it as a name collision in the plan and ask the user whether to rename theirs, skip that pilotfish role, or overwrite. Likewise note any enabled **plugin** that ships agents with these names — a user-level file shadows the plugin's version (still reachable via its scoped `plugin:name`).
@@ -64,13 +64,13 @@ Never rewrite the whole file; edit only these keys and preserve everything else:
 
 | Key | Rule |
 |---|---|
-| `model` | If absent → set `"best"`. If present and different → **ask** the user: keep their value, or switch to `"best"` (explain: `best` = Fable 5 when the account has access, otherwise latest Opus — this is the frontier-fallback mechanism). If already `"best"` → no change. |
-| `fallbackModel` | If absent → add `["opus", "sonnet"]` (handles overload/unavailability, distinct from the `best` alias which handles access). If present → leave it and note it in the summary. |
+| `model` | If absent → set `"opus"`. If present and different → **ask** the user: keep their value, or switch to `"opus"` (the family alias resolves to the latest Opus; on the Anthropic API with Claude Code 2.1.219+, that is Opus 5). Never replace an existing `best`, `fable`, full model ID, or other user choice without approval. If already `"opus"` → no change. |
+| `fallbackModel` | If absent → add `["sonnet"]` (handles primary-model overload/unavailability). If present → leave it and note it in the summary. |
 | `availableModels` | **Only if the key already exists** (it is an allowlist): ensure it contains `"opus"`, `"sonnet"`, `"haiku"`, and the chosen main-model value — append whatever is missing. If the key is absent → do not add it (absent = unrestricted, which is fine). |
 
 Validate afterwards: `jq empty ~/.claude/settings.json`.
 
-> **Note:** On older Claude Code versions the `best` alias may be rejected at startup. If the user reports that, fall back to `"opus[1m]"` (or `"opus"`), and suggest updating Claude Code. Users who want *guaranteed* 1M context even when `best` resolves to Opus can choose `"opus[1m]"` themselves — the `[1m]` suffix is documented for `sonnet`/`opus`/`opusplan`/full model IDs, not for `best`.
+> **Note:** `opus` is a family alias, not a full model pin; it follows the provider's current Opus version. Users can opt into Fable 5 with `/model fable`, or choose `"opus[1m]"` when they explicitly need the documented 1M alias. pilotfish does not replace those choices on later installs without approval.
 
 ### 3.3 Agent files
 

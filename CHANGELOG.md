@@ -4,6 +4,20 @@ All notable changes to pilotfish. The installed version is stamped inside the po
 
 ## v1.3.2 — 2026-07-23
 
+Default fresh installs to the `opus` family alias, which resolves to Opus 5 on
+the Anthropic API with Claude Code 2.1.219 or newer. The default
+`fallbackModel` becomes `["sonnet"]`; existing model and fallback choices are
+preserved unless the user explicitly approves a change. Fable 5 remains
+available as an opt-in through `/model fable`. This is a compatibility and
+cost-default decision, not a claim that Opus 5 is universally better than
+Fable 5. See [#23](https://github.com/Nanako0129/pilotfish/issues/23).
+
+An isolated one-turn route smoke loaded the proposed settings snippet under
+Claude Code 2.1.219 and returned `OPUS5_DEFAULT_GATE_OK`; the client reported
+`claude-opus-5` with a 1M context window and $0.034744 total cost. This proves
+the `opus` route for that exact environment, not Sonnet fallback activation,
+comparative quality, latency, or efficiency.
+
 Bound Plan review loops without weakening approval. Large work may use a shared
 program envelope plus independently approvable execution slices. The envelope
 and next executable slice are reviewed first; unrelated downstream slices do

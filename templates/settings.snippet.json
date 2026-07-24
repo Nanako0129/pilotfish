@@ -1,4 +1,4 @@
 {
-  "model": "best",
-  "fallbackModel": ["opus", "sonnet"]
+  "model": "opus",
+  "fallbackModel": ["sonnet"]
 }

@@ -6,6 +6,15 @@
 
 這份文件整理 2026 年 7 月初針對「如何最大化 Claude Fable 5 價值」所做的一輪有出處研究：Fable 5 相對 Opus 4.8 的真實強項與不值得用的場景、Claude 訂閱制的配額經濟學、Claude Code 官方提供的多模型協作機制，以及社群的實測數字與模式。pilotfish 的三層架構（見 [design.md](./design.md)）就是這份研究的落地結論。研究方法為四個並行研究代理（官方文件、社群模式、訂閱經濟、Claude Code 機制）加一輪對照 code.claude.com 官方文件的驗證；資料時點為 2026-07-08。
 
+> **2026-07-24 更新：** 本文保留為最初 Fable 5 決策的時點紀錄。
+> [Opus 5](https://www.anthropic.com/news/claude-opus-5) 改變了 pilotfish
+> 的預設選擇：新安裝現在採用 `opus` family alias，Fable 則保留為
+> `/model fable` opt-in。Alias 的現行行為與 Claude Code 2.1.219 要求見
+> [模型設定文件](https://code.claude.com/docs/en/model-config)，決策與
+> rollback 條件記錄在
+> [#23](https://github.com/Nanako0129/pilotfish/issues/23)。這不會改寫下方
+> 的歷史測量，也不宣稱 Opus 5 全面勝過 Fable 5。
+
 ## 目錄
 
 - [Fable 5 的定位與強項](#fable-5-的定位與強項)
