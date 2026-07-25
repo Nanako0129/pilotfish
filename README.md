@@ -25,6 +25,7 @@
 - [Research & design](#research--design)
 - [Contributing](#contributing)
 - [Uninstall](#uninstall)
+- [Support pilotfish](#support-pilotfish)
 - [License](#license)
 
 ## Why
@@ -262,6 +263,22 @@ Uninstall pilotfish: remove the eight pilotfish agent files from ~/.claude/agent
 delete the <!-- pilotfish:begin --> ... <!-- pilotfish:end --> block from ~/.claude/CLAUDE.md,
 and offer to restore my previous "model" / remove "fallbackModel" in ~/.claude/settings.json.
 ```
+
+## Support pilotfish
+
+pilotfish is only configuration, but proving that its policy still works is not
+free. Meaningful compatibility claims require paid Claude Code or API runs
+across multiple model tiers, multi-turn dispatch Gates, and fresh independent
+verifier sessions. Runs that hit quota limits or expose a policy flaw are
+disclosed and rerun rather than counted as proof.
+
+Sponsorship helps cover those model credits and the ongoing work of tracking
+Claude Code changes, provider aliases, role templates, installer behavior, and
+[release evidence](./benchmarks/baton-dispatch-effect/README.md). If pilotfish
+saves you quota or review time, you can support its continued development on
+Ko-fi.
+
+[![Support pilotfish on Ko-fi](https://img.shields.io/badge/Support_on_Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/nanako0129)
 
 ## License
 
