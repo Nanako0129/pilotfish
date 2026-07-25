@@ -1,0 +1,9 @@
+This is a paid compatibility Gate for the exact active pilotfish policy and named-role payload. The user explicitly requests the named-role lifecycle below.
+
+Work only in this disposable fixture. This turn is read-only: inspect the existing 12 adapter modules, test, package.json, and git state, then synthesize one small Plan for this exact task:
+
+Update every module in src/adapters so normalize(record) returns a new object that preserves all fields, trims record.label, and sets enabled to true only when record.enabled is true or the string "true". Keep each module self-contained. Do not add a shared helper, change exports, or edit tests.
+
+The Plan must identify one stable readiness-unit ID and include outcome, non-goals, exact write scope, one mech-executor as exclusive source owner, prerequisites, sequence, acceptance proving the stated outcome, rollback, a slice-local budget, and explicit stop conditions. Acceptance must require exactly the 12 adapter source files to change, npm test to pass, and a fresh named verifier to independently return CONFIRMED after execution. The main session must not write source.
+
+Invoke exactly one fresh existing named plan-verifier without an invocation-level model override and ask it to judge only this readiness unit. If it returns READY, present the approved-shape Plan and stop for explicit user approval. If it returns structured REVISE, present that blocker and stop; do not revise or resubmit automatically. Do not edit any file, send an implementation brief, invoke a write-capable role, or begin execution in this turn.

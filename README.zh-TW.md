@@ -110,10 +110,10 @@ flowchart TD
 
 ## 安裝
 
-建議的路徑是先把釘選的 v1.3.3 release clone 到本機，再從該 checkout 啟動 Claude Code，讓它讀取本地 runbook：
+建議的路徑是先把釘選的 v1.3.4 release clone 到本機，再從該 checkout 啟動 Claude Code，讓它讀取本地 runbook：
 
 ```sh
-git clone --branch v1.3.3 --depth 1 https://github.com/Nanako0129/pilotfish.git
+git clone --branch v1.3.4 --depth 1 https://github.com/Nanako0129/pilotfish.git
 cd pilotfish
 claude
 ```
@@ -144,7 +144,7 @@ Show me the full plan of changes and get my approval before writing anything.
 pilotfish 的安裝方式，是讓 Claude 從本 repo 讀取 runbook 與範本檔、合併進你的全域 `~/.claude/` 設定——其中包含一段會載入**未來每一個 session** 的政策區塊。請把它當成任何 `curl | sh` 看待：信任來自這個 repo 與你的 GitHub 連線，而不是那段貼上的文字。建議使用本地 checkout，因為你可以先檢查釘選的 release，再讓 Claude 讀取 runbook。執行前：
 
 - **實際會被裝進去的檔案要親自讀過**，不只是 runbook：就是 [templates/agents/](./templates/agents/) 的八個檔案加上 [templates/claude-md.orchestration.md](./templates/claude-md.orchestration.md)。除此之外不會寫入任何東西。
-- **釘選到 release tag 或 commit**，確保你審過的就是實際裝的——從你讀它、到 Claude 讀它之間，`main` 是可能變動的。上面的建議指令已釘選 `v1.3.3` release tag；要最嚴格保證時，請先 fetch 並 checkout 你審閱過的完整 commit SHA，再在啟動 Claude 前驗證 checkout。
+- **釘選到 release tag 或 commit**，確保你審過的就是實際裝的——從你讀它、到 Claude 讀它之間，`main` 是可能變動的。上面的建議指令已釘選 `v1.3.4` release tag；要最嚴格保證時，請先 fetch 並 checkout 你審閱過的完整 commit SHA，再在啟動 Claude 前驗證 checkout。
 - **保留 approval gate：** 經你同意前 Claude 不會動手，但計畫仍只是 runbook 的摘要。請自行審閱本地 runbook 與範本；若 raw URL 被攔截，也不要削弱或繞過 WebFetch 的 prompt-injection 防護。
 
 ## 安裝內容
@@ -230,6 +230,7 @@ Read the local file install/AGENT-INSTALL.md in the current checkout and follow 
 | [benchmarks/spontaneous-dispatch/README.zh-TW.md](./benchmarks/spontaneous-dispatch/README.zh-TW.md) | 繁體中文 + 數據 | 無委派提示的 Opus baseline、v1.3.1 mechanical／bug 拓撲 Gate、sanitized traces 與 Fable credit-gate 揭露 |
 | [benchmarks/baton-dispatch-effect/README.zh-TW.md](./benchmarks/baton-dispatch-effect/README.zh-TW.md) | 繁體中文 + 數據 | Prompt-neutral 啟用矩陣：小型未啟用觀察，以及四領域 Baton 啟用、四個完成 scouts、exclusive ownership、完整 collection 與 output-shape correctness Gate |
 | [benchmarks/baton-compatibility/README.zh-TW.md](./benchmarks/baton-compatibility/README.zh-TW.md) | 繁體中文 + 數據 | Historical exact-byte 原生 Claude 雙 turn lifecycle，加上 Opus 5 rerun 與 corrective 第三次 invocation、精確 prompts、被拒絕的 routing 證據與機器可讀結果 |
+| [benchmarks/prompt-compression/README.zh-TW.md](./benchmarks/prompt-compression/README.zh-TW.md) | 繁體中文 + 數據 | v1.3.4 prompt byte 降幅、runtime context census、candidate 精確 hashes、付費行為觀察與目前主張邊界 |
 
 **先行者與致意。** 「聰明的腦、便宜的手」這個分工不是 pilotfish 發明的：Anthropic 自己的工程文（[Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)）就是這個框架，Claude Code 內建 [`opusplan`](https://code.claude.com/docs/en/model-config)——如果你只想要更省的 session，`/model opusplan` 根本不需要裝任何 repo——而 [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) 早就把同樣的節流理念做成帶 ledger 強制 hook 的 plugin。pilotfish 的貢獻在打包方式：刻意只有八個角色而非上百個 agent 的目錄、寫成角色而能撐過模型換代的政策、動手前先出示計畫的安裝流程、以及經過對抗式查核的宣稱。如果你偏好更重、有 hook 強制力的路線，用他們的。
 
