@@ -270,7 +270,7 @@ pilotfish is only configuration, but proving that its policy still works is not
 free. Meaningful compatibility claims require paid Claude Code or API runs
 across multiple model tiers, multi-turn dispatch Gates, and fresh independent
 verifier sessions. Runs that hit quota limits or expose a policy flaw are
-disclosed and rerun rather than counted as proof.
+disclosed and, when feasible, rerun rather than counted as proof.
 
 Sponsorship helps cover those model credits and the ongoing work of tracking
 Claude Code changes, provider aliases, role templates, installer behavior, and
