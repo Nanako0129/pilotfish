@@ -537,29 +537,17 @@ class PolicyContractTests(unittest.TestCase):
             runtime["release_candidate_agents_json_sha256"],
             "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
         )
-        self.assertEqual(
-            hashlib.sha256(current_policy).hexdigest(),
-            "90e3d06409e8769b71c8807cce67876bebd9eaea65ec11ec6f947f597b44229b",
-        )
-        self.assertEqual(
-            hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
-            "f272948d82cd4320f24ca849f884f5e1b74c04c23d28271753281bfdd9ffcaba",
-        )
         release = results["v1_3_2_release_gate"]
         post_gate = results["v1_3_2_post_gate_role_change"]
         release_policy = (gate / release["snapshot_policy"]).read_bytes()
         release_agents_file = (gate / release["snapshot_agents_json"]).read_bytes()
         self.assertNotEqual(release_policy, current_policy)
-        self.assertEqual(
+        self.assertNotEqual(
             normalize_version_marker(release_policy),
             normalize_version_marker(current_policy),
         )
         self.assertNotEqual(
             release_agents_file.rstrip(b"\n"), completed.stdout.rstrip(b"\n")
-        )
-        self.assertEqual(
-            hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
-            post_gate["agents_json_runtime_sha256_after"],
         )
         self.assertEqual(
             release["agents_json_runtime_sha256"],
@@ -589,7 +577,7 @@ class PolicyContractTests(unittest.TestCase):
         opus5_agents = (gate / opus5["snapshot_agents_json"]).read_bytes()
         opus5_settings = (gate / opus5["snapshot_settings"]).read_bytes()
         self.assertNotEqual(opus5_policy, current_policy)
-        self.assertEqual(
+        self.assertNotEqual(
             normalize_version_marker(opus5_policy),
             normalize_version_marker(current_policy),
         )
@@ -606,6 +594,10 @@ class PolicyContractTests(unittest.TestCase):
             opus5["agents_json_runtime_sha256"],
         )
         self.assertEqual(
+            hashlib.sha256(opus5_agents.rstrip(b"\n")).hexdigest(),
+            post_gate["agents_json_runtime_sha256_after"],
+        )
+        self.assertNotEqual(
             opus5_agents.rstrip(b"\n"),
             completed.stdout.rstrip(b"\n"),
         )
@@ -627,7 +619,7 @@ class PolicyContractTests(unittest.TestCase):
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
         self.assertEqual(runtime["release_candidate_version"], "1.3.1")
-        self.assertEqual(version, "1.3.3")
+        self.assertEqual(version, "1.3.4")
         self.assertTrue(
             runtime["release_candidate_policy_delta_from_final_gate"].startswith(
                 "non-empty"
@@ -652,7 +644,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertNotEqual(snapshot_agents, completed.stdout.rstrip(b"\n"))
         snapshot_payload = json.loads(snapshot_agents)
-        candidate_payload = json.loads(completed.stdout)
+        candidate_payload = json.loads(opus5_agents)
         snapshot_executor = snapshot_payload.pop("executor")
         candidate_executor = candidate_payload.pop("executor")
         snapshot_plan_verifier = snapshot_payload.pop("plan-verifier")
@@ -756,6 +748,141 @@ class PolicyContractTests(unittest.TestCase):
             content = (ROOT / readme).read_text(encoding="utf-8")
             self.assertIn(f"git clone --branch v{version} --depth 1", content)
 
+    def test_prompt_compression_candidate_is_evidence_bound(self) -> None:
+        gate = ROOT / "benchmarks" / "prompt-compression"
+        evidence = json.loads(
+            (gate / "results.json").read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        policy = (ROOT / "templates/claude-md.orchestration.md").read_bytes()
+        policy_record = evidence["inputs"]["orchestration"]
+        self.assertEqual(evidence["candidate_version"], "1.3.4")
+        self.assertEqual(len(policy), policy_record["candidate_bytes"])
+        self.assertEqual(
+            hashlib.sha256(policy).hexdigest(),
+            policy_record["candidate_sha256"],
+        )
+
+        completed = subprocess.run(
+            [
+                sys.executable,
+                str(
+                    ROOT
+                    / "benchmarks"
+                    / "baton-compatibility"
+                    / "build-agents-json.py"
+                ),
+                str(ROOT / "templates" / "agents"),
+            ],
+            check=True,
+            capture_output=True,
+        )
+        agents_record = evidence["inputs"]["agents"]
+        self.assertEqual(
+            hashlib.sha256(completed.stdout).hexdigest(),
+            agents_record["candidate_generated_file_sha256"],
+        )
+        self.assertEqual(
+            hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
+            agents_record["candidate_generated_runtime_sha256"],
+        )
+        self.assertEqual(
+            (gate / "gate-snapshot" / "CLAUDE.md").read_bytes(),
+            policy,
+        )
+        self.assertEqual(
+            (gate / "gate-snapshot" / "agents.json").read_bytes(),
+            completed.stdout,
+        )
+
+        role_records = {record["role"]: record for record in agents_record["roles"]}
+        self.assertEqual(set(role_records), set(ROLES))
+        for role, record in role_records.items():
+            payload = (
+                ROOT / "templates" / "agents" / f"{role}.md"
+            ).read_bytes()
+            self.assertEqual(len(payload), record["candidate_bytes"])
+            self.assertEqual(
+                hashlib.sha256(payload).hexdigest(),
+                record["candidate_sha256"],
+            )
+            self.assertNotIn(
+                b"Task text has no compressible markdown prose worth touching",
+                payload,
+            )
+
+        combined = evidence["inputs"]["combined"]
+        self.assertEqual(
+            policy_record["candidate_bytes"] + agents_record["candidate_bytes"],
+            combined["candidate_bytes"],
+        )
+        self.assertEqual(
+            combined["original_bytes"] - combined["candidate_bytes"],
+            combined["reduction_bytes"],
+        )
+
+        behavior = evidence["behavioral_gates"]
+        small_lifecycle = behavior["small_lifecycle"]
+        self.assertEqual(small_lifecycle["status"], "passed")
+        self.assertEqual(
+            small_lifecycle["turn_1_plan"]["agent_calls"][0]["verdict"],
+            "READY",
+        )
+        self.assertEqual(
+            small_lifecycle["turn_2_approved_execution"]["agent_calls"][1][
+                "verdict"
+            ],
+            "CONFIRMED",
+        )
+        self.assertFalse(
+            small_lifecycle["turn_2_approved_execution"]["main_source_writes"]
+        )
+        for prompt_name, record in (
+            ("small-lifecycle-plan.txt", small_lifecycle["turn_1_plan"]),
+            (
+                "small-lifecycle-approve.txt",
+                small_lifecycle["turn_2_approved_execution"],
+            ),
+        ):
+            prompt = (gate / "prompts" / prompt_name).read_bytes()
+            self.assertEqual(
+                hashlib.sha256(prompt).hexdigest(),
+                record["prompt_file_sha256"],
+            )
+            self.assertEqual(
+                hashlib.sha256(prompt.rstrip(b"\n")).hexdigest(),
+                record["prompt_runtime_sha256"],
+            )
+
+        observed_cost = sum(
+            (
+                evidence["context_census"]["baseline"]["client_reported_cost_usd"],
+                evidence["context_census"]["candidate"]["client_reported_cost_usd"],
+                behavior["spontaneous_mechanical_candidate"][
+                    "client_reported_cost_usd"
+                ],
+                behavior["spontaneous_mechanical_v1_3_3_control"][
+                    "client_reported_cost_usd"
+                ],
+                behavior["spontaneous_bug_candidate"]["client_reported_cost_usd"],
+                behavior["explicit_lifecycle_turn_1"][
+                    "client_reported_cost_usd"
+                ],
+                behavior["explicit_lifecycle_user_continuation"][
+                    "client_reported_cost_usd"
+                ],
+                small_lifecycle["turn_1_plan"]["client_reported_cost_usd"],
+                small_lifecycle["turn_2_approved_execution"][
+                    "client_reported_cost_usd"
+                ],
+            ),
+            Decimal("0"),
+        )
+        self.assertEqual(
+            observed_cost,
+            evidence["paid_campaign"]["client_reported_cost_usd_so_far"],
+        )
+
     def test_installer_requires_tool_enforcing_runtime(self) -> None:
         installer = (ROOT / "install/AGENT-INSTALL.md").read_text(encoding="utf-8")
         self.assertIn("claude --version", installer)
@@ -807,9 +934,9 @@ class PolicyContractTests(unittest.TestCase):
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("omit the `model` argument entirely", policy)
-        self.assertIn("invocation-level model overrides the role definition", policy)
-        self.assertIn("ad-hoc agent that has no named role definition", policy)
+        self.assertIn("omit `model` arg", policy)
+        self.assertIn("invocation-level model overrides role routing", policy)
+        self.assertIn("truly ad-hoc agent, no named role", policy)
 
         for role in ROLES:
             agent = (ROOT / "templates" / "agents" / f"{role}.md").read_text(
@@ -858,13 +985,13 @@ class PolicyContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("phase-aware lifecycle", policy)
-        self.assertIn("Discovery needs a stable research contract", policy)
-        self.assertIn("not a pre-decided implementation outcome", policy)
-        self.assertIn("No source edit or implementation brief before required approval", policy)
-        self.assertIn("A broad initial request is not approval", policy)
-        self.assertIn("Main session synthesizes the evidence into one Plan", policy)
-        self.assertIn("workers would repeatedly depend", policy)
-        self.assertIn("main session's evolving evidence", policy)
+        self.assertIn("Discovery needs stable research contract", policy)
+        self.assertIn("not pre-decided outcome", policy)
+        self.assertIn("No source edit/implementation brief before required approval", policy)
+        self.assertIn("Broad initial request ≠ approval", policy)
+        self.assertIn("Main session synthesizes evidence into one Plan", policy)
+        self.assertIn("workers depend", policy)
+        self.assertIn("evolving main-session evidence", policy)
 
     def test_policy_brakes_tightly_coupled_execution(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
@@ -872,10 +999,10 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertIn("root-cause discovery", policy)
         self.assertIn("trace-driven debugging", policy)
-        self.assertIn("tightly coupled state propagation", policy)
-        self.assertIn("single unknown bug", policy)
-        self.assertIn("sequential `scout` → `executor` pipeline", policy)
-        self.assertIn("does not own or block the main diagnosis", policy)
+        self.assertIn("coupled state propagation", policy)
+        self.assertIn("Single unknown bug", policy)
+        self.assertIn("sequential `scout`→`executor` pipeline", policy)
+        self.assertIn("doesn't own/block main diagnosis", policy)
         self.assertIn("without rediscovery", policy)
         self.assertIn("non-positive net benefit", policy)
 
@@ -888,22 +1015,22 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("exclusive ownership", policy)
         self.assertIn("per-item acceptance", policy)
         self.assertIn(
-            "dispatch exactly one `mech-executor` before the main session edits by default",
+            "dispatch one `mech-executor` before main-session edits, by default",
             policy,
         )
         self.assertIn("before editing", policy)
         for blocker in (
             "evolving/coupled evidence",
-            "ownership or integration conflict",
+            "ownership/integration conflict",
             "worker unavailable",
             "non-positive net benefit",
         ):
             self.assertIn(blocker, policy)
         self.assertIn(
-            "main session owns per-item triage, exceptions, integration, and acceptance",
+            "Main session owns per-item triage, exceptions, integration, acceptance",
             policy,
         )
-        self.assertIn("default is rebuttable, not unconditional", policy)
+        self.assertIn("Rebuttable default", policy)
         self.assertNotIn("eligible rather than mandatory", policy)
         self.assertNotIn("direct execution being slightly faster is not a veto", policy)
 
@@ -911,40 +1038,40 @@ class PolicyContractTests(unittest.TestCase):
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("single unknown bug", policy)
-        self.assertIn("initial root-cause discovery", policy)
+        self.assertIn("Single unknown bug", policy)
+        self.assertIn("root-cause discovery", policy)
         self.assertIn("first minimal fix", policy)
-        self.assertIn("bounded task-local search/read pass stays in the main session by default", policy)
-        self.assertIn("does not own or block the main diagnosis", policy)
+        self.assertIn("Bounded task-local search stays main session by default", policy)
+        self.assertIn("doesn't own/block main diagnosis", policy)
 
     def test_policy_prevents_duplicate_recon_after_dispatch(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("declared read scope is temporarily exclusive", policy)
-        self.assertIn("must not read or analyze that same scope", policy)
-        self.assertIn("cancels or redirects the agent", policy)
-        self.assertIn("declare the main-owned and agent-owned read scopes", policy)
-        self.assertIn("Check every path in each subsequent Read, Glob, Grep, or Bash call", policy)
-        self.assertIn("a mixed-scope command violates ownership", policy)
-        self.assertIn("Do not begin cross-surface comparison", policy)
+        self.assertIn("scope = temporarily exclusive", policy)
+        self.assertIn("don't read/analyze same scope", policy)
+        self.assertIn("cancel/redirect agent", policy)
+        self.assertIn("declare main-owned vs agent-owned read scopes", policy)
+        self.assertIn("Check every path in later Read/Glob/Grep/Bash", policy)
+        self.assertIn("mixed-scope command violates", policy)
+        self.assertIn("No cross-surface comparison until all discovery results in", policy)
         self.assertIn("Post-result sanity checks", policy)
-        self.assertIn("launch every call back-to-back", policy)
-        self.assertIn("before beginning the main session's remaining work", policy)
-        self.assertIn("do not interleave duplicated reconnaissance", policy)
+        self.assertIn("launch all back-to-back", policy)
+        self.assertIn("before main-session remaining work", policy)
+        self.assertIn("no interleaved duplicate recon", policy)
 
     def test_policy_preserves_positive_delegation_paths(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("choose by net benefit", policy)
-        self.assertIn("lower model cost or quota use", policy)
-        self.assertIn("preserving scarce main-session context", policy)
+        self.assertIn("net benefit decides", policy)
+        self.assertIn("lower model cost/quota", policy)
+        self.assertIn("preserved context", policy)
         self.assertIn("smallest read-only structure", policy)
-        self.assertIn("stays in the main session by default", policy)
-        self.assertIn("surfaces are genuinely independent and substantial", policy)
-        self.assertIn("external or tool latency overlaps", policy)
-        self.assertIn("independent evidence or perspectives", policy)
+        self.assertIn("stays main session by default", policy)
+        self.assertIn("surfaces genuinely independent+substantial", policy)
+        self.assertIn("latency overlaps", policy)
+        self.assertIn("independent evidence/perspectives", policy)
         self.assertIn("stable multi-file mechanical repetition", policy)
 
     def test_policy_uses_backend_neutral_recurrence_conditions(self) -> None:
@@ -954,11 +1081,11 @@ class PolicyContractTests(unittest.TestCase):
         for phrase in (
             "stable brief",
             "one-shot brief",
-            "independent and the same shape",
-            "done criteria",
+            "independent + same shape",
+            "done-criteria",
             "exclusive ownership",
             "per-item acceptance",
-            "default is rebuttable, not unconditional",
+            "Rebuttable default",
             "main session",
             "diagnosis",
             "integration",
@@ -981,18 +1108,18 @@ class PolicyContractTests(unittest.TestCase):
         )
         for phrase in (
             "smallest coherent integration boundary",
-            "independently refuted",
-            "two consecutive `REFUTED` verdicts for that claim",
-            "stop automatic fix-and-reverify cycling",
-            "the cap is not `CONFIRMED`",
-            "user-directed continuation remains allowed",
+            "Independent refutation",
+            "Two consecutive `REFUTED` same claim",
+            "stop auto fix-reverify cycling",
+            "cap ≠ `CONFIRMED`",
+            "user-directed continuation OK",
             "substantially unchanged implementation",
-            "Tests, builds, and static checks are intermediate evidence",
+            "Tests/builds/static checks = intermediate evidence",
             "security",
-            "cross-language or FFI",
-            "serialization or pre-aggregation",
+            "cross-language/FFI",
+            "serialization/pre-aggregation",
             "irreversible operation",
-            "block later integration",
+            "blocking later integration",
         ):
             self.assertIn(phrase, policy)
         self.assertNotIn("tests are sufficient evidence", policy)
@@ -1006,18 +1133,18 @@ class PolicyContractTests(unittest.TestCase):
             "program envelope",
             "next executable slice",
             "scope, non-goals",
-            "acceptance that proves the slice outcome",
+            "acceptance proving slice outcome",
             "Blocker:",
             "Evidence:",
             "Minimum revision:",
             "Acceptance check:",
-            "two automatic `REVISE` verdicts for the same unit",
-            "surface the blockers and options to the user",
+            "Two automatic `REVISE` same unit",
+            "surface blockers/options to user",
             "substantially unchanged Plan",
             "material revision or new evidence",
-            "simplify it",
-            "surface the blocker to the user",
-            "defer the blocked scope",
+            "simplify",
+            "surface blocker",
+            "defer scope",
             "never silently overrule",
         ):
             self.assertIn(phrase, policy)
@@ -1028,25 +1155,25 @@ class PolicyContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn(
-            "inspect the session's available skill names",
+            "inspect session's available skill names",
             policy,
         )
-        self.assertIn("before applying the dispatch brake", policy)
-        self.assertIn("deciding between direct and delegated work", policy)
-        self.assertIn("if `baton-dispatch` is listed, invoke it", policy)
+        self.assertIn("before dispatch brake", policy)
+        self.assertIn("direct-vs-delegated decision", policy)
+        self.assertIn("`baton-dispatch` listed → invoke", policy)
         self.assertIn("Do not pre-screen it away", policy)
         self.assertIn("topology selection is why the planning skill is present", policy)
         self.assertIn("Loading Baton is not a command to delegate", policy)
         self.assertIn("Baton may still select direct work", policy)
-        self.assertIn("If it is not listed, apply this policy directly", policy)
-        self.assertIn("do not search for or install it during the task", policy)
+        self.assertIn("If not listed, apply this policy directly", policy)
+        self.assertIn("don't search/install mid-task", policy)
         self.assertIn("Baton may shape discovery questions", policy)
-        self.assertIn("This policy remains the source for the available named roles", policy)
-        self.assertIn("The two layers compose", policy)
-        self.assertIn("final judgment and synthesis in the main session", policy)
+        self.assertIn("This policy remains source for available named roles", policy)
+        self.assertIn("Two layers compose", policy)
+        self.assertIn("final judgment stay yours", policy)
         self.assertLess(
-            policy.index("inspect the session's available skill names"),
-            policy.index("not every task needs a ceremony"),
+            policy.index("inspect session's available skill names"),
+            policy.index("Small/local/stable work"),
         )
 
     def test_plan_and_outcome_verification_have_separate_capabilities(self) -> None:
@@ -1057,16 +1184,16 @@ class PolicyContractTests(unittest.TestCase):
             ROOT / "templates/agents/plan-verifier.md"
         ).read_text(encoding="utf-8")
         verifier = (ROOT / "templates/agents/verifier.md").read_text(encoding="utf-8")
-        self.assertIn("A `plan-verifier` brief requests only", policy)
-        self.assertIn("an outcome `verifier` brief requests only", policy)
-        self.assertIn("Never swap the two roles", policy)
+        self.assertIn("`plan-verifier` brief:", policy)
+        self.assertIn("Outcome `verifier` brief:", policy)
+        self.assertIn("Never swap roles", policy)
         self.assertIn("tools: Read, Glob, Grep", plan_verifier)
         self.assertIn("excludes Bash, Write, Edit", plan_verifier)
         self.assertIn("READY", plan_verifier)
         self.assertIn("REVISE", plan_verifier)
         self.assertIn("explicit outcome, scope and non-goals", plan_verifier)
-        self.assertIn("acceptance that proves the slice outcome", plan_verifier)
-        self.assertIn("a slice-local budget", plan_verifier)
+        self.assertIn("acceptance proving slice outcome", plan_verifier)
+        self.assertIn("slice-local budget", plan_verifier)
         self.assertIn("explicit stop conditions", plan_verifier)
         self.assertNotIn("CONFIRMED", plan_verifier)
         self.assertIn("CONFIRMED", verifier)
@@ -1103,21 +1230,21 @@ class PolicyContractTests(unittest.TestCase):
             agent = (ROOT / "templates" / "agents" / f"{role}.md").read_text(
                 encoding="utf-8"
             )
-            self.assertIn("run commands in the foreground", agent)
+            self.assertIn("Long work: foreground", agent)
             self.assertIn("Never detach", agent)
             self.assertIn("absolute working directory", agent)
-            self.assertIn("required environment variable", agent)
-            self.assertIn("the orchestrator runs it in that exact context", agent)
+            self.assertIn("required env vars/input paths", agent)
+            self.assertIn("orchestrator runs it exact context", agent)
             self.assertNotIn("launch it detached", agent)
 
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("Long-running processes are yours, not a subagent's", policy)
-        self.assertIn("spawned that agent with `run_in_background: false`", policy)
-        self.assertIn("spawn any agent that might run a long command", policy)
-        self.assertIn("absolute working directory or isolated worktree", policy)
-        self.assertIn("rather than the parent checkout", policy)
+        self.assertIn("Long-running processes: yours, not subagent's", policy)
+        self.assertIn("Spawned with `run_in_background: false`", policy)
+        self.assertIn("spawn any agent with possible long command", policy)
+        self.assertIn("absolute working dir or isolated worktree", policy)
+        self.assertIn("in that exact context", policy)
         self.assertIn("Bash(run_in_background: true)", policy)
 
     def test_result_collection_and_agent_continuation_are_distinct(self) -> None:
@@ -1126,19 +1253,19 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertIn("Read completed output directly", policy)
         self.assertIn(
-            "only resume when the task itself has changed or needs more work", policy
+            "resume only when task changed or needs more work", policy
         )
         self.assertIn(
-            "does not prevent the orchestrator from redirecting or resuming", policy
+            "doesn't prevent orchestrator redirecting/resuming", policy
         )
-        self.assertIn("Resume only for genuinely new or redirected work", policy)
+        self.assertIn("Resume only for genuinely new/redirected work", policy)
         self.assertNotIn("resuming one merely makes it re-run", policy)
 
         for role in ("scout", "Explore"):
             agent = (ROOT / "templates" / "agents" / f"{role}.md").read_text(
                 encoding="utf-8"
             )
-            self.assertIn("final message for each run", agent)
+            self.assertIn("Final message per run", agent)
             self.assertIn("genuinely new follow-up work", agent)
             self.assertIn("another self-contained final message", agent)
             self.assertNotIn("answer a follow-up", agent)

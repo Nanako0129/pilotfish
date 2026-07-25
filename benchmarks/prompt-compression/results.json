@@ -1,0 +1,302 @@
+{
+  "schema_version": 1,
+  "run_date": "2026-07-25",
+  "issue_url": "https://github.com/Nanako0129/pilotfish/issues/27",
+  "source_commit": "ae5a7b55e7ac1eaa7ab31c66dba901be35ca7e26",
+  "candidate_version": "1.3.4",
+  "candidate_method": {
+    "selected_source": "manual issue attachment, CRLF normalized to LF, reconciled against current source",
+    "independent_candidate": "caveman-compress v1.9.1 over disposable copies",
+    "independent_candidate_result": "all nine structural validations passed; output was used only as a comparison, never copied into source",
+    "manual_revisions_after_contract_review": [
+      "restored Baton's non-delegation and direct-work clauses",
+      "restored slice acceptance proving the stated outcome",
+      "restored independent evidence or perspectives as a discovery fan-out reason"
+    ]
+  },
+  "inputs": {
+    "orchestration": {
+      "original_bytes": 16874,
+      "candidate_bytes": 12714,
+      "reduction_bytes": 4160,
+      "reduction_percent": 24.653,
+      "original_sha256": "90e3d06409e8769b71c8807cce67876bebd9eaea65ec11ec6f947f597b44229b",
+      "candidate_sha256": "7657daa38fa23a29d33a0fe994482e9fc1d8512d0d149023b8b2d885fdcbb31e",
+      "candidate_runtime_sha256": "334856108d17f9235187468d43456a165a3fff1abfea9566f9bebedc6a7cd598"
+    },
+    "agents": {
+      "original_bytes": 15686,
+      "candidate_bytes": 13601,
+      "reduction_bytes": 2085,
+      "reduction_percent": 13.292,
+      "original_generated_file_sha256": "61bb008bcc491e0b90c7ed131c090ec196fef22593ae90725baadb87b5a28541",
+      "original_generated_runtime_sha256": "f272948d82cd4320f24ca849f884f5e1b74c04c23d28271753281bfdd9ffcaba",
+      "candidate_generated_file_sha256": "2f485d688b740e749bef8c61c9e9a4624572ed362a30bbd4c4206e14e19a2186",
+      "candidate_generated_runtime_sha256": "cf262ac3b4d40003c518e4826501ecd29752dc647c0e9df55bc866260463c35e",
+      "frontmatter_byte_identical_for_all_roles": true,
+      "roles": [
+        {
+          "role": "Explore",
+          "original_bytes": 1629,
+          "candidate_bytes": 1468,
+          "reduction_percent": 9.883,
+          "original_sha256": "3d626a9a4ceb4e9e58a912a4410c6f2e07d1515be46da4718628b3a26743eeb4",
+          "candidate_sha256": "c7237fe9b2c97be063ea0ff60b06b23279b68f298ee58604830e8121549ca08a"
+        },
+        {
+          "role": "executor",
+          "original_bytes": 2409,
+          "candidate_bytes": 1935,
+          "reduction_percent": 19.676,
+          "original_sha256": "fe120296adb20546d4b944dee33591a848c3184b8d16f796261babba355ea200",
+          "candidate_sha256": "94cb66abdc75a0cd89a6f3a5fbfcbd06729bac3bfe2e3c7ac75a5c4bd9af4155"
+        },
+        {
+          "role": "mech-executor",
+          "original_bytes": 2264,
+          "candidate_bytes": 1858,
+          "reduction_percent": 17.933,
+          "original_sha256": "0c15777a32f52cdceeb2ae6250914236b550c73415d06668c9074100bd249d06",
+          "candidate_sha256": "4527dd28e7576986540b2cc456abb8bab5fba046aee98a506343820577fb3594"
+        },
+        {
+          "role": "plan-verifier",
+          "original_bytes": 1786,
+          "candidate_bytes": 1682,
+          "reduction_percent": 5.823,
+          "original_sha256": "754f0173a1faaa612224f6fee7975d9275590a0881d0e3c031ada33965395b96",
+          "candidate_sha256": "969e7c2b7d793e8d3a5237fdc34271cd8ec83b1521a453072546b8b1759b8886"
+        },
+        {
+          "role": "scout",
+          "original_bytes": 1566,
+          "candidate_bytes": 1405,
+          "reduction_percent": 10.281,
+          "original_sha256": "69146f86ed6ffddfbad374b64b2fe2a6eef6fde7d140628468906383cf3ae2d8",
+          "candidate_sha256": "453773f1d84ed368a522aa306f5cb2079e9e59b45a0ecbce6a3d503316b13741"
+        },
+        {
+          "role": "security-executor",
+          "original_bytes": 2406,
+          "candidate_bytes": 2018,
+          "reduction_percent": 16.126,
+          "original_sha256": "50c792495ad53ee7f123600c46c15f62301a0eaab5ae80d45178fef71333583b",
+          "candidate_sha256": "9e00d5a72a232fad862f3b8000da6cd978f76c2323fd500de7dc068c78f80a1f"
+        },
+        {
+          "role": "security-reviewer",
+          "original_bytes": 1500,
+          "candidate_bytes": 1412,
+          "reduction_percent": 5.867,
+          "original_sha256": "8005e481e0fbb13763e40c8b96d9c345ccac6c81691e3ba79c3bdf49e8b4d5cb",
+          "candidate_sha256": "7fbe0ea30f273eef5bdcc67adade34f9141e637cbefa8b160efa83a5781af219"
+        },
+        {
+          "role": "verifier",
+          "original_bytes": 2126,
+          "candidate_bytes": 1823,
+          "reduction_percent": 14.252,
+          "original_sha256": "80825bc9181dd7dfba446abb1396985a157a90b7c1996b6d305cd9bfe85ae189",
+          "candidate_sha256": "2fe8d0c998c497fbb93af90044e58694a6fd2295bf878f1757b860d2c130ac17"
+        }
+      ]
+    },
+    "combined": {
+      "original_bytes": 32560,
+      "candidate_bytes": 26315,
+      "reduction_bytes": 6245,
+      "reduction_percent": 19.18
+    }
+  },
+  "static_gate": {
+    "status": "passed",
+    "tests": "29/29",
+    "command": "python3 -m unittest discover -s tests -v",
+    "diff_check": "passed",
+    "meta_commentary_scan": "passed"
+  },
+  "context_census": {
+    "status": "passed",
+    "claude_code": "2.1.220",
+    "requested_model": "haiku",
+    "prompt": "Reply with exactly OK.",
+    "setting_sources": [
+      "project",
+      "local"
+    ],
+    "comparison_metric": "input_tokens + cache_creation_input_tokens + cache_read_input_tokens",
+    "baseline": {
+      "result": "OK",
+      "input_tokens": 10,
+      "cache_creation_input_tokens": 10209,
+      "cache_read_input_tokens": 11609,
+      "context_input_total": 21828,
+      "output_tokens": 41,
+      "client_reported_cost_usd": 0.0223799,
+      "raw_result_sha256": "d497c03135d89326d218f9267089fe7d102f3f56c1bfa6c610dbbb4bba7c255b"
+    },
+    "candidate": {
+      "result": "OK",
+      "input_tokens": 10,
+      "cache_creation_input_tokens": 9462,
+      "cache_read_input_tokens": 11609,
+      "context_input_total": 21081,
+      "output_tokens": 57,
+      "client_reported_cost_usd": 0.0209609,
+      "raw_result_sha256": "72cb3a5f4dab5022b789b5eb841be8c63564017689d00a3d9af766fa9102f366"
+    },
+    "observed_delta": {
+      "cache_creation_input_tokens": -747,
+      "context_input_total": -747,
+      "context_input_percent": -3.422
+    },
+    "claim_boundary": "The 747-token input delta is an exact one-run context observation. Output-token and cache state differences make the cost fields non-comparative."
+  },
+  "behavioral_gates": {
+    "spontaneous_mechanical_candidate": {
+      "status": "correctness_passed_topology_blocked",
+      "claude_code": "2.1.220",
+      "observed_main_model": "claude-opus-5",
+      "agent_call_count": 0,
+      "tests": "12/12 passed",
+      "client_reported_cost_usd": 0.713846,
+      "duration_ms": 79950,
+      "raw_stream_sha256": "b4bd11e88785a406c99c30f5c96328c7461cc19c0c6bfe8a7d7bc3a1313e55b8",
+      "blocker": "session guidance prohibited agent spawning unless the user prompt requested it"
+    },
+    "spontaneous_mechanical_v1_3_3_control": {
+      "status": "correctness_passed_same_topology_blocker",
+      "claude_code": "2.1.220",
+      "observed_main_model": "claude-opus-5",
+      "agent_call_count": 0,
+      "tests": "12/12 passed",
+      "client_reported_cost_usd": 0.5371145,
+      "duration_ms": 62933,
+      "raw_stream_sha256": "c781e5c28409509fba487152f18f299520e7ba2fc55ca4beb4d16353d338a991",
+      "claim_boundary": "The unchanged v1.3.3 control hit the same session-level blocker, so this is not attributed to prompt compression."
+    },
+    "spontaneous_bug_candidate": {
+      "status": "passed",
+      "observed_main_model": "claude-opus-5",
+      "agent_call_count": 0,
+      "only_source_change": "src/reducer.js",
+      "tests": "2/2 passed",
+      "client_reported_cost_usd": 0.296559,
+      "duration_ms": 42227,
+      "raw_stream_sha256": "647c4393ab3fde599d881ff78c0c652a57f2115830e363eb0559c5177cf9937d"
+    },
+    "explicit_lifecycle_turn_1": {
+      "status": "stopped_after_two_revise",
+      "baton_loaded": true,
+      "scout_calls": 2,
+      "scout_background": true,
+      "plan_verifier_calls": 2,
+      "envelope_verdicts": [
+        "REVISE",
+        "REVISE"
+      ],
+      "writes_before_approval": false,
+      "client_reported_cost_usd": 1.52310525,
+      "raw_stream_sha256": "e1d80d3dcddb285a41c3eb1a301688463a4aef93c9afc45be6ab6bd5d43fe8c6"
+    },
+    "explicit_lifecycle_user_continuation": {
+      "status": "revise",
+      "plan_verifier_calls": 1,
+      "verdict": "REVISE",
+      "writes_before_approval": false,
+      "client_reported_cost_usd": 0.418846,
+      "prompt_file_sha256": "ebefac134e214acd904ffcc278cd03692d082f94006bc96311a424411f5cad08",
+      "prompt_runtime_sha256": "32c49657204671f771d0de49c93c50975392629f05ec957a2538cca3ad26e16c",
+      "raw_stream_sha256": "177b1ec882daca159529e58130e9a341dc2b54ab5a7e8a34521d99f0d2e01687",
+      "open_blocker": "acceptance verifies completeness and citation attribution but not whether cited evidence entails each derived rule"
+    },
+    "small_lifecycle": {
+      "status": "passed",
+      "claim": "One explicitly directed small stable Plan reached READY, waited for approval, used one exclusive mechanical writer, passed repository-owned tests, and received a fresh CONFIRMED verdict.",
+      "claim_boundary": "This exact-input compatibility observation does not establish large-Plan convergence, spontaneous activation, security-role behavior, remediation loops, frequency, quality, latency, cost efficiency, or full behavioral parity.",
+      "claude_code": "2.1.220",
+      "setting_sources": [
+        "project",
+        "local"
+      ],
+      "requested_main_model": "opus",
+      "observed_main_model": "claude-opus-5",
+      "fixture_baseline_commit": "cac13e5fe8de70a1bf743af30041a12a7b61660a",
+      "policy_file_sha256": "7657daa38fa23a29d33a0fe994482e9fc1d8512d0d149023b8b2d885fdcbb31e",
+      "agents_file_sha256": "2f485d688b740e749bef8c61c9e9a4624572ed362a30bbd4c4206e14e19a2186",
+      "agents_runtime_sha256": "cf262ac3b4d40003c518e4826501ecd29752dc647c0e9df55bc866260463c35e",
+      "turn_1_plan": {
+        "status": "ready",
+        "readiness_unit": "ADAPT-NORM-1",
+        "agent_calls": [
+          {
+            "role": "plan-verifier",
+            "invocation_model_omitted": true,
+            "verdict": "READY"
+          }
+        ],
+        "writes_before_approval": false,
+        "prompt_file_sha256": "d03ab2286f4ad867bf9ad51bd7336fbd426187ad149732b1215a28586165d324",
+        "prompt_runtime_sha256": "716e7ef44abc59eca55992bf6547acef7407a2f989cb43f88ef6e2a4d0b86b3a",
+        "client_reported_cost_usd": 0.5244245,
+        "duration_ms": 86534,
+        "duration_api_ms": 88174,
+        "api_turns": 7,
+        "raw_stream_sha256": "e1c4b1c41075723c60c3b52e580e9f885a3ac2a2ccb1d7665e7358127b7e6d9f"
+      },
+      "turn_2_approved_execution": {
+        "status": "confirmed",
+        "agent_calls": [
+          {
+            "role": "mech-executor",
+            "invocation_model_omitted": true,
+            "observed_model": "claude-sonnet-5",
+            "exclusive_source_writer": true
+          },
+          {
+            "role": "verifier",
+            "invocation_model_omitted": true,
+            "observed_model": "claude-opus-5",
+            "verdict": "CONFIRMED"
+          }
+        ],
+        "main_source_writes": false,
+        "changed_paths": "src/adapters/*.js (12 files)",
+        "tests": "12/12 passed",
+        "independent_post_run_tests": "12/12 passed",
+        "prompt_file_sha256": "f4aec4658befeed9be20c3e51d853ae173f4b2f99d4d57c367a4c9dd207daf85",
+        "prompt_runtime_sha256": "a7118dddd585f05c35d48f7ca1fa6677e1fa0e7c5d4941d67777a5f005ea1a22",
+        "client_reported_cost_usd": 0.54710575,
+        "duration_ms": 111853,
+        "duration_api_ms": 110595,
+        "api_turns": 4,
+        "raw_stream_sha256": "b8e0b9e4fa04d35e687309b5b77bf706377896723833f96de987e4eab6dfe956"
+      },
+      "client_reported_cost_usd": 1.07153025,
+      "duration_ms": 198387,
+      "duration_api_ms": 198769,
+      "api_turns": 11
+    },
+    "baton_large": {
+      "status": "not_run",
+      "reason": "The cue-free v1.3.3 control already reproduced the Claude Code 2.1.220 session-level no-spawn blocker."
+    },
+    "gap_roles": {
+      "status": "not_run",
+      "roles": [
+        "Explore",
+        "executor",
+        "security-reviewer",
+        "security-executor"
+      ],
+      "reason": "The selected claim needs exact small-lifecycle compatibility, not live coverage of every role. Static contracts cover all compressed role bytes; no runtime claim is made for these four roles."
+    }
+  },
+  "paid_campaign": {
+    "status": "completed_under_cap",
+    "hard_cap_usd": 20,
+    "client_reported_cost_usd_so_far": 4.6043418,
+    "remaining_cap_usd": 15.3956582,
+    "stop_reason": "The exact small-lifecycle claim passed. Further role probes would broaden scope without supporting the selected claim; the failed large-Plan and cue-free observations remain disclosed."
+  }
+}

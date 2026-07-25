@@ -1,0 +1,15 @@
+Authorize exactly one user-directed continuation round for ENV-report-audit.
+Keep the completed discovery; do not repeat it and do not write any file.
+
+Materially revise the envelope's Ownership and Budget so one S1 slice owner is
+the only REPORT.md writer across the initial write and at most two revision
+writes. The main session may synthesize, triage, integrate, and judge, but must
+not write REPORT.md. Keep the two-REFUTED stop condition and make the numeric
+write allowance consistent with it.
+
+Send the revised ENV-report-audit envelope to one fresh existing named
+plan-verifier without an invocation-level model. If ENV reaches READY, review
+only S1-report with a fresh existing named plan-verifier under the original
+Turn 1 contract. Materially revise S1 after a first REVISE; stop after a second
+REVISE for S1. Stop with no writes when ENV-report-audit and S1-report are both
+READY and present their approved scope for explicit approval.

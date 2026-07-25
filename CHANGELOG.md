@@ -2,6 +2,32 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
+## v1.3.4 — 2026-07-25
+
+Compress the always-loaded orchestration policy and all eight role bodies while
+keeping role frontmatter unchanged. The policy drops from 16,874 to 12,714
+bytes (24.653%); all role templates together drop from 15,686 to 13,601 bytes
+(13.292%); the combined installed prompt surface drops 19.180%. A one-run
+Haiku context census observed 747 fewer input tokens after summing input,
+cache-creation, and cache-read categories. Output-token and cache-state
+differences make the accompanying client cost fields non-comparative. Exact
+candidate hashes and evidence are recorded in
+[the prompt-compression Gate](./benchmarks/prompt-compression/README.md). See
+[#27](https://github.com/Nanako0129/pilotfish/issues/27).
+
+Claude Code 2.1.220 prevented cue-free agent spawning for both this candidate
+and an unchanged v1.3.3 control, so the failed spontaneous topology observation
+is not attributed to compression. An explicit lifecycle still loaded Baton,
+ran two background Haiku scouts, and reached three fresh Opus 5
+`plan-verifier` calls with zero writes; the Plan remained `REVISE`, so this
+evidence does not claim full behavioral parity. A materially smaller,
+explicitly directed Plan then completed `READY` → approval → one exclusive
+Sonnet 5 `mech-executor` → 12/12 tests → fresh Opus 5 `CONFIRMED` on the exact
+candidate bytes. The full paid campaign reported $4.6043418 under its $20 cap.
+The passing cell establishes small-lifecycle compatibility only; it does not
+erase the large-Plan findings or claim runtime coverage for the four
+unexercised roles.
+
 ## v1.3.3 — 2026-07-25
 
 Default fresh installs to the provider-resolved `opus` family alias and raise
