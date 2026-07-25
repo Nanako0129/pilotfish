@@ -53,6 +53,16 @@ Anthropic 在 2026-07-24 發布 [Opus 5](https://www.anthropic.com/news/claude-o
 
 三層架構、三處設定，全部在 `~/.claude/` 底下：
 
+> ⚠️ **Claude Pro 目前需要明確 opt-in 才能委派 Agent。**
+> 在已測試的 first-party Pro 帳號上，Claude Code 2.1.220 較高優先級的
+> Agent tool contract 會阻止 spawn，除非使用者明確要求 agents。使用者層的
+> `CLAUDE.md` 無法覆蓋這份 contract，因此成功安裝 pilotfish 不代表一定會
+> 無提示自動委派。需要 orchestration lifecycle 時，請在 request 加上
+> `Use pilotfish and delegate eligible work to the named agents.`。明確指定後，
+> roles 仍可正常啟動；v1.3.4 壓縮版與未修改的 v1.3.3 cue-free control 都是
+> 0 dispatch，因此目前不把此限制歸因於 prompt compression。追蹤：
+> [#29](https://github.com/Nanako0129/pilotfish/issues/29)。
+
 | 層 | 檔案 | 職責 |
 |---|---|---|
 | 機器層 | `~/.claude/settings.json` | 決定誰當 orchestrator（`opus`）＋自動 `fallbackModel` 切換鏈 |

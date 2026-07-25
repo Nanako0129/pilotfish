@@ -53,6 +53,17 @@ Two subscription-specific bonuses stack on top:
 
 Three layers, three files' worth of configuration, all under `~/.claude/`:
 
+> ⚠️ **Claude Pro currently requires explicit opt-in for Agent dispatch.**
+> On the tested first-party Pro account, Claude Code 2.1.220's higher-priority
+> Agent tool contract blocked spawning unless the user explicitly requested
+> agents. A user-level `CLAUDE.md` cannot override that contract, so a successful
+> pilotfish install does not guarantee cue-free delegation. Add
+> `Use pilotfish and delegate eligible work to the named agents.` to the request
+> when you want the orchestration lifecycle. Explicitly directed roles remain
+> reachable; both the v1.3.4 compressed candidate and unchanged v1.3.3 cue-free
+> control recorded zero dispatch, so this limitation is not attributed to prompt
+> compression. Tracking: [#29](https://github.com/Nanako0129/pilotfish/issues/29).
+
 | Layer | File(s) | Job |
 |---|---|---|
 | Machine | `~/.claude/settings.json` | Who orchestrates (`opus`) + automatic `fallbackModel` chain |
