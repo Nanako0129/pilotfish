@@ -266,9 +266,9 @@ and offer to restore my previous "model" / remove "fallbackModel" in ~/.claude/s
 
 pilotfish 本身只有設定檔，但要證明政策仍能正確運作並不是免費的。具實質意義的相容性宣稱，需要在多個模型等級上執行付費的 Claude Code 或 API 測試、多回合 dispatch Gate，以及全新且獨立的 verifier session。遇到額度限制或暴露政策缺陷的執行，會明確揭露，並在可行時重新執行，而不會直接算成通過證據。
 
-贊助會用於支付這些模型額度，以及持續追蹤 Claude Code 變更、provider alias、role template、installer 行為與[發版證據](./benchmarks/baton-dispatch-effect/README.md)的維護工作。如果 pilotfish 幫你節省了額度或 review 時間，可以透過 Ko-fi 支持後續開發。
+贊助會用於支付這些模型額度，以及持續追蹤 Claude Code 變更、provider alias、role template、installer 行為與[發版證據](./benchmarks/baton-dispatch-effect/README.md)的維護工作。如果 pilotfish 幫你節省了額度或 review 時間，可以透過 Patreon 支持後續開發。
 
-[![在 Ko-fi 支持 pilotfish](https://img.shields.io/badge/Support_on_Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/nanako0129)
+[![在 Patreon 支持 pilotfish](https://img.shields.io/badge/Support_on_Patreon-FF424D?style=for-the-badge&logo=patreon&logoColor=white)](https://www.patreon.com/cw/Nanako0129/membership)
 
 ## 授權
 
