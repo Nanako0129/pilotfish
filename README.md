@@ -276,9 +276,9 @@ Sponsorship helps cover those model credits and the ongoing work of tracking
 Claude Code changes, provider aliases, role templates, installer behavior, and
 [release evidence](./benchmarks/baton-dispatch-effect/README.md). If pilotfish
 saves you quota or review time, you can support its continued development on
-Ko-fi.
+Patreon.
 
-[![Support pilotfish on Ko-fi](https://img.shields.io/badge/Support_on_Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/nanako0129)
+[![Support pilotfish on Patreon](https://img.shields.io/badge/Support_on_Patreon-FF424D?style=for-the-badge&logo=patreon&logoColor=white)](https://www.patreon.com/cw/Nanako0129/membership)
 
 ## License
 
