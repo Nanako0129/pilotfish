@@ -1122,12 +1122,12 @@ class PolicyContractTests(unittest.TestCase):
         )
         for phrase in (
             "Final disposition stays main-session-owned",
-            "never silently defer, reject, downgrade",
+            "Never silently defer, reject, downgrade",
             "announce `AUTO` or `ASK`",
             "Otherwise end the turn",
             "Blocking P1/P2 recovery shares at most five meaningful fix/reverify passes",
-            "material implementation, claim, contract, evidence, or environment change",
-            "never reverify the same fingerprint/claim/environment",
+            "material implementation, claim, acceptance, contract, evidence, or environment change",
+            "never reverify the same fingerprint/claim/acceptance/environment",
             "continue unrelated approved slices",
         ):
             self.assertIn(phrase, policy)
@@ -1152,6 +1152,14 @@ class PolicyContractTests(unittest.TestCase):
             verifier,
         )
         self.assertIn(
+            "For every finding or advisory under any verdict",
+            verifier,
+        )
+        self.assertIn(
+            "any reproducible high-impact user/system failure",
+            verifier,
+        )
+        self.assertIn(
             "P3/P4 are non-blocking advisories and cannot by themselves produce REFUTED",
             verifier,
         )
@@ -1163,7 +1171,7 @@ class PolicyContractTests(unittest.TestCase):
         self.assertTrue(all(phrase in verifier for phrase in (
             "real user/system impact, not claim centrality",
             "P0 =",
-            "P1 = reproducible high-impact security/correctness failure",
+            "P1 = any reproducible high-impact user/system failure",
             "P2 = material bounded/recoverable issue",
             "P3 =",
             "P4 =",

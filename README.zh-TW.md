@@ -117,7 +117,7 @@ flowchart TD
 | Execution | `mech-executor`、`executor` 或 `security-executor` 接收一份穩定且 ownership 獨佔的 contract |
 | Verification | `verifier` 透過 read-and-run tools 獨立測試已完成工作的精確 claim；最終判斷仍由 main session 負責 |
 
-若工作可能長時間自主執行，main session 會先針對目前任務宣告 `AUTO` 或 `ASK`；`/goal` 只保留目標，不授予權限。`AUTO` 只涵蓋已批准 scope 內的可逆工作；`ASK` 透過原生輸入或 `PAUSED_NEEDS_USER` 暫停。P0/P1 finding 必須修正或暫停；範圍內且有界的 P2 可修，否則延後並縮窄 claim；P3/P4 預設只回報。阻擋性的 P1/P2 共用最多五次且每次都有實質變更的 fix/reverify pass，之後只暫停受影響 slice，除非風險跨 slice。
+若工作可能長時間自主執行，main session 會先針對目前任務宣告 `AUTO` 或 `ASK`；`/goal` 只保留目標，不授予權限。`AUTO` 只涵蓋已批准 scope 內的可逆工作；`ASK` 透過原生輸入或 `PAUSED_NEEDS_USER` 暫停。P0 會凍結受影響的 slice；P1 必須修正或暫停。改動新引入的 P2 仍會阻擋，其餘 P2 可修或延後並縮窄 claim；P3/P4 預設只回報。阻擋性的 P1/P2 共用最多五次且每次都有實質變更的 fix/reverify pass，之後只暫停受影響 slice，除非風險跨 slice。
 
 具備完整 one-shot brief、獨佔 ownership 與逐項驗收的穩定多檔機械性重複工作，預設在主 session 編輯前交給唯一一個 `mech-executor`；只有在編輯前點名具體 blocker 才能推翻此預設，逐項 triage、例外、整合與驗收仍由主 session 擁有。
 
