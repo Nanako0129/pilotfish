@@ -2,6 +2,18 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
+## v1.3.5 — 2026-07-29
+
+Calibrate outcome verification around exact acceptance and implementation-caused
+regressions. Verifiers now return `CONFIRMED`, `REFUTED`, or `INCONCLUSIVE`;
+only reproducible P0-P2 blockers can refute a claim, while P3/P4 findings remain
+advisory. The main session owns final disposition.
+
+Long autonomous runs declare `AUTO` or `ASK` without gaining authority.
+Blocking P1/P2 recovery shares a five-pass budget and requires a changed
+candidate-state fingerprint before reverification, so uncommitted fixes remain
+testable without allowing unchanged retry loops.
+
 ## v1.3.4 — 2026-07-25
 
 Compress the always-loaded orchestration policy and all eight role bodies while

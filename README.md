@@ -91,7 +91,7 @@ flowchart TD
     M --> V["verifier<br>opus · fresh context"]
     E --> V
     SEC --> V
-    V -->|CONFIRMED / REFUTED| O
+    V -->|CONFIRMED / REFUTED / INCONCLUSIVE| O
 ```
 
 The eight roles:
@@ -104,7 +104,7 @@ The eight roles:
 | `security-reviewer` | opus | high | Tool-enforced read-only security evidence and threat review before approval |
 | `mech-executor` | sonnet | low | Fully-specified mechanical work: pattern refactors, convention tests, docs, bulk edits |
 | `executor` | sonnet | medium | Implementation needing judgment: features, bug fixes, design-sensitive refactors |
-| `verifier` | opus | medium | Fresh-context outcome verification after implementation; returns CONFIRMED/REFUTED and never fixes |
+| `verifier` | opus | medium | Fresh-context calibrated outcome verification; returns CONFIRMED/REFUTED/INCONCLUSIVE and never fixes |
 | `security-executor` | opus | high | Approved security implementation — deliberately kept off Fable 5, whose safety classifiers can refuse benign defensive-security work |
 
 `executor` moved from Opus to Sonnet ([#18](https://github.com/Nanako0129/pilotfish/issues/18)) so the default delegated implementation path stays below the Opus main session. This is a targeted routing fix, not a rule that every role must differ from the main-session tier. The four Opus-only roles stay put: `verifier` and `plan-verifier` provide fresh-context challenge at acceptance boundaries, while `security-reviewer` and `security-executor` carry a correctness-over-cost mandate. Same-tier delegation provides no tier saving, but it can still provide independent context, capability isolation, or concurrency. An installer profile that swaps tiers by detected main-session model was considered and rejected — see [Deliberately left out](./docs/design.md#deliberately-left-out).
@@ -117,7 +117,9 @@ The policy layer uses phase-specific dispatch brakes. Small, stable work stays d
 | Plan | Main session owns the envelope and slices; `plan-verifier` reviews one stable unit and returns bare `READY` or structured `REVISE` |
 | Approval | Large, architectural, risky, or explicitly plan-first work waits for explicit approval before source writes or implementation briefs |
 | Execution | `mech-executor`, `executor`, or `security-executor` receives one stable, exclusively owned contract |
-| Verification | `verifier` attempts to refute completed non-trivial work through read-and-run tools; main session keeps final judgment |
+| Verification | `verifier` independently tests the exact completed-work claim through read-and-run tools; main session keeps final judgment |
+
+Before likely long autonomous work, the main session announces `AUTO` or `ASK`; `/goal` preserves the objective but grants no authority. `AUTO` stays inside approved reversible scope, while `ASK` pauses through native input or `PAUSED_NEEDS_USER`. P0 freezes the affected slice; P1 must be fixed or paused. An introduced P2 regression remains blocking, while other P2 findings may be fixed or deferred with a narrowed claim; P3/P4 default to reported deferral. Blocking P1/P2 shares at most five materially changed fix/reverify passes before only the affected slice pauses, unless risk is cross-cutting.
 
 Stable multi-file mechanical repetition with a complete one-shot brief, exclusive ownership, and per-item acceptance defaults to exactly one `mech-executor` before main-session edits; only a concrete blocker named before editing rebuts that default, while the main session owns per-item triage, exceptions, integration, and acceptance.
 
@@ -125,10 +127,10 @@ Long-running processes remain main-session owned. Every Bash-capable leaf role (
 
 ## Install
 
-The recommended path is to clone the pinned v1.3.4 release locally, then start Claude Code from that checkout so it can read the runbook as a local file:
+The recommended path is to clone the pinned v1.3.5 release locally, then start Claude Code from that checkout so it can read the runbook as a local file:
 
 ```sh
-git clone --branch v1.3.4 --depth 1 https://github.com/Nanako0129/pilotfish.git
+git clone --branch v1.3.5 --depth 1 https://github.com/Nanako0129/pilotfish.git
 cd pilotfish
 claude
 ```
@@ -159,7 +161,7 @@ Prefer to do it by hand? The same steps are written for humans in [install/AGENT
 pilotfish installs by having Claude read a runbook and template files from this repo and merge them into your global `~/.claude/` config — including a policy block that then loads into **every future session**. Treat it like any `curl | sh`: trust flows from this repo and your GitHub connection, not from the paste. The local checkout path is recommended because you can inspect the pinned release before Claude reads the runbook. Before running it:
 
 - **Read the actual bytes that get installed**, not just the runbook: the eight files in [templates/agents/](./templates/agents/) and [templates/claude-md.orchestration.md](./templates/claude-md.orchestration.md). Nothing else is written to disk.
-- **Pin to a release tag or commit** so what you reviewed is what installs — `main` can change between the moment you read it and the moment Claude reads it. The recommended command above pins to the `v1.3.4` release tag; for the strictest guarantee, fetch and check out the full commit SHA you reviewed, then verify that checkout before launching Claude.
+- **Pin to a release tag or commit** so what you reviewed is what installs — `main` can change between the moment you read it and the moment Claude reads it. The recommended command above pins to the `v1.3.5` release tag; for the strictest guarantee, fetch and check out the full commit SHA you reviewed, then verify that checkout before launching Claude.
 - **Keep the approval gate:** Claude writes nothing until you approve the merge plan, but the plan is still a summary of the runbook. Review the local runbook and templates yourself, and do not weaken or bypass WebFetch's prompt-injection protection if the raw URL is intercepted.
 
 ## What gets installed
@@ -226,7 +228,7 @@ The delegation policy in `CLAUDE.md` speaks only of roles (`executor`, `scout`, 
 | Does the orchestrator ever do work itself? | Yes — quick reads, small bounded repository scans, decisions, root-cause exploration, trace-driven debugging, tightly coupled state work, and anything you explicitly asked *it* to judge. Other work is delegated when its combined cost, context, latency, isolation, or verification benefit exceeds reconstruction and integration overhead. |
 | My project has its own CLAUDE.md — conflict? | No file is ever touched: pilotfish writes only under `~/.claude/`. At runtime Claude Code *stacks* project memory and user memory — both load together, neither overrides the other. If one repo needs different behavior, add a local note there (e.g. "work inline in this repo, don't delegate") — the more specific instruction wins in practice. |
 | I also installed a delegation-planning skill | Treat it as a complementary planning layer. A skill such as [Baton](https://github.com/cablate/baton) can shape discovery questions, worker count, ownership, sequence, and stop conditions; pilotfish supplies the named Claude roles, model routing, leaf-agent boundary, approval gate, and verifier contract. The [compatibility Gates](./benchmarks/baton-compatibility/README.md) record the v1.3.2 envelope → current-slice → approved execution → `CONFIRMED` lifecycle, including an Opus 5 rerun whose disclosed post-verdict edit required a third corrective verification invocation. The [prompt-neutral activation Gate](./benchmarks/baton-dispatch-effect/README.md) separately covers four-scout dispatch under v1.3.1. These are bounded compatibility and reachability observations, not efficiency or frequency claims. pilotfish never disables user skills. |
-| Subagent quality worries me | `plan-verifier` reviews one envelope or slice before approval; outcome `verifier` tries to refute completed work. `REVISE` must identify the blocker, evidence, minimum revision, and acceptance check. Two automatic revisions for one unit are the limit before user direction. Verification is not free, so small work skips it. |
+| Subagent quality worries me | `plan-verifier` reviews one envelope or slice before approval; outcome `verifier` independently tests the exact completed-work claim and returns `CONFIRMED`, `REFUTED`, or `INCONCLUSIVE`. Missing evidence stays inconclusive rather than becoming a false pass or speculative failure. `REVISE` still identifies the blocker, evidence, minimum revision, and acceptance check; two automatic Plan revisions remain the limit. Verification is not free, so small work skips it. |
 | Doesn't spawning agents cost extra? | Yes — every spawn is a fresh context that re-reads its slice of the codebase, and synthesis costs main-session tokens. A bounded task-local scan therefore stays inline by default. Discovery may still fan out when disjoint evidence materially reduces Plan uncertainty, while execution delegates only after its contract is stable. In the public mechanical control's execution-only segment, delegation reported 36.01% less cost with a 7.92% wall-time trade-off; neither compared run included the required outcome verifier, so this demonstrates route reachability rather than full-lifecycle savings. The research fixture shows the overhead of two scouts on one small task, not that plan-first discovery is categorically wrong. |
 | Turn it off fast? | **This session:** tell Claude "don't delegate this session — work inline"; it's just policy text, it obeys immediately. **This repo:** add a local note to the repo's CLAUDE.md. **Whole machine:** comment out the `pilotfish:begin/end` block in `~/.claude/CLAUDE.md` — the agent files just sit unused. No reinstall needed to switch back. |
 | Managed / enterprise machine? | Managed settings outrank user settings: a managed `model`, `availableModels` allowlist, or a managed agent with the same name will override pilotfish's user-level install. If roles don't take effect after restart, ask your admin — pilotfish can't (and shouldn't) override managed policy. |
