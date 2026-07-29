@@ -1126,8 +1126,10 @@ class PolicyContractTests(unittest.TestCase):
             "announce `AUTO` or `ASK`",
             "Otherwise end the turn",
             "Blocking P1/P2 recovery shares at most five meaningful fix/reverify passes",
-            "material implementation, claim, acceptance, contract, evidence, or environment change",
-            "never reverify the same fingerprint/claim/acceptance/environment",
+            "available evidence/prerequisites",
+            "tracked/staged diff",
+            "untracked input paths plus content",
+            "Never reverify the same complete identity",
             "continue unrelated approved slices",
         ):
             self.assertIn(phrase, policy)
@@ -1160,6 +1162,14 @@ class PolicyContractTests(unittest.TestCase):
             verifier,
         )
         self.assertIn(
+            "sufficient for every required acceptance condition",
+            verifier,
+        )
+        self.assertIn(
+            "List each condition checked and its evidence/result",
+            verifier,
+        )
+        self.assertIn(
             "P3/P4 are non-blocking advisories and cannot by themselves produce REFUTED",
             verifier,
         )
@@ -1171,7 +1181,7 @@ class PolicyContractTests(unittest.TestCase):
         self.assertTrue(all(phrase in verifier for phrase in (
             "real user/system impact, not claim centrality",
             "P0 =",
-            "P1 = any reproducible high-impact user/system failure",
+            "P1 = any reproducible high-impact user/system failure that does not meet P0",
             "P2 = material bounded/recoverable issue",
             "P3 =",
             "P4 =",
