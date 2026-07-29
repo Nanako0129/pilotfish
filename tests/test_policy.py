@@ -1123,6 +1123,8 @@ class PolicyContractTests(unittest.TestCase):
         for phrase in (
             "Final disposition stays main-session-owned",
             "Never silently defer, reject, downgrade",
+            "A documented regrade may use the verifier's cited evidence",
+            "stated missing evidence, contract, prerequisite, or environment",
             "announce `AUTO` or `ASK`",
             "Otherwise end the turn",
             "Blocking P1/P2 recovery shares at most five meaningful fix/reverify passes",
@@ -1130,6 +1132,7 @@ class PolicyContractTests(unittest.TestCase):
             "tracked/staged diff",
             "untracked input paths plus content",
             "Never reverify the same complete identity",
+            "After five unsuccessful or still-blocking passes",
             "continue unrelated approved slices",
         ):
             self.assertIn(phrase, policy)
@@ -1167,6 +1170,14 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertIn(
             "List each condition checked and its evidence/result",
+            verifier,
+        )
+        self.assertIn(
+            "REFUTED takes precedence when a reproducible P0-P2 blocker coexists",
+            verifier,
+        )
+        self.assertIn(
+            "any unevaluated required acceptance condition makes the verdict INCONCLUSIVE",
             verifier,
         )
         self.assertIn(
