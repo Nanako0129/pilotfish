@@ -119,7 +119,7 @@ The policy layer uses phase-specific dispatch brakes. Small, stable work stays d
 | Execution | `mech-executor`, `executor`, or `security-executor` receives one stable, exclusively owned contract |
 | Verification | `verifier` independently tests the exact completed-work claim through read-and-run tools; main session keeps final judgment |
 
-Before likely long autonomous work, the main session announces `AUTO` or `ASK`; `/goal` preserves the objective but grants no authority. `AUTO` stays inside approved reversible scope, while `ASK` pauses through native input or `PAUSED_NEEDS_USER`. The main session must fix or pause P0/P1 findings; it fixes bounded in-scope P2 findings or defers them with a narrowed claim, and defaults P3/P4 to reported deferral. P1 gets at most five materially changed fix/reverify passes before only the affected slice pauses, unless risk is cross-cutting.
+Before likely long autonomous work, the main session announces `AUTO` or `ASK`; `/goal` preserves the objective but grants no authority. `AUTO` stays inside approved reversible scope, while `ASK` pauses through native input or `PAUSED_NEEDS_USER`. The main session must fix or pause P0/P1 findings; it fixes bounded in-scope P2 findings or defers them with a narrowed claim, and defaults P3/P4 to reported deferral. Blocking P1/P2 shares at most five materially changed fix/reverify passes before only the affected slice pauses, unless risk is cross-cutting.
 
 Stable multi-file mechanical repetition with a complete one-shot brief, exclusive ownership, and per-item acceptance defaults to exactly one `mech-executor` before main-session edits; only a concrete blocker named before editing rebuts that default, while the main session owns per-item triage, exceptions, integration, and acceptance.
 
@@ -127,10 +127,10 @@ Long-running processes remain main-session owned. Every Bash-capable leaf role (
 
 ## Install
 
-The recommended path is to clone the pinned v1.3.4 release locally, then start Claude Code from that checkout so it can read the runbook as a local file:
+The recommended path is to clone the pinned v1.3.5 release locally, then start Claude Code from that checkout so it can read the runbook as a local file:
 
 ```sh
-git clone --branch v1.3.4 --depth 1 https://github.com/Nanako0129/pilotfish.git
+git clone --branch v1.3.5 --depth 1 https://github.com/Nanako0129/pilotfish.git
 cd pilotfish
 claude
 ```
@@ -161,7 +161,7 @@ Prefer to do it by hand? The same steps are written for humans in [install/AGENT
 pilotfish installs by having Claude read a runbook and template files from this repo and merge them into your global `~/.claude/` config — including a policy block that then loads into **every future session**. Treat it like any `curl | sh`: trust flows from this repo and your GitHub connection, not from the paste. The local checkout path is recommended because you can inspect the pinned release before Claude reads the runbook. Before running it:
 
 - **Read the actual bytes that get installed**, not just the runbook: the eight files in [templates/agents/](./templates/agents/) and [templates/claude-md.orchestration.md](./templates/claude-md.orchestration.md). Nothing else is written to disk.
-- **Pin to a release tag or commit** so what you reviewed is what installs — `main` can change between the moment you read it and the moment Claude reads it. The recommended command above pins to the `v1.3.4` release tag; for the strictest guarantee, fetch and check out the full commit SHA you reviewed, then verify that checkout before launching Claude.
+- **Pin to a release tag or commit** so what you reviewed is what installs — `main` can change between the moment you read it and the moment Claude reads it. The recommended command above pins to the `v1.3.5` release tag; for the strictest guarantee, fetch and check out the full commit SHA you reviewed, then verify that checkout before launching Claude.
 - **Keep the approval gate:** Claude writes nothing until you approve the merge plan, but the plan is still a summary of the runbook. Review the local runbook and templates yourself, and do not weaken or bypass WebFetch's prompt-injection protection if the raw URL is intercepted.
 
 ## What gets installed

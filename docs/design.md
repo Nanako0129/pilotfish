@@ -72,7 +72,7 @@ slices; shared constraints and prerequisites still gate dependent work.
 
 Before likely long autonomous work, the main session names `AUTO` or `ASK` for the current task. `AUTO` keeps moving only through approved, reversible scope; it does not manufacture commit, publish, destructive, external-action, or spending authority. `ASK` uses native input when available and otherwise stops at `PAUSED_NEEDS_USER`; `/goal` preserves an objective, not authority.
 
-P0 freezes the affected slice and dependents, while cross-cutting risk stops the program. P1 recovery permits five meaningful fix/reverify passes — two normal and three recovery — only across material implementation, claim, contract, evidence, or environment change. Exhaustion marks the slice `PAUSED_VERIFICATION` without blocking unrelated safe work; P2 joins a coherent verification boundary and P3/P4 do not create dedicated loops.
+P0 freezes the affected slice and dependents, while cross-cutting risk stops the program. Blocking P1/P2 recovery shares five meaningful fix/reverify passes — two normal and three recovery — only across material implementation, claim, contract, evidence, or environment change. Candidate identity includes the committed head plus working-tree diff or tested-artifact digest, so uncommitted fixes can be rechecked without repeating unchanged candidates. Exhaustion marks the slice `PAUSED_VERIFICATION` without blocking unrelated safe work; P2 joins a coherent verification boundary and P3/P4 do not create dedicated loops.
 
 ## Phase-specific dispatch brakes
 

@@ -117,7 +117,7 @@ flowchart TD
 | Execution | `mech-executor`、`executor` 或 `security-executor` 接收一份穩定且 ownership 獨佔的 contract |
 | Verification | `verifier` 透過 read-and-run tools 獨立測試已完成工作的精確 claim；最終判斷仍由 main session 負責 |
 
-若工作可能長時間自主執行，main session 會先針對目前任務宣告 `AUTO` 或 `ASK`；`/goal` 只保留目標，不授予權限。`AUTO` 只涵蓋已批准 scope 內的可逆工作；`ASK` 透過原生輸入或 `PAUSED_NEEDS_USER` 暫停。P0/P1 finding 必須修正或暫停；範圍內且有界的 P2 可修，否則延後並縮窄 claim；P3/P4 預設只回報。P1 最多進行五次且每次都有實質變更的 fix/reverify pass，之後只暫停受影響 slice，除非風險跨 slice。
+若工作可能長時間自主執行，main session 會先針對目前任務宣告 `AUTO` 或 `ASK`；`/goal` 只保留目標，不授予權限。`AUTO` 只涵蓋已批准 scope 內的可逆工作；`ASK` 透過原生輸入或 `PAUSED_NEEDS_USER` 暫停。P0/P1 finding 必須修正或暫停；範圍內且有界的 P2 可修，否則延後並縮窄 claim；P3/P4 預設只回報。阻擋性的 P1/P2 共用最多五次且每次都有實質變更的 fix/reverify pass，之後只暫停受影響 slice，除非風險跨 slice。
 
 具備完整 one-shot brief、獨佔 ownership 與逐項驗收的穩定多檔機械性重複工作，預設在主 session 編輯前交給唯一一個 `mech-executor`；只有在編輯前點名具體 blocker 才能推翻此預設，逐項 triage、例外、整合與驗收仍由主 session 擁有。
 
@@ -125,10 +125,10 @@ flowchart TD
 
 ## 安裝
 
-建議的路徑是先把釘選的 v1.3.4 release clone 到本機，再從該 checkout 啟動 Claude Code，讓它讀取本地 runbook：
+建議的路徑是先把釘選的 v1.3.5 release clone 到本機，再從該 checkout 啟動 Claude Code，讓它讀取本地 runbook：
 
 ```sh
-git clone --branch v1.3.4 --depth 1 https://github.com/Nanako0129/pilotfish.git
+git clone --branch v1.3.5 --depth 1 https://github.com/Nanako0129/pilotfish.git
 cd pilotfish
 claude
 ```
@@ -159,7 +159,7 @@ Show me the full plan of changes and get my approval before writing anything.
 pilotfish 的安裝方式，是讓 Claude 從本 repo 讀取 runbook 與範本檔、合併進你的全域 `~/.claude/` 設定——其中包含一段會載入**未來每一個 session** 的政策區塊。請把它當成任何 `curl | sh` 看待：信任來自這個 repo 與你的 GitHub 連線，而不是那段貼上的文字。建議使用本地 checkout，因為你可以先檢查釘選的 release，再讓 Claude 讀取 runbook。執行前：
 
 - **實際會被裝進去的檔案要親自讀過**，不只是 runbook：就是 [templates/agents/](./templates/agents/) 的八個檔案加上 [templates/claude-md.orchestration.md](./templates/claude-md.orchestration.md)。除此之外不會寫入任何東西。
-- **釘選到 release tag 或 commit**，確保你審過的就是實際裝的——從你讀它、到 Claude 讀它之間，`main` 是可能變動的。上面的建議指令已釘選 `v1.3.4` release tag；要最嚴格保證時，請先 fetch 並 checkout 你審閱過的完整 commit SHA，再在啟動 Claude 前驗證 checkout。
+- **釘選到 release tag 或 commit**，確保你審過的就是實際裝的——從你讀它、到 Claude 讀它之間，`main` 是可能變動的。上面的建議指令已釘選 `v1.3.5` release tag；要最嚴格保證時，請先 fetch 並 checkout 你審閱過的完整 commit SHA，再在啟動 Claude 前驗證 checkout。
 - **保留 approval gate：** 經你同意前 Claude 不會動手，但計畫仍只是 runbook 的摘要。請自行審閱本地 runbook 與範本；若 raw URL 被攔截，也不要削弱或繞過 WebFetch 的 prompt-injection 防護。
 
 ## 安裝內容

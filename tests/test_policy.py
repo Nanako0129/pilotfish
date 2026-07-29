@@ -619,7 +619,7 @@ class PolicyContractTests(unittest.TestCase):
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
         self.assertEqual(runtime["release_candidate_version"], "1.3.1")
-        self.assertEqual(version, "1.3.4")
+        self.assertEqual(version, "1.3.5")
         self.assertTrue(
             runtime["release_candidate_policy_delta_from_final_gate"].startswith(
                 "non-empty"
@@ -1125,9 +1125,9 @@ class PolicyContractTests(unittest.TestCase):
             "never silently defer, reject, downgrade",
             "announce `AUTO` or `ASK`",
             "Otherwise end the turn",
-            "five meaningful fix/reverify passes",
+            "Blocking P1/P2 recovery shares at most five meaningful fix/reverify passes",
             "material implementation, claim, contract, evidence, or environment change",
-            "never reverify the same head/claim/environment",
+            "never reverify the same fingerprint/claim/environment",
             "continue unrelated approved slices",
         ):
             self.assertIn(phrase, policy)
@@ -1145,6 +1145,10 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertIn(
             "at least one reproducible P0-P2 finding blocks the exact claim",
+            verifier,
+        )
+        self.assertIn(
+            "regressions caused by the reviewed implementation are claim-relevant",
             verifier,
         )
         self.assertIn(
