@@ -48,7 +48,7 @@ The role set is the smallest one that covers the delegation patterns that actual
 | `security-reviewer` | Pre-approval security evidence needs Opus-level judgment and an actually read-only surface. Its allowlist permits repository and external advisory reads while excluding Bash and every write-capable tool. |
 | `mech-executor` | Fully-specified work has its judgment already done — by the orchestrator, in the spec. Sonnet executes specs faithfully, and on subscriptions it additionally draws on the dedicated Sonnet-only weekly bucket (extra headroom on top of the shared all-models limit). |
 | `executor` | Real implementation needs local design judgment and is also the default volume implementation path. Sonnet keeps that path below an Opus main-loop fallback instead of paying Opus subagent cost with no tier saving ([#18](https://github.com/Nanako0129/pilotfish/issues/18)). This is a routing and cost-tier decision, not evidence that Sonnet is universally better for the role; no role-specific Opus-versus-Sonnet executor benchmark has been run. |
-| `verifier` | Official guidance: independent fresh-context verifiers outperform self-critique. After implementation it retains Bash to reproduce tests and returns `CONFIRMED` / `REFUTED`, while write tools stay disabled — a verifier that fixes work stops being independent. |
+| `verifier` | Official guidance: independent fresh-context verifiers outperform self-critique. After implementation it retains Bash to reproduce tests and returns calibrated `CONFIRMED` / `REFUTED` / `INCONCLUSIVE`, while write tools stay disabled — a verifier that fixes work stops being independent. |
 | `security-executor` | Approved security implementation deserves consistently high effort, and the frontier model's safety classifiers can refuse benign defensive-security work mid-task. Pre-routing it to Opus makes the refusal path unreachable instead of handled. It is intentionally separate from the read-only pre-approval reviewer. |
 
 The `Explore` override exists because Claude Code v2.1.198 changed the built-in Explore agent to inherit the main-session model — on a frontier main session, that silently upgrades your cheapest workload to your most expensive model. A same-name user-level agent shadows it.
@@ -60,15 +60,19 @@ The intuitive objection to cheap executors is quality. pilotfish's answer is str
 1. The orchestrator writes complete one-shot Plans and execution specs (goal, constraints, done-criteria, the *why*) — most cheap-model failures are actually spec failures.
 2. Material Plans use a program envelope plus independently approvable slices. A tool-enforced read-only `plan-verifier` reviews the envelope, then only the next executable slice; the main session still owns synthesis and revisions.
 3. Escalation is bounded: two failed attempts on a tier, then escalate or take over. No infinite cheap retries that burn more than they save.
-4. Non-trivial completed work passes through `verifier` — an adversarial, fresh-context pass that tries to *refute* the claimed outcome before the orchestrator reports it done.
+4. Non-trivial completed work passes through `verifier` — a fresh-context pass that independently tests the exact claimed acceptance before the orchestrator reports it done.
 
-Fresh verification isn't free — both verification roles run on Opus and re-read context in a fresh session. With an Opus main session this is a same-tier quality boundary, not a model-cost saving. They are reserved for material Plans and non-trivial outcomes; small work skips them. What they buy is a change of question: from "does this look right to its author?" to "did it survive an independent refutation attempt?" Two known limits remain: same-tier verification catches context rot and unchecked claims, not capability-ceiling errors; and neither verifier certifies every scout fact. The main session must reconcile contradictory discovery and sanity-check load-bearing evidence. Security Plans use the dedicated read-only `security-reviewer`; security-sensitive outcomes make the outcome verifier probe abuse cases at maximum thoroughness.
+Fresh verification isn't free — both verification roles run on Opus and re-read context in a fresh session. With an Opus main session this is a same-tier quality boundary, not a model-cost saving. They are reserved for material Plans and non-trivial outcomes; small work skips them. `CONFIRMED` requires independently produced evidence, `REFUTED` requires a reproducible claim-blocking failure, and `INCONCLUSIVE` preserves uncertainty when evidence, environment, or safe access is insufficient. P0-P4 priority and confidence guide the main session's final disposition; they do not reward finding volume. Security Plans use the dedicated read-only `security-reviewer`, while security-sensitive outcome checks cover abuse cases without exposing raw secrets.
 
 Readiness is tracked per stable envelope or slice. `READY` is bare; `REVISE`
 names each blocker, evidence, minimum revision, and acceptance check. Two
 automatic revisions for one unit are the limit before user direction. This
 pauses that unit without treating it as ready or blocking unrelated ready
 slices; shared constraints and prerequisites still gate dependent work.
+
+Before likely long autonomous work, the main session names `AUTO` or `ASK` for the current task. `AUTO` keeps moving only through approved, reversible scope; it does not manufacture commit, publish, destructive, external-action, or spending authority. `ASK` uses native input when available and otherwise stops at `PAUSED_NEEDS_USER`; `/goal` preserves an objective, not authority.
+
+P0 freezes the affected slice and dependents, while cross-cutting risk stops the program. P1 recovery permits five meaningful fix/reverify passes — two normal and three recovery — only across material implementation, claim, contract, evidence, or environment change. Exhaustion marks the slice `PAUSED_VERIFICATION` without blocking unrelated safe work; P2 joins a coherent verification boundary and P3/P4 do not create dedicated loops.
 
 ## Phase-specific dispatch brakes
 

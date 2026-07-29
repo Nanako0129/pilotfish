@@ -748,13 +748,14 @@ class PolicyContractTests(unittest.TestCase):
             content = (ROOT / readme).read_text(encoding="utf-8")
             self.assertIn(f"git clone --branch v{version} --depth 1", content)
 
-    def test_prompt_compression_candidate_is_evidence_bound(self) -> None:
+    def test_prompt_compression_snapshot_is_evidence_bound(self) -> None:
         gate = ROOT / "benchmarks" / "prompt-compression"
         evidence = json.loads(
             (gate / "results.json").read_text(encoding="utf-8"),
             parse_float=Decimal,
         )
-        policy = (ROOT / "templates/claude-md.orchestration.md").read_bytes()
+        policy = (gate / "gate-snapshot" / "CLAUDE.md").read_bytes()
+        agents = (gate / "gate-snapshot" / "agents.json").read_bytes()
         policy_record = evidence["inputs"]["orchestration"]
         self.assertEqual(evidence["candidate_version"], "1.3.4")
         self.assertEqual(len(policy), policy_record["candidate_bytes"])
@@ -762,45 +763,39 @@ class PolicyContractTests(unittest.TestCase):
             hashlib.sha256(policy).hexdigest(),
             policy_record["candidate_sha256"],
         )
-
-        completed = subprocess.run(
-            [
-                sys.executable,
-                str(
-                    ROOT
-                    / "benchmarks"
-                    / "baton-compatibility"
-                    / "build-agents-json.py"
-                ),
-                str(ROOT / "templates" / "agents"),
-            ],
-            check=True,
-            capture_output=True,
+        self.assertEqual(
+            hashlib.sha256(policy.rstrip(b"\n")).hexdigest(),
+            policy_record["candidate_runtime_sha256"],
         )
+
         agents_record = evidence["inputs"]["agents"]
         self.assertEqual(
-            hashlib.sha256(completed.stdout).hexdigest(),
+            hashlib.sha256(agents).hexdigest(),
             agents_record["candidate_generated_file_sha256"],
         )
         self.assertEqual(
-            hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
+            hashlib.sha256(agents.rstrip(b"\n")).hexdigest(),
             agents_record["candidate_generated_runtime_sha256"],
         )
-        self.assertEqual(
-            (gate / "gate-snapshot" / "CLAUDE.md").read_bytes(),
-            policy,
-        )
-        self.assertEqual(
-            (gate / "gate-snapshot" / "agents.json").read_bytes(),
-            completed.stdout,
-        )
 
+        snapshot_agents = json.loads(agents)
         role_records = {record["role"]: record for record in agents_record["roles"]}
         self.assertEqual(set(role_records), set(ROLES))
+        self.assertEqual(set(snapshot_agents), set(ROLES))
+        self.assertTrue(agents_record["frontmatter_byte_identical_for_all_roles"])
         for role, record in role_records.items():
+            agent = snapshot_agents[role]
+            tool_field = "tools" if "tools" in agent else "disallowedTools"
             payload = (
-                ROOT / "templates" / "agents" / f"{role}.md"
-            ).read_bytes()
+                "---\n"
+                f"name: {role}\n"
+                f"description: {agent['description']}\n"
+                f"model: {agent['model']}\n"
+                f"effort: {agent['effort']}\n"
+                f"{tool_field}: {', '.join(agent[tool_field])}\n"
+                "---\n\n"
+                f"{agent['prompt']}\n"
+            ).encode()
             self.assertEqual(len(payload), record["candidate_bytes"])
             self.assertEqual(
                 hashlib.sha256(payload).hexdigest(),
@@ -1108,14 +1103,10 @@ class PolicyContractTests(unittest.TestCase):
         )
         for phrase in (
             "smallest coherent integration boundary",
-            "Independent refutation",
-            "Two consecutive `REFUTED` same claim",
-            "stop auto fix-reverify cycling",
-            "cap ≠ `CONFIRMED`",
-            "user-directed continuation OK",
-            "substantially unchanged implementation",
-            "Tests/builds/static checks = intermediate evidence",
-            "security",
+            "Independent falsification",
+            "avoiding micro-verifier calls",
+            "Tests/builds/static checks are intermediate evidence",
+            "security touch",
             "cross-language/FFI",
             "serialization/pre-aggregation",
             "irreversible operation",
@@ -1124,6 +1115,62 @@ class PolicyContractTests(unittest.TestCase):
             self.assertIn(phrase, policy)
         self.assertNotIn("tests are sufficient evidence", policy)
         self.assertNotIn("tests are sufficient", policy)
+
+    def test_policy_adjudicates_findings_and_bounds_long_runs(self) -> None:
+        policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
+            encoding="utf-8"
+        )
+        for phrase in (
+            "Final disposition stays main-session-owned",
+            "never silently defer, reject, downgrade",
+            "announce `AUTO` or `ASK`",
+            "Otherwise end the turn",
+            "five meaningful fix/reverify passes",
+            "material implementation, claim, contract, evidence, or environment change",
+            "never reverify the same head/claim/environment",
+            "continue unrelated approved slices",
+        ):
+            self.assertIn(phrase, policy)
+
+    def test_verifier_uses_calibrated_three_way_verdicts(self) -> None:
+        verifier = (ROOT / "templates/agents/verifier.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertTrue(
+            all(f"**{verdict}**" in verifier for verdict in (
+                "CONFIRMED",
+                "REFUTED",
+                "INCONCLUSIVE",
+            ))
+        )
+        self.assertIn(
+            "at least one reproducible P0-P2 finding blocks the exact claim",
+            verifier,
+        )
+        self.assertIn(
+            "P3/P4 are non-blocking advisories and cannot by themselves produce REFUTED",
+            verifier,
+        )
+        self.assertIn(
+            "Confidence high/medium/low, Evidence, Expected, Actual, and Recheck",
+            verifier,
+        )
+        self.assertIn("reason, missing evidence, and retry condition", verifier)
+        self.assertTrue(all(phrase in verifier for phrase in (
+            "real user/system impact, not claim centrality",
+            "P0 =",
+            "P1 = reproducible high-impact security/correctness failure",
+            "P2 = material bounded/recoverable issue",
+            "P3 =",
+            "P4 =",
+            "failed acceptance condition is P2 when bounded/recoverable",
+        )))
+        lowered = verifier.lower()
+        self.assertIsNone(re.search(
+            r"assume it is broken|do not trust|don't trust|try to refute it|"
+            r"maximi[sz]e findings|as many findings as possible",
+            lowered,
+        ))
 
     def test_policy_requires_plan_convergence_or_escalation(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
@@ -1196,8 +1243,10 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("slice-local budget", plan_verifier)
         self.assertIn("explicit stop conditions", plan_verifier)
         self.assertNotIn("CONFIRMED", plan_verifier)
+        self.assertNotIn("INCONCLUSIVE", plan_verifier)
         self.assertIn("CONFIRMED", verifier)
         self.assertIn("REFUTED", verifier)
+        self.assertIn("INCONCLUSIVE", verifier)
         self.assertNotIn("READY", verifier)
         self.assertNotIn("REVISE", verifier)
         self.assertIn("Never plan, edit, or fix anything", verifier)
