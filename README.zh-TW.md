@@ -54,6 +54,8 @@ Anthropic 在 2026-07-24 發布 [Opus 5](https://www.anthropic.com/news/claude-o
 
 三層架構、三處設定，全部在 `~/.claude/` 底下：
 
+> **設定根目錄**：以下路徑是預設值。若你設了 [`CLAUDE_CONFIG_DIR`](https://code.claude.com/docs/en/env-vars)，下列每個 `~/.claude/` 路徑都改在該目錄底下；[安裝 runbook](./install/AGENT-INSTALL.md) 會在 Step 0 解析它。
+
 > ⚠️ **一個已測試的 Claude Pro 環境需要明確 opt-in 才能委派 Agent。**
 > 在一個使用 Claude Code 2.1.220 的 first-party Pro 帳號上，較高優先級的
 > Agent tool contract 會阻止 spawn，除非使用者明確要求 agents。使用者層的
@@ -163,6 +165,8 @@ pilotfish 的安裝方式，是讓 Claude 從本 repo 讀取 runbook 與範本�
 - **保留 approval gate：** 經你同意前 Claude 不會動手，但計畫仍只是 runbook 的摘要。請自行審閱本地 runbook 與範本；若 raw URL 被攔截，也不要削弱或繞過 WebFetch 的 prompt-injection 防護。
 
 ## 安裝內容
+
+> **設定根目錄**：以下路徑是預設值。若你設了 [`CLAUDE_CONFIG_DIR`](https://code.claude.com/docs/en/env-vars)，下列每個 `~/.claude/` 路徑都改在該目錄底下；[安裝 runbook](./install/AGENT-INSTALL.md) 會在 Step 0 解析它。
 
 | 目標 | 變更 | 可還原 |
 |---|---|---|

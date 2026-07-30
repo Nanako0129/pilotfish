@@ -54,6 +54,8 @@ Two subscription-specific bonuses stack on top:
 
 Three layers, three files' worth of configuration, all under `~/.claude/`:
 
+> **Configuration root:** these paths assume the default. If you set [`CLAUDE_CONFIG_DIR`](https://code.claude.com/docs/en/env-vars), every `~/.claude/` path below lives under that directory instead, and the installer resolves it in Step 0 of the [runbook](./install/AGENT-INSTALL.md).
+
 > ⚠️ **Explicit Agent opt-in was required on one tested Claude Pro setup.**
 > On one first-party Pro account running Claude Code 2.1.220, a higher-priority
 > Agent tool contract blocked spawning unless the user explicitly requested
@@ -165,6 +167,8 @@ pilotfish installs by having Claude read a runbook and template files from this 
 - **Keep the approval gate:** Claude writes nothing until you approve the merge plan, but the plan is still a summary of the runbook. Review the local runbook and templates yourself, and do not weaken or bypass WebFetch's prompt-injection protection if the raw URL is intercepted.
 
 ## What gets installed
+
+> **Configuration root:** these paths assume the default. If you set [`CLAUDE_CONFIG_DIR`](https://code.claude.com/docs/en/env-vars), every `~/.claude/` path below lives under that directory instead, and the installer resolves it in Step 0 of the [runbook](./install/AGENT-INSTALL.md).
 
 | Target | Change | Reversible |
 |---|---|---|
