@@ -25,7 +25,7 @@ Claude Code reads global configuration from `~/.claude/` **only when `CLAUDE_CON
 > `CLAUDE_CONFIG_DIR` — Override the configuration directory (default: `~/.claude`). All settings, session history, and plugins are stored under this path […]
 > — [Claude Code environment variables](https://code.claude.com/docs/en/env-vars)
 
-Resolve it before reading or writing anything, and use the printed absolute path as `$CFG` for the rest of this runbook:
+Resolve it before reading or writing anything, and use the printed path verbatim as `$CFG` for the rest of this runbook:
 
 ```bash
 echo "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
@@ -33,7 +33,11 @@ echo "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 
 > ⚠️ **Do not assume `~/.claude`.** On a machine where `CLAUDE_CONFIG_DIR` points elsewhere, installing into `~/.claude/` *creates* that directory, passes every check in Step 4, and installs nothing Claude Code will ever load — a silent no-op with no error to explain it. The same mistake makes an upgrade look like a fresh install (no markers found in the decoy directory) and makes an uninstall delete the decoy while leaving the real install in place.
 
-Carry the resolved path into the Step 2 plan so the user can catch a wrong root before anything is written. If the variable is set to a relative or `~`-prefixed value, expand it to an absolute path first.
+Carry the resolved path into the Step 2 plan so the user can catch a wrong root before anything is written.
+
+> ⚠️ **Do not normalize the value.** Claude Code does not expand a leading `~` inside `CLAUDE_CONFIG_DIR`, and it resolves a relative value against the current working directory. Observed on 2.1.220: with `CLAUDE_CONFIG_DIR='~/.claude-probe'` it creates a directory named literally `~` under the cwd, and with `CLAUDE_CONFIG_DIR='.claude-probe'` it uses `$PWD/.claude-probe`. Rewriting either value into `$HOME/...` installs into a directory Claude Code never reads — the exact failure this step exists to prevent. Use the value as Claude Code sees it.
+
+If the resolved root is not absolute, **stop and tell the user** their `CLAUDE_CONFIG_DIR` is almost certainly misconfigured: a relative root moves with whatever directory the shell happens to be in, so their configuration is already split across every cwd they have launched `claude` from. Let them fix the variable; do not guess an absolute path on their behalf.
 
 ## Updating an existing install
 
