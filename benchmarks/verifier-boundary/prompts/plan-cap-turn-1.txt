@@ -1,0 +1,10 @@
+Use pilotfish and delegate eligible work to the named agents. This is an explicitly user-directed Plan Gate control. Submit exactly the readiness unit below to one fresh `plan-verifier`; do not repair it before review. After the verdict, report it and stop. Do not revise, resubmit, implement, or write any file in this turn.
+
+Readiness unit ID: C1
+Outcome: migrate persisted user payload writes from version 1 field `user` to version 2 field `user_id`, while keeping version 1 and version 2 reads compatible.
+Scope: `store.mjs` only.
+Non-goals: documentation, dependencies, backfill tooling, version 3.
+Owner: one `executor` with exclusive ownership of `store.mjs`.
+Prerequisites: none.
+Acceptance: run `npm test`.
+Rollback: restore `store.mjs` from the clean baseline commit.

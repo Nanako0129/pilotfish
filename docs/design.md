@@ -58,21 +58,26 @@ The `Explore` override exists because Claude Code v2.1.198 changed the built-in 
 The intuitive objection to cheap executors is quality. pilotfish's answer is structural, not hopeful:
 
 1. The orchestrator writes complete one-shot Plans and execution specs (goal, constraints, done-criteria, the *why*) — most cheap-model failures are actually spec failures.
-2. Material Plans use a program envelope plus independently approvable slices. A tool-enforced read-only `plan-verifier` reviews the envelope, then only the next executable slice; the main session still owns synthesis and revisions.
+2. Material Plans use a program envelope plus independently approvable slices. When concrete security, irreversible/external, data, release, or cross-component acceptance risk justifies independent review, a tool-enforced read-only `plan-verifier` reviews the envelope, then only the next executable slice.
 3. Escalation is bounded: two failed attempts on a tier, then escalate or take over. No infinite cheap retries that burn more than they save.
-4. Non-trivial completed work passes through `verifier` — a fresh-context pass that independently tests the exact claimed acceptance before the orchestrator reports it done.
+4. Risk-triggered completed work passes through `verifier` after the primary acceptance flow has been exercised; routine local work does not spawn review merely because it is called non-trivial.
 
-Fresh verification isn't free — both verification roles run on Opus and re-read context in a fresh session. With an Opus main session this is a same-tier quality boundary, not a model-cost saving. They are reserved for material Plans and non-trivial outcomes; small work skips them. `CONFIRMED` requires evidence independently produced or inspected in the verifier session for every required acceptance condition, `REFUTED` requires a reproducible claim-blocking failure, and `INCONCLUSIVE` preserves uncertainty when evidence, environment, or safe access is insufficient. A known P0-P2 blocker takes precedence over missing evidence for another condition; without such a blocker, any unevaluated required condition is `INCONCLUSIVE`. P0-P4 priority and confidence guide the main session's final disposition; they do not reward finding volume. Security Plans use the dedicated read-only `security-reviewer`, while security-sensitive outcome checks cover abuse cases without exposing raw secrets.
+Fresh verification isn't free — both verification roles run on Opus and re-read context in a fresh session. With an Opus main session this is a same-tier quality boundary, not a model-cost saving. Role verdicts are evidence, not implementation or scope authority: the main session records `FIX`, `DEFER`, or `REJECT` for every finding. `REVISE` returns all known claim-relevant P0-P2 blockers in one pass; P3/P4, optional detail, and adjacent hardening do not block. `CONFIRMED` requires evidence for every acceptance condition, `REFUTED` requires a reproducible claim-blocking failure, and `INCONCLUSIVE` preserves uncertainty. Security Plans retain the dedicated read-only `security-reviewer`.
 
 Readiness is tracked per stable envelope or slice. `READY` is bare; `REVISE`
 names each blocker, evidence, minimum revision, and acceptance check. Two
-automatic revisions for one unit are the limit before user direction. This
-pauses that unit without treating it as ready or blocking unrelated ready
-slices; shared constraints and prerequisites still gate dependent work.
+automatic revisions for one unit are the limit before the main session stops
+automatic resubmission and dispositions the blockers, narrows or splits the
+unit, and continues independent slices. A material `FIX`, narrowing/split, or
+evidence-backed disposition that changes the readiness claim records a new
+readiness epoch and gets exactly one final fresh `plan-verifier` check; that closing check cannot
+restart the automatic loop, and another `REVISE` pauses or escalates by
+severity. User input is reserved for unresolved P0/P1, product or authority
+choices, or an original scope that can no longer be met.
 
 Before likely long autonomous work, the main session names `AUTO` or `ASK` for the current task. `AUTO` keeps moving only through approved, reversible scope; it does not manufacture commit, publish, destructive, external-action, or spending authority. `ASK` uses native input when available and otherwise stops at `PAUSED_NEEDS_USER`; `/goal` preserves an objective, not authority.
 
-P0 freezes the affected slice and dependents, while cross-cutting risk stops the program. Introduced P2 regressions remain blocking rather than being hidden by a narrowed claim. Every verification run shares five meaningful P1/P2 fix/reverify passes — two normal and three recovery. Verification identity includes the complete tested candidate, claim, acceptance, contract, external evidence/prerequisites, and environment; a prior verifier's own output is not a change. The candidate fingerprint covers committed head, tracked/staged diff, untracked input paths plus content, and dirty submodule content. Artifact digests complement source identity unless the artifact is the sole deliverable. Exhaustion marks the slice `PAUSED_VERIFICATION` without blocking unrelated safe work; P2 joins a coherent verification boundary and P3/P4 do not create dedicated loops.
+P0 freezes the affected slice and dependents, while cross-cutting risk stops the program. Introduced P2 regressions remain blocking rather than being hidden by a narrowed claim. Normal recovery is one targeted recheck of the original reproduction plus a bounded basic regression. Five meaningful P1/P2 passes remain an emergency ceiling for high-risk, claim-critical recovery, never a quota; stop earlier when another pass would only search adjacent risk. Verification identity still prevents duplicate rechecks, and exhaustion pauses only the affected slice when risk is not cross-cutting.
 
 ## Phase-specific dispatch brakes
 

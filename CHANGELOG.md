@@ -2,6 +2,21 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
+## v1.3.6 — 2026-07-31
+
+Bound Plan convergence after two automatic `REVISE` verdicts. The main session
+now records a new readiness epoch for a material fix, narrowing, split, or new
+evidence and may request exactly one final fresh readiness check; a further
+`REVISE` pauses or escalates instead of reopening an automatic loop.
+
+Independent review remains risk-triggered, and the current generated eight-role
+candidate provenance is recorded separately from historical runtime Gate
+snapshots. A native Claude Code Gate with the documented explicit agent opt-in
+reached `plan-verifier` → approval → `executor` → `verifier` for a schema
+migration, kept routine docs direct, and exercised `REVISE` → `REVISE` → new
+readiness epoch → closing `READY`. The current controls reported $2.82515035;
+the full campaign, including failed and superseded runs, reported $5.16072710.
+
 ## v1.3.5 — 2026-07-29
 
 Calibrate outcome verification around exact acceptance and implementation-caused

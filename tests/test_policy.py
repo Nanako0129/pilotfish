@@ -531,11 +531,11 @@ class PolicyContractTests(unittest.TestCase):
         self.assertNotEqual(current_policy, snapshot_policy)
         self.assertEqual(
             runtime["release_candidate_orchestration_sha256"],
-            "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf",
+            hashlib.sha256(current_policy).hexdigest(),
         )
         self.assertEqual(
             runtime["release_candidate_agents_json_sha256"],
-            "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
+            hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
         )
         release = results["v1_3_2_release_gate"]
         post_gate = results["v1_3_2_post_gate_role_change"]
@@ -618,8 +618,24 @@ class PolicyContractTests(unittest.TestCase):
             )
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
-        self.assertEqual(runtime["release_candidate_version"], "1.3.1")
-        self.assertEqual(version, "1.3.5")
+        self.assertEqual(runtime["release_candidate_version"], version)
+        self.assertEqual(version, "1.3.6")
+        self.assertEqual(
+            runtime["release_candidate_generated_by"],
+            "benchmarks/baton-compatibility/build-agents-json.py templates/agents",
+        )
+        self.assertEqual(
+            runtime["release_candidate_behavioral_gate_status"],
+            "passed; exact v1.3.6 policy and shell-normalized generated payload; explicit agent opt-in; schema Plan/outcome review, routine-docs control, and post-cap closing readiness control",
+        )
+        self.assertEqual(
+            runtime["release_candidate_runtime_evidence"],
+            "../verifier-boundary/results.json#passing_gate",
+        )
+        self.assertEqual(
+            runtime["release_candidate_offline_evidence"],
+            "tests/test_policy.py::PolicyContractTests.test_baton_gate_snapshot_matches_recorded_hashes",
+        )
         self.assertTrue(
             runtime["release_candidate_policy_delta_from_final_gate"].startswith(
                 "non-empty"
@@ -627,7 +643,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["release_candidate_agents_json_delta_from_final_gate"],
-            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); every other role frontmatter is unchanged",
+            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow fallback, and bounded-recheck contracts; verifier-boundary gate-snapshot-v2 exercised these current exact bytes",
         )
         final_policy = (gate / runtime["final_gate_snapshot_policy"]).read_bytes()
         self.assertEqual(
@@ -736,6 +752,89 @@ class PolicyContractTests(unittest.TestCase):
             / "README.md"
         ).read_text(encoding="utf-8")
         self.assertIn("--model claude-opus-4-8", controls)
+
+    def test_verifier_boundary_gate_is_exact_and_claim_limited(self) -> None:
+        gate = ROOT / "benchmarks" / "verifier-boundary"
+        evidence = json.loads(
+            (gate / "results.json").read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        inputs = evidence["inputs"]
+        policy = (gate / inputs["policy"]["path"]).read_bytes()
+        self.assertEqual(
+            policy,
+            (ROOT / "templates/claude-md.orchestration.md").read_bytes(),
+        )
+        self.assertEqual(
+            hashlib.sha256(policy).hexdigest(),
+            inputs["policy"]["sha256"],
+        )
+
+        agents = (gate / inputs["agents"]["path"]).read_bytes()
+        completed = subprocess.run(
+            [
+                sys.executable,
+                str(
+                    ROOT
+                    / "benchmarks"
+                    / "baton-compatibility"
+                    / "build-agents-json.py"
+                ),
+                str(ROOT / "templates" / "agents"),
+            ],
+            check=True,
+            capture_output=True,
+        )
+        self.assertEqual(agents, completed.stdout)
+        self.assertEqual(
+            hashlib.sha256(agents).hexdigest(),
+            inputs["agents"]["file_sha256"],
+        )
+        self.assertEqual(
+            hashlib.sha256(agents.rstrip(b"\n")).hexdigest(),
+            inputs["agents"]["runtime_sha256"],
+        )
+
+        for prompt in inputs["prompts"].values():
+            payload = (gate / prompt["path"]).read_bytes()
+            self.assertEqual(
+                hashlib.sha256(payload).hexdigest(),
+                prompt["file_sha256"],
+            )
+            self.assertEqual(
+                hashlib.sha256(payload.rstrip(b"\n")).hexdigest(),
+                prompt["runtime_sha256"],
+            )
+
+        passing = evidence["passing_gate"]
+        self.assertEqual(passing["status"], "passed")
+        self.assertIn("reachability only", passing["claim_boundary"])
+        self.assertIn("do not establish cue-free behavior", passing["claim_boundary"])
+        schema = passing["schema_lifecycle"]
+        self.assertEqual(schema["turn_1"]["plan_verifier_verdict"], "READY")
+        self.assertFalse(schema["turn_1"]["writes_before_approval"])
+        self.assertEqual(schema["turn_2"]["executor_calls"], 1)
+        self.assertEqual(schema["turn_2"]["verifier_verdict"], "CONFIRMED")
+        routine = passing["routine_docs_control"]
+        self.assertEqual(routine["plan_verifier_calls"], 0)
+        self.assertEqual(routine["verifier_calls"], 0)
+        cap = passing["post_cap_plan_control"]
+        self.assertEqual(cap["verdicts"], ["REVISE", "REVISE", "READY"])
+        self.assertTrue(cap["second_turn_stopped_automatic_resubmission"])
+        self.assertTrue(cap["third_turn_recorded_new_readiness_epoch"])
+        self.assertTrue(cap["third_turn_was_single_closing_check"])
+        self.assertTrue(cap["closing_ready_was_not_approval"])
+        self.assertEqual(cap["writes"], 0)
+        self.assertEqual(
+            schema["client_reported_cost_usd"]
+            + routine["client_reported_cost_usd"]
+            + cap["client_reported_cost_usd"],
+            passing["client_reported_cost_usd"],
+        )
+        self.assertGreater(
+            evidence["paid_campaign"]["client_reported_cost_usd"],
+            passing["client_reported_cost_usd"],
+        )
 
     def test_version_stamps_move_together(self) -> None:
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
@@ -1104,6 +1203,14 @@ class PolicyContractTests(unittest.TestCase):
         for phrase in (
             "smallest coherent integration boundary",
             "Independent falsification",
+            "Independent review is risk-triggered",
+            "A listed trigger makes the unit risky for this lifecycle",
+            "pre-approval `plan-verifier` readiness and post-implementation `verifier` outcome review are mandatory",
+            "The bounded fail-soft exception applies only when none of the listed risks is crossed",
+            "The initial request is not approval of an unseen risk-triggered Plan",
+            "implementation starts only after explicit approval in a later user turn",
+            "Plan readiness evaluates the proposed acceptance check",
+            "primary user-visible flow",
             "avoiding micro-verifier calls",
             "Tests/builds/static checks are intermediate evidence",
             "security touch",
@@ -1115,22 +1222,48 @@ class PolicyContractTests(unittest.TestCase):
             self.assertIn(phrase, policy)
         self.assertNotIn("tests are sufficient evidence", policy)
         self.assertNotIn("tests are sufficient", policy)
+        self.assertIn(
+            "never modify a `CONFIRMED` candidate for them", policy
+        )
+        self.assertIn(
+            "Any required post-verdict change invalidates coverage of the final bytes",
+            policy,
+        )
+
+    def test_plan_review_requires_future_slice_identity_not_optional_detail(self) -> None:
+        policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
+            encoding="utf-8"
+        )
+        prompt = (ROOT / "templates/agents/plan-verifier.md").read_text(
+            encoding="utf-8"
+        )
+        for text in (policy, prompt):
+            self.assertIn("optional downstream implementation detail", text)
+            self.assertIn(
+                "Missing required future-slice metadata (stable ID, outcome, or prerequisites) remains blocking",
+                text,
+            )
 
     def test_policy_adjudicates_findings_and_bounds_long_runs(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
         for phrase in (
-            "Final disposition stays main-session-owned",
-            "Never silently defer, reject, downgrade",
-            "A documented regrade may use the verifier's cited evidence",
+            "Role verdicts are evidence, not implementation or scope authority",
+            "label it `FIX`, `DEFER`, or `REJECT`",
+            "documented deferral or evidence-backed rejection is an addressed finding",
+            "does not make it claim-relevant",
             "stated missing evidence, contract, prerequisite, or environment",
             "explicit acceptance, approved scope, and bounded",
             "announce `AUTO` or `ASK`",
-            "recovery budget and severity rules below apply to every verification run",
+            "emergency ceiling for high-risk recovery, not a quota",
             "headless likely-long run without an explicit mode",
             "Otherwise end the turn",
-            "Blocking P1/P2 recovery shares at most five meaningful fix/reverify passes",
+            "Default recovery is one targeted recheck",
+            "High-risk, claim-critical P1/P2 recovery may use at most five meaningful",
+            "not a new adjacent-hardening audit",
+            "Stop earlier when the next pass would only search adjacent risk",
+            "batch-disposition every current-head finding",
             "external evidence/prerequisites",
             "immediately preceding verifier's verdict or output alone is not new evidence",
             "tracked/staged diff",
@@ -1183,6 +1316,15 @@ class PolicyContractTests(unittest.TestCase):
             verifier,
         )
         self.assertIn(
+            "even when the primary flow is blocked or unavailable",
+            verifier,
+        )
+        self.assertIn(
+            "without suppressing an independently reproducible blocker",
+            verifier,
+        )
+        self.assertNotIn("Only after it is evidenced", verifier)
+        self.assertIn(
             "any unevaluated required acceptance condition makes the verdict INCONCLUSIVE",
             verifier,
         )
@@ -1225,13 +1367,18 @@ class PolicyContractTests(unittest.TestCase):
             "Minimum revision:",
             "Acceptance check:",
             "Two automatic `REVISE` same unit",
-            "surface blockers/options to user",
+            "independently disposition every blocker as `FIX`, `DEFER`, or `REJECT`",
+            "Ask the user only for unresolved P0/P1",
+            "not merely to authorize another review round",
+            "new readiness epoch",
+            "evidence-backed disposition that changes the readiness claim",
+            "exactly one final fresh `plan-verifier` check",
+            "cannot restart the automatic loop",
+            "another `REVISE` pauses or escalates the unit by severity",
             "substantially unchanged Plan",
-            "material revision or new evidence",
             "simplify",
-            "surface blocker",
-            "defer scope",
-            "never silently overrule",
+            "narrow",
+            "split",
         ):
             self.assertIn(phrase, policy)
         self.assertNotIn("main session decides the residual disagreements", policy)
@@ -1281,11 +1428,16 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("acceptance proving slice outcome", plan_verifier)
         self.assertIn("slice-local budget", plan_verifier)
         self.assertIn("explicit stop conditions", plan_verifier)
+        self.assertIn("every currently known blocker in the same pass", plan_verifier)
+        self.assertIn("Do not use `REVISE` for P3/P4 advice", plan_verifier)
+        self.assertIn("P2 = material bounded or recoverable", plan_verifier)
         self.assertNotIn("CONFIRMED", plan_verifier)
         self.assertNotIn("INCONCLUSIVE", plan_verifier)
         self.assertIn("CONFIRMED", verifier)
         self.assertIn("REFUTED", verifier)
         self.assertIn("INCONCLUSIVE", verifier)
+        self.assertIn("Attempt the primary acceptance flow first", verifier)
+        self.assertIn("do not reopen adjacent hardening", verifier)
         self.assertNotIn("READY", verifier)
         self.assertNotIn("REVISE", verifier)
         self.assertIn("Never plan, edit, or fix anything", verifier)

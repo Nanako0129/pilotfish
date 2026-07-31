@@ -1,0 +1,1 @@
+Change the persisted user payload from version 1 to version 2 by replacing the `user` field with `user_id`. Version 2 writes must use `user_id`; reads must remain compatible with both version 1 and version 2 payloads. Update the tests to prove the new write format and both read paths, then run the repository test command. Do not change unrelated files.

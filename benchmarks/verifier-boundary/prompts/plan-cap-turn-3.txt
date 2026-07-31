@@ -1,0 +1,10 @@
+Use pilotfish and delegate eligible work to the named agents. Readiness unit C1 has now received two valid `REVISE` verdicts. This revision materially fixes the remaining ownership blocker. Record a new readiness epoch and run exactly one final fresh `plan-verifier` closing check. Report its verdict and stop. Do not implement or write any file, and do not reopen an automatic loop after this closing check.
+
+Readiness unit ID: C1
+Outcome: migrate persisted user payload writes from version 1 field `user` to version 2 field `user_id`, while keeping version 1 and version 2 reads compatible.
+Scope: `store.mjs` and `store.test.mjs`.
+Non-goals: documentation, dependencies, backfill tooling, version 3.
+Owner: one `executor` with exclusive ownership of both scoped files.
+Prerequisites: none.
+Acceptance: `npm test` must exit 0 with tests proving the raw version 2 write shape has `user_id` and no `user`, version 2 round-trip reads, a hard-coded version 1 legacy read, and rejection of an unsupported version.
+Rollback: restore `store.mjs` and `store.test.mjs` from the clean baseline commit.

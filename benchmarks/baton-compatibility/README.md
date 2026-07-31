@@ -184,7 +184,8 @@ An existing hook rejected the worker's direct `Write` and instructed it to retur
 |---|---|
 | Policy and snapshot SHA-256 | `7ff86564cd4cd8469cf3d24646fd395c57be09dc1fc7e1efa9d0d77c61ecfb21` |
 | Shell-stripped historical `agents.json` SHA-256 | `e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61` |
-| Current generated release payload SHA-256 | `0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c` (post-[#18](https://github.com/Nanako0129/pilotfish/issues/18); recorded separately from this Gate) |
+| Current v1.3.6 policy SHA-256 | `ae771c9b43ad985f7ad1e520cd6e021c69e13aac3bd6a60a8edacd1d386f0e82` (current template bytes; exercised by the [verifier-boundary Gate](../verifier-boundary/README.md)) |
+| Current generated v1.3.6 release payload SHA-256 | `e5e7fa1595c2231f6954f86720c734ab064ce901ab141c3e6431d07dd4335123` (shell-stripped builder output; exercised by the [verifier-boundary Gate](../verifier-boundary/README.md)) |
 | Turn 1 prompt file SHA-256 | `45dbe7b6b24cb5838ebf4219011797b61f172fcc18f0ca5039144017e93fcca7` |
 | Turn 1 runtime-input SHA-256 | `d2ad46b7ecfb503f8f7185d6d68f404d326f1a4a480b9141d1a80318a746bb73` |
 | Turn 2 prompt file SHA-256 | `82d833090ba91982651de9ac4beed8fc96311119c6eb9c6f0304c292821918e7` |
@@ -192,6 +193,12 @@ An existing hook rejected the worker's direct `Write` and instructed it to retur
 | Final transcript SHA-256 | `6563b1c5f3d15f2640688a8509fa093364c5534f9246e0ee700e67c3469ac0b5` |
 
 This Gate is compatibility/provenance only. It makes no Fable coverage claim and establishes no native-Claude efficiency result. The field observations that motivated the policy came from remora sessions routed to GPT-5.6 and support backend-neutral anti-churn guardrails; they do not establish native-Claude thresholds, efficiency gains, or an A/B result.
+
+The historical runtime records above predate the v1.3.6 policy and role-prompt
+bytes; they are not behavioral evidence for the current candidate. The separate
+[verifier-boundary Gate](../verifier-boundary/README.md) pins the current
+policy/payload and records the native-Claude schema lifecycle, routine-docs
+control, failed attempts, and claim limits additively.
 
 ## Superseded, failed, and rejected harness runs
 
