@@ -200,7 +200,7 @@ The raw `main` prompt in [Install](#install) remains a mutable convenience path,
 
 | Want to… | How |
 |---|---|
-| Check what you have installed | `grep -o "pilotfish v[0-9.]*" ~/.claude/CLAUDE.md` — no output with markers present = pre-v1.1.0, update recommended |
+| Check what you have installed | `CFG="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"; grep -o "pilotfish v[0-9.]*" "$CFG/CLAUDE.md"` — no output with markers present = pre-v1.1.0, update recommended |
 | Get notified of new releases | GitHub → **Watch → Custom → Releases** on this repo |
 | See what changed | [CHANGELOG.md](./CHANGELOG.md) — every release is also a git tag |
 | Stay frozen on a reviewed version | Install pinned to a tag or SHA (see [Trust & security](#trust--security)); pinned installs never move until you re-pin |
@@ -230,11 +230,11 @@ The delegation policy in `CLAUDE.md` speaks only of roles (`executor`, `scout`, 
 | Which effort for the main session? | Start with `high` for judgment-heavy orchestration and lower it when quota or latency matters more. If you opt into Fable, follow its model-specific prompting guidance. |
 | How do I request a 1M context window? | The plain `opus` alias follows the provider default. If you need to request 1M explicitly on a supported provider, set `model` to `"opus[1m]"`; pilotfish leaves an existing choice untouched. |
 | Does the orchestrator ever do work itself? | Yes — quick reads, small bounded repository scans, decisions, root-cause exploration, trace-driven debugging, tightly coupled state work, and anything you explicitly asked *it* to judge. Other work is delegated when its combined cost, context, latency, isolation, or verification benefit exceeds reconstruction and integration overhead. |
-| My project has its own CLAUDE.md — conflict? | No file is ever touched: pilotfish writes only under `~/.claude/`. At runtime Claude Code *stacks* project memory and user memory — both load together, neither overrides the other. If one repo needs different behavior, add a local note there (e.g. "work inline in this repo, don't delegate") — the more specific instruction wins in practice. |
+| My project has its own CLAUDE.md — conflict? | No project file is ever touched: pilotfish writes only under the Claude Code configuration root (`~/.claude/` by default; `CLAUDE_CONFIG_DIR` overrides it). At runtime Claude Code *stacks* project memory and user memory — both load together, neither overrides the other. If one repo needs different behavior, add a local note there (e.g. "work inline in this repo, don't delegate") — the more specific instruction wins in practice. |
 | I also installed a delegation-planning skill | Treat it as a complementary planning layer. A skill such as [Baton](https://github.com/cablate/baton) can shape discovery questions, worker count, ownership, sequence, and stop conditions; pilotfish supplies the named Claude roles, model routing, leaf-agent boundary, approval gate, and verifier contract. The [compatibility Gates](./benchmarks/baton-compatibility/README.md) record the v1.3.2 envelope → current-slice → approved execution → `CONFIRMED` lifecycle, including an Opus 5 rerun whose disclosed post-verdict edit required a third corrective verification invocation. The [prompt-neutral activation Gate](./benchmarks/baton-dispatch-effect/README.md) separately covers four-scout dispatch under v1.3.1. These are bounded compatibility and reachability observations, not efficiency or frequency claims. pilotfish never disables user skills. |
 | Subagent quality worries me | `plan-verifier` reviews one envelope or slice before approval; outcome `verifier` independently tests the exact completed-work claim and returns `CONFIRMED`, `REFUTED`, or `INCONCLUSIVE`. Missing evidence stays inconclusive rather than becoming a false pass or speculative failure. `REVISE` still identifies the blocker, evidence, minimum revision, and acceptance check; two automatic Plan revisions remain the limit. Verification is not free, so small work skips it. |
 | Doesn't spawning agents cost extra? | Yes — every spawn is a fresh context that re-reads its slice of the codebase, and synthesis costs main-session tokens. A bounded task-local scan therefore stays inline by default. Discovery may still fan out when disjoint evidence materially reduces Plan uncertainty, while execution delegates only after its contract is stable. In the public mechanical control's execution-only segment, delegation reported 36.01% less cost with a 7.92% wall-time trade-off; neither compared run included the required outcome verifier, so this demonstrates route reachability rather than full-lifecycle savings. The research fixture shows the overhead of two scouts on one small task, not that plan-first discovery is categorically wrong. |
-| Turn it off fast? | **This session:** tell Claude "don't delegate this session — work inline"; it's just policy text, it obeys immediately. **This repo:** add a local note to the repo's CLAUDE.md. **Whole machine:** comment out the `pilotfish:begin/end` block in `~/.claude/CLAUDE.md` — the agent files just sit unused. No reinstall needed to switch back. |
+| Turn it off fast? | **This session:** tell Claude "don't delegate this session — work inline"; it's just policy text, it obeys immediately. **This repo:** add a local note to the repo's CLAUDE.md. **Whole machine:** comment out the `pilotfish:begin/end` block in the `CLAUDE.md` under the configuration root resolved by Step 0 of the [runbook](./install/AGENT-INSTALL.md) — the agent files just sit unused. No reinstall needed to switch back. |
 | Managed / enterprise machine? | Managed settings outrank user settings: a managed `model`, `availableModels` allowlist, or a managed agent with the same name will override pilotfish's user-level install. If roles don't take effect after restart, ask your admin — pilotfish can't (and shouldn't) override managed policy. |
 
 ## Research & design
@@ -265,9 +265,11 @@ map, exact-byte evidence rules, and pull request checklist.
 Tell Claude Code:
 
 ```text
-Uninstall pilotfish: remove the eight pilotfish agent files from ~/.claude/agents/,
-delete the <!-- pilotfish:begin --> ... <!-- pilotfish:end --> block from ~/.claude/CLAUDE.md,
-and offer to restore my previous "model" / remove "fallbackModel" in ~/.claude/settings.json.
+Read the local install/AGENT-INSTALL.md, resolve the Claude Code configuration
+root exactly as Step 0 specifies, and follow its Uninstall section. In that
+configuration root, remove the eight pilotfish agent files and policy block.
+Show me the full removal and settings-restoration plan and get my approval
+before writing.
 ```
 
 ## Support pilotfish
