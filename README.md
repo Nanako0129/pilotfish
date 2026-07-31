@@ -70,6 +70,36 @@ Three layers, three files' worth of configuration, all under `~/.claude/`:
 > attributed to prompt compression. Tracking:
 > [#29](https://github.com/Nanako0129/pilotfish/issues/29).
 
+<details>
+<summary><b>What the mechanism is</b> — two independent injections, and what we can and cannot claim about them</summary>
+
+Two different injections have been discussed as if they were one. Both were read out of official Claude Code builds under `~/.local/share/claude/versions/`, and every claim here is anchored to a string you can search for yourself rather than to a byte offset.
+
+| | this repo's report | the other one |
+|---|---|---|
+| site | Agent tool description | system prompt section, flag name `tengu_heron_brook` |
+| text | `Do not spawn agents unless the user asks.` … `it's the expensive path on this plan.` | `Do not call the AgentTool unless the user requested it` |
+| gate | a subscription-type comparison against `"pro"`, inline in the tool-description builder, with no override in that expression | resolver `dMy`, three ordered sources — see below |
+| tracked in | [#29](https://github.com/Nanako0129/pilotfish/issues/29) | [Serhii-Leniv/claude-router#55](https://github.com/Serhii-Leniv/claude-router/issues/55), [anthropics/claude-code#80988](https://github.com/anthropics/claude-code/issues/80988) |
+
+The second one is a **string-valued** section, not a boolean one. In 2.1.220, `dMy` resolves its content from client data, then a flag lookup, then a built-in default; the first two sources can supply arbitrary text. The `opus_5_prompt_bundle` capability check and its killswitch live in `tXn`, which gates **only** the built-in-default branch.
+
+Three separate string searches across the official builds we retain:
+
+| official build | tool-description paragraph | `tengu_heron_brook` identifier | built-in default payload |
+|---|---|---|---|
+| 2.1.218 | present | present (7×) | absent |
+| 2.1.219 | present | present | present |
+| 2.1.220 | present | present | present |
+
+**Claim boundary.** A string present in a binary is not an instruction active in a session, and three builds cannot establish when anything was introduced upstream — [anthropics/claude-code#80988](https://github.com/anthropics/claude-code/issues/80988) is the source for that side of it. We found no documented user-facing setting that opts in persistently, and we do not claim none exists; that needs CLI and settings evidence we have not gathered. As corroboration only, from our own repackaging of Claude Code native builds, [Calico](https://github.com/Nanako0129/calico-claude): the tool-description paragraph is present there in 2.1.207 through 2.1.220.
+
+**Cheapest check available.** Ask a fresh session what its delegation policy is. In the session where we looked, the paragraph was present in the Agent tool description and the session could quote its own constraint — no patched build, no proxy, no transcript analysis needed.
+
+**If you also run [claude-router](https://github.com/Serhii-Leniv/claude-router):** do not enable `forceRoute` while pilotfish is installed. It overrides the model each agent sets in its own frontmatter, which is exactly how pilotfish gives `verifier` a fresh Opus context; an Opus-pinned role was observed running on `claude-sonnet-5`. That tool's `restoreDelegation` option strips the second injection above.
+
+</details>
+
 | Layer | File(s) | Job |
 |---|---|---|
 | Machine | `~/.claude/settings.json` | Who orchestrates (`opus`) + automatic `fallbackModel` chain |

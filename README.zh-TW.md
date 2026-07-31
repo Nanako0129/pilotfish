@@ -68,6 +68,36 @@ Anthropic 在 2026-07-24 發布 [Opus 5](https://www.anthropic.com/news/claude-o
 > prompt compression。追蹤：
 > [#29](https://github.com/Nanako0129/pilotfish/issues/29)。
 
+<details>
+<summary><b>機制是什麼</b>——兩個各自獨立的注入，以及哪些能主張、哪些不能</summary>
+
+先前被當成同一件事討論的，其實是兩個不同的注入。兩者都是從 `~/.local/share/claude/versions/` 底下的官方 Claude Code build 讀出來的；以下每一項主張都錨定在你可以自己搜尋的字串，而不是 byte offset。
+
+| | 本 repo 追蹤的那個 | 另一個 |
+|---|---|---|
+| 位置 | Agent tool description | system prompt 區段，flag 名稱 `tengu_heron_brook` |
+| 文字 | `Do not spawn agents unless the user asks.` … `it's the expensive path on this plan.` | `Do not call the AgentTool unless the user requested it` |
+| gate | 在 tool-description builder 內就地比對訂閱方案是否為 `"pro"`，該運算式本身沒有任何 override | resolver `dMy`，三個依序來源——見下 |
+| 追蹤於 | [#29](https://github.com/Nanako0129/pilotfish/issues/29) | [Serhii-Leniv/claude-router#55](https://github.com/Serhii-Leniv/claude-router/issues/55)、[anthropics/claude-code#80988](https://github.com/anthropics/claude-code/issues/80988) |
+
+第二個是**字串值**的區段，不是布林值。在 2.1.220 中，`dMy` 依序從 client data、flag 查詢、內建預設值解析內容；前兩個來源可以塞任意文字。`opus_5_prompt_bundle` capability 檢查與它的 killswitch 位在 `tXn`，而 `tXn` **只**管內建預設值那一支。
+
+在我們留存的官方 build 上做三次獨立的字串搜尋：
+
+| 官方 build | tool-description 段落 | `tengu_heron_brook` 識別字 | 內建預設 payload |
+|---|---|---|---|
+| 2.1.218 | present | present（7 次） | absent |
+| 2.1.219 | present | present | present |
+| 2.1.220 | present | present | present |
+
+**主張邊界。** 字串存在於 binary 不等於該指令在 session 中生效；三個 build 也無法證明上游何時引入某項東西——那一側的來源是 [anthropics/claude-code#80988](https://github.com/anthropics/claude-code/issues/80988)。我們沒有找到任何有文件的使用者層設定可以持久 opt-in，但也不主張這種設定不存在；那需要我們尚未蒐集的 CLI 與 settings 證據。以下僅作為佐證，來自我們自己重新封裝的 Claude Code 原生 build [Calico](https://github.com/Nanako0129/calico-claude)：tool-description 段落在其 2.1.207 到 2.1.220 都存在。
+
+**最省力的檢查方式。** 開一個新 session，問它自己的委派政策。在我們檢查的那個 session 裡，該段落存在於 Agent tool description，而 session 被問到時能引用自己的限制——不需要 patch 過的 build、不需要 proxy、不需要分析 transcript。
+
+**如果你同時使用 [claude-router](https://github.com/Serhii-Leniv/claude-router)：** 裝了 pilotfish 就不要開 `forceRoute`。它會覆蓋每個 agent 在自己 frontmatter 設定的模型，而那正是 pilotfish 讓 `verifier` 拿到全新 Opus context 的方式；已有實測觀察到一個釘在 Opus 的角色跑在 `claude-sonnet-5` 上。該工具的 `restoreDelegation` 選項則會剝除上面第二個注入。
+
+</details>
+
 | 層 | 檔案 | 職責 |
 |---|---|---|
 | 機器層 | `~/.claude/settings.json` | 決定誰當 orchestrator（`opus`）＋自動 `fallbackModel` 切換鏈 |
