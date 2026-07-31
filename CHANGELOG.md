@@ -13,9 +13,9 @@ Independent review remains risk-triggered, and the current generated eight-role
 candidate provenance is recorded separately from historical runtime Gate
 snapshots. A native Claude Code Gate with the documented explicit agent opt-in
 reached `plan-verifier` → approval → `executor` → `verifier` for a schema
-migration and skipped both review roles for routine docs. The passing controls
-reported $1.82234725; the full campaign, including a disclosed operator-policy
-failure, reported $2.33557675.
+migration, kept routine docs direct, and exercised `REVISE` → `REVISE` → new
+readiness epoch → closing `READY`. The current controls reported $2.82515035;
+the full campaign, including failed and superseded runs, reported $5.16072710.
 
 ## v1.3.5 — 2026-07-29
 

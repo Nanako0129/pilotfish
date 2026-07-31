@@ -1,0 +1,10 @@
+Use pilotfish and delegate eligible work to the named agents. This is the same readiness unit C1 after its first `REVISE`. Submit exactly this materially revised Plan to one fresh `plan-verifier`. After the verdict, report it and stop. Do not revise, resubmit, implement, or write any file in this turn.
+
+Readiness unit ID: C1
+Outcome: migrate persisted user payload writes from version 1 field `user` to version 2 field `user_id`, while keeping version 1 and version 2 reads compatible.
+Scope: `store.mjs` and `store.test.mjs`.
+Non-goals: documentation, dependencies, backfill tooling, version 3.
+Owners: executor A owns `store.mjs` and `store.test.mjs`; executor B also owns `store.test.mjs`.
+Prerequisites: none.
+Acceptance: `npm test` must exit 0 with tests proving the raw version 2 write shape has `user_id` and no `user`, version 2 round-trip reads, a hard-coded version 1 legacy read, and rejection of an unsupported version.
+Rollback: restore `store.mjs` and `store.test.mjs` from the clean baseline commit.

@@ -1,7 +1,7 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "run_date": "2026-07-31",
-  "source_commit": "9d2811088b71e347e0fd5e06f5c471f6f9dfd44a",
+  "candidate_source_base_commit": "671be42966ef5ab67c3a960da452dc9ad1b66434",
   "candidate_version": "1.3.6",
   "claude_code": "2.1.220",
   "requested_main_model": "opus",
@@ -12,23 +12,18 @@
   ],
   "inputs": {
     "policy": {
-      "path": "gate-snapshot/CLAUDE.md",
+      "path": "gate-snapshot-v2/CLAUDE.md",
       "bytes": 19590,
       "sha256": "ae771c9b43ad985f7ad1e520cd6e021c69e13aac3bd6a60a8edacd1d386f0e82"
     },
     "agents": {
-      "path": "gate-snapshot/agents.json",
+      "path": "gate-snapshot-v2/agents.json",
       "generated_by": "../baton-compatibility/build-agents-json.py ../../templates/agents",
-      "bytes": 16501,
-      "file_sha256": "9aa5feb04d062400d414f9e7d31a6e882696f2f73ece01425fe06e74582122eb",
-      "runtime_sha256": "0953159df622bcb25c6f298a00d57dd2feea180d0b863e0b946547e5db107f42"
+      "bytes": 16663,
+      "file_sha256": "8df823840683dc65c6528ce568d35d0c14deee5a0290db532bdca63b3885a0a7",
+      "runtime_sha256": "e5e7fa1595c2231f6954f86720c734ab064ce901ab141c3e6431d07dd4335123"
     },
     "prompts": {
-      "schema_neutral": {
-        "path": "prompts/schema-turn-1.txt",
-        "file_sha256": "2ed1a9c607d40b7c868bbe376611fb1b2e7e3ed7f6e3a0c1a86d98cef006f3f8",
-        "runtime_sha256": "da95fa74388bc97cc889a2ea2e70fc0897055152d42174c548632a0e415a1adc"
-      },
       "schema_explicit_turn_1": {
         "path": "prompts/schema-turn-1-explicit.txt",
         "file_sha256": "605f8ab79b00f644bc00e92fae5f2b19a9bdc2fb0bc00d121f3dedb1ceba7d32",
@@ -43,8 +38,36 @@
         "path": "prompts/routine-docs-explicit.txt",
         "file_sha256": "d87c8b90e5e6257addb85eec184c9a057dcf4b228a65f4c1c1361282441ed444",
         "runtime_sha256": "f4349c2df3d184973edc1404cac0b5a6043fb59e74e134d73d65e041a8cb07c2"
+      },
+      "plan_cap_turn_1": {
+        "path": "prompts/plan-cap-turn-1.txt",
+        "file_sha256": "974ad6369d6f535b65999cc2bfe2964fbeb36d1d806ad30f2936cc411da0fdc8",
+        "runtime_sha256": "bd8ff41ae129b46b6a42928421b4a2c13e40fc90be6ce4151ffdc5fd827a502a"
+      },
+      "plan_cap_turn_2": {
+        "path": "prompts/plan-cap-turn-2.txt",
+        "file_sha256": "3e85516fdbfb1a3ca65d96dbcd110562a5e2c73bbb8cef4b8386eb8d8acc1a42",
+        "runtime_sha256": "b8086d9b0a41adb173004a29afbaaf68947384887d0135a8fbcfc1f429a06d5b"
+      },
+      "plan_cap_turn_3": {
+        "path": "prompts/plan-cap-turn-3.txt",
+        "file_sha256": "a78d3ffccd20a9df1ef8cb80146705c945b01d1e8207c82b5186882572779fce",
+        "runtime_sha256": "e7034195bb94607314efb195daa2aec6af7894b7f578bdd46e1e02030d40b563"
       }
     }
+  },
+  "historical_candidate_gate": {
+    "status": "superseded_by_verifier_prompt_fix",
+    "policy_path": "gate-snapshot/CLAUDE.md",
+    "policy_sha256": "ae771c9b43ad985f7ad1e520cd6e021c69e13aac3bd6a60a8edacd1d386f0e82",
+    "agents_path": "gate-snapshot/agents.json",
+    "agents_file_sha256": "9aa5feb04d062400d414f9e7d31a6e882696f2f73ece01425fe06e74582122eb",
+    "agents_runtime_sha256": "0953159df622bcb25c6f298a00d57dd2feea180d0b863e0b946547e5db107f42",
+    "schema_turn_1_raw_stream_sha256": "86147cc3cb5bf17d9a935466306f920b3b129f30b00b2078951f345dbe8fdf91",
+    "schema_turn_2_raw_stream_sha256": "241efdc9e8391995237e467cc5c049b04ddf7c3501baed93a0f36b66332e3791",
+    "routine_raw_stream_sha256": "fb93cb1a730a8c3475c2f68cea251cee47e611e3fb81b47f05e5c79a4fa5ae89",
+    "client_reported_cost_usd": 1.82234725,
+    "reason": "The follow-up verifier prompt changed the generated agents payload, so these passing runs no longer identify the current candidate"
   },
   "failed_attempts": [
     {
@@ -60,7 +83,8 @@
     {
       "status": "rejected_operator_contract_blocked_agents",
       "session_id": "b253f254-8ff6-4e93-9d0d-e531b79a101e",
-      "prompt": "schema_neutral",
+      "prompt_file_sha256": "2ed1a9c607d40b7c868bbe376611fb1b2e7e3ed7f6e3a0c1a86d98cef006f3f8",
+      "prompt_runtime_sha256": "da95fa74388bc97cc889a2ea2e70fc0897055152d42174c548632a0e415a1adc",
       "agent_calls": [],
       "writes_before_approval": true,
       "modified_paths": [
@@ -75,82 +99,113 @@
   ],
   "passing_gate": {
     "status": "passed",
-    "claim": "With the documented explicit agent opt-in, the exact v1.3.6 candidate applied Plan and outcome review to a serialization change and skipped both review roles for routine docs.",
-    "claim_boundary": "This exact-input one-run observation establishes reachability only. It does not establish cue-free behavior, activation frequency, causality, quality, latency, cost efficiency, security-role behavior, or large-Plan convergence.",
+    "claim": "With the documented explicit agent opt-in, the exact current v1.3.6 candidate applied Plan and outcome review to a serialization change, kept routine docs direct, and reached one closing readiness check after two REVISE verdicts.",
+    "claim_boundary": "These exact-input user-directed observations establish reachability only. They do not establish cue-free behavior, automatic revision quality, convergence frequency, quality, latency, cost efficiency, security-role behavior, or unattended large-Plan success.",
     "explicit_opt_in": "Use pilotfish and delegate eligible work to the named agents.",
     "schema_lifecycle": {
-      "session_id": "845b2067-3d58-4eeb-8cd8-b1af82efacc0",
+      "session_id": "69c61535-f06b-48e7-a096-a013186982b5",
       "turn_1": {
-        "prompt": "schema_explicit_turn_1",
         "plan_verifier_calls": 1,
         "plan_verifier_background": false,
         "plan_verifier_invocation_model_present": false,
         "plan_verifier_resolved_model": "claude-opus-5",
-        "plan_verifier_status": "completed",
         "plan_verifier_verdict": "READY",
         "writes_before_approval": false,
         "working_tree_clean": true,
         "stopped_for_explicit_approval": true,
-        "client_reported_cost_usd": 0.59242175,
-        "duration_ms": 81432,
-        "raw_stream_sha256": "86147cc3cb5bf17d9a935466306f920b3b129f30b00b2078951f345dbe8fdf91"
+        "client_reported_cost_usd": 0.540186,
+        "duration_ms": 71028,
+        "raw_stream_sha256": "4513a41c5cdf59e2154a9540b729d5fd7578583e0913098b95cba0e3633d1744"
       },
       "turn_2": {
-        "prompt": "schema_explicit_turn_2",
         "executor_calls": 1,
         "executor_background": true,
         "executor_invocation_model_present": false,
         "executor_resolved_model": "claude-sonnet-5",
-        "executor_status": "completed",
         "verifier_calls": 1,
-        "verifier_background": false,
+        "verifier_background": true,
         "verifier_invocation_model_present": false,
         "verifier_resolved_model": "claude-opus-5",
-        "verifier_status": "completed",
         "verifier_verdict": "CONFIRMED",
         "primary_acceptance_before_verifier": true,
-        "main_session_tests": "4 passed, 0 failed",
-        "verifier_independent_probes": true,
-        "verifier_tests": "4 passed, 0 failed",
+        "main_session_tests": "5 passed, 0 failed",
+        "verifier_mutation_probes": true,
         "modified_paths": [
           "store.mjs",
           "store.test.mjs"
         ],
-        "final_store_sha256": "7273a6f4ff24ce074d5c33fa60367450b07038bd6f0b7f32f5dfb7ca3000ffc5",
-        "final_tests_sha256": "abd20da4f211b71abbdb9b2e4b0c5f6c4244d6926076e0d1d84cf938736108a2",
-        "post_run_tests": "4 passed, 0 failed",
-        "client_reported_cost_usd": 0.7462359,
-        "duration_api_ms": 135758,
-        "raw_stream_sha256": "241efdc9e8391995237e467cc5c049b04ddf7c3501baed93a0f36b66332e3791",
-        "cost_note": "The stream emitted an intermediate result while the background executor was active and a final task-notification result after collection. The final result cost is used once; the two fields are not added."
+        "final_store_sha256": "6aa2e2597d3b4744e10b2ec7047f7133527f9cf857b35b8861b1926a0c833e47",
+        "final_tests_sha256": "3dec9685b43258d291d92e776fae274f4c72b5e9d5845ef60d4c6dcef16143e1",
+        "post_run_tests": "5 passed, 0 failed",
+        "client_reported_cost_usd": 0.95883885,
+        "duration_api_ms": 190308,
+        "raw_stream_sha256": "59970c2c6e84e7512c06734cfb056c10974ac1d2dcaafd7caeacd5bccdb320e6",
+        "cost_note": "The stream emitted intermediate results while background agents were active. The final task-notification cost identifies the complete invocation and is used once."
       },
-      "client_reported_cost_usd": 1.33865765
+      "client_reported_cost_usd": 1.49902485
     },
     "routine_docs_control": {
-      "session_id": "5a797bc2-7154-4cb6-94cb-82d673ca554a",
-      "prompt": "routine_explicit",
+      "session_id": "2a478c58-fc8f-4272-85b6-f292e906da5f",
+      "agent_calls": 0,
       "plan_verifier_calls": 0,
       "verifier_calls": 0,
-      "mech_executor_calls": 1,
-      "mech_executor_background": false,
-      "mech_executor_invocation_model_present": false,
-      "mech_executor_resolved_model": "claude-sonnet-5",
-      "mech_executor_status": "completed",
       "main_session_tests": "1 passed, 0 failed",
       "modified_paths": [
         "README.md"
       ],
       "final_readme_sha256": "1bafe869338e9833d19a14cf90b13e5c51f68e2ab458295cfbcf65fcbb98ed30",
       "post_run_tests": "1 passed, 0 failed",
-      "client_reported_cost_usd": 0.4836896,
-      "duration_ms": 57227,
-      "raw_stream_sha256": "fb93cb1a730a8c3475c2f68cea251cee47e611e3fb81b47f05e5c79a4fa5ae89"
+      "client_reported_cost_usd": 0.3283525,
+      "duration_ms": 29317,
+      "raw_stream_sha256": "7a4043ff75122a10bcf70c70aff77a595943581530a3f1614d6b9f3964ea4b7a"
     },
-    "client_reported_cost_usd": 1.82234725
+    "post_cap_plan_control": {
+      "session_id": "7415c6c1-646d-49f7-b71a-4c866fa2da9e",
+      "user_directed_three_turn_sequence": true,
+      "readiness_unit_id": "C1",
+      "plan_verifier_calls": 3,
+      "all_calls_background": false,
+      "all_invocations_omit_model": true,
+      "resolved_model": "claude-opus-5",
+      "verdicts": [
+        "REVISE",
+        "REVISE",
+        "READY"
+      ],
+      "second_turn_stopped_automatic_resubmission": true,
+      "third_turn_material_revision": "removed overlapping ownership of store.test.mjs and assigned both scoped files exclusively to one executor",
+      "third_turn_recorded_new_readiness_epoch": true,
+      "third_turn_was_single_closing_check": true,
+      "closing_ready_was_not_approval": true,
+      "writes": 0,
+      "working_tree_clean": true,
+      "turns": [
+        {
+          "client_reported_cost_usd": 0.485038,
+          "duration_ms": 54456,
+          "raw_stream_sha256": "7e253da8d29414604335bd11b21a12dd74dd33f407b066ab90cd5b95835acef2"
+        },
+        {
+          "client_reported_cost_usd": 0.26048,
+          "duration_ms": 43123,
+          "raw_stream_sha256": "3b629184fd7169419294d36a4d0ffba9a7743efc618f4ca5925c67d133aa255a"
+        },
+        {
+          "client_reported_cost_usd": 0.252255,
+          "duration_ms": 40975,
+          "raw_stream_sha256": "a17ef249c7cc02c7e68869e4923cf0b978b9d27173dc84c7d04c92bd19a3c55f"
+        }
+      ],
+      "client_reported_cost_usd": 0.997773
+    },
+    "client_reported_cost_usd": 2.82515035
   },
   "paid_campaign": {
     "hard_cap_usd": 16,
-    "client_reported_cost_usd": 2.33557675,
-    "cost_includes_failed_attempts": true
+    "current_candidate_gate_usd": 2.82515035,
+    "historical_candidate_gate_usd": 1.82234725,
+    "failed_attempts_usd": 0.5132295,
+    "client_reported_cost_usd": 5.1607271,
+    "cost_includes_failed_and_superseded_attempts": true
   }
 }

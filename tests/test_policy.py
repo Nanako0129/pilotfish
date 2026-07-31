@@ -626,7 +626,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["release_candidate_behavioral_gate_status"],
-            "passed; exact v1.3.6 policy and shell-normalized generated payload; explicit agent opt-in; schema Plan/outcome review plus routine-docs control",
+            "passed; exact v1.3.6 policy and shell-normalized generated payload; explicit agent opt-in; schema Plan/outcome review, routine-docs control, and post-cap closing readiness control",
         )
         self.assertEqual(
             runtime["release_candidate_runtime_evidence"],
@@ -643,7 +643,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["release_candidate_agents_json_delta_from_final_gate"],
-            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow, and bounded-recheck contracts; the separate verifier-boundary Gate exercised these current exact bytes",
+            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow fallback, and bounded-recheck contracts; verifier-boundary gate-snapshot-v2 exercised these current exact bytes",
         )
         final_policy = (gate / runtime["final_gate_snapshot_policy"]).read_bytes()
         self.assertEqual(
@@ -809,7 +809,7 @@ class PolicyContractTests(unittest.TestCase):
         passing = evidence["passing_gate"]
         self.assertEqual(passing["status"], "passed")
         self.assertIn("reachability only", passing["claim_boundary"])
-        self.assertIn("does not establish cue-free behavior", passing["claim_boundary"])
+        self.assertIn("do not establish cue-free behavior", passing["claim_boundary"])
         schema = passing["schema_lifecycle"]
         self.assertEqual(schema["turn_1"]["plan_verifier_verdict"], "READY")
         self.assertFalse(schema["turn_1"]["writes_before_approval"])
@@ -818,9 +818,17 @@ class PolicyContractTests(unittest.TestCase):
         routine = passing["routine_docs_control"]
         self.assertEqual(routine["plan_verifier_calls"], 0)
         self.assertEqual(routine["verifier_calls"], 0)
+        cap = passing["post_cap_plan_control"]
+        self.assertEqual(cap["verdicts"], ["REVISE", "REVISE", "READY"])
+        self.assertTrue(cap["second_turn_stopped_automatic_resubmission"])
+        self.assertTrue(cap["third_turn_recorded_new_readiness_epoch"])
+        self.assertTrue(cap["third_turn_was_single_closing_check"])
+        self.assertTrue(cap["closing_ready_was_not_approval"])
+        self.assertEqual(cap["writes"], 0)
         self.assertEqual(
             schema["client_reported_cost_usd"]
-            + routine["client_reported_cost_usd"],
+            + routine["client_reported_cost_usd"]
+            + cap["client_reported_cost_usd"],
             passing["client_reported_cost_usd"],
         )
         self.assertGreater(
@@ -1308,6 +1316,15 @@ class PolicyContractTests(unittest.TestCase):
             verifier,
         )
         self.assertIn(
+            "even when the primary flow is blocked or unavailable",
+            verifier,
+        )
+        self.assertIn(
+            "without suppressing an independently reproducible blocker",
+            verifier,
+        )
+        self.assertNotIn("Only after it is evidenced", verifier)
+        self.assertIn(
             "any unevaluated required acceptance condition makes the verdict INCONCLUSIVE",
             verifier,
         )
@@ -1419,7 +1436,7 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("CONFIRMED", verifier)
         self.assertIn("REFUTED", verifier)
         self.assertIn("INCONCLUSIVE", verifier)
-        self.assertIn("Drive the primary acceptance flow first", verifier)
+        self.assertIn("Attempt the primary acceptance flow first", verifier)
         self.assertIn("do not reopen adjacent hardening", verifier)
         self.assertNotIn("READY", verifier)
         self.assertNotIn("REVISE", verifier)
