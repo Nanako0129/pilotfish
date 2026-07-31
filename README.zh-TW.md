@@ -107,17 +107,17 @@ flowchart TD
 
 `executor` 從 Opus 改成 Sonnet（[#18](https://github.com/Nanako0129/pilotfish/issues/18)），讓預設的委派實作路徑維持在 Opus 主 session 之下。這是針對預設實作路徑的修正，不是要求所有角色都必須跟 main session 不同 tier。四個 Opus 角色維持不變：`verifier` 與 `plan-verifier` 在接受結果前提供 fresh-context challenge；`security-reviewer` 與 `security-executor` 則以正確性優先。同 tier 委派沒有 tier 節省，但仍可能提供獨立 context、能力邊界或平行處理。依 main-session model 自動切換 tier map 的安裝程式方案有被考慮過，但被否決——見 [Deliberately left out](./docs/design.md#deliberately-left-out)。
 
-政策層依階段套用不同的 dispatch brake。小而穩定的工作直接完成；大型工作把共享限制放在 program envelope，只拆真正獨立的 execution slice。Envelope 與下一個可執行 slice 通過 review 後即可交付批准，不必先審完無關的下游 slice。同一 unit 自動 `REVISE` 兩次後停止重送，改由使用者決定下一步。Execution 仍要求穩定 scope、ownership、acceptance、rollback 與 verification。
+政策層依階段套用不同的 dispatch brake。小而穩定的工作直接完成；大型工作把共享限制放在 program envelope，只拆真正獨立的 execution slice。只有具體的安全、不可逆／外部、資料、release 或跨元件 acceptance 風險才觸發獨立 review，不會只因檔案多或被稱為「non-trivial」就啟動。兩次自動 `REVISE` 後，main session 停止重送，將 blocker 分成 `FIX`、`DEFER` 或 `REJECT`，並繼續可獨立批准的 slice；只有未解決的高影響或產品／授權決策才交給使用者。
 
 | 階段 | pilotfish 行為 |
 |---|---|
 | Discovery | `scout`／`Explore` 在穩定的 research contract 下收集有界事實；此時實作結果可以仍未知 |
-| Plan | Main session 擁有 envelope 與 slices；`plan-verifier` 一次審一個 stable unit，回覆單獨 `READY` 或結構化 `REVISE` |
+| Plan | Main session 擁有 envelope 與 slices；風險觸發的 `plan-verifier` review 一次審一個 stable unit，回覆單獨 `READY` 或結構化 `REVISE` |
 | Approval | 大型、架構性、高風險或明確要求 plan-first 的工作，在 source write 或 implementation brief 開始前等待明確批准 |
 | Execution | `mech-executor`、`executor` 或 `security-executor` 接收一份穩定且 ownership 獨佔的 contract |
-| Verification | `verifier` 透過 read-and-run tools 獨立測試已完成工作的精確 claim；最終判斷仍由 main session 負責 |
+| Verification | 對風險觸發的工作，`verifier` 透過 read-and-run tools 獨立測試已完成工作的精確 claim；最終判斷仍由 main session 負責 |
 
-若工作可能長時間自主執行，main session 會先針對目前任務宣告 `AUTO` 或 `ASK`；`/goal` 只保留目標，不授予權限。`AUTO` 只涵蓋已批准 scope 內的可逆工作；`ASK` 透過原生輸入或 `PAUSED_NEEDS_USER` 暫停。P0 會凍結受影響的 slice；P1 必須修正或暫停。改動新引入的 P2 仍會阻擋，其餘 P2 可修或延後並縮窄 claim；P3/P4 預設只回報。阻擋性的 P1/P2 共用最多五次且每次都有實質變更的 fix/reverify pass，之後只暫停受影響 slice，除非風險跨 slice。
+若工作可能長時間自主執行，main session 會先針對目前任務宣告 `AUTO` 或 `ASK`；`/goal` 只保留目標，不授予權限。`AUTO` 只涵蓋已批准 scope 內的可逆工作；`ASK` 透過原生輸入或 `PAUSED_NEEDS_USER` 暫停。P0 會凍結受影響的 slice；P1 必須修正或暫停。正常 verification 是一輪完整檢查，修正可重現 blocker 後再做一次定向複驗；五輪只保留為高風險 P1/P2 recovery 的緊急上限。
 
 具備完整 one-shot brief、獨佔 ownership 與逐項驗收的穩定多檔機械性重複工作，預設在主 session 編輯前交給唯一一個 `mech-executor`；只有在編輯前點名具體 blocker 才能推翻此預設，逐項 triage、例外、整合與驗收仍由主 session 擁有。
 
@@ -226,7 +226,7 @@ Read the local file install/AGENT-INSTALL.md in the current checkout and follow 
 | Orchestrator 自己完全不動手嗎？ | 會動手——馬上要用的閱讀、少量 repo 檔案掃描、決策、根因探索、trace-driven debugging，以及你明確要*它*判斷的事。其他工作只有在成本、context、時間、隔離或驗證的整體效益高於重建與整合成本時才委派。 |
 | 我的專案有自己的 CLAUDE.md，會衝突嗎？ | 檔案完全不會被動到：pilotfish 只寫 `~/.claude/` 底下。執行時 Claude Code 把專案層與使用者層記憶「疊加」載入——兩者同時生效、互不覆寫。若某個 repo 需要不同行為，在該專案的 CLAUDE.md 寫一條在地規則（例如「這個 repo 內直接動手、不委派」）——實務上較具體的指示會勝出。 |
 | 我也裝了 delegation-planning skill | 請把它視為互補的規劃層。[Baton](https://github.com/cablate/baton) 這類 skill 可以塑造 discovery 問題、worker 數量、ownership、順序與 stop condition；pilotfish 提供具名 Claude 角色、模型分流、leaf-agent 邊界、approval gate 與 verifier contract。[相容性 Gates](./benchmarks/baton-compatibility/README.zh-TW.md) 記錄 v1.3.2 的 envelope → current slice → 批准執行 → `CONFIRMED` lifecycle，也包含因 post-verdict 編輯而必須用第三次 invocation 補驗的 Opus 5 rerun；[prompt-neutral 啟用 Gate](./benchmarks/baton-dispatch-effect/README.zh-TW.md) 另行覆蓋 v1.3.1 的四-scout dispatch。這些是有界的 compatibility 與 reachability 觀察，不代表效率或發生率。pilotfish 不會停用使用者 skills。 |
-| 擔心 subagent 品質 | `plan-verifier` 在批准前一次審一個 envelope 或 slice；outcome `verifier` 會獨立測試精確的 completed-work claim，並回覆 `CONFIRMED`、`REFUTED` 或 `INCONCLUSIVE`。缺少證據時維持 inconclusive，不會變成假通過或臆測失敗。`REVISE` 仍必須列 blocker、evidence、最小修訂與 acceptance check；Plan 同一 unit 自動修訂兩次後改由使用者決定。小型工作略過 verification。 |
+| 擔心 subagent 品質 | 風險觸發的 `plan-verifier` 與 outcome `verifier` 會提供 fresh evidence，但 verdict 不取代 main-session judgment。`REVISE` 一次回報所有已知 P0-P2 blocker，P3/P4 只作建議。Main session 將每項 finding 分成 `FIX`、`DEFER` 或 `REJECT`；正常 verification 是一輪完整檢查，修正可重現 blocker 後再做一次定向複驗。 |
 | Spawn agent 不是有額外成本嗎？ | 有——每次 spawn 都是全新 context、要重讀它負責的那部分 codebase，彙整也花 main session 的 token。因此有界的 task-local 掃描預設直接完成；若互相獨立的證據能實質降低 Plan 不確定性，discovery 仍可 fan-out，而 execution 要等 contract 穩定後才委派。公開機械式 control 的 execution-only 區段中，委派的 reported cost field 降低 36.01%，代價是 wall time 增加 7.92%；兩個比較 run 都沒有包含必要的 outcome verifier，因此只能證明便宜 route 可到達，不能宣稱完整 lifecycle savings。研究 fixture 只證明兩個 scout 在該小型任務上的 overhead，不代表 plan-first discovery 一律錯誤。 |
 | 怎麼快速關掉？ | **只關這個 session：** 直接跟 Claude 說「這個 session 不要委派，全部直接動手」——那只是政策文字，它立刻照辦。**只關這個 repo：** 在該 repo 的 CLAUDE.md 加一條在地規則。**整台機器：** 把 `~/.claude/CLAUDE.md` 裡的 `pilotfish:begin/end` 區塊註解掉——agent 檔留著閒置即可。切回來不必重裝。 |
 | 公司管的機器（managed）？ | Managed settings 優先於使用者層設定：managed 的 `model`、`availableModels` 白名單、或同名的 managed agent 都會蓋過 pilotfish 的使用者層安裝。重啟後角色沒生效就找管理員——pilotfish 設計上不會（也不該）繞過管理政策。 |

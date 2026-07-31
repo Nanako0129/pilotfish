@@ -1104,6 +1104,8 @@ class PolicyContractTests(unittest.TestCase):
         for phrase in (
             "smallest coherent integration boundary",
             "Independent falsification",
+            "Independent review is risk-triggered",
+            "primary user-visible flow",
             "avoiding micro-verifier calls",
             "Tests/builds/static checks are intermediate evidence",
             "security touch",
@@ -1121,16 +1123,21 @@ class PolicyContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         for phrase in (
-            "Final disposition stays main-session-owned",
-            "Never silently defer, reject, downgrade",
-            "A documented regrade may use the verifier's cited evidence",
+            "Role verdicts are evidence, not implementation or scope authority",
+            "label it `FIX`, `DEFER`, or `REJECT`",
+            "documented deferral or evidence-backed rejection is an addressed finding",
+            "does not make it claim-relevant",
             "stated missing evidence, contract, prerequisite, or environment",
             "explicit acceptance, approved scope, and bounded",
             "announce `AUTO` or `ASK`",
-            "recovery budget and severity rules below apply to every verification run",
+            "emergency ceiling for high-risk recovery, not a quota",
             "headless likely-long run without an explicit mode",
             "Otherwise end the turn",
-            "Blocking P1/P2 recovery shares at most five meaningful fix/reverify passes",
+            "Default recovery is one targeted recheck",
+            "High-risk, claim-critical P1/P2 recovery may use at most five meaningful",
+            "not a new adjacent-hardening audit",
+            "Stop earlier when the next pass would only search adjacent risk",
+            "batch-disposition every current-head finding",
             "external evidence/prerequisites",
             "immediately preceding verifier's verdict or output alone is not new evidence",
             "tracked/staged diff",
@@ -1225,13 +1232,13 @@ class PolicyContractTests(unittest.TestCase):
             "Minimum revision:",
             "Acceptance check:",
             "Two automatic `REVISE` same unit",
-            "surface blockers/options to user",
+            "independently disposition every blocker as `FIX`, `DEFER`, or `REJECT`",
+            "Ask the user only for unresolved P0/P1",
+            "not merely to authorize another review round",
             "substantially unchanged Plan",
-            "material revision or new evidence",
             "simplify",
-            "surface blocker",
-            "defer scope",
-            "never silently overrule",
+            "narrow",
+            "split",
         ):
             self.assertIn(phrase, policy)
         self.assertNotIn("main session decides the residual disagreements", policy)
@@ -1281,11 +1288,16 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("acceptance proving slice outcome", plan_verifier)
         self.assertIn("slice-local budget", plan_verifier)
         self.assertIn("explicit stop conditions", plan_verifier)
+        self.assertIn("every currently known blocker in the same pass", plan_verifier)
+        self.assertIn("Do not use `REVISE` for P3/P4 advice", plan_verifier)
+        self.assertIn("P2 = material bounded or recoverable", plan_verifier)
         self.assertNotIn("CONFIRMED", plan_verifier)
         self.assertNotIn("INCONCLUSIVE", plan_verifier)
         self.assertIn("CONFIRMED", verifier)
         self.assertIn("REFUTED", verifier)
         self.assertIn("INCONCLUSIVE", verifier)
+        self.assertIn("Drive the primary acceptance flow first", verifier)
+        self.assertIn("do not reopen adjacent hardening", verifier)
         self.assertNotIn("READY", verifier)
         self.assertNotIn("REVISE", verifier)
         self.assertIn("Never plan, edit, or fix anything", verifier)

@@ -12,6 +12,10 @@ Receive exactly one stable readiness-unit ID plus relevant Plan and evidence pat
 
 Security-sensitive units → require completed `security-reviewer` findings and dispositions in Plan before judging readiness.
 
+Treat only concrete P0-P2 defects that make the unit unsafe, unexecutable, ownership-conflicting, prerequisite-blocked, or unable to prove its claimed outcome as blockers. Return every currently known blocker in the same pass. Do not use `REVISE` for P3/P4 advice, optional detail, stylistic consistency, future-slice completeness, or adjacent hardening.
+
+Priority measures impact: P0 = broad or irrecoverable; P1 = reproducible high-impact; P2 = material bounded or recoverable; P3 = minor; P4 = advisory or speculation.
+
 Don't write replacement Plan. Return exactly one form:
 
 - `READY` and no other text when no blocking defect remains.
