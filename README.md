@@ -109,7 +109,7 @@ The eight roles:
 
 `executor` moved from Opus to Sonnet ([#18](https://github.com/Nanako0129/pilotfish/issues/18)) so the default delegated implementation path stays below the Opus main session. This is a targeted routing fix, not a rule that every role must differ from the main-session tier. The four Opus-only roles stay put: `verifier` and `plan-verifier` provide fresh-context challenge at acceptance boundaries, while `security-reviewer` and `security-executor` carry a correctness-over-cost mandate. Same-tier delegation provides no tier saving, but it can still provide independent context, capability isolation, or concurrency. An installer profile that swaps tiers by detected main-session model was considered and rejected — see [Deliberately left out](./docs/design.md#deliberately-left-out).
 
-The policy layer uses phase-specific dispatch brakes. Small, stable work stays direct. Large work keeps shared constraints in a program envelope and splits only genuinely independent execution slices. Independent review is triggered by concrete security, irreversible/external, data, release, or cross-component acceptance risk—not by file count or “non-trivial” alone. After two automatic `REVISE` verdicts, the main session stops resubmitting, dispositions each blocker as `FIX`, `DEFER`, or `REJECT`, and continues independently approvable slices; it asks the user only for unresolved high-impact or product/authority decisions.
+The policy layer uses phase-specific dispatch brakes. Small, stable work stays direct. Large work keeps shared constraints in a program envelope and splits only genuinely independent execution slices. Independent review is triggered by concrete security, irreversible/external, data, release, or cross-component acceptance risk—not by file count or “non-trivial” alone. After two automatic `REVISE` verdicts, the main session stops automatic resubmission, dispositions each blocker as `FIX`, `DEFER`, or `REJECT`, and continues independently approvable slices. A material fix, narrowing/split, or evidence-backed disposition that changes the readiness claim gets one final fresh check; a further `REVISE` pauses or escalates instead of reopening the loop. It asks the user only for unresolved high-impact or product/authority decisions.
 
 | Phase | pilotfish behavior |
 |---|---|
@@ -127,10 +127,10 @@ Long-running processes remain main-session owned. Every Bash-capable leaf role (
 
 ## Install
 
-The recommended path is to clone the pinned v1.3.5 release locally, then start Claude Code from that checkout so it can read the runbook as a local file:
+The recommended path is to clone the pinned v1.3.6 release locally, then start Claude Code from that checkout so it can read the runbook as a local file:
 
 ```sh
-git clone --branch v1.3.5 --depth 1 https://github.com/Nanako0129/pilotfish.git
+git clone --branch v1.3.6 --depth 1 https://github.com/Nanako0129/pilotfish.git
 cd pilotfish
 claude
 ```
@@ -161,7 +161,7 @@ Prefer to do it by hand? The same steps are written for humans in [install/AGENT
 pilotfish installs by having Claude read a runbook and template files from this repo and merge them into your global `~/.claude/` config — including a policy block that then loads into **every future session**. Treat it like any `curl | sh`: trust flows from this repo and your GitHub connection, not from the paste. The local checkout path is recommended because you can inspect the pinned release before Claude reads the runbook. Before running it:
 
 - **Read the actual bytes that get installed**, not just the runbook: the eight files in [templates/agents/](./templates/agents/) and [templates/claude-md.orchestration.md](./templates/claude-md.orchestration.md). Nothing else is written to disk.
-- **Pin to a release tag or commit** so what you reviewed is what installs — `main` can change between the moment you read it and the moment Claude reads it. The recommended command above pins to the `v1.3.5` release tag; for the strictest guarantee, fetch and check out the full commit SHA you reviewed, then verify that checkout before launching Claude.
+- **Pin to a release tag or commit** so what you reviewed is what installs — `main` can change between the moment you read it and the moment Claude reads it. The recommended command above pins to the `v1.3.6` release tag; for the strictest guarantee, fetch and check out the full commit SHA you reviewed, then verify that checkout before launching Claude.
 - **Keep the approval gate:** Claude writes nothing until you approve the merge plan, but the plan is still a summary of the runbook. Review the local runbook and templates yourself, and do not weaken or bypass WebFetch's prompt-injection protection if the raw URL is intercepted.
 
 ## What gets installed

@@ -107,7 +107,7 @@ flowchart TD
 
 `executor` 從 Opus 改成 Sonnet（[#18](https://github.com/Nanako0129/pilotfish/issues/18)），讓預設的委派實作路徑維持在 Opus 主 session 之下。這是針對預設實作路徑的修正，不是要求所有角色都必須跟 main session 不同 tier。四個 Opus 角色維持不變：`verifier` 與 `plan-verifier` 在接受結果前提供 fresh-context challenge；`security-reviewer` 與 `security-executor` 則以正確性優先。同 tier 委派沒有 tier 節省，但仍可能提供獨立 context、能力邊界或平行處理。依 main-session model 自動切換 tier map 的安裝程式方案有被考慮過，但被否決——見 [Deliberately left out](./docs/design.md#deliberately-left-out)。
 
-政策層依階段套用不同的 dispatch brake。小而穩定的工作直接完成；大型工作把共享限制放在 program envelope，只拆真正獨立的 execution slice。只有具體的安全、不可逆／外部、資料、release 或跨元件 acceptance 風險才觸發獨立 review，不會只因檔案多或被稱為「non-trivial」就啟動。兩次自動 `REVISE` 後，main session 停止重送，將 blocker 分成 `FIX`、`DEFER` 或 `REJECT`，並繼續可獨立批准的 slice；只有未解決的高影響或產品／授權決策才交給使用者。
+政策層依階段套用不同的 dispatch brake。小而穩定的工作直接完成；大型工作把共享限制放在 program envelope，只拆真正獨立的 execution slice。只有具體的安全、不可逆／外部、資料、release 或跨元件 acceptance 風險才觸發獨立 review，不會只因檔案多或被稱為「non-trivial」就啟動。兩次自動 `REVISE` 後，main session 停止自動重送，將 blocker 分成 `FIX`、`DEFER` 或 `REJECT`，並繼續可獨立批准的 slice。若有修正、縮窄／拆分或改變 readiness claim 的 evidence-backed disposition，建立新的 readiness epoch 並只做一次 final fresh check；再次 `REVISE` 就暫停或升級，不會重開迴圈。只有未解決的高影響或產品／授權決策才交給使用者。
 
 | 階段 | pilotfish 行為 |
 |---|---|
@@ -125,10 +125,10 @@ flowchart TD
 
 ## 安裝
 
-建議的路徑是先把釘選的 v1.3.5 release clone 到本機，再從該 checkout 啟動 Claude Code，讓它讀取本地 runbook：
+建議的路徑是先把釘選的 v1.3.6 release clone 到本機，再從該 checkout 啟動 Claude Code，讓它讀取本地 runbook：
 
 ```sh
-git clone --branch v1.3.5 --depth 1 https://github.com/Nanako0129/pilotfish.git
+git clone --branch v1.3.6 --depth 1 https://github.com/Nanako0129/pilotfish.git
 cd pilotfish
 claude
 ```
@@ -159,7 +159,7 @@ Show me the full plan of changes and get my approval before writing anything.
 pilotfish 的安裝方式，是讓 Claude 從本 repo 讀取 runbook 與範本檔、合併進你的全域 `~/.claude/` 設定——其中包含一段會載入**未來每一個 session** 的政策區塊。請把它當成任何 `curl | sh` 看待：信任來自這個 repo 與你的 GitHub 連線，而不是那段貼上的文字。建議使用本地 checkout，因為你可以先檢查釘選的 release，再讓 Claude 讀取 runbook。執行前：
 
 - **實際會被裝進去的檔案要親自讀過**，不只是 runbook：就是 [templates/agents/](./templates/agents/) 的八個檔案加上 [templates/claude-md.orchestration.md](./templates/claude-md.orchestration.md)。除此之外不會寫入任何東西。
-- **釘選到 release tag 或 commit**，確保你審過的就是實際裝的——從你讀它、到 Claude 讀它之間，`main` 是可能變動的。上面的建議指令已釘選 `v1.3.5` release tag；要最嚴格保證時，請先 fetch 並 checkout 你審閱過的完整 commit SHA，再在啟動 Claude 前驗證 checkout。
+- **釘選到 release tag 或 commit**，確保你審過的就是實際裝的——從你讀它、到 Claude 讀它之間，`main` 是可能變動的。上面的建議指令已釘選 `v1.3.6` release tag；要最嚴格保證時，請先 fetch 並 checkout 你審閱過的完整 commit SHA，再在啟動 Claude 前驗證 checkout。
 - **保留 approval gate：** 經你同意前 Claude 不會動手，但計畫仍只是 runbook 的摘要。請自行審閱本地 runbook 與範本；若 raw URL 被攔截，也不要削弱或繞過 WebFetch 的 prompt-injection 防護。
 
 ## 安裝內容

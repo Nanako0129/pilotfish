@@ -531,11 +531,11 @@ class PolicyContractTests(unittest.TestCase):
         self.assertNotEqual(current_policy, snapshot_policy)
         self.assertEqual(
             runtime["release_candidate_orchestration_sha256"],
-            "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf",
+            hashlib.sha256(current_policy).hexdigest(),
         )
         self.assertEqual(
             runtime["release_candidate_agents_json_sha256"],
-            "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
+            hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
         )
         release = results["v1_3_2_release_gate"]
         post_gate = results["v1_3_2_post_gate_role_change"]
@@ -618,8 +618,20 @@ class PolicyContractTests(unittest.TestCase):
             )
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
-        self.assertEqual(runtime["release_candidate_version"], "1.3.1")
-        self.assertEqual(version, "1.3.5")
+        self.assertEqual(runtime["release_candidate_version"], version)
+        self.assertEqual(version, "1.3.6")
+        self.assertEqual(
+            runtime["release_candidate_generated_by"],
+            "benchmarks/baton-compatibility/build-agents-json.py templates/agents",
+        )
+        self.assertEqual(
+            runtime["release_candidate_behavioral_gate_status"],
+            "pending; offline contract tests only; referenced runtime evidence predates v1.3.6",
+        )
+        self.assertEqual(
+            runtime["release_candidate_offline_evidence"],
+            "tests/test_policy.py::PolicyContractTests.test_baton_gate_snapshot_matches_recorded_hashes",
+        )
         self.assertTrue(
             runtime["release_candidate_policy_delta_from_final_gate"].startswith(
                 "non-empty"
@@ -627,7 +639,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["release_candidate_agents_json_delta_from_final_gate"],
-            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); every other role frontmatter is unchanged",
+            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts now carry current blocker, primary-flow, and bounded-recheck contracts; no live Gate has exercised these changed prompts",
         )
         final_policy = (gate / runtime["final_gate_snapshot_policy"]).read_bytes()
         self.assertEqual(
@@ -1105,6 +1117,12 @@ class PolicyContractTests(unittest.TestCase):
             "smallest coherent integration boundary",
             "Independent falsification",
             "Independent review is risk-triggered",
+            "A listed trigger makes the unit risky for this lifecycle",
+            "pre-approval `plan-verifier` readiness and post-implementation `verifier` outcome review are mandatory",
+            "The bounded fail-soft exception applies only when none of the listed risks is crossed",
+            "The initial request is not approval of an unseen risk-triggered Plan",
+            "implementation starts only after explicit approval in a later user turn",
+            "Plan readiness evaluates the proposed acceptance check",
             "primary user-visible flow",
             "avoiding micro-verifier calls",
             "Tests/builds/static checks are intermediate evidence",
@@ -1117,6 +1135,27 @@ class PolicyContractTests(unittest.TestCase):
             self.assertIn(phrase, policy)
         self.assertNotIn("tests are sufficient evidence", policy)
         self.assertNotIn("tests are sufficient", policy)
+        self.assertIn(
+            "never modify a `CONFIRMED` candidate for them", policy
+        )
+        self.assertIn(
+            "Any required post-verdict change invalidates coverage of the final bytes",
+            policy,
+        )
+
+    def test_plan_review_requires_future_slice_identity_not_optional_detail(self) -> None:
+        policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
+            encoding="utf-8"
+        )
+        prompt = (ROOT / "templates/agents/plan-verifier.md").read_text(
+            encoding="utf-8"
+        )
+        for text in (policy, prompt):
+            self.assertIn("optional downstream implementation detail", text)
+            self.assertIn(
+                "Missing required future-slice metadata (stable ID, outcome, or prerequisites) remains blocking",
+                text,
+            )
 
     def test_policy_adjudicates_findings_and_bounds_long_runs(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
@@ -1235,6 +1274,11 @@ class PolicyContractTests(unittest.TestCase):
             "independently disposition every blocker as `FIX`, `DEFER`, or `REJECT`",
             "Ask the user only for unresolved P0/P1",
             "not merely to authorize another review round",
+            "new readiness epoch",
+            "evidence-backed disposition that changes the readiness claim",
+            "exactly one final fresh `plan-verifier` check",
+            "cannot restart the automatic loop",
+            "another `REVISE` pauses or escalates the unit by severity",
             "substantially unchanged Plan",
             "simplify",
             "narrow",

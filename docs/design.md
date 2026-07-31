@@ -67,9 +67,13 @@ Fresh verification isn't free — both verification roles run on Opus and re-rea
 Readiness is tracked per stable envelope or slice. `READY` is bare; `REVISE`
 names each blocker, evidence, minimum revision, and acceptance check. Two
 automatic revisions for one unit are the limit before the main session stops
-resubmitting, dispositions the blockers, narrows or splits the unit, and
-continues independent slices. User input is reserved for unresolved P0/P1,
-product or authority choices, or an original scope that can no longer be met.
+automatic resubmission and dispositions the blockers, narrows or splits the
+unit, and continues independent slices. A material `FIX`, narrowing/split, or
+evidence-backed disposition that changes the readiness claim records a new
+readiness epoch and gets exactly one final fresh `plan-verifier` check; that closing check cannot
+restart the automatic loop, and another `REVISE` pauses or escalates by
+severity. User input is reserved for unresolved P0/P1, product or authority
+choices, or an original scope that can no longer be met.
 
 Before likely long autonomous work, the main session names `AUTO` or `ASK` for the current task. `AUTO` keeps moving only through approved, reversible scope; it does not manufacture commit, publish, destructive, external-action, or spending authority. `ASK` uses native input when available and otherwise stops at `PAUSED_NEEDS_USER`; `/goal` preserves an objective, not authority.
 
