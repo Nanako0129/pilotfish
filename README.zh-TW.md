@@ -54,6 +54,8 @@ Anthropic 在 2026-07-24 發布 [Opus 5](https://www.anthropic.com/news/claude-o
 
 三層架構、三處設定，全部在 `~/.claude/` 底下：
 
+> **設定根目錄**：以下路徑是預設值。若你設了 [`CLAUDE_CONFIG_DIR`](https://code.claude.com/docs/en/env-vars)，下列每個 `~/.claude/` 路徑都改在該目錄底下；[安裝 runbook](./install/AGENT-INSTALL.md) 會在 Step 0 解析它。
+
 > ⚠️ **一個已測試的 Claude Pro 環境需要明確 opt-in 才能委派 Agent。**
 > 在一個使用 Claude Code 2.1.220 的 first-party Pro 帳號上，較高優先級的
 > Agent tool contract 會阻止 spawn，除非使用者明確要求 agents。使用者層的
@@ -164,6 +166,8 @@ pilotfish 的安裝方式，是讓 Claude 從本 repo 讀取 runbook 與範本�
 
 ## 安裝內容
 
+> **設定根目錄**：以下路徑是預設值。若你設了 [`CLAUDE_CONFIG_DIR`](https://code.claude.com/docs/en/env-vars)，下列每個 `~/.claude/` 路徑都改在該目錄底下；[安裝 runbook](./install/AGENT-INSTALL.md) 會在 Step 0 解析它。
+
 | 目標 | 變更 | 可還原 |
 |---|---|---|
 | `~/.claude/settings.json` | Key 缺少時設定 `model` → `"opus"`、`fallbackModel` → `["sonnet"]`；既有選擇除非經你批准否則保留；若 `availableModels` 原本就有限制，確保 `opus`、`fable`、`sonnet`、`haiku` 仍可選 | 可——各 key 彼此獨立 |
@@ -194,7 +198,7 @@ Read the local file install/AGENT-INSTALL.md in the current checkout and follow 
 
 | 想要…… | 做法 |
 |---|---|
-| 查目前安裝的版本 | `grep -o "pilotfish v[0-9.]*" ~/.claude/CLAUDE.md`——有標記但查不到版本＝v1.1.0 之前的安裝，建議更新 |
+| 查目前安裝的版本 | `CFG="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"; grep -o "pilotfish v[0-9.]*" "$CFG/CLAUDE.md"`——有標記但查不到版本＝v1.1.0 之前的安裝，建議更新 |
 | 收到新版通知 | 在 GitHub 對本 repo 按 **Watch → Custom → Releases** |
 | 看改了什麼 | [CHANGELOG.md](./CHANGELOG.md)——每個版本都有對應的 git tag |
 | 凍結在審核過的版本 | 用 tag 或 SHA 釘選安裝（見[信任與安全](#信任與安全)）——釘選的安裝在你重新釘選前不會變動 |
@@ -224,11 +228,11 @@ Read the local file install/AGENT-INSTALL.md in the current checkout and follow 
 | 主 session 用哪個 effort？ | 需要重判斷的 orchestration 先用 `high`；若額度或延遲更重要再往下降。若 opt-in Fable，請依它的模型專屬 prompting 指南調整。 |
 | 如何明確要求 1M context window？ | 純 `opus` alias 跟隨平台預設。若支援的平台上明確需要 1M，把 `model` 設為 `"opus[1m]"`；pilotfish 不會覆蓋既有選擇。 |
 | Orchestrator 自己完全不動手嗎？ | 會動手——馬上要用的閱讀、少量 repo 檔案掃描、決策、根因探索、trace-driven debugging，以及你明確要*它*判斷的事。其他工作只有在成本、context、時間、隔離或驗證的整體效益高於重建與整合成本時才委派。 |
-| 我的專案有自己的 CLAUDE.md，會衝突嗎？ | 檔案完全不會被動到：pilotfish 只寫 `~/.claude/` 底下。執行時 Claude Code 把專案層與使用者層記憶「疊加」載入——兩者同時生效、互不覆寫。若某個 repo 需要不同行為，在該專案的 CLAUDE.md 寫一條在地規則（例如「這個 repo 內直接動手、不委派」）——實務上較具體的指示會勝出。 |
+| 我的專案有自己的 CLAUDE.md，會衝突嗎？ | 專案檔案完全不會被動到：pilotfish 只寫 Claude Code 的設定根目錄（預設為 `~/.claude/`；`CLAUDE_CONFIG_DIR` 可覆寫）。執行時 Claude Code 把專案層與使用者層記憶「疊加」載入——兩者同時生效、互不覆寫。若某個 repo 需要不同行為，在該專案的 CLAUDE.md 寫一條在地規則（例如「這個 repo 內直接動手、不委派」）——實務上較具體的指示會勝出。 |
 | 我也裝了 delegation-planning skill | 請把它視為互補的規劃層。[Baton](https://github.com/cablate/baton) 這類 skill 可以塑造 discovery 問題、worker 數量、ownership、順序與 stop condition；pilotfish 提供具名 Claude 角色、模型分流、leaf-agent 邊界、approval gate 與 verifier contract。[相容性 Gates](./benchmarks/baton-compatibility/README.zh-TW.md) 記錄 v1.3.2 的 envelope → current slice → 批准執行 → `CONFIRMED` lifecycle，也包含因 post-verdict 編輯而必須用第三次 invocation 補驗的 Opus 5 rerun；[prompt-neutral 啟用 Gate](./benchmarks/baton-dispatch-effect/README.zh-TW.md) 另行覆蓋 v1.3.1 的四-scout dispatch。這些是有界的 compatibility 與 reachability 觀察，不代表效率或發生率。pilotfish 不會停用使用者 skills。 |
 | 擔心 subagent 品質 | 風險觸發的 `plan-verifier` 與 outcome `verifier` 會提供 fresh evidence，但 verdict 不取代 main-session judgment。`REVISE` 一次回報所有已知 P0-P2 blocker，P3/P4 只作建議。Main session 將每項 finding 分成 `FIX`、`DEFER` 或 `REJECT`；正常 verification 是一輪完整檢查，修正可重現 blocker 後再做一次定向複驗。 |
 | Spawn agent 不是有額外成本嗎？ | 有——每次 spawn 都是全新 context、要重讀它負責的那部分 codebase，彙整也花 main session 的 token。因此有界的 task-local 掃描預設直接完成；若互相獨立的證據能實質降低 Plan 不確定性，discovery 仍可 fan-out，而 execution 要等 contract 穩定後才委派。公開機械式 control 的 execution-only 區段中，委派的 reported cost field 降低 36.01%，代價是 wall time 增加 7.92%；兩個比較 run 都沒有包含必要的 outcome verifier，因此只能證明便宜 route 可到達，不能宣稱完整 lifecycle savings。研究 fixture 只證明兩個 scout 在該小型任務上的 overhead，不代表 plan-first discovery 一律錯誤。 |
-| 怎麼快速關掉？ | **只關這個 session：** 直接跟 Claude 說「這個 session 不要委派，全部直接動手」——那只是政策文字，它立刻照辦。**只關這個 repo：** 在該 repo 的 CLAUDE.md 加一條在地規則。**整台機器：** 把 `~/.claude/CLAUDE.md` 裡的 `pilotfish:begin/end` 區塊註解掉——agent 檔留著閒置即可。切回來不必重裝。 |
+| 怎麼快速關掉？ | **只關這個 session：** 直接跟 Claude 說「這個 session 不要委派，全部直接動手」——那只是政策文字，它立刻照辦。**只關這個 repo：** 在該 repo 的 CLAUDE.md 加一條在地規則。**整台機器：** 把[安裝 runbook](./install/AGENT-INSTALL.md) Step 0 解析出的設定根目錄中，`CLAUDE.md` 裡的 `pilotfish:begin/end` 區塊註解掉——agent 檔留著閒置即可。切回來不必重裝。 |
 | 公司管的機器（managed）？ | Managed settings 優先於使用者層設定：managed 的 `model`、`availableModels` 白名單、或同名的 managed agent 都會蓋過 pilotfish 的使用者層安裝。重啟後角色沒生效就找管理員——pilotfish 設計上不會（也不該）繞過管理政策。 |
 
 ## 研究與設計
@@ -259,9 +263,11 @@ Read the local file install/AGENT-INSTALL.md in the current checkout and follow 
 告訴 Claude Code：
 
 ```text
-Uninstall pilotfish: remove the eight pilotfish agent files from ~/.claude/agents/,
-delete the <!-- pilotfish:begin --> ... <!-- pilotfish:end --> block from ~/.claude/CLAUDE.md,
-and offer to restore my previous "model" / remove "fallbackModel" in ~/.claude/settings.json.
+Read the local install/AGENT-INSTALL.md, resolve the Claude Code configuration
+root exactly as Step 0 specifies, and follow its Uninstall section. In that
+configuration root, remove the eight pilotfish agent files and policy block.
+Show me the full removal and settings-restoration plan and get my approval
+before writing.
 ```
 
 ## 支持 pilotfish
