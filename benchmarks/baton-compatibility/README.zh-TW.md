@@ -182,8 +182,8 @@ Turn 1 載入 Baton；Baton 判定這個小型 fixture 拆分後沒有正 net be
 |---|---|
 | Policy 與 snapshot SHA-256 | `7ff86564cd4cd8469cf3d24646fd395c57be09dc1fc7e1efa9d0d77c61ecfb21` |
 | Shell-stripped 歷史 `agents.json` SHA-256 | `e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61` |
-| 目前 v1.3.6 policy SHA-256 | `ae771c9b43ad985f7ad1e520cd6e021c69e13aac3bd6a60a8edacd1d386f0e82`（目前 template bytes；尚未做 live Gate） |
-| 目前產生的 v1.3.6 release payload SHA-256 | `0953159df622bcb25c6f298a00d57dd2feea180d0b863e0b946547e5db107f42`（builder output 去掉尾端 newline；由 [`build-agents-json.py`](./build-agents-json.py) 產生，尚未做 live Gate） |
+| 目前 v1.3.6 policy SHA-256 | `ae771c9b43ad985f7ad1e520cd6e021c69e13aac3bd6a60a8edacd1d386f0e82`（目前 template bytes；已由 [verifier-boundary Gate](../verifier-boundary/README.zh-TW.md) exercise） |
+| 目前產生的 v1.3.6 release payload SHA-256 | `0953159df622bcb25c6f298a00d57dd2feea180d0b863e0b946547e5db107f42`（builder output 去掉尾端 newline；已由 [verifier-boundary Gate](../verifier-boundary/README.zh-TW.md) exercise） |
 | Turn 1 prompt file SHA-256 | `45dbe7b6b24cb5838ebf4219011797b61f172fcc18f0ca5039144017e93fcca7` |
 | Turn 1 runtime-input SHA-256 | `d2ad46b7ecfb503f8f7185d6d68f404d326f1a4a480b9141d1a80318a746bb73` |
 | Turn 2 prompt file SHA-256 | `82d833090ba91982651de9ac4beed8fc96311119c6eb9c6f0304c292821918e7` |
@@ -192,7 +192,11 @@ Turn 1 載入 Baton；Baton 判定這個小型 fixture 拆分後沒有正 net be
 
 這項 Gate 只建立 compatibility／provenance，不宣稱 Fable coverage，也不建立原生 Claude 的效率比較結論。政策的現場依據來自 remora／GPT-5.6 routing 的 field observations，只支持 backend-neutral anti-churn guardrails，不建立 native-Claude threshold、效率改善或 A/B 結論。
 
-目前 v1.3.6 candidate 只有 offline policy-contract 與 builder-hash 證據。上面的 historical runtime record 早於這次 policy 與 role-prompt bytes，不能當作此 candidate 的 behavioral evidence。只有在釘選 candidate checkout、建立 disposable fixture 後，才應執行文件中的付費 Gate，並以新的 additive record 保留精確 policy／payload hash。
+上面的 historical runtime record 早於 v1.3.6 policy 與 role-prompt bytes，
+不能當作目前 candidate 的 behavioral evidence。另一份
+[verifier-boundary Gate](../verifier-boundary/README.zh-TW.md) 釘選目前
+policy／payload，並以 additive record 保存原生 Claude schema lifecycle、
+routine-docs control、失敗嘗試與 claim limits。
 
 ## 已取代、失敗與被拒絕的 harness runs
 

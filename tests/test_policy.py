@@ -626,7 +626,11 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["release_candidate_behavioral_gate_status"],
-            "pending; offline contract tests only; referenced runtime evidence predates v1.3.6",
+            "passed; exact v1.3.6 policy and shell-normalized generated payload; explicit agent opt-in; schema Plan/outcome review plus routine-docs control",
+        )
+        self.assertEqual(
+            runtime["release_candidate_runtime_evidence"],
+            "../verifier-boundary/results.json#passing_gate",
         )
         self.assertEqual(
             runtime["release_candidate_offline_evidence"],
@@ -639,7 +643,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["release_candidate_agents_json_delta_from_final_gate"],
-            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts now carry current blocker, primary-flow, and bounded-recheck contracts; no live Gate has exercised these changed prompts",
+            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow, and bounded-recheck contracts; the separate verifier-boundary Gate exercised these current exact bytes",
         )
         final_policy = (gate / runtime["final_gate_snapshot_policy"]).read_bytes()
         self.assertEqual(
@@ -748,6 +752,81 @@ class PolicyContractTests(unittest.TestCase):
             / "README.md"
         ).read_text(encoding="utf-8")
         self.assertIn("--model claude-opus-4-8", controls)
+
+    def test_verifier_boundary_gate_is_exact_and_claim_limited(self) -> None:
+        gate = ROOT / "benchmarks" / "verifier-boundary"
+        evidence = json.loads(
+            (gate / "results.json").read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        inputs = evidence["inputs"]
+        policy = (gate / inputs["policy"]["path"]).read_bytes()
+        self.assertEqual(
+            policy,
+            (ROOT / "templates/claude-md.orchestration.md").read_bytes(),
+        )
+        self.assertEqual(
+            hashlib.sha256(policy).hexdigest(),
+            inputs["policy"]["sha256"],
+        )
+
+        agents = (gate / inputs["agents"]["path"]).read_bytes()
+        completed = subprocess.run(
+            [
+                sys.executable,
+                str(
+                    ROOT
+                    / "benchmarks"
+                    / "baton-compatibility"
+                    / "build-agents-json.py"
+                ),
+                str(ROOT / "templates" / "agents"),
+            ],
+            check=True,
+            capture_output=True,
+        )
+        self.assertEqual(agents, completed.stdout)
+        self.assertEqual(
+            hashlib.sha256(agents).hexdigest(),
+            inputs["agents"]["file_sha256"],
+        )
+        self.assertEqual(
+            hashlib.sha256(agents.rstrip(b"\n")).hexdigest(),
+            inputs["agents"]["runtime_sha256"],
+        )
+
+        for prompt in inputs["prompts"].values():
+            payload = (gate / prompt["path"]).read_bytes()
+            self.assertEqual(
+                hashlib.sha256(payload).hexdigest(),
+                prompt["file_sha256"],
+            )
+            self.assertEqual(
+                hashlib.sha256(payload.rstrip(b"\n")).hexdigest(),
+                prompt["runtime_sha256"],
+            )
+
+        passing = evidence["passing_gate"]
+        self.assertEqual(passing["status"], "passed")
+        self.assertIn("reachability only", passing["claim_boundary"])
+        self.assertIn("does not establish cue-free behavior", passing["claim_boundary"])
+        schema = passing["schema_lifecycle"]
+        self.assertEqual(schema["turn_1"]["plan_verifier_verdict"], "READY")
+        self.assertFalse(schema["turn_1"]["writes_before_approval"])
+        self.assertEqual(schema["turn_2"]["executor_calls"], 1)
+        self.assertEqual(schema["turn_2"]["verifier_verdict"], "CONFIRMED")
+        routine = passing["routine_docs_control"]
+        self.assertEqual(routine["plan_verifier_calls"], 0)
+        self.assertEqual(routine["verifier_calls"], 0)
+        self.assertEqual(
+            schema["client_reported_cost_usd"]
+            + routine["client_reported_cost_usd"],
+            passing["client_reported_cost_usd"],
+        )
+        self.assertGreater(
+            evidence["paid_campaign"]["client_reported_cost_usd"],
+            passing["client_reported_cost_usd"],
+        )
 
     def test_version_stamps_move_together(self) -> None:
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()

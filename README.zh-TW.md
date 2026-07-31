@@ -250,6 +250,7 @@ Read the local file install/AGENT-INSTALL.md in the current checkout and follow 
 | [benchmarks/baton-dispatch-effect/README.zh-TW.md](./benchmarks/baton-dispatch-effect/README.zh-TW.md) | 繁體中文 + 數據 | Prompt-neutral 啟用矩陣：小型未啟用觀察，以及四領域 Baton 啟用、四個完成 scouts、exclusive ownership、完整 collection 與 output-shape correctness Gate |
 | [benchmarks/baton-compatibility/README.zh-TW.md](./benchmarks/baton-compatibility/README.zh-TW.md) | 繁體中文 + 數據 | Historical exact-byte 原生 Claude 雙 turn lifecycle，加上 Opus 5 rerun 與 corrective 第三次 invocation、精確 prompts、被拒絕的 routing 證據與機器可讀結果 |
 | [benchmarks/prompt-compression/README.zh-TW.md](./benchmarks/prompt-compression/README.zh-TW.md) | 繁體中文 + 數據 | v1.3.4 prompt byte 降幅、runtime context census、candidate 精確 hashes、付費行為觀察與目前主張邊界 |
+| [benchmarks/verifier-boundary/README.zh-TW.md](./benchmarks/verifier-boundary/README.zh-TW.md) | 繁體中文 + 數據 | v1.3.6 exact-byte 原生 Claude schema lifecycle 與 routine-docs control，包含失敗嘗試、role routing、acceptance 與成本 |
 
 **先行者與致意。** 「聰明的腦、便宜的手」這個分工不是 pilotfish 發明的：Anthropic 自己的工程文（[Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)）就是這個框架，Claude Code 內建 [`opusplan`](https://code.claude.com/docs/en/model-config)——如果你只想要更省的 session，`/model opusplan` 根本不需要裝任何 repo——而 [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) 早就把同樣的節流理念做成帶 ledger 強制 hook 的 plugin。pilotfish 的貢獻在打包方式：刻意只有八個角色而非上百個 agent 的目錄、寫成角色而能撐過模型換代的政策、動手前先出示計畫的安裝流程、以及經過對抗式查核的宣稱。如果你偏好更重、有 hook 強制力的路線，用他們的。
 

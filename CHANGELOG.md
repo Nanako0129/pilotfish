@@ -11,8 +11,11 @@ evidence and may request exactly one final fresh readiness check; a further
 
 Independent review remains risk-triggered, and the current generated eight-role
 candidate provenance is recorded separately from historical runtime Gate
-snapshots. The updated policy and role prompts have offline contract coverage;
-the paid behavioral Gate for this candidate remains pending.
+snapshots. A native Claude Code Gate with the documented explicit agent opt-in
+reached `plan-verifier` → approval → `executor` → `verifier` for a schema
+migration and skipped both review roles for routine docs. The passing controls
+reported $1.82234725; the full campaign, including a disclosed operator-policy
+failure, reported $2.33557675.
 
 ## v1.3.5 — 2026-07-29
 
