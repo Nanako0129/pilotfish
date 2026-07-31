@@ -843,6 +843,9 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertIn(f"<!-- pilotfish v{version} -->", policy)
 
+        changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+        self.assertRegex(changelog, rf"(?m)^## v{re.escape(version)} ")
+
         for readme in ("README.md", "README.zh-TW.md"):
             content = (ROOT / readme).read_text(encoding="utf-8")
             self.assertIn(f"git clone --branch v{version} --depth 1", content)
