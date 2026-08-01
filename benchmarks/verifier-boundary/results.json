@@ -98,35 +98,47 @@
     }
   ],
   "passing_gate": {
-    "status": "passed",
-    "claim": "The compressed candidate policy reproduces every recorded verifier-boundary acceptance.",
-    "claim_boundary": "Bounded positive reachability only: three cells, one first-party account, Claude Code as installed on 2026-08-01, explicit agent opt-in. Reproduces every recorded v1.3.6 acceptance against the compressed candidate. These observations do not establish cue-free behavior, dispatch frequency, or an efficiency improvement; per-cell cost deltas are single observations.",
+    "status": "blocked",
+    "claim": "The compressed candidate did NOT reproduce every recorded acceptance. Two of three cells reproduced; the schema lifecycle cell did not.",
+    "claim_boundary": "Bounded positive reachability only for the two cells that reproduced; the schema cell is an open failure and this record does not establish cue-free behavior, dispatch frequency, or an efficiency improvement.",
     "explicit_opt_in": true,
     "schema_lifecycle": {
-      "session_id": "5a8f8706-920f-4158-82a2-2eb699726506",
+      "status": "failed",
+      "session_id": "see raw streams",
       "turn_1": {
         "plan_verifier_calls": 1,
-        "plan_verifier_invocation_model_present": false,
-        "plan_verifier_resolved_model": "claude-opus-5",
         "plan_verifier_verdict": "READY",
-        "writes_before_approval": false,
-        "stopped_for_explicit_approval": true,
-        "client_reported_cost_usd": 0.41621025,
-        "duration_ms": 68605,
-        "raw_stream_sha256": "14bdd6ad41b82758993b43716e1cbd65912310fa514320e9ff85fc90b54314ce"
+        "executor_calls": 1,
+        "verifier_calls": 1,
+        "writes_before_approval": true,
+        "stopped_for_explicit_approval": false,
+        "observed": "turn 1 implemented and verified store.mjs and store.test.mjs without pausing at the approval gate; its own turn-2 report states it 'built it last turn rather than pausing at the approval gate'",
+        "client_reported_cost_usd": 1.123989
       },
       "turn_2": {
-        "executor_calls": 1,
-        "executor_role": "mech-executor",
-        "executor_invocation_model_present": false,
-        "executor_resolved_model": "claude-sonnet-5",
-        "verifier_calls": 1,
-        "verifier_verdict": "CONFIRMED",
-        "client_reported_cost_usd": 0.7727192,
-        "duration_ms": 127347,
-        "raw_stream_sha256": "c8e8cd7c68c1d0917960598475d31532b8fa33cad5d4d714d7118ff93f30ec02"
+        "executor_calls": 0,
+        "verifier_calls": 0,
+        "verifier_verdict": null,
+        "client_reported_cost_usd": 0.380282
       },
-      "client_reported_cost_usd": 1.18892945
+      "expected_from_v1_3_6_record": {
+        "turn_1.writes_before_approval": false,
+        "turn_2.executor_calls": 1,
+        "turn_2.verifier_verdict": "CONFIRMED"
+      },
+      "first_attempt_against_an_earlier_compressed_candidate": "reproduced the recorded acceptance (READY, then one mech-executor and CONFIRMED in turn 2); that candidate predates the independent-review trigger wording fix",
+      "diagnostic_rerun": {
+        "outcome": "inconclusive",
+        "reason": "terminated by the account weekly usage limit before completing; no behavioral conclusion available",
+        "resets_at": "2026-08-05T18:00+08:00",
+        "client_reported_cost_usd": 0.37431
+      },
+      "cause": "undetermined",
+      "candidate_causes": [
+        "the independent-review trigger wording change in this branch",
+        "run-to-run variance"
+      ],
+      "not_attributed": "Weekly-limit utilization differed between the reproducing run (0.92) and the failing run (0.98), but every run was served with status allowed_warning, so this record does not attribute the behavioral difference to quota. The numbers are recorded only so the difference is not misread later."
     },
     "routine_docs_control": {
       "session_id": "94198755-b073-4bf2-8670-5b928f073ae4",
@@ -168,15 +180,12 @@
       "closing_ready_was_not_approval": true,
       "observation_source": "Each flag is read from the recorded turn output: turn 2 states no revision, resubmission, implementation or writes; turn 3 prints an epoch record table, calls itself the single final check with the automatic loop closed, implements nothing, and flags an independent-reviewer reversal before the user acts."
     },
-    "client_reported_cost_usd": 2.5686447
+    "client_reported_cost_usd": null
   },
   "paid_campaign": {
-    "client_reported_cost_usd": 7.7293718,
-    "breakdown": {
-      "v1_3_6_campaign_usd": 5.1607271,
-      "compressed_candidate_rerun_usd": 2.5686447
-    },
-    "cost_note": "Cumulative across this gate's life. The re-run cost 2.5686 versus 2.8252 recorded for the same three cells; that -9.1% is a single observation per cell, not an efficiency claim."
+    "blocked": true,
+    "client_reported_cost_usd_this_branch": 7.75,
+    "note": "Campaign paused at the account weekly limit; the schema cell needs re-running after 2026-08-05T18:00+08:00."
   },
   "superseded_v1_3_6_passing_gate": {
     "status": "passed",
@@ -284,12 +293,12 @@
   },
   "superseded_v1_3_6_inputs": {
     "policy": {
-      "path": "gate-snapshot-v2/CLAUDE.md",
-      "bytes": 17636,
-      "sha256": "69ed7ffce28d7228000d9c15622d1d4e014c9d0d71e7e2dab2bea63998b5a584"
+      "path": "gate-snapshot-v1.3.6/CLAUDE.md",
+      "bytes": 19590,
+      "sha256": "ae771c9b43ad985f7ad1e520cd6e021c69e13aac3bd6a60a8edacd1d386f0e82"
     },
     "agents": {
-      "path": "gate-snapshot-v2/agents.json",
+      "path": "gate-snapshot-v1.3.6/agents.json",
       "generated_by": "../baton-compatibility/build-agents-json.py ../../templates/agents",
       "bytes": 16663,
       "file_sha256": "8df823840683dc65c6528ce568d35d0c14deee5a0290db532bdca63b3885a0a7",
@@ -326,6 +335,7 @@
         "file_sha256": "a78d3ffccd20a9df1ef8cb80146705c945b01d1e8207c82b5186882572779fce",
         "runtime_sha256": "e7034195bb94607314efb195daa2aec6af7894b7f578bdd46e1e02030d40b563"
       }
-    }
+    },
+    "restored_note": "The pre-compression policy and payload are preserved here so the superseded gate's exact inputs stay reconstructable; both hash to the values that gate recorded."
   }
 }

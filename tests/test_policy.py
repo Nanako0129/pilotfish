@@ -874,7 +874,11 @@ class PolicyContractTests(unittest.TestCase):
             if line.startswith(("- ", "| ")) and len(line) > 40
         ]
         self.assertTrue(rules)
-        per_rule = len(text) / len(rules)
+        # UTF-8 bytes, not code points: the metric is named in bytes and that is
+        # what a session pays for. Counting code points would let a few
+        # multi-byte characters push the real size over an apparently passing
+        # budget.
+        per_rule = len(policy.read_bytes()) / len(rules)
         self.assertLessEqual(
             per_rule,
             budget["primary"]["max_bytes_per_rule"],
@@ -884,9 +888,15 @@ class PolicyContractTests(unittest.TestCase):
         )
 
         def share(text: str) -> tuple[float, int]:
+            # Count the contraction stem too: "can't" is the auxiliary "can"
+            # wearing an apostrophe, and without this a regression hides behind
+            # punctuation rather than being written out.
             words = re.findall(r"[A-Za-z][A-Za-z'-]*", text.lower())
             self.assertTrue(words)
-            return sum(w in filler for w in words) / len(words), len(words)
+            hits = sum(
+                w in filler or w.split("'")[0] in filler for w in words
+            )
+            return hits / len(words), len(words)
 
         for bucket in budget["buckets"]:
             paths = sorted(

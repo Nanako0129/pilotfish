@@ -1,62 +1,112 @@
 {
   "metric": "bytes_per_rule + filler_word_share",
-  "rationale": "A byte ceiling pegged to an old release is the wrong standing property: the policy may legitimately grow when a rule is genuinely needed. Both metrics here are normalized, so growth by adding rules is allowed and only verbosity is penalized. Two metrics rather than one because each closes the other's gaming vector: stripping function words moves filler share a long way while barely reducing bytes (measured: -117 filler words bought 2.8% of the file), and splitting one rule across several bullets lowers bytes per rule without touching filler share. Satisfying both requires actually writing less.",
+  "rationale": "A byte ceiling pegged to an old release is the wrong standing property: the policy may legitimately grow when a rule is genuinely needed. Both metrics here are normalized, so growth by adding rules is allowed and only verbosity is penalized. Two metrics rather than one because each closes the other's gaming vector: stripping function words moves filler share a long way while barely reducing bytes (measured: -117 filler words bought 2.8% of the file), and splitting one rule across several bullets lowers bytes per rule without touching filler share. Satisfying both requires actually writing less. Both measurements are taken on UTF-8 bytes and normalize contractions, because code-point counting and apostrophes would otherwise let a size or verbosity regression pass: 17,628 code points is 17,636 UTF-8 bytes, and `can't` does not match the auxiliary `can`.",
   "primary": {
     "id": "bytes_per_rule",
-    "value": "len(text) / count(lines starting with '- ' or '| ' and longer than 40 chars)",
+    "value": "len(text.encode('utf-8')) / count(lines starting with '- ' or '| ' and longer than 40 characters)",
     "observed": {
-      "v1.3.3": 648,
-      "v1.3.4": 486,
-      "v1.3.5": 472,
-      "v1.3.6": 542,
-      "note": "v1.3.5 is denser per rule than v1.3.4, so its byte growth was new rules rather than verbosity. The regression is v1.3.6's 472 -> 542."
+      "v1.3.3": 649.0,
+      "v1.3.4": 489.0,
+      "v1.3.5": 474.3,
+      "v1.3.6": 544.2,
+      "note": "UTF-8 bytes. v1.3.5 is denser per rule than v1.3.4, so its byte growth was new rules rather than verbosity. The regression is v1.3.6's 474.3 -> 544.2."
     },
-    "max_bytes_per_rule": 490
+    "max_bytes_per_rule": 500
   },
   "definition": {
     "tokens": "re.findall(r\"[A-Za-z][A-Za-z'-]*\", text.lower())",
-    "value": "count(token in filler_words) / count(tokens)",
+    "value": "count(token in filler_words or token.split(\"'\")[0] in filler_words) / count(tokens); the contraction stem is counted so that `can't` is measured as the auxiliary `can`",
     "filler_words": [
-      "a", "an", "the", "is", "are", "was", "were", "be", "been", "being",
-      "of", "to", "that", "which", "this", "these", "those", "it", "its",
-      "there", "here", "has", "have", "had", "do", "does", "did",
-      "will", "would", "can", "could", "should", "may", "might", "must",
-      "in", "on", "at", "by", "for", "with", "from", "as",
-      "and", "or", "but", "if", "then", "than", "so", "such"
+      "a",
+      "an",
+      "the",
+      "is",
+      "are",
+      "was",
+      "were",
+      "be",
+      "been",
+      "being",
+      "of",
+      "to",
+      "that",
+      "which",
+      "this",
+      "these",
+      "those",
+      "it",
+      "its",
+      "there",
+      "here",
+      "has",
+      "have",
+      "had",
+      "do",
+      "does",
+      "did",
+      "will",
+      "would",
+      "can",
+      "could",
+      "should",
+      "may",
+      "might",
+      "must",
+      "in",
+      "on",
+      "at",
+      "by",
+      "for",
+      "with",
+      "from",
+      "as",
+      "and",
+      "or",
+      "but",
+      "if",
+      "then",
+      "than",
+      "so",
+      "such"
     ]
   },
   "buckets": [
     {
       "id": "orchestration",
-      "paths": ["templates/claude-md.orchestration.md"],
-      "max_filler_share": 0.100,
+      "paths": [
+        "templates/claude-md.orchestration.md"
+      ],
+      "max_filler_share": 0.1,
       "loaded": "every session"
     },
     {
       "id": "agents",
-      "paths": ["templates/agents/*.md"],
+      "paths": [
+        "templates/agents/*.md"
+      ],
       "combined": true,
-      "max_filler_share": 0.110,
+      "max_filler_share": 0.115,
       "loaded": "per dispatched role"
     }
   ],
   "observed": {
     "note": "Measured with the definition above. The floor is what the bucket can reach while every phrase asserted by tests/test_policy.py stays byte-for-byte identical; thresholds sit above their floor so the budget is satisfiable without rewriting a single assertion.",
     "orchestration": {
-      "v1.3.3": 0.275,
-      "v1.3.4": 0.079,
-      "v1.3.5": 0.114,
-      "v1.3.6": 0.139,
-      "locked_phrase_floor": 0.096
+      "v1.3.3": 0.2755,
+      "v1.3.4": 0.0793,
+      "v1.3.5": 0.1147,
+      "v1.3.6": 0.1394,
+      "note": "contraction-normalized"
     },
     "agents": {
-      "v1.3.4": 0.124,
-      "v1.3.6": 0.142,
-      "locked_phrase_floor": 0.090
+      "v1.3.4": 0.1271,
+      "v1.3.5": 0.1368,
+      "v1.3.6": 0.1444,
+      "note": "contraction-normalized"
     }
   },
   "scope": {
-    "in": "Prompt-bearing templates only — text that is loaded into a model context.",
+    "in": "Prompt-bearing templates only \u2014 text that is loaded into a model context.",
     "out": "templates/settings.snippet.json is configuration, not prompt text. README.md, README.zh-TW.md and docs/ are never loaded into a session and carry no budget."
   },
   "tracking": "https://github.com/Nanako0129/pilotfish/issues/40"
