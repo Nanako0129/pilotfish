@@ -910,6 +910,10 @@ class PolicyContractTests(unittest.TestCase):
             return "'" in word and word.split("'")[0] in filler
 
         def share(text: str) -> tuple[float, int]:
+            # Fold the typographic apostrophe first: with U+2019, "don’t"
+            # tokenizes as "don" + "t" and the auxiliary disappears from the
+            # count, so swapping punctuation alone would buy budget headroom.
+            text = text.replace("\u2019", "'")
             words = re.findall(r"[A-Za-z][A-Za-z'-]*", text.lower())
             self.assertTrue(words)
             return sum(is_filler(w) for w in words) / len(words), len(words)

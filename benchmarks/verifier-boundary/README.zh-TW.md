@@ -20,9 +20,9 @@
 一次 closing check。所有 Agent call 都未傳 invocation-level model
 override。Main session 與兩個 review role 是 Opus 5；`executor` 是 Sonnet 5。
 
-目前 passing controls 對 v1.3.7 壓縮後政策 reported $3.589600。schema cell 並非決定性：在位元組相同的輸入上兩次嘗試中重現一次，未重現的那次記錄在 `failed_attempts`。加上較早的 candidate Gate、公開的 operator-policy failure、零成本
+目前 passing controls 對 v1.3.7 壓縮後政策 reported $2.815600。schema cell 並非決定性：在位元組相同的輸入上兩次嘗試中重現一次，未重現的那次記錄在 `failed_attempts`。加上較早的 candidate Gate、公開的 operator-policy failure、零成本
 quota failure、未重現的那次 schema 嘗試，以及被週額度截斷的診斷，完整 campaign
-reported $15.70；明細記在 `results.json`。
+reported $19.69；明細記在 `results.json`。
 
 這不是 cue-free 宣稱。這個 Claude Code account 有較高優先級的 operator
 contract：使用者沒有明確要求時禁止 Agent call。因此 neutral schema prompt
@@ -33,7 +33,7 @@ contract：使用者沒有明確要求時禁止 Agent call。因此 neutral sche
 
 | Input | SHA-256 |
 |---|---|
-| [`gate-snapshot-v2/CLAUDE.md`](./gate-snapshot-v2/CLAUDE.md) | `8cec947e72844a689942cb00386b37147adcc4edf2fb2952c6917d207e31b549` |
+| [`gate-snapshot-v2/CLAUDE.md`](./gate-snapshot-v2/CLAUDE.md) | `6f3d513b9e97212b46fe28fe92375f86d505ada56e92b91fa4eb4612861c6348` |
 | [`gate-snapshot-v2/agents.json`](./gate-snapshot-v2/agents.json) file bytes | `e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f` |
 | `agents.json` shell-normalized runtime input | `b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc` |
 

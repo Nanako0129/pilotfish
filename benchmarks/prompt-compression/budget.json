@@ -16,7 +16,7 @@
     "rule_count_note": "Pinned. Reformatting one rule into two bullets would raise the denominator and manufacture headroom without writing less, so changing this number has to be a deliberate, reviewed edit rather than a side effect of a Markdown refactor."
   },
   "definition": {
-    "tokens": "re.findall(r\"[A-Za-z][A-Za-z'-]*\", text.lower())",
+    "tokens": "text.replace(u'\\u2019', \"'\") then re.findall(r\"[A-Za-z][A-Za-z'-]*\", text.lower()); the typographic apostrophe is folded to ASCII first so that don’t is not tokenized as don + t",
     "value": "a token counts as filler when it is in filler_words, or when normalizing a contraction lands there: strip a trailing \"n't\" (don't -> do, isn't -> is, doesn't -> does), map the irregulars (can't -> can, won't -> will, shan't -> shall, ain't -> is), else take the stem before the apostrophe. Counted as share of all tokens.",
     "filler_words": [
       "a",
@@ -84,7 +84,7 @@
       "paths": [
         "templates/claude-md.orchestration.md"
       ],
-      "max_filler_share": 0.1,
+      "max_filler_share": 0.105,
       "loaded": "every session"
     },
     {
@@ -114,8 +114,9 @@
     }
   },
   "scope": {
-    "in": "Prompt-bearing templates only \u2014 text that is loaded into a model context.",
+    "in": "Prompt-bearing templates only — text that is loaded into a model context.",
     "out": "templates/settings.snippet.json is configuration, not prompt text. README.md, README.zh-TW.md and docs/ are never loaded into a session and carry no budget."
   },
-  "tracking": "https://github.com/Nanako0129/pilotfish/issues/40"
+  "tracking": "https://github.com/Nanako0129/pilotfish/issues/40",
+  "caveat": "Filler share is a proxy and it has a known failure mode: scope-bearing qualifiers are function words. Restoring `only`, `after`, `personally` and `anything the user asked you` to repair semantic drift introduced by compression pushed the policy from 9.02% to 9.98% against a 10.0% cap, so the cap was raised to 10.5%. A budget that forces a qualifier out of a rule is worse than a slightly looser budget. Bytes per rule is the primary metric for that reason; filler share is the secondary check on prose style, and it should never be the reason a limiting word is deleted."
 }
