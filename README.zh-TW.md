@@ -90,7 +90,7 @@ Anthropic 在 2026-07-24 發布 [Opus 5](https://www.anthropic.com/news/claude-o
 | 2.1.219 | present | present | present |
 | 2.1.220 | present | present | present |
 
-**主張邊界。** 字串存在於 binary 不等於該指令在 session 中生效；三個 build 也無法證明上游何時引入某項東西——那一側的來源是 [anthropics/claude-code#80988](https://github.com/anthropics/claude-code/issues/80988)。我們沒有找到任何有文件的使用者層設定可以持久 opt-in，但也不主張這種設定不存在；那需要我們尚未蒐集的 CLI 與 settings 證據。以下僅作為佐證，來自我們自己重新封裝的 Claude Code 原生 build [Calico](https://github.com/Nanako0129/calico-claude)：tool-description 段落在其 2.1.207 到 2.1.220 都存在。
+**主張邊界。** 字串存在於 binary 不等於該指令在 session 中生效；三個 build 也無法證明上游何時引入某項東西——那一側的來源是 [anthropics/claude-code#80988](https://github.com/anthropics/claude-code/issues/80988)。我們沒有找到任何有文件的使用者層設定可以持久 opt-in，但也不主張這種設定不存在；那需要我們尚未蒐集的 CLI 與 settings 證據。以下僅作為佐證，來自我們自己重新封裝的 Claude Code 原生 build [Calico](https://github.com/Nanako0129/calico-claude)：tool-description 段落存在於 2.1.207 與 2.1.220 之間所有十個留存的 build——那是一組不連續的版本，不是該區間的每一個 release。
 
 **最省力的檢查方式。** 開一個新 session，問它自己的委派政策。在我們檢查的那個 session 裡，該段落存在於 Agent tool description，而 session 被問到時能引用自己的限制——不需要 patch 過的 build、不需要 proxy、不需要分析 transcript。
 
