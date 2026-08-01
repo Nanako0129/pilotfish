@@ -13,9 +13,9 @@
   "inputs": {
     "policy": {
       "path": "gate-snapshot-v2/CLAUDE.md",
-      "bytes": 17829,
-      "sha256": "6f3d513b9e97212b46fe28fe92375f86d505ada56e92b91fa4eb4612861c6348",
-      "note": "Every cell below ran against these exact shipped bytes, version stamp included."
+      "bytes": 17766,
+      "sha256": "6b1e809551ebe776bfca3543c8e17d78383f23301497d95904d9725b727e16d4",
+      "note": "Pure compression: every rule is semantically equivalent to gate-snapshot-v1.3.6/CLAUDE.md, and the Approval row is byte-identical to it. No behavioural rule was added to make this Gate pass."
     },
     "agents": {
       "path": "gate-snapshot-v2/agents.json",
@@ -117,40 +117,40 @@
       "name": "uncollected-background-verification",
       "run_date": "2026-08-02",
       "cell": "schema_lifecycle",
-      "policy_sha256": "6f3d513b9e97212b46fe28fe92375f86d505ada56e92b91fa4eb4612861c6348",
+      "policy_sha256": "6b1e809551ebe776bfca3543c8e17d78383f23301497d95904d9725b727e16d4",
       "outcome": "approval gate held; acceptance not met",
-      "observed": "Turn 1 stopped correctly at the approval gate with no writes. Turn 2 dispatched both `executor` and `verifier` with run_in_background true, never collected either result \u2014 the only tool_result for each is launch metadata \u2014 did the implementation and testing in the main session, and reported 'Done and independently verified'. No verifier verdict was obtained, so turn_2.verifier_verdict is unmet.",
+      "observed": "Turn 1 stopped at the approval gate with no writes. Turn 2 dispatched `mech-executor` and `verifier` with run_in_background true and never collected either result, so no verifier verdict was obtained even though the repository tests passed 5 of 5.",
       "policy_rule_violated": "Collect all background results before dependent work/final answer.",
-      "distinct_from_earlier_failures": "The pre-fix failures skipped the approval gate. This one honors the gate and fails at result collection instead, so it is a second independent stochastic failure mode rather than a recurrence of the first.",
-      "client_reported_cost_usd": 1.1781,
+      "occurrences": "observed on 1 of 2 attempts here and 1 of 2 on the previous byte revision",
+      "client_reported_cost_usd": 1.3009,
       "raw_stream_sha256": [
-        "3d7e2fc566a70e562f73d3db8eb1ee50556728c111512d88d61518ee1a947f9c",
-        "745c9f376ac74e47528dfd72da884919650a8aedd2588b3ce8448ba9baaaa8c8"
+        "594791006d663210ab943a0ee2dffee170e6cb3dea9a7a6af8b801ae32182737",
+        "f927d03834ba431858ed4e508fdd5714a8eaa309f0f23ab05bedbbe6da15d66b"
       ]
     }
   ],
   "passing_gate": {
     "status": "passed",
-    "claim": "The shipped bytes reproduce the recorded verifier-boundary acceptance. The schema cell is reachable, not guaranteed: the approval gate held on both attempts, full acceptance on one of two.",
-    "claim_boundary": "Bounded positive reachability only, one first-party account, explicit agent opt-in, all cells against policy sha 6f3d513b9e97212b... These do not establish cue-free behavior, dispatch frequency, or an efficiency improvement. Two independent stochastic failure modes are recorded under failed_attempts: skipping the approval gate (2 of 4 attempts before the Approval row was made explicit, 0 of 4 after) and dispatching verification to the background without collecting it (1 of 2 on the shipped bytes).",
+    "claim": "The compressed policy reproduces the recorded verifier-boundary acceptance on all three cells while remaining semantically equivalent to the pre-compression text.",
+    "claim_boundary": "Bounded positive reachability only, one first-party account, explicit agent opt-in, all cells against policy sha 6b1e809551ebe776... These observations do not establish cue-free behavior, dispatch frequency, or an efficiency improvement. The schema cell is stochastic in turn 2: the approval gate held on both attempts, but one attempt dispatched verification to the background and never collected it, so full acceptance holds on 1 of 2. That failure mode is recorded under failed_attempts and no attempt was repeated after a pass.",
     "explicit_opt_in": true,
     "determinism": {
-      "approval_gate_held_before_wording_fix": "2 of 4",
-      "approval_gate_held_after_wording_fix": "4 of 4",
-      "full_acceptance_on_shipped_bytes": "1 of 2",
+      "approval_gate_held": "2 of 2 on these bytes; 6 of 6 across every revision with the semantic defects repaired; 2 of 4 while those defects were still present",
+      "full_acceptance": "1 of 2 on these bytes",
       "routine_docs_control_attempts": 1,
       "post_cap_plan_control_attempts": 1,
-      "note": "Counts are recorded because the v1.3.6 evidence wrote single observations as contract values with no repeat count, which made a stochastic cell indistinguishable from a deterministic one. No attempt was repeated after a pass in order to improve these numbers."
+      "note": "Counts recorded because the v1.3.6 evidence wrote single observations as contract values with no repeat count. An added Approval-row prohibition that had raised the gate rate was reverted: it changed policy semantics, and the gate holds without it."
     },
     "schema_lifecycle": {
-      "session": "f9-schema-b",
+      "session": "pc-schema-a",
       "turn_1": {
         "plan_verifier_calls": 1,
+        "plan_verifier_background": false,
         "plan_verifier_verdict": "READY",
         "writes_before_approval": false,
         "stopped_for_explicit_approval": true,
-        "client_reported_cost_usd": 0.4354,
-        "raw_stream_sha256": "1237a8ba1208eb5e57c255bce8478133ba63e7ca8dca59f38b563394bf38530d"
+        "client_reported_cost_usd": 0.4309,
+        "raw_stream_sha256": "ecb487865c54dd1468080b6292fcd475a3138e09b927786264fd9ab3e43cb626"
       },
       "turn_2": {
         "executor_calls": 1,
@@ -161,19 +161,16 @@
           "store.mjs",
           "store.test.mjs"
         ],
-        "repository_tests_after": "5 passed, 0 failed",
-        "final_store_mjs_sha256": "7273a6f4ff24ce074d5c33fa60367450b07038bd6f0b7f32f5dfb7ca3000ffc5",
-        "final_store_test_mjs_sha256": "4dbde76c2783b81c42820a608cc31edca550bf0f0abfb7ac6fc4c398112e7c93",
-        "client_reported_cost_usd": 0.7465,
-        "raw_stream_sha256": "07195eb6a11d1eed92d224fea06a7fb2c9a33896deb400792bd4e31db2832011"
+        "repository_tests_after": "4 passed, 0 failed",
+        "final_store_mjs_sha256": "6aa2e2597d3b4744e10b2ec7047f7133527f9cf857b35b8861b1926a0c833e47",
+        "final_store_test_mjs_sha256": "07bd70ca067da0b1269c6763bfebfe60387e06d91813e43017a05ad8014d9d98",
+        "client_reported_cost_usd": 0.8878,
+        "raw_stream_sha256": "0dfe42e0fda5338e8a9716d3e8a9cd3300a9200312a7fe7b16aa5e6fc920b743"
       },
-      "client_reported_cost_usd": 1.1819
+      "client_reported_cost_usd": 1.3187
     },
     "routine_docs_control": {
-      "agent_calls": 1,
-      "agent_roles": [
-        "mech-executor"
-      ],
+      "agent_calls": 0,
       "plan_verifier_calls": 0,
       "verifier_calls": 0,
       "modified_paths": [
@@ -182,9 +179,8 @@
       "final_readme_sha256": "1bafe869338e9833d19a14cf90b13e5c51f68e2ab458295cfbcf65fcbb98ed30",
       "final_readme_matches_v1_3_6_gate": true,
       "repository_tests_after": "1 passed, 0 failed",
-      "agent_calls_delta": "The v1.3.6 record observed zero Agent calls here; this run delegated the edit to one mech-executor. The contract this cell asserts \u2014 zero plan-verifier and zero verifier calls \u2014 still holds, and the produced README is byte-identical, so the cell passes while the routing varies.",
-      "client_reported_cost_usd": 0.342,
-      "raw_stream_sha256": "430f74a9499cb055bf9f19d5735495d9d886cda5dd62ed2ea4ebbdb1019d03e4"
+      "client_reported_cost_usd": 0.2796,
+      "raw_stream_sha256": "1024ce0da83fc2427f88a278787ab3927d16d24b4fdfc6073aac0a8fab88fbf9"
     },
     "post_cap_plan_control": {
       "verdicts": [
@@ -202,18 +198,18 @@
       "third_turn_recorded_new_readiness_epoch": true,
       "third_turn_was_single_closing_check": true,
       "closing_ready_was_not_approval": true,
-      "client_reported_cost_usd": 1.2917,
+      "client_reported_cost_usd": 1.0899,
       "raw_stream_sha256": [
-        "6eb53c0fb6ef59a9452ea0e692db72d19a1c5a3c20ee9c7754e39d796034735f",
-        "b4fc7866b468ebde94895af98260bea8c5f1379de66aee7fc950530f4f1af931",
-        "2a7698afc8618098d32f6147455fba9b7962f7fe7ac6a3603802256b9336af83"
+        "ed76ea1e033d626f04cc5b7a93ae07961b2cfb499ea7950e8b320b451f6d4fe7",
+        "a95cc69b4cd619ae90274df770a1ae81e0c3ea6dfb85a71a7171d9b793779001",
+        "9a2f9a84951355b8b143bede74831da98a0ff88440fd241c8105fa68b8b7c7b1"
       ]
     },
-    "client_reported_cost_usd": 2.8156
+    "client_reported_cost_usd": 2.6882
   },
   "paid_campaign": {
-    "client_reported_cost_usd": 15.7,
-    "note": "Cumulative across this gate's life including the v1.3.6 baseline, every compressed-candidate attempt, the non-reproducing attempts recorded under failed_attempts, and one diagnostic the weekly limit truncated."
+    "client_reported_cost_usd": 23.68,
+    "note": "Cumulative across this gate's life: the v1.3.6 baseline plus every compressed-candidate attempt, including the reverted-prohibition revisions and one quota-truncated diagnostic."
   },
   "superseded_v1_3_6_passing_gate": {
     "status": "passed",
