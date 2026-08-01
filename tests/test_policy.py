@@ -895,6 +895,11 @@ class PolicyContractTests(unittest.TestCase):
         )
 
         irregular = budget["definition"]["irregular_contractions"]
+        suffixes = {
+            k: v
+            for k, v in budget["definition"]["contraction_suffixes"].items()
+            if not v.startswith("<")
+        }
 
         def is_filler(word: str) -> bool:
             # A contraction is the auxiliary wearing an apostrophe. Splitting on
@@ -907,6 +912,13 @@ class PolicyContractTests(unittest.TestCase):
                 return irregular[word] in filler
             if word.endswith("n't") and word[:-3] in filler:
                 return True
+            # Positive contractions hide the auxiliary after the apostrophe:
+            # "we're" is "we" + "are", and only the stem would be inspected
+            # otherwise, so swapping expanded forms for contractions would
+            # lower the share without removing any filler.
+            for suffix, auxiliary in suffixes.items():
+                if word.endswith(suffix) and auxiliary in filler:
+                    return True
             return "'" in word and word.split("'")[0] in filler
 
         def share(text: str) -> tuple[float, int]:
@@ -926,6 +938,16 @@ class PolicyContractTests(unittest.TestCase):
             )
             self.assertTrue(paths, bucket["id"])
             text = "\n".join(p.read_text(encoding="utf-8") for p in paths)
+            if "max_bytes_per_role" in bucket:
+                per_role = sum(p.stat().st_size for p in paths) / len(paths)
+                self.assertLessEqual(
+                    per_role,
+                    bucket["max_bytes_per_role"],
+                    f"{bucket['id']}: {per_role:.0f} bytes per role file across "
+                    f"{len(paths)} roles exceeds "
+                    f"{bucket['max_bytes_per_role']}. Adding a role is allowed; "
+                    "growing the existing ones is not.",
+                )
             observed, words = share(text)
             limit = bucket["max_filler_share"]
             if observed > limit:

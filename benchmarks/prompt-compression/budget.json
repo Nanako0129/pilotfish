@@ -17,7 +17,7 @@
   },
   "definition": {
     "tokens": "text.replace(u'\\u2019', \"'\") then re.findall(r\"[A-Za-z][A-Za-z'-]*\", text.lower()); the typographic apostrophe is folded to ASCII first so that don’t is not tokenized as don + t",
-    "value": "a token counts as filler when it is in filler_words, or when normalizing a contraction lands there: strip a trailing \"n't\" (don't -> do, isn't -> is, doesn't -> does), map the irregulars (can't -> can, won't -> will, shan't -> shall, ain't -> is), else take the stem before the apostrophe. Counted as share of all tokens.",
+    "value": "a token counts as filler when it is in filler_words, or when normalizing a contraction lands there: map the irregulars, expand a trailing auxiliary suffix (n't to the stem, 're to are, 've to have, 'll to will, 'd to would), else take the stem before the apostrophe. Counted as share of all tokens. The typographic apostrophe is folded to ASCII first.",
     "filler_words": [
       "a",
       "an",
@@ -76,6 +76,13 @@
       "won't": "will",
       "shan't": "shall",
       "ain't": "is"
+    },
+    "contraction_suffixes": {
+      "n't": "<stem>",
+      "'re": "are",
+      "'ve": "have",
+      "'ll": "will",
+      "'d": "would"
     }
   },
   "buckets": [
@@ -94,7 +101,9 @@
       ],
       "combined": true,
       "max_filler_share": 0.12,
-      "loaded": "per dispatched role"
+      "loaded": "per dispatched role",
+      "max_bytes_per_role": 2000,
+      "bytes_note": "Normalized per role file so adding a role stays allowed and bloating the existing ones does not. Observed: v1.3.4 1,700, v1.3.6 2,037, current 1,909. Without this the filler check alone let an agent prompt grow without limit on low-filler prose while the budget claimed to cover the whole prompt surface."
     }
   ],
   "observed": {
