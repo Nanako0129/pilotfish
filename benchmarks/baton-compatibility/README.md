@@ -184,7 +184,7 @@ An existing hook rejected the worker's direct `Write` and instructed it to retur
 |---|---|
 | Policy and snapshot SHA-256 | `7ff86564cd4cd8469cf3d24646fd395c57be09dc1fc7e1efa9d0d77c61ecfb21` |
 | Shell-stripped historical `agents.json` SHA-256 | `e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61` |
-| Current v1.3.7 policy SHA-256 | `84309e9b99bef4273721acc494fd4bb21a17f60278a3826658fb8918d7bc6058` (current template bytes; exercised by the [verifier-boundary Gate](../verifier-boundary/README.md)) |
+| Current v1.3.7 policy SHA-256 | `8cec947e72844a689942cb00386b37147adcc4edf2fb2952c6917d207e31b549` (current template bytes; exercised by the [verifier-boundary Gate](../verifier-boundary/README.md)) |
 | Current generated v1.3.7 release payload SHA-256 | `b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc` (shell-stripped builder output; exercised by the [verifier-boundary Gate](../verifier-boundary/README.md)) |
 | Turn 1 prompt file SHA-256 | `45dbe7b6b24cb5838ebf4219011797b61f172fcc18f0ca5039144017e93fcca7` |
 | Turn 1 runtime-input SHA-256 | `d2ad46b7ecfb503f8f7185d6d68f404d326f1a4a480b9141d1a80318a746bb73` |
