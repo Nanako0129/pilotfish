@@ -159,7 +159,7 @@ Long-running processes remain main-session owned. Every Bash-capable leaf role (
 
 ## Install
 
-The recommended path is to clone the pinned v1.3.6 release locally, then start Claude Code from that checkout so it can read the runbook as a local file:
+The recommended path is to clone the pinned v1.3.7 release locally, then start Claude Code from that checkout so it can read the runbook as a local file:
 
 ```sh
 git clone --branch v1.3.7 --depth 1 https://github.com/Nanako0129/pilotfish.git
@@ -193,7 +193,7 @@ Prefer to do it by hand? The same steps are written for humans in [install/AGENT
 pilotfish installs by having Claude read a runbook and template files from this repo and merge them into your global `~/.claude/` config — including a policy block that then loads into **every future session**. Treat it like any `curl | sh`: trust flows from this repo and your GitHub connection, not from the paste. The local checkout path is recommended because you can inspect the pinned release before Claude reads the runbook. Before running it:
 
 - **Read the actual bytes that get installed**, not just the runbook: the eight files in [templates/agents/](./templates/agents/) and [templates/claude-md.orchestration.md](./templates/claude-md.orchestration.md). Nothing else is written to disk.
-- **Pin to a release tag or commit** so what you reviewed is what installs — `main` can change between the moment you read it and the moment Claude reads it. The recommended command above pins to the `v1.3.6` release tag; for the strictest guarantee, fetch and check out the full commit SHA you reviewed, then verify that checkout before launching Claude.
+- **Pin to a release tag or commit** so what you reviewed is what installs — `main` can change between the moment you read it and the moment Claude reads it. The recommended command above pins to the `v1.3.7` release tag; for the strictest guarantee, fetch and check out the full commit SHA you reviewed, then verify that checkout before launching Claude.
 - **Keep the approval gate:** Claude writes nothing until you approve the merge plan, but the plan is still a summary of the runbook. Review the local runbook and templates yourself, and do not weaken or bypass WebFetch's prompt-injection protection if the raw URL is intercepted.
 
 ## What gets installed
@@ -282,7 +282,7 @@ This repo is the packaged result of a sourced research pass (official docs, Anth
 | [benchmarks/baton-dispatch-effect/README.md](./benchmarks/baton-dispatch-effect/README.md) | English + data | Prompt-neutral activation matrix: bounded no-activation observation plus a four-domain Gate with Baton activation, four completed scouts, exclusive ownership, full collection, and output-shape correctness |
 | [benchmarks/baton-compatibility/README.md](./benchmarks/baton-compatibility/README.md) | English + data | Historical exact-byte native-Claude two-turn lifecycle plus the Opus 5 rerun and its corrective third invocation, exact prompts, rejected routing evidence, and machine-readable results |
 | [benchmarks/prompt-compression/README.md](./benchmarks/prompt-compression/README.md) | English + data | v1.3.4 prompt byte reduction, runtime context census, exact candidate hashes, paid behavioral observations, and current claim limits |
-| [benchmarks/verifier-boundary/README.md](./benchmarks/verifier-boundary/README.md) | English + data | v1.3.6 exact-byte native-Claude schema lifecycle and routine-docs control, including failed attempts, role routing, acceptance, and cost |
+| [benchmarks/verifier-boundary/README.md](./benchmarks/verifier-boundary/README.md) | English + data | v1.3.7 exact-byte native-Claude schema lifecycle and routine-docs control, including failed attempts, role routing, acceptance, and cost |
 
 **Prior art & credits.** The "smart brain, cheap hands" split is not pilotfish's invention: Anthropic's own engineering writeup ([Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)) frames it, Claude Code ships [`opusplan`](https://code.claude.com/docs/en/model-config) built in — if all you want is cheaper sessions, `/model opusplan` needs no repo at all — and [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) packages the same frugality thesis as a plugin with ledger-enforcing guard hooks. pilotfish's contribution is the packaging: eight deliberately-few roles instead of a 100-agent catalog, a role-based policy that survives model churn, an installer that shows its plan before touching anything, and claims that were adversarially fact-checked. If a heavier, hook-enforced flavor fits you better, use theirs.
 

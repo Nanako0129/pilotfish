@@ -150,7 +150,9 @@
         "writes_before_approval": false,
         "stopped_for_explicit_approval": true,
         "client_reported_cost_usd": 0.4309,
-        "raw_stream_sha256": "ecb487865c54dd1468080b6292fcd475a3138e09b927786264fd9ab3e43cb626"
+        "raw_stream_sha256": "ecb487865c54dd1468080b6292fcd475a3138e09b927786264fd9ab3e43cb626",
+        "plan_verifier_invocation_model_present": false,
+        "plan_verifier_resolved_model": "claude-opus-5"
       },
       "turn_2": {
         "executor_calls": 1,
@@ -165,7 +167,13 @@
         "final_store_mjs_sha256": "6aa2e2597d3b4744e10b2ec7047f7133527f9cf857b35b8861b1926a0c833e47",
         "final_store_test_mjs_sha256": "07bd70ca067da0b1269c6763bfebfe60387e06d91813e43017a05ad8014d9d98",
         "client_reported_cost_usd": 0.8878,
-        "raw_stream_sha256": "0dfe42e0fda5338e8a9716d3e8a9cd3300a9200312a7fe7b16aa5e6fc920b743"
+        "raw_stream_sha256": "0dfe42e0fda5338e8a9716d3e8a9cd3300a9200312a7fe7b16aa5e6fc920b743",
+        "executor_background": false,
+        "executor_invocation_model_present": false,
+        "executor_resolved_model": "claude-sonnet-5",
+        "verifier_background": false,
+        "verifier_invocation_model_present": false,
+        "verifier_resolved_model": "claude-opus-5"
       },
       "client_reported_cost_usd": 1.3187
     },
@@ -180,7 +188,8 @@
       "final_readme_matches_v1_3_6_gate": true,
       "repository_tests_after": "1 passed, 0 failed",
       "client_reported_cost_usd": 0.2796,
-      "raw_stream_sha256": "1024ce0da83fc2427f88a278787ab3927d16d24b4fdfc6073aac0a8fab88fbf9"
+      "raw_stream_sha256": "1024ce0da83fc2427f88a278787ab3927d16d24b4fdfc6073aac0a8fab88fbf9",
+      "observed_main_model": "claude-opus-5"
     },
     "post_cap_plan_control": {
       "verdicts": [
@@ -203,9 +212,29 @@
         "ed76ea1e033d626f04cc5b7a93ae07961b2cfb499ea7950e8b320b451f6d4fe7",
         "a95cc69b4cd619ae90274df770a1ae81e0c3ea6dfb85a71a7171d9b793779001",
         "9a2f9a84951355b8b143bede74831da98a0ff88440fd241c8105fa68b8b7c7b1"
-      ]
+      ],
+      "plan_verifier_background": [
+        false,
+        false,
+        false
+      ],
+      "plan_verifier_invocation_model_present": [
+        false,
+        false,
+        false
+      ],
+      "plan_verifier_resolved_model": "claude-opus-5"
     },
-    "client_reported_cost_usd": 2.6882
+    "client_reported_cost_usd": 2.6882,
+    "route": {
+      "requested_main_model": "opus",
+      "observed_main_model": "claude-opus-5",
+      "setting_sources": [
+        "project",
+        "local"
+      ],
+      "provider_route": "native Claude first-party authentication"
+    }
   },
   "paid_campaign": {
     "client_reported_cost_usd": 23.68,
