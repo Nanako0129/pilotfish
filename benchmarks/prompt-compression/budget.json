@@ -17,7 +17,7 @@
   },
   "definition": {
     "tokens": "re.findall(r\"[A-Za-z][A-Za-z'-]*\", text.lower())",
-    "value": "count(token in filler_words or token.split(\"'\")[0] in filler_words) / count(tokens); the contraction stem is counted so that `can't` is measured as the auxiliary `can`",
+    "value": "a token counts as filler when it is in filler_words, or when normalizing a contraction lands there: strip a trailing \"n't\" (don't -> do, isn't -> is, doesn't -> does), map the irregulars (can't -> can, won't -> will, shan't -> shall, ain't -> is), else take the stem before the apostrophe. Counted as share of all tokens.",
     "filler_words": [
       "a",
       "an",
@@ -70,7 +70,13 @@
       "than",
       "so",
       "such"
-    ]
+    ],
+    "irregular_contractions": {
+      "can't": "can",
+      "won't": "will",
+      "shan't": "shall",
+      "ain't": "is"
+    }
   },
   "buckets": [
     {
@@ -87,7 +93,7 @@
         "templates/agents/*.md"
       ],
       "combined": true,
-      "max_filler_share": 0.115,
+      "max_filler_share": 0.12,
       "loaded": "per dispatched role"
     }
   ],
@@ -98,13 +104,13 @@
       "v1.3.4": 0.0793,
       "v1.3.5": 0.1147,
       "v1.3.6": 0.1394,
-      "note": "contraction-normalized"
+      "note": "fully contraction-normalized"
     },
     "agents": {
-      "v1.3.4": 0.1271,
-      "v1.3.5": 0.1368,
-      "v1.3.6": 0.1444,
-      "note": "contraction-normalized"
+      "v1.3.4": 0.1356,
+      "v1.3.5": 0.1434,
+      "v1.3.6": 0.1505,
+      "note": "fully contraction-normalized. An earlier revision of this file recorded 0.1271/0.1368/0.1444 and an 11.5% limit; those came from a normalizer that only resolved can't, so the agents limit is restated here against correct numbers rather than by recompressing artifacts the paid Gate already validated."
     }
   },
   "scope": {

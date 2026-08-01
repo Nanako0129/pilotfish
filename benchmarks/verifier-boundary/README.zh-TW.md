@@ -20,9 +20,9 @@
 一次 closing check。所有 Agent call 都未傳 invocation-level model
 override。Main session 與兩個 review role 是 Opus 5；`executor` 是 Sonnet 5。
 
-目前 passing controls 對 v1.3.7 壓縮後政策 reported $2.456456。schema cell 並非決定性：在位元組相同的輸入上兩次嘗試中重現一次，未重現的那次記錄在 `failed_attempts`。加上較早的 candidate Gate、公開的
-operator-policy failure 與零成本 quota failure，完整 campaign reported
-$5.16072710。
+目前 passing controls 對 v1.3.7 壓縮後政策 reported $2.456456。schema cell 並非決定性：在位元組相同的輸入上兩次嘗試中重現一次，未重現的那次記錄在 `failed_attempts`。加上較早的 candidate Gate、公開的 operator-policy failure、零成本
+quota failure、未重現的那次 schema 嘗試，以及被週額度截斷的診斷，完整 campaign
+reported $9.495764；明細記在 `results.json`。
 
 這不是 cue-free 宣稱。這個 Claude Code account 有較高優先級的 operator
 contract：使用者沒有明確要求時禁止 Agent call。因此 neutral schema prompt

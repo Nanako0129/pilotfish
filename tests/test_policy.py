@@ -894,16 +894,25 @@ class PolicyContractTests(unittest.TestCase):
             "rules is allowed; writing them at length is not.",
         )
 
+        irregular = budget["definition"]["irregular_contractions"]
+
+        def is_filler(word: str) -> bool:
+            # A contraction is the auxiliary wearing an apostrophe. Splitting on
+            # the apostrophe alone only resolves "can't"; "don't" becomes "don",
+            # which is in no word list, so the filler would hide behind
+            # punctuation instead of being written out.
+            if word in filler:
+                return True
+            if word in irregular:
+                return irregular[word] in filler
+            if word.endswith("n't") and word[:-3] in filler:
+                return True
+            return "'" in word and word.split("'")[0] in filler
+
         def share(text: str) -> tuple[float, int]:
-            # Count the contraction stem too: "can't" is the auxiliary "can"
-            # wearing an apostrophe, and without this a regression hides behind
-            # punctuation rather than being written out.
             words = re.findall(r"[A-Za-z][A-Za-z'-]*", text.lower())
             self.assertTrue(words)
-            hits = sum(
-                w in filler or w.split("'")[0] in filler for w in words
-            )
-            return hits / len(words), len(words)
+            return sum(is_filler(w) for w in words) / len(words), len(words)
 
         for bucket in budget["buckets"]:
             paths = sorted(
