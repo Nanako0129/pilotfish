@@ -38,7 +38,7 @@
     "final_gate_candidate_orchestration_sha256": "7ff86564cd4cd8469cf3d24646fd395c57be09dc1fc7e1efa9d0d77c61ecfb21",
     "final_gate_candidate_agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61",
     "release_candidate_version": "1.3.6",
-    "release_candidate_orchestration_sha256": "69ed7ffce28d7228000d9c15622d1d4e014c9d0d71e7e2dab2bea63998b5a584",
+    "release_candidate_orchestration_sha256": "59f18c6dd85cd92a6797bf691bb8ee1c372587b08e419991430955877d4e64ba",
     "release_candidate_agents_json_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc",
     "release_candidate_policy_delta_from_final_gate": "non-empty; the current policy carries the v1.3.5/v1.3.6 additions beyond the historical approval-lifecycle Gate and is then re-compressed to a bytes-per-rule budget (19,590 -> 17,636 bytes, 36 rules unchanged); the separate verifier-boundary Gate exercised these current exact bytes on 2026-08-01",
     "release_candidate_agents_json_delta_from_final_gate": "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow fallback, and bounded-recheck contracts; verifier-boundary gate-snapshot-v2 exercised these current exact bytes",
