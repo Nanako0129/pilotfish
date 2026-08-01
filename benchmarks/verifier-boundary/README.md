@@ -22,7 +22,7 @@ Plan control stopped after two `REVISE` verdicts before one closing check.
 Every Agent call omitted an invocation-level model override. The main session
 and both review roles resolved to Opus 5; `executor` resolved to Sonnet 5.
 
-The current passing controls reported $2.82515035. Including the earlier
+The current passing controls reported $2.456456 against the v1.3.7 compressed policy. The schema cell is not deterministic: it reproduced on one of two attempts against byte-identical inputs, and the non-reproducing attempt is recorded under `failed_attempts`. Including the earlier
 candidate Gate, the disclosed operator-policy failure, and the zero-cost quota
 failure, the full campaign reported $5.16072710.
 
@@ -36,9 +36,9 @@ and was rejected as Gate evidence. The run cost $0.51322950 and is retained in
 
 | Input | SHA-256 |
 |---|---|
-| [`gate-snapshot-v2/CLAUDE.md`](./gate-snapshot-v2/CLAUDE.md) | `ae771c9b43ad985f7ad1e520cd6e021c69e13aac3bd6a60a8edacd1d386f0e82` |
-| [`gate-snapshot-v2/agents.json`](./gate-snapshot-v2/agents.json), file bytes | `8df823840683dc65c6528ce568d35d0c14deee5a0290db532bdca63b3885a0a7` |
-| `agents.json`, shell-normalized runtime input | `e5e7fa1595c2231f6954f86720c734ab064ce901ab141c3e6431d07dd4335123` |
+| [`gate-snapshot-v2/CLAUDE.md`](./gate-snapshot-v2/CLAUDE.md) | `84309e9b99bef4273721acc494fd4bb21a17f60278a3826658fb8918d7bc6058` |
+| [`gate-snapshot-v2/agents.json`](./gate-snapshot-v2/agents.json), file bytes | `e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f` |
+| `agents.json`, shell-normalized runtime input | `b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc` |
 
 The disposable baseline is under [`fixture/`](./fixture/). Exact neutral and
 explicit prompts are under [`prompts/`](./prompts/). `results.json` binds every

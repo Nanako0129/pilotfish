@@ -20,7 +20,7 @@
 一次 closing check。所有 Agent call 都未傳 invocation-level model
 override。Main session 與兩個 review role 是 Opus 5；`executor` 是 Sonnet 5。
 
-目前 passing controls reported $2.82515035。加上較早的 candidate Gate、公開的
+目前 passing controls 對 v1.3.7 壓縮後政策 reported $2.456456。schema cell 並非決定性：在位元組相同的輸入上兩次嘗試中重現一次，未重現的那次記錄在 `failed_attempts`。加上較早的 candidate Gate、公開的
 operator-policy failure 與零成本 quota failure，完整 campaign reported
 $5.16072710。
 
@@ -33,9 +33,9 @@ contract：使用者沒有明確要求時禁止 Agent call。因此 neutral sche
 
 | Input | SHA-256 |
 |---|---|
-| [`gate-snapshot-v2/CLAUDE.md`](./gate-snapshot-v2/CLAUDE.md) | `ae771c9b43ad985f7ad1e520cd6e021c69e13aac3bd6a60a8edacd1d386f0e82` |
-| [`gate-snapshot-v2/agents.json`](./gate-snapshot-v2/agents.json) file bytes | `8df823840683dc65c6528ce568d35d0c14deee5a0290db532bdca63b3885a0a7` |
-| `agents.json` shell-normalized runtime input | `e5e7fa1595c2231f6954f86720c734ab064ce901ab141c3e6431d07dd4335123` |
+| [`gate-snapshot-v2/CLAUDE.md`](./gate-snapshot-v2/CLAUDE.md) | `84309e9b99bef4273721acc494fd4bb21a17f60278a3826658fb8918d7bc6058` |
+| [`gate-snapshot-v2/agents.json`](./gate-snapshot-v2/agents.json) file bytes | `e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f` |
+| `agents.json` shell-normalized runtime input | `b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc` |
 
 Disposable baseline 在 [`fixture/`](./fixture/)；neutral 與 explicit prompts
 在 [`prompts/`](./prompts/)；`results.json` 以 hash 綁定每個 prompt 與 raw

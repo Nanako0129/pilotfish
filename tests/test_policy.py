@@ -619,7 +619,7 @@ class PolicyContractTests(unittest.TestCase):
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
         self.assertEqual(runtime["release_candidate_version"], version)
-        self.assertEqual(version, "1.3.6")
+        self.assertEqual(version, "1.3.7")
         self.assertEqual(
             runtime["release_candidate_generated_by"],
             "benchmarks/baton-compatibility/build-agents-json.py templates/agents",
@@ -873,7 +873,14 @@ class PolicyContractTests(unittest.TestCase):
             for line in text.split("\n")
             if line.startswith(("- ", "| ")) and len(line) > 40
         ]
-        self.assertTrue(rules)
+        self.assertEqual(
+            len(rules),
+            budget["primary"]["expected_rule_count"],
+            "rule count changed; splitting a rule across bullets inflates the "
+            "denominator and manufactures budget headroom. If the change is "
+            "deliberate, update expected_rule_count in budget.json in the same "
+            "review.",
+        )
         # UTF-8 bytes, not code points: the metric is named in bytes and that is
         # what a session pays for. Counting code points would let a few
         # multi-byte characters push the real size over an apparently passing

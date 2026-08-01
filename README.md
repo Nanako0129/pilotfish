@@ -162,7 +162,7 @@ Long-running processes remain main-session owned. Every Bash-capable leaf role (
 The recommended path is to clone the pinned v1.3.6 release locally, then start Claude Code from that checkout so it can read the runbook as a local file:
 
 ```sh
-git clone --branch v1.3.6 --depth 1 https://github.com/Nanako0129/pilotfish.git
+git clone --branch v1.3.7 --depth 1 https://github.com/Nanako0129/pilotfish.git
 cd pilotfish
 claude
 ```

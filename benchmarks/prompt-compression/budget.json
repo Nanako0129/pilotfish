@@ -1,6 +1,6 @@
 {
   "metric": "bytes_per_rule + filler_word_share",
-  "rationale": "A byte ceiling pegged to an old release is the wrong standing property: the policy may legitimately grow when a rule is genuinely needed. Both metrics here are normalized, so growth by adding rules is allowed and only verbosity is penalized. Two metrics rather than one because each closes the other's gaming vector: stripping function words moves filler share a long way while barely reducing bytes (measured: -117 filler words bought 2.8% of the file), and splitting one rule across several bullets lowers bytes per rule without touching filler share. Satisfying both requires actually writing less. Both measurements are taken on UTF-8 bytes and normalize contractions, because code-point counting and apostrophes would otherwise let a size or verbosity regression pass: 17,628 code points is 17,636 UTF-8 bytes, and `can't` does not match the auxiliary `can`.",
+  "rationale": "A byte ceiling pegged to an old release is the wrong standing property: the policy may legitimately grow when a rule is genuinely needed. Both metrics here are normalized, so growth by adding rules is allowed and only verbosity is penalized. Two metrics rather than one because each closes the other's gaming vector: stripping function words moves filler share a long way while barely reducing bytes (measured: -117 filler words bought 2.8% of the file), and splitting one rule across several bullets lowers bytes per rule without touching filler share. Satisfying both requires actually writing less. Both measurements are taken on UTF-8 bytes and normalize contractions, because code-point counting and apostrophes would otherwise let a size or verbosity regression pass: 17,630 code points is 17,658 UTF-8 bytes, and `can't` does not match the auxiliary `can`.",
   "primary": {
     "id": "bytes_per_rule",
     "value": "len(text.encode('utf-8')) / count(lines starting with '- ' or '| ' and longer than 40 characters)",
@@ -11,7 +11,9 @@
       "v1.3.6": 544.2,
       "note": "UTF-8 bytes. v1.3.5 is denser per rule than v1.3.4, so its byte growth was new rules rather than verbosity. The regression is v1.3.6's 474.3 -> 544.2."
     },
-    "max_bytes_per_rule": 500
+    "max_bytes_per_rule": 500,
+    "expected_rule_count": 36,
+    "rule_count_note": "Pinned. Reformatting one rule into two bullets would raise the denominator and manufacture headroom without writing less, so changing this number has to be a deliberate, reviewed edit rather than a side effect of a Markdown refactor."
   },
   "definition": {
     "tokens": "re.findall(r\"[A-Za-z][A-Za-z'-]*\", text.lower())",

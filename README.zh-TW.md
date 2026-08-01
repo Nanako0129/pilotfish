@@ -160,7 +160,7 @@ flowchart TD
 建議的路徑是先把釘選的 v1.3.6 release clone 到本機，再從該 checkout 啟動 Claude Code，讓它讀取本地 runbook：
 
 ```sh
-git clone --branch v1.3.6 --depth 1 https://github.com/Nanako0129/pilotfish.git
+git clone --branch v1.3.7 --depth 1 https://github.com/Nanako0129/pilotfish.git
 cd pilotfish
 claude
 ```

@@ -2,7 +2,7 @@
   "schema_version": 2,
   "run_date": "2026-08-02",
   "candidate_source_base_commit": "671be42966ef5ab67c3a960da452dc9ad1b66434",
-  "candidate_version": "1.3.6",
+  "candidate_version": "1.3.7",
   "claude_code": "2.1.220",
   "requested_main_model": "opus",
   "observed_main_model": "claude-opus-5",
@@ -14,7 +14,8 @@
     "policy": {
       "path": "gate-snapshot-v2/CLAUDE.md",
       "bytes": 17658,
-      "sha256": "59f18c6dd85cd92a6797bf691bb8ee1c372587b08e419991430955877d4e64ba"
+      "sha256": "84309e9b99bef4273721acc494fd4bb21a17f60278a3826658fb8918d7bc6058",
+      "gate_run_delta": "The three cells ran against sha 59f18c6d..., which differs from these bytes only in the version stamp (pilotfish v1.3.6 became v1.3.7 after the run). Orchestration text is byte-identical once that marker is normalized, matching how baton-compatibility records the v1.3.2 to v1.3.3 stamp change."
     },
     "agents": {
       "path": "gate-snapshot-v2/agents.json",
@@ -126,7 +127,7 @@
       "note": "The v1.3.6 record captured single observations without a repeat count; this record states the count."
     },
     "schema_lifecycle": {
-      "session_id": "3babf37d",
+      "session_id": "3babf37d-see-raw-streams",
       "turn_1": {
         "plan_verifier_calls": 1,
         "plan_verifier_invocation_model_present": false,
@@ -135,7 +136,7 @@
         "writes_before_approval": false,
         "stopped_for_explicit_approval": true,
         "client_reported_cost_usd": 0.4058,
-        "raw_stream_sha256": "99c080ec78b97984"
+        "raw_stream_sha256": "99c080ec78b97984e7f3fb2acc59c7a578d09adaff88811c3b8f4a8eb6759936"
       },
       "turn_2": {
         "executor_calls": 1,
@@ -145,7 +146,7 @@
         "verifier_verdict": "CONFIRMED",
         "main_session_edits": 2,
         "client_reported_cost_usd": 0.7414,
-        "raw_stream_sha256": "17d9a1503cfd6d49"
+        "raw_stream_sha256": "17d9a1503cfd6d49b3962991433469b8bc4040d64e6df41676b8b2884aa5b0c8"
       },
       "client_reported_cost_usd": 1.1472
     },
@@ -158,7 +159,8 @@
       ],
       "final_readme_sha256": "1bafe869338e9833d19a14cf90b13e5c51f68e2ab458295cfbcf65fcbb98ed30",
       "final_readme_matches_v1_3_6_gate": true,
-      "client_reported_cost_usd": 0.277042
+      "client_reported_cost_usd": 0.277042,
+      "raw_stream_sha256": "0479985e945211a321aa7b31460464c990bfb9f841fe600fdf5ef62bd914d3fd"
     },
     "post_cap_plan_control": {
       "verdicts": [
@@ -176,7 +178,12 @@
       "third_turn_recorded_new_readiness_epoch": true,
       "third_turn_was_single_closing_check": true,
       "closing_ready_was_not_approval": true,
-      "client_reported_cost_usd": 1.032214
+      "client_reported_cost_usd": 1.032214,
+      "raw_stream_sha256": [
+        "09d31c8328b60e13ed1ac0b560daddd7010f19577556ef59617b5a51c069d8f7",
+        "8cccc28a21dde6be15041654ce6fa1b6168c34639c60d03e3a7fec67e5229676",
+        "9a63d5eeb360c014845ba24900942136c45b7eb64d1b9404bd42c0c443f4107b"
+      ]
     },
     "client_reported_cost_usd": 2.456456
   },
