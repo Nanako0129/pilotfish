@@ -626,7 +626,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["release_candidate_behavioral_gate_status"],
-            "passed; exact v1.3.6 policy and shell-normalized generated payload; explicit agent opt-in; schema Plan/outcome review, routine-docs control, and post-cap closing readiness control",
+            "passed; exact compressed policy and shell-normalized generated payload; explicit agent opt-in; schema Plan/outcome review, routine-docs control, and post-cap closing readiness control re-run on 2026-08-01",
         )
         self.assertEqual(
             runtime["release_candidate_runtime_evidence"],
@@ -849,6 +849,72 @@ class PolicyContractTests(unittest.TestCase):
         for readme in ("README.md", "README.zh-TW.md"):
             content = (ROOT / readme).read_text(encoding="utf-8")
             self.assertIn(f"git clone --branch v{version} --depth 1", content)
+
+    def test_prompt_templates_stay_within_density_budget(self) -> None:
+        # The standing property from #27 is that the prompt text stays densely
+        # written, not that it stays smaller than some past tag. A byte ceiling
+        # pegged to a release would block a rule the policy genuinely needs;
+        # this measures whether new text is written at the same density as the
+        # rest. ponytail: filler-word share is a heuristic proxy for that, and a
+        # determined author could pad around the word list — swap in a real
+        # compression-ratio measurement if that ever happens in practice.
+        budget = json.loads(
+            (ROOT / "benchmarks/prompt-compression/budget.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(budget["metric"], "bytes_per_rule + filler_word_share")
+        filler = frozenset(budget["definition"]["filler_words"])
+
+        policy = ROOT / "templates/claude-md.orchestration.md"
+        text = policy.read_text(encoding="utf-8")
+        rules = [
+            line
+            for line in text.split("\n")
+            if line.startswith(("- ", "| ")) and len(line) > 40
+        ]
+        self.assertTrue(rules)
+        per_rule = len(text) / len(rules)
+        self.assertLessEqual(
+            per_rule,
+            budget["primary"]["max_bytes_per_rule"],
+            f"{policy.name}: {per_rule:.0f} bytes per rule across {len(rules)} "
+            f"rules exceeds {budget['primary']['max_bytes_per_rule']}. Adding "
+            "rules is allowed; writing them at length is not.",
+        )
+
+        def share(text: str) -> tuple[float, int]:
+            words = re.findall(r"[A-Za-z][A-Za-z'-]*", text.lower())
+            self.assertTrue(words)
+            return sum(w in filler for w in words) / len(words), len(words)
+
+        for bucket in budget["buckets"]:
+            paths = sorted(
+                path
+                for pattern in bucket["paths"]
+                for path in ROOT.glob(pattern)
+            )
+            self.assertTrue(paths, bucket["id"])
+            text = "\n".join(p.read_text(encoding="utf-8") for p in paths)
+            observed, words = share(text)
+            limit = bucket["max_filler_share"]
+            if observed > limit:
+                worst = max(
+                    (
+                        (share(para)[0], path.name, para[:70])
+                        for path in paths
+                        for para in path.read_text(encoding="utf-8").split("\n")
+                        if len(para) >= 300
+                    ),
+                    default=(0.0, "-", "-"),
+                )
+                self.fail(
+                    f"{bucket['id']}: filler share {observed:.1%} over budget "
+                    f"{limit:.1%} across {words} words in {len(paths)} file(s). "
+                    f"Densest offender {worst[0]:.1%} in {worst[1]}: {worst[2]!r}. "
+                    "Compress phrasing, never content — see "
+                    "benchmarks/prompt-compression/budget.json and #40."
+                )
 
     def test_prompt_compression_snapshot_is_evidence_bound(self) -> None:
         gate = ROOT / "benchmarks" / "prompt-compression"
