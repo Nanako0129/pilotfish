@@ -939,14 +939,25 @@ class PolicyContractTests(unittest.TestCase):
             self.assertTrue(paths, bucket["id"])
             text = "\n".join(p.read_text(encoding="utf-8") for p in paths)
             if "max_bytes_per_role" in bucket:
-                per_role = sum(p.stat().st_size for p in paths) / len(paths)
+                # Per file, not averaged: one role is loaded per dispatch, so a
+                # mean lets a large role hide behind small ones and bounds
+                # nothing about the context cost of the dispatch that loads it.
+                worst = max(paths, key=lambda p: p.stat().st_size)
                 self.assertLessEqual(
-                    per_role,
+                    worst.stat().st_size,
                     bucket["max_bytes_per_role"],
-                    f"{bucket['id']}: {per_role:.0f} bytes per role file across "
+                    f"{bucket['id']}: {worst.name} is "
+                    f"{worst.stat().st_size} bytes, over the "
+                    f"{bucket['max_bytes_per_role']} per-role ceiling.",
+                )
+                mean = sum(p.stat().st_size for p in paths) / len(paths)
+                self.assertLessEqual(
+                    mean,
+                    bucket["max_mean_bytes_per_role"],
+                    f"{bucket['id']}: {mean:.0f} mean bytes per role across "
                     f"{len(paths)} roles exceeds "
-                    f"{bucket['max_bytes_per_role']}. Adding a role is allowed; "
-                    "growing the existing ones is not.",
+                    f"{bucket['max_mean_bytes_per_role']}. Adding a role is "
+                    "allowed; growing the existing ones is not.",
                 )
             observed, words = share(text)
             limit = bucket["max_filler_share"]

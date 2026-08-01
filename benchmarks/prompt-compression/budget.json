@@ -102,8 +102,9 @@
       "combined": true,
       "max_filler_share": 0.12,
       "loaded": "per dispatched role",
-      "max_bytes_per_role": 2000,
-      "bytes_note": "Normalized per role file so adding a role stays allowed and bloating the existing ones does not. Observed: v1.3.4 1,700, v1.3.6 2,037, current 1,909. Without this the filler check alone let an agent prompt grow without limit on low-filler prose while the budget claimed to cover the whole prompt surface."
+      "max_bytes_per_role": 3800,
+      "bytes_note": "Two ceilings because they bound different costs. Only one role file is loaded per dispatch, so max_bytes_per_role is compared against EVERY file and bounds the worst-case context cost of a single dispatch; averaging would let a large role hide behind small ones, which is what an earlier revision did with verifier.md at 3,720 against a declared 2,000. max_mean_bytes_per_role bounds aggregate bloat across the set so the per-file headroom cannot be taken up by all eight. Observed per-file max: v1.3.6 3,884, current 3,720. Observed mean: v1.3.4 1,700, v1.3.6 2,037, current 1,909.",
+      "max_mean_bytes_per_role": 2000
     }
   ],
   "observed": {

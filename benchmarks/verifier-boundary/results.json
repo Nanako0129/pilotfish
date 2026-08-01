@@ -237,8 +237,46 @@
     }
   },
   "paid_campaign": {
-    "client_reported_cost_usd": 23.68,
-    "note": "Cumulative across this gate's life: the v1.3.6 baseline plus every compressed-candidate attempt, including the reverted-prohibition revisions and one quota-truncated diagnostic."
+    "client_reported_cost_usd": 25.995992,
+    "attempt_log": [
+      {
+        "policy_sha256_prefix": "59f18c6d",
+        "client_reported_cost_usd": 2.813526
+      },
+      {
+        "policy_sha256_prefix": "59f18c6d-diagnostic",
+        "client_reported_cost_usd": 0.37431
+      },
+      {
+        "policy_sha256_prefix": "59f18c6d-reproduction",
+        "client_reported_cost_usd": 1.147222
+      },
+      {
+        "policy_sha256_prefix": "69ed7ffc",
+        "client_reported_cost_usd": 2.314099
+      },
+      {
+        "policy_sha256_prefix": "6b1e8095-shipped",
+        "client_reported_cost_usd": 3.989178
+      },
+      {
+        "policy_sha256_prefix": "6f3d513b",
+        "client_reported_cost_usd": 3.99375
+      },
+      {
+        "policy_sha256_prefix": "84309e9b",
+        "client_reported_cost_usd": 2.613567
+      },
+      {
+        "policy_sha256_prefix": "8cec947e",
+        "client_reported_cost_usd": 3.589613
+      },
+      {
+        "policy_sha256_prefix": "v1_3_6_baseline",
+        "client_reported_cost_usd": 5.1607271
+      }
+    ],
+    "note": "Derived by summing every recorded run against this gate, grouped by the policy bytes it exercised, rather than carried forward as a running tally. Excludes runs that belong to other gates. An earlier revision stated 23.68 from a tally that did not match the committed records."
   },
   "superseded_v1_3_6_passing_gate": {
     "status": "passed",

@@ -11,9 +11,9 @@ Both passing controls used the README-documented opt-in:
 
 | Control | Observed routing | Acceptance | Client-reported cost |
 |---|---|---|---:|
-| Schema migration (approval gate held 2 of 2 on the shipped bytes without any added rule; full acceptance 1 of 2 — see `determinism` and `failed_attempts`) | `plan-verifier` → explicit approval stop → `executor` → primary tests → fresh `verifier` | `READY`; no pre-approval writes; only `store.mjs` and `store.test.mjs`; `CONFIRMED` | $2.20320000 |
-| Routine docs | Direct main-session edit; no Agent call | 1/1 test; only the requested README typo changed | $0.25540000 |
-| Post-cap Plan control | `plan-verifier` × 3 | `REVISE` → `REVISE` → material ownership fix/new epoch → closing `READY`; zero writes | $1.13100000 |
+| Schema migration (approval gate held 2 of 2 on the shipped bytes without any added rule; full acceptance 1 of 2 — see `determinism` and `failed_attempts`) | `plan-verifier` → explicit approval stop → `executor` → primary tests → fresh `verifier` | `READY`; no pre-approval writes; only `store.mjs` and `store.test.mjs`; `CONFIRMED` | $1.31870000 |
+| Routine docs | Direct main-session edit; no Agent call | 1/1 test; only the requested README typo changed | $0.27960000 |
+| Post-cap Plan control | `plan-verifier` × 3 | `REVISE` → `REVISE` → material ownership fix/new epoch → closing `READY`; zero writes | $1.08990000 |
 
 The exact candidate therefore reached both sides of the independent-review
 boundary under explicit agent opt-in: the serialization change received Plan
@@ -25,7 +25,7 @@ and both review roles resolved to Opus 5; `executor` resolved to Sonnet 5.
 The current passing controls reported $2.688200 against the v1.3.7 compressed policy. The schema cell is not deterministic: it reproduced on one of two attempts against byte-identical inputs, and the non-reproducing attempt is recorded under `failed_attempts`. Including the earlier candidate Gate, the disclosed
 operator-policy failure, the zero-cost quota failure, the non-reproducing schema
 attempt, and the diagnostic that the weekly limit truncated, the full campaign
-reported $23.68; `results.json` carries the breakdown.
+reported $25.996; `results.json` carries the breakdown.
 
 This is not a cue-free claim. On this tested Claude Code account, a
 higher-priority operator contract prohibited Agent calls unless the user
