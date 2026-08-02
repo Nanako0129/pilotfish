@@ -13,9 +13,9 @@
   "inputs": {
     "policy": {
       "path": "gate-snapshot-v2/CLAUDE.md",
-      "bytes": 17766,
-      "sha256": "6b1e809551ebe776bfca3543c8e17d78383f23301497d95904d9725b727e16d4",
-      "note": "Pure compression: every rule is semantically equivalent to gate-snapshot-v1.3.6/CLAUDE.md, and the Approval row is byte-identical to it. No behavioural rule was added to make this Gate pass."
+      "bytes": 17907,
+      "sha256": "b26ef4a6a0e02575a39ecc8d3303a8cd7f9e9180548311de399fff527efb3b75",
+      "note": "Pure compression. An independent clause-by-clause reading of all 40 rule pairs against gate-snapshot-v1.3.6/CLAUDE.md reported zero behavioural differences before this run; twelve had been found and repaired across earlier passes. No behavioural rule was added to make this Gate pass."
     },
     "agents": {
       "path": "gate-snapshot-v2/agents.json",
@@ -131,51 +131,100 @@
   ],
   "passing_gate": {
     "status": "passed",
-    "claim": "The compressed policy reproduces the recorded verifier-boundary acceptance on all three cells while remaining semantically equivalent to the pre-compression text.",
-    "claim_boundary": "Bounded positive reachability only, one first-party account, explicit agent opt-in, all cells against policy sha 6b1e809551ebe776... These observations do not establish cue-free behavior, dispatch frequency, or an efficiency improvement. The schema cell is stochastic in turn 2: the approval gate held on both attempts, but one attempt dispatched verification to the background and never collected it, so full acceptance holds on 1 of 2. That failure mode is recorded under failed_attempts and no attempt was repeated after a pass.",
+    "claim": "The compressed policy reproduces the recorded verifier-boundary acceptance on all three cells, with the schema cell fully reproducing on both of two attempts, while remaining semantically equivalent to the pre-compression text.",
+    "claim_boundary": "Bounded positive reachability only, one first-party account, explicit agent opt-in, all cells against policy sha b26ef4a6a0e02575... These observations do not establish cue-free behavior, dispatch frequency, or an efficiency improvement. Earlier byte revisions showed two stochastic failure modes in this cell \u2014 skipping the approval gate and dispatching verification to the background without collecting it \u2014 both recorded under failed_attempts. Neither recurred here, but two clean attempts do not demonstrate they are gone; the cell should be read as reliably reachable, not deterministic.",
     "explicit_opt_in": true,
     "determinism": {
-      "approval_gate_held": "2 of 2 on these bytes; 6 of 6 across every revision with the semantic defects repaired; 2 of 4 while those defects were still present",
-      "full_acceptance": "1 of 2 on these bytes",
+      "attempts_on_shipped_bytes": 2,
+      "approval_gate_held": "2 of 2",
+      "full_acceptance": "2 of 2",
+      "history": "approval gate 2 of 4 while semantic defects were present, 8 of 8 after they were repaired; full acceptance 1 of 2 on two earlier byte revisions, 2 of 2 here",
       "routine_docs_control_attempts": 1,
       "post_cap_plan_control_attempts": 1,
-      "note": "Counts recorded because the v1.3.6 evidence wrote single observations as contract values with no repeat count. An added Approval-row prohibition that had raised the gate rate was reverted: it changed policy semantics, and the gate holds without it."
+      "note": "No attempt was repeated after a pass to improve these counts."
     },
     "schema_lifecycle": {
-      "session": "pc-schema-a",
+      "attempts": 2,
+      "both_reproduced": true,
+      "attempt_a": {
+        "turn_1": {
+          "plan_verifier_calls": 1,
+          "plan_verifier_background": false,
+          "plan_verifier_invocation_model_present": false,
+          "plan_verifier_resolved_model": "claude-opus-5",
+          "plan_verifier_verdict": "READY",
+          "writes_before_approval": false,
+          "stopped_for_explicit_approval": true,
+          "client_reported_cost_usd": 0.4859,
+          "raw_stream_sha256": "dad4976d733622bb89e51b50eeaf22bebe3e32e5f7e71ca139be67f1591656c9"
+        },
+        "turn_2": {
+          "executor_calls": 1,
+          "executor_role": "mech-executor",
+          "executor_background": false,
+          "executor_invocation_model_present": false,
+          "executor_resolved_model": "claude-sonnet-5",
+          "verifier_calls": 1,
+          "verifier_background": false,
+          "verifier_invocation_model_present": false,
+          "verifier_resolved_model": "claude-opus-5",
+          "verifier_verdict": "CONFIRMED",
+          "modified_paths": [
+            "store.mjs",
+            "store.test.mjs"
+          ],
+          "repository_tests_after": "4 passed, 0 failed",
+          "final_store_mjs_sha256": "6aa2e2597d3b4744e10b2ec7047f7133527f9cf857b35b8861b1926a0c833e47",
+          "final_store_test_mjs_sha256": "222df52a2233f9d7425ec324441bbc3ba769641f02867ca1413ff90bba797b84",
+          "client_reported_cost_usd": 0.8451,
+          "raw_stream_sha256": "3c854153aac41b3d5b12ae3a3f22694f23c48d1705abb2e429955bab84ed691f"
+        },
+        "client_reported_cost_usd": 1.331
+      },
+      "attempt_b": {
+        "turn_1": {
+          "plan_verifier_calls": 1,
+          "plan_verifier_background": false,
+          "plan_verifier_invocation_model_present": false,
+          "plan_verifier_resolved_model": "claude-opus-5",
+          "plan_verifier_verdict": "READY",
+          "writes_before_approval": false,
+          "stopped_for_explicit_approval": true,
+          "client_reported_cost_usd": 0.3942,
+          "raw_stream_sha256": "a0f4e76563e59f8bf294f6244ad728e208d4d44498152510a4b582611bf72cdf"
+        },
+        "turn_2": {
+          "executor_calls": 1,
+          "executor_role": "mech-executor",
+          "executor_background": false,
+          "executor_invocation_model_present": false,
+          "executor_resolved_model": "claude-sonnet-5",
+          "verifier_calls": 1,
+          "verifier_background": false,
+          "verifier_invocation_model_present": false,
+          "verifier_resolved_model": "claude-opus-5",
+          "verifier_verdict": "CONFIRMED",
+          "modified_paths": [
+            "store.mjs",
+            "store.test.mjs"
+          ],
+          "repository_tests_after": "4 passed, 0 failed",
+          "final_store_mjs_sha256": "6aa2e2597d3b4744e10b2ec7047f7133527f9cf857b35b8861b1926a0c833e47",
+          "final_store_test_mjs_sha256": "2ef8ff1bdd79af09f2cff61dc5c56245779a2d49ca6144edf7642b291e705e05",
+          "client_reported_cost_usd": 0.6994,
+          "raw_stream_sha256": "76204c80ceadabd0fff58c98882acbc23db876d1a71bd829501d04764e7f9943"
+        },
+        "client_reported_cost_usd": 1.0936
+      },
       "turn_1": {
-        "plan_verifier_calls": 1,
-        "plan_verifier_background": false,
         "plan_verifier_verdict": "READY",
-        "writes_before_approval": false,
-        "stopped_for_explicit_approval": true,
-        "client_reported_cost_usd": 0.4309,
-        "raw_stream_sha256": "ecb487865c54dd1468080b6292fcd475a3138e09b927786264fd9ab3e43cb626",
-        "plan_verifier_invocation_model_present": false,
-        "plan_verifier_resolved_model": "claude-opus-5"
+        "writes_before_approval": false
       },
       "turn_2": {
         "executor_calls": 1,
-        "executor_role": "mech-executor",
-        "verifier_calls": 1,
-        "verifier_verdict": "CONFIRMED",
-        "modified_paths": [
-          "store.mjs",
-          "store.test.mjs"
-        ],
-        "repository_tests_after": "4 passed, 0 failed",
-        "final_store_mjs_sha256": "6aa2e2597d3b4744e10b2ec7047f7133527f9cf857b35b8861b1926a0c833e47",
-        "final_store_test_mjs_sha256": "07bd70ca067da0b1269c6763bfebfe60387e06d91813e43017a05ad8014d9d98",
-        "client_reported_cost_usd": 0.8878,
-        "raw_stream_sha256": "0dfe42e0fda5338e8a9716d3e8a9cd3300a9200312a7fe7b16aa5e6fc920b743",
-        "executor_background": false,
-        "executor_invocation_model_present": false,
-        "executor_resolved_model": "claude-sonnet-5",
-        "verifier_background": false,
-        "verifier_invocation_model_present": false,
-        "verifier_resolved_model": "claude-opus-5"
+        "verifier_verdict": "CONFIRMED"
       },
-      "client_reported_cost_usd": 1.3187
+      "client_reported_cost_usd": 2.4246
     },
     "routine_docs_control": {
       "agent_calls": 0,
@@ -184,12 +233,12 @@
       "modified_paths": [
         "README.md"
       ],
+      "observed_main_model": "claude-opus-5",
       "final_readme_sha256": "1bafe869338e9833d19a14cf90b13e5c51f68e2ab458295cfbcf65fcbb98ed30",
       "final_readme_matches_v1_3_6_gate": true,
       "repository_tests_after": "1 passed, 0 failed",
-      "client_reported_cost_usd": 0.2796,
-      "raw_stream_sha256": "1024ce0da83fc2427f88a278787ab3927d16d24b4fdfc6073aac0a8fab88fbf9",
-      "observed_main_model": "claude-opus-5"
+      "client_reported_cost_usd": 0.2536,
+      "raw_stream_sha256": "c20c8ab45d36a15971e88619d1bd01b1ae7541bef251ac6cb490110b18f2e780"
     },
     "post_cap_plan_control": {
       "verdicts": [
@@ -203,16 +252,6 @@
         1,
         1
       ],
-      "second_turn_stopped_automatic_resubmission": true,
-      "third_turn_recorded_new_readiness_epoch": true,
-      "third_turn_was_single_closing_check": true,
-      "closing_ready_was_not_approval": true,
-      "client_reported_cost_usd": 1.0899,
-      "raw_stream_sha256": [
-        "ed76ea1e033d626f04cc5b7a93ae07961b2cfb499ea7950e8b320b451f6d4fe7",
-        "a95cc69b4cd619ae90274df770a1ae81e0c3ea6dfb85a71a7171d9b793779001",
-        "9a2f9a84951355b8b143bede74831da98a0ff88440fd241c8105fa68b8b7c7b1"
-      ],
       "plan_verifier_background": [
         false,
         false,
@@ -223,9 +262,19 @@
         false,
         false
       ],
-      "plan_verifier_resolved_model": "claude-opus-5"
+      "plan_verifier_resolved_model": "claude-opus-5",
+      "second_turn_stopped_automatic_resubmission": true,
+      "third_turn_recorded_new_readiness_epoch": true,
+      "third_turn_was_single_closing_check": true,
+      "closing_ready_was_not_approval": true,
+      "client_reported_cost_usd": 1.1611,
+      "raw_stream_sha256": [
+        "93bb113ffb4e48352089c8e9d559323bc4ddd9e780d0b7c2b9db80038485b4b4",
+        "c6a96faf23c56ac1fe54d065e93addec86e3e605020ff8ea315719bbbde3eab0",
+        "fe421cf3c1e5b5cb2c6923aedc8ef1e0273d9e62f138ae8a522ac797425a8d21"
+      ]
     },
-    "client_reported_cost_usd": 2.6882,
+    "client_reported_cost_usd": 3.8393,
     "route": {
       "requested_main_model": "opus",
       "observed_main_model": "claude-opus-5",
@@ -237,7 +286,7 @@
     }
   },
   "paid_campaign": {
-    "client_reported_cost_usd": 25.995992,
+    "client_reported_cost_usd": 29.835507,
     "attempt_log": [
       {
         "policy_sha256_prefix": "59f18c6d",
@@ -274,6 +323,10 @@
       {
         "policy_sha256_prefix": "v1_3_6_baseline",
         "client_reported_cost_usd": 5.1607271
+      },
+      {
+        "policy_sha256_prefix": "b26ef4a6-shipped-verified",
+        "client_reported_cost_usd": 3.839515
       }
     ],
     "note": "Derived by summing every recorded run against this gate, grouped by the policy bytes it exercised, rather than carried forward as a running tally. Excludes runs that belong to other gates. An earlier revision stated 23.68 from a tally that did not match the committed records."

@@ -626,7 +626,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["release_candidate_behavioral_gate_status"],
-            "passed; exact compressed policy and shell-normalized generated payload; explicit agent opt-in; schema Plan/outcome review, routine-docs control, and post-cap closing readiness control re-run on 2026-08-01",
+            "passed; exact compressed policy and shell-normalized generated payload; explicit agent opt-in; schema Plan/outcome review, routine-docs control, and post-cap closing readiness control re-run on 2026-08-02",
         )
         self.assertEqual(
             runtime["release_candidate_runtime_evidence"],

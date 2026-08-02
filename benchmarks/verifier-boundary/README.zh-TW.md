@@ -10,19 +10,19 @@
 
 | Control | 觀察到的 routing | Acceptance | Client-reported cost |
 |---|---|---|---:|
-| Schema migration | `plan-verifier` → 明確 approval stop → `executor` → primary tests → fresh `verifier` | `READY`；批准前零寫入；5/5 tests；只改 `store.mjs` 與 `store.test.mjs`；`CONFIRMED` | $1.31870000 |
-| Routine docs | Main session 直接修改；沒有 Agent call | 1/1 test；只修指定的 README typo | $0.27960000 |
-| Post-cap Plan control | `plan-verifier` × 3 | `REVISE` → `REVISE` → ownership fix／new epoch → closing `READY`；零寫入 | $1.08990000 |
+| Schema migration | `plan-verifier` → 明確 approval stop → `mech-executor` → primary tests → fresh `verifier` | `READY`；批准前零寫入；4/4 tests；只改 `store.mjs` 與 `store.test.mjs`；`CONFIRMED` | $2.42460000 |
+| Routine docs | Main session 直接修改；沒有 Agent call | 1/1 test；只修指定的 README typo | $0.25360000 |
+| Post-cap Plan control | `plan-verifier` × 3 | `REVISE` → `REVISE` → ownership fix／new epoch → closing `READY`；零寫入 | $1.16110000 |
 
 因此，exact candidate 在明確 agent opt-in 下到達 independent-review boundary
 兩側：serialization change 有 Plan 與 outcome review，routine docs 維持直接
 處理，user-directed 三回合 Plan control 則在兩次 `REVISE` 後停止，接著只做
 一次 closing check。所有 Agent call 都未傳 invocation-level model
-override。Main session 與兩個 review role 是 Opus 5；`executor` 是 Sonnet 5。
+override。Main session 與兩個 review role 是 Opus 5；`mech-executor` 是 Sonnet 5。
 
-目前 passing controls 對 v1.3.7 壓縮後政策 reported $2.688200。schema cell 並非決定性：在位元組相同的輸入上兩次嘗試中重現一次，未重現的那次記錄在 `failed_attempts`。加上較早的 candidate Gate、公開的 operator-policy failure、零成本
+目前 passing controls 對 v1.3.7 壓縮後政策 reported $3.839515。schema cell 並非決定性：在位元組相同的輸入上兩次嘗試中重現一次，未重現的那次記錄在 `failed_attempts`。加上較早的 candidate Gate、公開的 operator-policy failure、零成本
 quota failure、未重現的那次 schema 嘗試，以及被週額度截斷的診斷，完整 campaign
-reported $25.996；明細記在 `results.json`。
+reported $29.836；明細記在 `results.json`。
 
 這不是 cue-free 宣稱。這個 Claude Code account 有較高優先級的 operator
 contract：使用者沒有明確要求時禁止 Agent call。因此 neutral schema prompt
@@ -33,7 +33,7 @@ contract：使用者沒有明確要求時禁止 Agent call。因此 neutral sche
 
 | Input | SHA-256 |
 |---|---|
-| [`gate-snapshot-v2/CLAUDE.md`](./gate-snapshot-v2/CLAUDE.md) | `6b1e809551ebe776bfca3543c8e17d78383f23301497d95904d9725b727e16d4` |
+| [`gate-snapshot-v2/CLAUDE.md`](./gate-snapshot-v2/CLAUDE.md) | `b26ef4a6a0e02575a39ecc8d3303a8cd7f9e9180548311de399fff527efb3b75` |
 | [`gate-snapshot-v2/agents.json`](./gate-snapshot-v2/agents.json) file bytes | `e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f` |
 | `agents.json` shell-normalized runtime input | `b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc` |
 
