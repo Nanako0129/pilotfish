@@ -24,6 +24,11 @@
         "prompt": "Repo: <fixture-root>.\n\nGOAL\nUpdate normalize(record) in each of the 12 modules in src/adapters/ so it returns a new object that preserves all fields, trims record.label, and maps enabled to true only for boolean true or string true.\n\nSCOPE AND OWNERSHIP\nThe worker exclusively owns src/adapters/{alpha,bravo,charlie,delta,echo,foxtrot,golf,hotel,india,juliet,kilo,lima}.js. No other file may change.\n\nCONSTRAINTS\nKeep each module self-contained, add no helper or import, preserve the named export, do not edit tests, do not mutate record, and use the supplied identical target body.\n\nDONE\nAll 12 files contain the target body and npm test passes. Report pass/fail counts and the changed-file count."
       }
     ],
-    "opus-v1.3.1-release-payload-bug": []
+    "opus-v1.3.1-release-payload-bug": [],
+    "v1.3.7-cue-free-schema-a-turn-1": [],
+    "v1.3.7-cue-free-schema-a-turn-2": [],
+    "v1.3.7-cue-free-schema-b-turn-1": [],
+    "v1.3.7-cue-free-schema-b-turn-2": [],
+    "v1.3.7-cue-free-routine-docs": []
   }
 }

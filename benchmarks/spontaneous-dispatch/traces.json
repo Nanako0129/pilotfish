@@ -125,6 +125,72 @@
       "changed_path": "src/reducer.js",
       "independent_post_run_test_passed": true,
       "note": "The current release payload kept the contiguous diagnosis, first minimal fix, and 2/2 post-fix test in the Opus main session."
+    },
+    "v1.3.7-cue-free-schema-a-turn-1": {
+      "top_level_tools": [
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Bash",
+        "Write",
+        "Write",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Write",
+        "Write"
+      ],
+      "agent_calls": [],
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made."
+    },
+    "v1.3.7-cue-free-schema-a-turn-2": {
+      "top_level_tools": [
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [],
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made."
+    },
+    "v1.3.7-cue-free-schema-b-turn-1": {
+      "top_level_tools": [
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Edit",
+        "Write",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Edit",
+        "Write"
+      ],
+      "agent_calls": [],
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made."
+    },
+    "v1.3.7-cue-free-schema-b-turn-2": {
+      "top_level_tools": [
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [],
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made."
+    },
+    "v1.3.7-cue-free-routine-docs": {
+      "top_level_tools": [
+        "Bash",
+        "Read",
+        "Edit",
+        "Read",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Edit"
+      ],
+      "agent_calls": [],
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made."
     }
   }
 }
