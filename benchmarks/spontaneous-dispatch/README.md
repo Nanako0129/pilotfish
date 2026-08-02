@@ -123,7 +123,10 @@ Run the routine control in a fresh disposable copy with a new session ID, `--max
 
 Recompute the fixture digest with:
 
+Run this from the source checkout, not from `$WORK` — the preceding block leaves the shell inside the disposable copy, where the relative path finds no files and prints the digest of an empty manifest:
+
 ```bash
+cd "$SOURCE"
 python3 - <<'EOF'
 import hashlib, pathlib
 fx = pathlib.Path("benchmarks/verifier-boundary/fixture")

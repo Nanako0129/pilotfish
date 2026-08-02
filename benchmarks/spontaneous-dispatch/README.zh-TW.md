@@ -123,7 +123,10 @@ routine control 在另一份全新的拋棄式複本執行，使用新的 sessio
 
 重算 fixture digest：
 
+請在原始 checkout 執行，不要在 `$WORK` ——上一個區塊會把 shell 留在拋棄式複本裡，該處相對路徑找不到任何檔案，會印出空 manifest 的 digest：
+
 ```bash
+cd "$SOURCE"
 python3 - <<'EOF'
 import hashlib, pathlib
 fx = pathlib.Path("benchmarks/verifier-boundary/fixture")

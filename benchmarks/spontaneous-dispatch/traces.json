@@ -142,7 +142,12 @@
         "Write"
       ],
       "agent_calls": [],
-      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made."
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made.",
+      "top_level_bash_actions": [
+        "list the repository and read README",
+        "grep the encode/decode call sites and version handling",
+        "run the repository test command"
+      ]
     },
     "v1.3.7-cue-free-schema-a-turn-2": {
       "top_level_tools": [
@@ -150,7 +155,20 @@
       ],
       "top_level_source_write_tools": [],
       "agent_calls": [],
-      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made."
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made.",
+      "top_level_bash_actions": [
+        "inspect final diff scope and re-run the repository test command"
+      ],
+      "acceptance": {
+        "tests_after": "4 passed, 0 failed",
+        "changed_paths": [
+          "store.mjs",
+          "store.test.mjs"
+        ],
+        "final_store_mjs_sha256": "6aa2e2597d3b4744e10b2ec7047f7133527f9cf857b35b8861b1926a0c833e47",
+        "final_store_test_mjs_sha256": "e321b6573c2101acf2f006a2279fd47c61477e5d7ddaa51c91f856921bb33395",
+        "readme_unchanged_sha256": "053d459251adb6074f420e3f72f813e9fcc8a31eefb7ab1f947c756afb70df9e"
+      }
     },
     "v1.3.7-cue-free-schema-b-turn-1": {
       "top_level_tools": [
@@ -168,7 +186,11 @@
         "Write"
       ],
       "agent_calls": [],
-      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made."
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made.",
+      "top_level_bash_actions": [
+        "list the repository tree",
+        "run the repository test command"
+      ]
     },
     "v1.3.7-cue-free-schema-b-turn-2": {
       "top_level_tools": [
@@ -176,7 +198,20 @@
       ],
       "top_level_source_write_tools": [],
       "agent_calls": [],
-      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made."
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made.",
+      "top_level_bash_actions": [
+        "inspect the diff stat and the two changed files"
+      ],
+      "acceptance": {
+        "tests_after": "4 passed, 0 failed",
+        "changed_paths": [
+          "store.mjs",
+          "store.test.mjs"
+        ],
+        "final_store_mjs_sha256": "6dd3f968dd3a095c46ba26b9412a64c768cd3862a1d753e8069f458a1ad7d968",
+        "final_store_test_mjs_sha256": "d87435e4eb584bbeeb18561c9665f8d8dfa2928287865120e1d3130ac1ac7120",
+        "readme_unchanged_sha256": "053d459251adb6074f420e3f72f813e9fcc8a31eefb7ab1f947c756afb70df9e"
+      }
     },
     "v1.3.7-cue-free-routine-docs": {
       "top_level_tools": [
@@ -190,7 +225,23 @@
         "Edit"
       ],
       "agent_calls": [],
-      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made."
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made.",
+      "top_level_bash_actions": [
+        "list the repository",
+        "run the repository test command"
+      ],
+      "acceptance": {
+        "tests_after": "1 passed, 0 failed",
+        "changed_paths": [
+          "README.md"
+        ],
+        "final_readme_sha256": "1bafe869338e9833d19a14cf90b13e5c51f68e2ab458295cfbcf65fcbb98ed30",
+        "final_readme_matches_explicit_arm": true,
+        "source_unchanged": {
+          "store_mjs_sha256": "84cce7009177d0817e417052da73810696727515f0c53daf0c0ac6ddbf168a18",
+          "store_test_mjs_sha256": "73cf0fb1ae65995f8018d396614095a91d0cbda99796816978103664549962a6"
+        }
+      }
     }
   }
 }
