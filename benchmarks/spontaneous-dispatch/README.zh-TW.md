@@ -104,6 +104,10 @@ Negative cell 改複製 `benchmarks/dispatch-brake/fixture`、讀取 [`prompts/b
 
 二取一不是發生率，兩次 attempt 也無法把方案效應和 run-to-run 變異分開。兩個 cue-free 樹另外還差一個檔案：Pro 那組追蹤了一份 `agents.json`，Max 那組沒有。這個差異連同它的方向記在 `cue_free.tree_difference_between_plans`——Pro 樹裡的委派詞彙嚴格較多，卻仍然完全沒有委派，所以移除它無法解釋 Max 的結果；但兩臂的任務脈絡並非逐位元組相同，這個 matrix 也不建立因果。
 
+這個限制只涉及方案比較。有 cue 對無 cue 那組是配對的：兩個 Pro 臂都從完全相同的 baseline tree `fd81141c…` 出發，含 `agents.json`，所以該檔案在那裡是共用常數，委派句仍是唯一的介入。另外請注意 [`../verifier-boundary/README.md`](../verifier-boundary/README.zh-TW.md) 記載的做法是把 `agents.json` 從外部傳入；實際記錄的 run 是把它追蹤進樹，該 README 現已載明此事。細節見 `cue_free.pro_arms_share_one_tree`。
+
+本 matrix 每個 run 也都把自己的 stream capture 以未追蹤檔案寫進 run 目錄，因此已提交的 baseline tree 並不完全等於 session 看得到的全部脈絡。在那唯一一次有委派的 run 裡，沒有任何被記錄的 tool call 讀過那些位元組——`ls -la`、`git status` 與 `git ls-files --others` 只會列出檔名，沒有任何指令讀取內容——但 `plan-verifier` subagent 自己的 tool call 不會出現在 parent stream，所以對它無法做出同樣陳述。這些檔案在兩臂與兩個方案都同樣存在。記在 `input_contract.tree_binding.untracked_stream_captures`，連同往後的修正做法：把 capture 寫到拋棄式 repo 之外。
+
 它的 prompt 在 [`../verifier-boundary/prompts/`](../verifier-boundary/prompts/)，不在本 benchmark 的 `prompts/`；fixture 是 [`../verifier-boundary/fixture`](../verifier-boundary/fixture)，由 matrix 記錄的 digest 綁定。schema cell 是兩輪、需要 resume session，因此不像上面較舊的 cell 使用 `--no-session-persistence`。
 
 ### 重現

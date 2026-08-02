@@ -49,6 +49,17 @@ passing candidate；它是 historical evidence，不是目前 installable payloa
 分別把 `fixture/` 複製成 schema 與 routine 的 disposable Git repo，把
 `gate-snapshot-v2/CLAUDE.md` 放進各自 repo root 並提交 clean baseline，再執行：
 
+> **已記錄的 run 實際追蹤了什麼。** 下面的指令把
+> `gate-snapshot-v2/agents.json` 直接傳給 `--agents`，不複製進 repo，這是全新重跑
+> 應該採用的形狀。但 [`results.json`](./results.json) 的 `passing_gate` 所記錄的
+> run 確實有複製並 commit 它：它們的 baseline tree 是
+> `fd81141c7bb17fdf9c688150b7dde2cb9f4afd40`，除了 `CLAUDE.md` 與四個 fixture
+> 檔案之外還追蹤 `agents.json`。因此用下面的區塊重跑，得到的 baseline tree 會與
+> 已記錄的那份不同。當這些已記錄的 run 被拿來當成某個比較的一臂時，這點很重要
+> ——見 [`../spontaneous-dispatch/results.json`](../spontaneous-dispatch/results.json)
+> 的 `cue_free.pro_arms_share_one_tree`，該處被比較的兩臂共用這棵完全相同的樹，
+> 該檔案是比較的常數，而不是兩臂之間的差異。
+
 ```bash
 SOURCE="$(git rev-parse --show-toplevel)"
 SNAPSHOT="$SOURCE/benchmarks/verifier-boundary/gate-snapshot-v2"
