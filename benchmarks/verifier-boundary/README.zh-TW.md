@@ -10,19 +10,19 @@
 
 | Control | 觀察到的 routing | Acceptance | Client-reported cost |
 |---|---|---|---:|
-| Schema migration | `plan-verifier` → 明確 approval stop → `executor` → primary tests → fresh `verifier` | `READY`；批准前零寫入；5/5 tests；只改 `store.mjs` 與 `store.test.mjs`；`CONFIRMED` | $1.49902485 |
-| Routine docs | Main session 直接修改；沒有 Agent call | 1/1 test；只修指定的 README typo | $0.32835250 |
-| Post-cap Plan control | `plan-verifier` × 3 | `REVISE` → `REVISE` → ownership fix／new epoch → closing `READY`；零寫入 | $0.99777300 |
+| Schema migration | `plan-verifier` → 明確 approval stop → `mech-executor` → primary tests → fresh `verifier` | `READY`；批准前零寫入；4/4 tests；只改 `store.mjs` 與 `store.test.mjs`；`CONFIRMED` | $2.42460000 |
+| Routine docs | Main session 直接修改；沒有 Agent call | 1/1 test；只修指定的 README typo | $0.25360000 |
+| Post-cap Plan control | `plan-verifier` × 3 | `REVISE` → `REVISE` → ownership fix／new epoch → closing `READY`；零寫入 | $1.16110000 |
 
 因此，exact candidate 在明確 agent opt-in 下到達 independent-review boundary
 兩側：serialization change 有 Plan 與 outcome review，routine docs 維持直接
 處理，user-directed 三回合 Plan control 則在兩次 `REVISE` 後停止，接著只做
 一次 closing check。所有 Agent call 都未傳 invocation-level model
-override。Main session 與兩個 review role 是 Opus 5；`executor` 是 Sonnet 5。
+override。Main session 與兩個 review role 是 Opus 5；`mech-executor` 是 Sonnet 5。
 
-目前 passing controls reported $2.82515035。加上較早的 candidate Gate、公開的
-operator-policy failure 與零成本 quota failure，完整 campaign reported
-$5.16072710。
+目前 passing controls 對 v1.3.7 壓縮後政策 reported $3.83951475。schema cell 對出貨位元組兩次嘗試全部完整重現。較早位元組版本上出現過的兩種失敗模式未再發生，仍保留在 `failed_attempts` 作為歷史脈絡。加上較早的 candidate Gate、公開的 operator-policy failure、零成本
+quota failure、未重現的那次 schema 嘗試，以及被週額度截斷的診斷，完整 campaign
+reported $29.8355；明細記在 `results.json`。
 
 這不是 cue-free 宣稱。這個 Claude Code account 有較高優先級的 operator
 contract：使用者沒有明確要求時禁止 Agent call。因此 neutral schema prompt
@@ -33,9 +33,9 @@ contract：使用者沒有明確要求時禁止 Agent call。因此 neutral sche
 
 | Input | SHA-256 |
 |---|---|
-| [`gate-snapshot-v2/CLAUDE.md`](./gate-snapshot-v2/CLAUDE.md) | `ae771c9b43ad985f7ad1e520cd6e021c69e13aac3bd6a60a8edacd1d386f0e82` |
-| [`gate-snapshot-v2/agents.json`](./gate-snapshot-v2/agents.json) file bytes | `8df823840683dc65c6528ce568d35d0c14deee5a0290db532bdca63b3885a0a7` |
-| `agents.json` shell-normalized runtime input | `e5e7fa1595c2231f6954f86720c734ab064ce901ab141c3e6431d07dd4335123` |
+| [`gate-snapshot-v2/CLAUDE.md`](./gate-snapshot-v2/CLAUDE.md) | `b26ef4a6a0e02575a39ecc8d3303a8cd7f9e9180548311de399fff527efb3b75` |
+| [`gate-snapshot-v2/agents.json`](./gate-snapshot-v2/agents.json) file bytes | `e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f` |
+| `agents.json` shell-normalized runtime input | `b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc` |
 
 Disposable baseline 在 [`fixture/`](./fixture/)；neutral 與 explicit prompts
 在 [`prompts/`](./prompts/)；`results.json` 以 hash 綁定每個 prompt 與 raw

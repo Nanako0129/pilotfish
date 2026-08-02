@@ -619,14 +619,14 @@ class PolicyContractTests(unittest.TestCase):
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
         self.assertEqual(runtime["release_candidate_version"], version)
-        self.assertEqual(version, "1.3.6")
+        self.assertEqual(version, "1.3.7")
         self.assertEqual(
             runtime["release_candidate_generated_by"],
             "benchmarks/baton-compatibility/build-agents-json.py templates/agents",
         )
         self.assertEqual(
             runtime["release_candidate_behavioral_gate_status"],
-            "passed; exact v1.3.6 policy and shell-normalized generated payload; explicit agent opt-in; schema Plan/outcome review, routine-docs control, and post-cap closing readiness control",
+            "passed; exact compressed policy and shell-normalized generated payload; explicit agent opt-in; schema Plan/outcome review, routine-docs control, and post-cap closing readiness control re-run on 2026-08-02",
         )
         self.assertEqual(
             runtime["release_candidate_runtime_evidence"],
@@ -849,6 +849,135 @@ class PolicyContractTests(unittest.TestCase):
         for readme in ("README.md", "README.zh-TW.md"):
             content = (ROOT / readme).read_text(encoding="utf-8")
             self.assertIn(f"git clone --branch v{version} --depth 1", content)
+
+    def test_prompt_templates_stay_within_density_budget(self) -> None:
+        # The standing property from #27 is that the prompt text stays densely
+        # written, not that it stays smaller than some past tag. A byte ceiling
+        # pegged to a release would block a rule the policy genuinely needs;
+        # this measures whether new text is written at the same density as the
+        # rest. ponytail: filler-word share is a heuristic proxy for that, and a
+        # determined author could pad around the word list — swap in a real
+        # compression-ratio measurement if that ever happens in practice.
+        budget = json.loads(
+            (ROOT / "benchmarks/prompt-compression/budget.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        self.assertEqual(budget["metric"], "bytes_per_rule + filler_word_share")
+        filler = frozenset(budget["definition"]["filler_words"])
+
+        policy = ROOT / "templates/claude-md.orchestration.md"
+        text = policy.read_text(encoding="utf-8")
+        rules = [
+            line
+            for line in text.split("\n")
+            if line.startswith(("- ", "| ")) and len(line) > 40
+        ]
+        self.assertEqual(
+            len(rules),
+            budget["primary"]["expected_rule_count"],
+            "rule count changed; splitting a rule across bullets inflates the "
+            "denominator and manufactures budget headroom. If the change is "
+            "deliberate, update expected_rule_count in budget.json in the same "
+            "review.",
+        )
+        # UTF-8 bytes, not code points: the metric is named in bytes and that is
+        # what a session pays for. Counting code points would let a few
+        # multi-byte characters push the real size over an apparently passing
+        # budget.
+        per_rule = len(policy.read_bytes()) / len(rules)
+        self.assertLessEqual(
+            per_rule,
+            budget["primary"]["max_bytes_per_rule"],
+            f"{policy.name}: {per_rule:.0f} bytes per rule across {len(rules)} "
+            f"rules exceeds {budget['primary']['max_bytes_per_rule']}. Adding "
+            "rules is allowed; writing them at length is not.",
+        )
+
+        irregular = budget["definition"]["irregular_contractions"]
+        suffixes = {
+            k: v
+            for k, v in budget["definition"]["contraction_suffixes"].items()
+            if not v.startswith("<")
+        }
+
+        def is_filler(word: str) -> bool:
+            # A contraction is the auxiliary wearing an apostrophe. Splitting on
+            # the apostrophe alone only resolves "can't"; "don't" becomes "don",
+            # which is in no word list, so the filler would hide behind
+            # punctuation instead of being written out.
+            if word in filler:
+                return True
+            if word in irregular:
+                return irregular[word] in filler
+            if word.endswith("n't") and word[:-3] in filler:
+                return True
+            # Positive contractions hide the auxiliary after the apostrophe:
+            # "we're" is "we" + "are", and only the stem would be inspected
+            # otherwise, so swapping expanded forms for contractions would
+            # lower the share without removing any filler.
+            for suffix, auxiliary in suffixes.items():
+                if word.endswith(suffix) and auxiliary in filler:
+                    return True
+            return "'" in word and word.split("'")[0] in filler
+
+        def share(text: str) -> tuple[float, int]:
+            # Fold the typographic apostrophe first: with U+2019, "don’t"
+            # tokenizes as "don" + "t" and the auxiliary disappears from the
+            # count, so swapping punctuation alone would buy budget headroom.
+            text = text.replace("\u2019", "'")
+            words = re.findall(r"[A-Za-z][A-Za-z'-]*", text.lower())
+            self.assertTrue(words)
+            return sum(is_filler(w) for w in words) / len(words), len(words)
+
+        for bucket in budget["buckets"]:
+            paths = sorted(
+                path
+                for pattern in bucket["paths"]
+                for path in ROOT.glob(pattern)
+            )
+            self.assertTrue(paths, bucket["id"])
+            text = "\n".join(p.read_text(encoding="utf-8") for p in paths)
+            if "max_bytes_per_role" in bucket:
+                # Per file, not averaged: one role is loaded per dispatch, so a
+                # mean lets a large role hide behind small ones and bounds
+                # nothing about the context cost of the dispatch that loads it.
+                worst = max(paths, key=lambda p: p.stat().st_size)
+                self.assertLessEqual(
+                    worst.stat().st_size,
+                    bucket["max_bytes_per_role"],
+                    f"{bucket['id']}: {worst.name} is "
+                    f"{worst.stat().st_size} bytes, over the "
+                    f"{bucket['max_bytes_per_role']} per-role ceiling.",
+                )
+                mean = sum(p.stat().st_size for p in paths) / len(paths)
+                self.assertLessEqual(
+                    mean,
+                    bucket["max_mean_bytes_per_role"],
+                    f"{bucket['id']}: {mean:.0f} mean bytes per role across "
+                    f"{len(paths)} roles exceeds "
+                    f"{bucket['max_mean_bytes_per_role']}. Adding a role is "
+                    "allowed; growing the existing ones is not.",
+                )
+            observed, words = share(text)
+            limit = bucket["max_filler_share"]
+            if observed > limit:
+                worst = max(
+                    (
+                        (share(para)[0], path.name, para[:70])
+                        for path in paths
+                        for para in path.read_text(encoding="utf-8").split("\n")
+                        if len(para) >= 300
+                    ),
+                    default=(0.0, "-", "-"),
+                )
+                self.fail(
+                    f"{bucket['id']}: filler share {observed:.1%} over budget "
+                    f"{limit:.1%} across {words} words in {len(paths)} file(s). "
+                    f"Densest offender {worst[0]:.1%} in {worst[1]}: {worst[2]!r}. "
+                    "Compress phrasing, never content — see "
+                    "benchmarks/prompt-compression/budget.json and #40."
+                )
 
     def test_prompt_compression_snapshot_is_evidence_bound(self) -> None:
         gate = ROOT / "benchmarks" / "prompt-compression"

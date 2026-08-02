@@ -1,0 +1,132 @@
+{
+  "metric": "bytes_per_rule + filler_word_share",
+  "rationale": "A byte ceiling pegged to an old release is the wrong standing property: the policy may legitimately grow when a rule is genuinely needed. Both metrics here are normalized, so growth by adding rules is allowed and only verbosity is penalized. Two metrics rather than one because each closes the other's gaming vector: stripping function words moves filler share a long way while barely reducing bytes (measured: -117 filler words bought 2.8% of the file), and splitting one rule across several bullets lowers bytes per rule without touching filler share. Satisfying both requires actually writing less. Both measurements are taken on UTF-8 bytes and normalize contractions, because code-point counting and apostrophes would otherwise let a size or verbosity regression pass: 17,630 code points is 17,658 UTF-8 bytes, and `can't` does not match the auxiliary `can`.",
+  "primary": {
+    "id": "bytes_per_rule",
+    "value": "len(text.encode('utf-8')) / count(lines starting with '- ' or '| ' and longer than 40 characters)",
+    "observed": {
+      "v1.3.3": 649.0,
+      "v1.3.4": 489.0,
+      "v1.3.5": 474.3,
+      "v1.3.6": 544.2,
+      "note": "UTF-8 bytes. v1.3.5 is denser per rule than v1.3.4, so its byte growth was new rules rather than verbosity. The regression is v1.3.6's 474.3 -> 544.2."
+    },
+    "max_bytes_per_rule": 500,
+    "expected_rule_count": 36,
+    "rule_count_note": "Pinned. Reformatting one rule into two bullets would raise the denominator and manufacture headroom without writing less, so changing this number has to be a deliberate, reviewed edit rather than a side effect of a Markdown refactor."
+  },
+  "definition": {
+    "tokens": "text.replace(u'\\u2019', \"'\") then re.findall(r\"[A-Za-z][A-Za-z'-]*\", text.lower()); the typographic apostrophe is folded to ASCII first so that don’t is not tokenized as don + t",
+    "value": "a token counts as filler when it is in filler_words, or when normalizing a contraction lands there: map the irregulars, expand a trailing auxiliary suffix (n't to the stem, 're to are, 've to have, 'll to will, 'd to would), else take the stem before the apostrophe. Counted as share of all tokens. The typographic apostrophe is folded to ASCII first.",
+    "filler_words": [
+      "a",
+      "an",
+      "the",
+      "is",
+      "are",
+      "was",
+      "were",
+      "be",
+      "been",
+      "being",
+      "of",
+      "to",
+      "that",
+      "which",
+      "this",
+      "these",
+      "those",
+      "it",
+      "its",
+      "there",
+      "here",
+      "has",
+      "have",
+      "had",
+      "do",
+      "does",
+      "did",
+      "will",
+      "would",
+      "can",
+      "could",
+      "should",
+      "may",
+      "might",
+      "must",
+      "in",
+      "on",
+      "at",
+      "by",
+      "for",
+      "with",
+      "from",
+      "as",
+      "and",
+      "or",
+      "but",
+      "if",
+      "then",
+      "than",
+      "so",
+      "such"
+    ],
+    "irregular_contractions": {
+      "can't": "can",
+      "won't": "will",
+      "shan't": "shall",
+      "ain't": "is"
+    },
+    "contraction_suffixes": {
+      "n't": "<stem>",
+      "'re": "are",
+      "'ve": "have",
+      "'ll": "will",
+      "'d": "would"
+    }
+  },
+  "buckets": [
+    {
+      "id": "orchestration",
+      "paths": [
+        "templates/claude-md.orchestration.md"
+      ],
+      "max_filler_share": 0.105,
+      "loaded": "every session"
+    },
+    {
+      "id": "agents",
+      "paths": [
+        "templates/agents/*.md"
+      ],
+      "combined": true,
+      "max_filler_share": 0.12,
+      "loaded": "per dispatched role",
+      "max_bytes_per_role": 3800,
+      "bytes_note": "Two ceilings because they bound different costs. Only one role file is loaded per dispatch, so max_bytes_per_role is compared against EVERY file and bounds the worst-case context cost of a single dispatch; averaging would let a large role hide behind small ones, which is what an earlier revision did with verifier.md at 3,720 against a declared 2,000. max_mean_bytes_per_role bounds aggregate bloat across the set so the per-file headroom cannot be taken up by all eight. Observed per-file max: v1.3.6 3,884, current 3,720. Observed mean: v1.3.4 1,700, v1.3.6 2,037, current 1,909.",
+      "max_mean_bytes_per_role": 2000
+    }
+  ],
+  "observed": {
+    "note": "Measured with the definition above. The floor is what the bucket can reach while every phrase asserted by tests/test_policy.py stays byte-for-byte identical; thresholds sit above their floor so the budget is satisfiable without rewriting a single assertion.",
+    "orchestration": {
+      "v1.3.3": 0.2755,
+      "v1.3.4": 0.0793,
+      "v1.3.5": 0.1147,
+      "v1.3.6": 0.1394,
+      "note": "fully contraction-normalized"
+    },
+    "agents": {
+      "v1.3.4": 0.1356,
+      "v1.3.5": 0.1434,
+      "v1.3.6": 0.1505,
+      "note": "fully contraction-normalized. An earlier revision of this file recorded 0.1271/0.1368/0.1444 and an 11.5% limit; those came from a normalizer that only resolved can't, so the agents limit is restated here against correct numbers rather than by recompressing artifacts the paid Gate already validated."
+    }
+  },
+  "scope": {
+    "in": "Prompt-bearing templates only — text that is loaded into a model context.",
+    "out": "templates/settings.snippet.json is configuration, not prompt text. README.md, README.zh-TW.md and docs/ are never loaded into a session and carry no budget."
+  },
+  "tracking": "https://github.com/Nanako0129/pilotfish/issues/40",
+  "caveat": "Filler share is a proxy and it has a known failure mode: scope-bearing qualifiers are function words. Restoring `only`, `after`, `personally` and `anything the user asked you` to repair semantic drift introduced by compression pushed the policy from 9.02% to 9.98% against a 10.0% cap, so the cap was raised to 10.5%. A budget that forces a qualifier out of a rule is worse than a slightly looser budget. Bytes per rule is the primary metric for that reason; filler share is the secondary check on prose style, and it should never be the reason a limiting word is deleted."
+}

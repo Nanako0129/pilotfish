@@ -182,8 +182,8 @@ Turn 1 載入 Baton；Baton 判定這個小型 fixture 拆分後沒有正 net be
 |---|---|
 | Policy 與 snapshot SHA-256 | `7ff86564cd4cd8469cf3d24646fd395c57be09dc1fc7e1efa9d0d77c61ecfb21` |
 | Shell-stripped 歷史 `agents.json` SHA-256 | `e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61` |
-| 目前 v1.3.6 policy SHA-256 | `ae771c9b43ad985f7ad1e520cd6e021c69e13aac3bd6a60a8edacd1d386f0e82`（目前 template bytes；已由 [verifier-boundary Gate](../verifier-boundary/README.zh-TW.md) exercise） |
-| 目前產生的 v1.3.6 release payload SHA-256 | `e5e7fa1595c2231f6954f86720c734ab064ce901ab141c3e6431d07dd4335123`（builder output 去掉尾端 newline；已由 [verifier-boundary Gate](../verifier-boundary/README.zh-TW.md) exercise） |
+| 目前 v1.3.7 policy SHA-256 | `b26ef4a6a0e02575a39ecc8d3303a8cd7f9e9180548311de399fff527efb3b75`（目前 template bytes；已由 [verifier-boundary Gate](../verifier-boundary/README.zh-TW.md) exercise） |
+| 目前產生的 v1.3.7 release payload SHA-256 | `b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc`（builder output 去掉尾端 newline；已由 [verifier-boundary Gate](../verifier-boundary/README.zh-TW.md) exercise） |
 | Turn 1 prompt file SHA-256 | `45dbe7b6b24cb5838ebf4219011797b61f172fcc18f0ca5039144017e93fcca7` |
 | Turn 1 runtime-input SHA-256 | `d2ad46b7ecfb503f8f7185d6d68f404d326f1a4a480b9141d1a80318a746bb73` |
 | Turn 2 prompt file SHA-256 | `82d833090ba91982651de9ac4beed8fc96311119c6eb9c6f0304c292821918e7` |
