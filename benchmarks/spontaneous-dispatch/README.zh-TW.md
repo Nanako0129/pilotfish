@@ -1,6 +1,6 @@
 # 自發委派行為閘門
 
-這個閘門用一般任務請求驗證 Pilotfish 是否會自行選出預期的執行拓撲。Prompt 不會要求委派、不委派，也不會提示模型去遵循 orchestration policy。
+這個閘門用一般任務請求驗證 Pilotfish 是否會自行選出預期的執行拓撲。下面兩格，以及 [v1.3.7 配對 opt-in matrix](#v137-配對-opt-in-matrix) 的 cue-free 臂，其 prompt 都不會要求委派、不委派，也不會提示模型去遵循 orchestration policy。唯一例外是該 matrix 的明確指定臂——它的 prompt 刻意寫出委派指示，那正是被比較的介入手段，其觀察不能當成自發委派的證據。
 
 | 測試格 | 預期拓撲 | 行為驗收條件 |
 |---|---|---|
@@ -93,19 +93,31 @@ Negative cell 改複製 `benchmarks/dispatch-brake/fixture`、讀取 [`prompts/b
 
 記錄在 [`results.json`](./results.json) 的 `v1_3_7_paired_opt_in_matrix`。它回答 [#29](https://github.com/Nanako0129/pilotfish/issues/29) 未結的 Gate 項目：把 cue-free 與明確指定的 lifecycle 分成獨立 cell，各自帶帳號方案、client build、model route 與 Agent call 數。
 
+它包含兩組比較，不是一組。
+
+| 比較 | 測試格 | 結果 |
+|---|---|---|
+| 有 cue 對無 cue，皆在 Pro | cue-free schema ×2、明確 schema ×2、各一個 routine control | cue-free 兩次都沒有委派；明確臂兩次都派出 `plan-verifier`、`mech-executor` 與 `verifier`。routine 兩臂都沒有委派，符合其合約 |
+| Pro 對 Max，皆為 cue-free | 每個方案各 cue-free schema ×2 與 routine ×1 | Max 兩次中有一次派出 `plan-verifier` 再派 `verifier`，而 prompt、fixture 與任務裡都沒有任何委派指示。Pro 兩次都沒有 |
+
+那次有委派的 Max attempt 在沒有被提示的情況下走完了政策 lifecycle：把帶 stable slice ID、acceptance 與 rollback 的 program envelope 交給 `plan-verifier`，取得 bare `READY`；接著由主 session 自己實作——兩檔案的改動正是 dispatch brake 規定的做法；最後把五項 exact claim 交給 outcome `verifier`，取得 `CONFIRMED`。它最終的 `store.mjs` 與 Pro cue-free 臂逐位元組相同——輸出一樣，路徑不同。
+
+二取一不是發生率，兩次 attempt 也無法把方案效應和 run-to-run 變異分開。兩個 cue-free 樹另外還差一個檔案：Pro 那組追蹤了一份 `agents.json`，Max 那組沒有。這個差異連同它的方向記在 `cue_free.tree_difference_between_plans`——Pro 樹裡的委派詞彙嚴格較多，卻仍然完全沒有委派，所以移除它無法解釋 Max 的結果；但兩臂的任務脈絡並非逐位元組相同，這個 matrix 也不建立因果。
+
 它的 prompt 在 [`../verifier-boundary/prompts/`](../verifier-boundary/prompts/)，不在本 benchmark 的 `prompts/`；fixture 是 [`../verifier-boundary/fixture`](../verifier-boundary/fixture)，由 matrix 記錄的 digest 綁定。schema cell 是兩輪、需要 resume session，因此不像上面較舊的 cell 使用 `--no-session-persistence`。
 
 ### 重現
 
+請沿用上面 [重現](#重現) 區塊的 `$HARNESS`，不要從工作目錄推導 checkout：該區塊會把 shell 留在 `$FIXTURE`，而它本身也是一個 Git repository，`git rev-parse --show-toplevel` 會解析到那份拋棄式複本，底下每個路徑都會不存在。
+
 ```bash
-SOURCE="$(git rev-parse --show-toplevel)"
-SNAPSHOT="$SOURCE/benchmarks/verifier-boundary/gate-snapshot-v2"
-PROMPTS="$SOURCE/benchmarks/verifier-boundary/prompts"
+HARNESS=/path/to/pilotfish
+SNAPSHOT="$HARNESS/benchmarks/verifier-boundary/gate-snapshot-v2"
+PROMPTS="$HARNESS/benchmarks/verifier-boundary/prompts"
 WORK="$(mktemp -d /tmp/pilotfish-cue-free.XXXXXX)"
 
-cp -R "$SOURCE/benchmarks/verifier-boundary/fixture/." "$WORK/"
+cp -R "$HARNESS/benchmarks/verifier-boundary/fixture/." "$WORK/"
 cp "$SNAPSHOT/CLAUDE.md" "$WORK/CLAUDE.md"
-cp "$SNAPSHOT/agents.json" "$WORK/agents.json"
 git -C "$WORK" init -q && git -C "$WORK" add -A
 git -C "$WORK" -c user.name=pilotfish-gate   -c user.email=pilotfish-gate@example.invalid commit -qm baseline
 
@@ -113,11 +125,13 @@ SESSION_ID="$(python3 -c 'import uuid; print(uuid.uuid4())')"
 cd "$WORK"
 
 # turn 1 — cue-free
-claude --dangerously-skip-permissions   -p --output-format stream-json --verbose --max-budget-usd 6   --session-id "$SESSION_ID" --model opus --effort high   --setting-sources project,local --strict-mcp-config   --agents "$(<agents.json)"   "$(<"$PROMPTS/schema-turn-1.txt")"
+claude --dangerously-skip-permissions   -p --output-format stream-json --verbose --max-budget-usd 6   --session-id "$SESSION_ID" --model opus --effort high   --setting-sources project,local --strict-mcp-config   --agents "$(<"$SNAPSHOT/agents.json")"   "$(<"$PROMPTS/schema-turn-1.txt")"
 
 # turn 2 — cue-free, resumed
-claude --dangerously-skip-permissions   -p --output-format stream-json --verbose --max-budget-usd 6   --resume "$SESSION_ID" --model opus --effort high   --setting-sources project,local --strict-mcp-config   --agents "$(<agents.json)"   "$(<"$PROMPTS/schema-turn-2.txt")"
+claude --dangerously-skip-permissions   -p --output-format stream-json --verbose --max-budget-usd 6   --resume "$SESSION_ID" --model opus --effort high   --setting-sources project,local --strict-mcp-config   --agents "$(<"$SNAPSHOT/agents.json")"   "$(<"$PROMPTS/schema-turn-2.txt")"
 ```
+
+角色定義是從 snapshot 直接傳給 `--agents`，絕不複製進 `$WORK`，與 [verifier-boundary](../verifier-boundary/README.zh-TW.md) 的做法一致。把 `agents.json` commit 進 fixture 會多出一個列出全部五個角色的受追蹤檔案，改變 run 觀察到的任務脈絡；本 matrix 的 Pro 那組是在修正之前記錄的，造成的樹差異記在 `cue_free.tree_difference_between_plans`。
 
 routine control 在另一份全新的拋棄式複本執行，使用新的 session ID、`--max-budget-usd 4` 與 [`routine-docs.txt`](../verifier-boundary/prompts/routine-docs.txt)。明確臂使用同樣三個 prompt 的 `-explicit` 版本；該臂的逐格證據記在 [`../verifier-boundary/results.json`](../verifier-boundary/results.json) 的 `passing_gate`。
 
@@ -126,7 +140,7 @@ routine control 在另一份全新的拋棄式複本執行，使用新的 sessio
 請在原始 checkout 執行，不要在 `$WORK` ——上一個區塊會把 shell 留在拋棄式複本裡，該處相對路徑找不到任何檔案，會印出空 manifest 的 digest：
 
 ```bash
-cd "$SOURCE"
+cd "$HARNESS"
 python3 - <<'EOF'
 import hashlib, pathlib
 fx = pathlib.Path("benchmarks/verifier-boundary/fixture")
@@ -145,7 +159,8 @@ EOF
 
 | 限制 | 影響 |
 |---|---|
-| 每格只有一筆已記錄觀察 | 結果是行為案例，不是發生率 |
+| 上面 baseline、candidate 與 release-payload 各格只有一筆已記錄觀察 | 結果是行為案例，不是發生率 |
+| v1.3.7 matrix 每個方案每臂為 schema ×2、routine ×1 | 同樣不是發生率。Max 二取一那次委派是可達性案例；兩次 attempt 無法把方案效應和 run-to-run 變異分開 |
 | Client 回報的 cost 欄位 | 不是 provider invoice |
 | Fable usage-credit gate | 沒有可用的 Fable 行為、正確性或效率比較 |
 | Candidate 只以 Opus 評估 | Opus 通過不能證明其他模型有相同 routing |

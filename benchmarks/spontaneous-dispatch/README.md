@@ -1,6 +1,6 @@
 # Spontaneous-dispatch behavior gate
 
-This gate asks whether Pilotfish chooses the intended execution topology from an ordinary task request. The prompts contain no instruction to delegate, avoid delegation, or consult an orchestration policy.
+This gate asks whether Pilotfish chooses the intended execution topology from an ordinary task request. In the two cells below and in the cue-free arm of the [v1.3.7 paired opt-in matrix](#v137-paired-opt-in-matrix), the prompts contain no instruction to delegate, avoid delegation, or consult an orchestration policy. The one exception is that matrix's explicitly directed arm, whose prompts state the instruction on purpose — it is the intervention being compared against, and its observations are not evidence of spontaneous dispatch.
 
 | Cell | Expected topology | Behavioral acceptance |
 |---|---|---|
@@ -93,19 +93,31 @@ For the negative cell, copy `benchmarks/dispatch-brake/fixture`, read [`prompts/
 
 Recorded under `v1_3_7_paired_opt_in_matrix` in [`results.json`](./results.json). It answers the open Gate item on [#29](https://github.com/Nanako0129/pilotfish/issues/29): the cue-free and the explicitly-directed lifecycle as separate cells, each carrying account plan, client build, model route and Agent call count.
 
+It holds two comparisons, not one.
+
+| Comparison | Cells | Result |
+|---|---|---|
+| Cue vs no cue, both on Pro | cue-free schema ×2, explicit schema ×2, routine control ×1 each | Cue-free dispatched nothing on either attempt; explicit reached `plan-verifier`, `mech-executor` and `verifier` on both. Routine dispatched nothing in either arm, as its contract requires |
+| Pro vs Max, both cue-free | cue-free schema ×2 and routine ×1 on each plan | One of two Max attempts dispatched `plan-verifier` and then `verifier` with no instruction to delegate anywhere in the prompt, fixture or task. Neither Pro attempt did |
+
+The dispatching Max attempt reached the policy lifecycle unprompted: a program envelope with a stable slice ID, acceptance and rollback sent to `plan-verifier`, which returned bare `READY`; the migration implemented in the main session, which is what the dispatch brake prescribes for a two-file change; then an outcome `verifier` given the exact five-part claim, which returned `CONFIRMED`. Its final `store.mjs` is byte-identical to the Pro cue-free arm's — same output, different route.
+
+One of two is not a rate, and two attempts cannot separate a plan effect from run-to-run variance. The two cue-free trees also differ by one file: the Pro cells tracked a copy of `agents.json` that the Max cells did not. That difference is recorded in `cue_free.tree_difference_between_plans` with its direction — the Pro tree held strictly more in-repository delegation vocabulary and still dispatched nothing, so removing it cannot explain the Max result, but the arms are not byte-identical in task context and the matrix does not establish causation.
+
 Its prompts live in [`../verifier-boundary/prompts/`](../verifier-boundary/prompts/), not in this benchmark's local `prompts/`, and its fixture is [`../verifier-boundary/fixture`](../verifier-boundary/fixture) bound by the digest recorded in the matrix. The schema cell is two turns and needs a resumed session, so it does not use `--no-session-persistence` like the older cells above.
 
 ### Reproduction
 
+Reuse `$HARNESS` from the [Reproduce](#reproduce) block above rather than deriving the checkout from the working directory: that block leaves the shell inside `$FIXTURE`, which is itself a Git repository, so `git rev-parse --show-toplevel` would resolve to the disposable copy and every path below would be missing.
+
 ```bash
-SOURCE="$(git rev-parse --show-toplevel)"
-SNAPSHOT="$SOURCE/benchmarks/verifier-boundary/gate-snapshot-v2"
-PROMPTS="$SOURCE/benchmarks/verifier-boundary/prompts"
+HARNESS=/path/to/pilotfish
+SNAPSHOT="$HARNESS/benchmarks/verifier-boundary/gate-snapshot-v2"
+PROMPTS="$HARNESS/benchmarks/verifier-boundary/prompts"
 WORK="$(mktemp -d /tmp/pilotfish-cue-free.XXXXXX)"
 
-cp -R "$SOURCE/benchmarks/verifier-boundary/fixture/." "$WORK/"
+cp -R "$HARNESS/benchmarks/verifier-boundary/fixture/." "$WORK/"
 cp "$SNAPSHOT/CLAUDE.md" "$WORK/CLAUDE.md"
-cp "$SNAPSHOT/agents.json" "$WORK/agents.json"
 git -C "$WORK" init -q && git -C "$WORK" add -A
 git -C "$WORK" -c user.name=pilotfish-gate   -c user.email=pilotfish-gate@example.invalid commit -qm baseline
 
@@ -113,11 +125,13 @@ SESSION_ID="$(python3 -c 'import uuid; print(uuid.uuid4())')"
 cd "$WORK"
 
 # turn 1 — cue-free
-claude --dangerously-skip-permissions   -p --output-format stream-json --verbose --max-budget-usd 6   --session-id "$SESSION_ID" --model opus --effort high   --setting-sources project,local --strict-mcp-config   --agents "$(<agents.json)"   "$(<"$PROMPTS/schema-turn-1.txt")"
+claude --dangerously-skip-permissions   -p --output-format stream-json --verbose --max-budget-usd 6   --session-id "$SESSION_ID" --model opus --effort high   --setting-sources project,local --strict-mcp-config   --agents "$(<"$SNAPSHOT/agents.json")"   "$(<"$PROMPTS/schema-turn-1.txt")"
 
 # turn 2 — cue-free, resumed
-claude --dangerously-skip-permissions   -p --output-format stream-json --verbose --max-budget-usd 6   --resume "$SESSION_ID" --model opus --effort high   --setting-sources project,local --strict-mcp-config   --agents "$(<agents.json)"   "$(<"$PROMPTS/schema-turn-2.txt")"
+claude --dangerously-skip-permissions   -p --output-format stream-json --verbose --max-budget-usd 6   --resume "$SESSION_ID" --model opus --effort high   --setting-sources project,local --strict-mcp-config   --agents "$(<"$SNAPSHOT/agents.json")"   "$(<"$PROMPTS/schema-turn-2.txt")"
 ```
+
+The role definitions are passed to `--agents` from the snapshot and never copied into `$WORK`, matching the [verifier-boundary](../verifier-boundary/README.md) recipe. Committing `agents.json` into the fixture would add a tracked file that names all five roles, changing the task context the run observes; the Pro cells in this matrix were recorded before that was corrected, and `cue_free.tree_difference_between_plans` records the resulting tree difference.
 
 Run the routine control in a fresh disposable copy with a new session ID, `--max-budget-usd 4`, and [`routine-docs.txt`](../verifier-boundary/prompts/routine-docs.txt). For the explicit arm, use the `-explicit` variants of the same three prompts; that arm's per-cell evidence is recorded in [`../verifier-boundary/results.json`](../verifier-boundary/results.json) under `passing_gate`.
 
@@ -126,7 +140,7 @@ Recompute the fixture digest with:
 Run this from the source checkout, not from `$WORK` — the preceding block leaves the shell inside the disposable copy, where the relative path finds no files and prints the digest of an empty manifest:
 
 ```bash
-cd "$SOURCE"
+cd "$HARNESS"
 python3 - <<'EOF'
 import hashlib, pathlib
 fx = pathlib.Path("benchmarks/verifier-boundary/fixture")
@@ -145,7 +159,8 @@ EOF
 
 | Limit | Consequence |
 |---|---|
-| One observation per recorded cell | Outcomes are behavioral examples, not rates |
+| One observation per recorded cell, for the baseline, candidate and release-payload cells above | Outcomes are behavioral examples, not rates |
+| Two schema attempts and one routine attempt per arm per plan in the v1.3.7 matrix | Still not a rate. The one dispatching Max attempt out of two is a reachability example; two attempts cannot separate a plan effect from run-to-run variance |
 | Client-reported cost field | It is not a provider invoice |
 | Fable usage-credit gate | No Fable behavior, correctness, or efficiency comparison is available |
 | Opus-only candidate evaluation | A passing Opus gate does not prove identical routing by another model |

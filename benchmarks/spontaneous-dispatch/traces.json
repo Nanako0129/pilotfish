@@ -126,7 +126,7 @@
       "independent_post_run_test_passed": true,
       "note": "The current release payload kept the contiguous diagnosis, first minimal fix, and 2/2 post-fix test in the Opus main session."
     },
-    "v1.3.7-cue-free-schema-a-turn-1": {
+    "v1.3.7-pro-cue-free-schema-a-turn-1": {
       "top_level_tools": [
         "Bash",
         "Read",
@@ -142,20 +142,20 @@
         "Write"
       ],
       "agent_calls": [],
-      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made.",
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix, Pro account; no Agent call was made.",
       "top_level_bash_actions": [
         "list the repository and read README",
         "grep the encode/decode call sites and version handling",
         "run the repository test command"
       ]
     },
-    "v1.3.7-cue-free-schema-a-turn-2": {
+    "v1.3.7-pro-cue-free-schema-a-turn-2": {
       "top_level_tools": [
         "Bash"
       ],
       "top_level_source_write_tools": [],
       "agent_calls": [],
-      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made.",
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix, Pro account; no Agent call was made.",
       "top_level_bash_actions": [
         "inspect final diff scope and re-run the repository test command"
       ],
@@ -170,7 +170,7 @@
         "readme_unchanged_sha256": "053d459251adb6074f420e3f72f813e9fcc8a31eefb7ab1f947c756afb70df9e"
       }
     },
-    "v1.3.7-cue-free-schema-b-turn-1": {
+    "v1.3.7-pro-cue-free-schema-b-turn-1": {
       "top_level_tools": [
         "Bash",
         "Read",
@@ -186,19 +186,19 @@
         "Write"
       ],
       "agent_calls": [],
-      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made.",
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix, Pro account; no Agent call was made.",
       "top_level_bash_actions": [
         "list the repository tree",
         "run the repository test command"
       ]
     },
-    "v1.3.7-cue-free-schema-b-turn-2": {
+    "v1.3.7-pro-cue-free-schema-b-turn-2": {
       "top_level_tools": [
         "Bash"
       ],
       "top_level_source_write_tools": [],
       "agent_calls": [],
-      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made.",
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix, Pro account; no Agent call was made.",
       "top_level_bash_actions": [
         "inspect the diff stat and the two changed files"
       ],
@@ -213,7 +213,7 @@
         "readme_unchanged_sha256": "053d459251adb6074f420e3f72f813e9fcc8a31eefb7ab1f947c756afb70df9e"
       }
     },
-    "v1.3.7-cue-free-routine-docs": {
+    "v1.3.7-pro-cue-free-routine-docs": {
       "top_level_tools": [
         "Bash",
         "Read",
@@ -225,7 +225,7 @@
         "Edit"
       ],
       "agent_calls": [],
-      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix; no Agent call was made.",
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix, Pro account; no Agent call was made.",
       "top_level_bash_actions": [
         "list the repository",
         "run the repository test command"
@@ -241,6 +241,132 @@
           "store_mjs_sha256": "84cce7009177d0817e417052da73810696727515f0c53daf0c0ac6ddbf168a18",
           "store_test_mjs_sha256": "73cf0fb1ae65995f8018d396614095a91d0cbda99796816978103664549962a6"
         }
+      }
+    },
+    "v1.3.7-max-cue-free-schema-a-turn-1": {
+      "top_level_tools": [
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Agent",
+        "Read",
+        "Read",
+        "Read"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [
+        "plan-verifier"
+      ],
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix, Max account; byte-identical prompts to the Pro cells. This is the dispatching attempt: the main session planned, then dispatched `plan-verifier`, which returned bare READY, and made no source edit in this turn.",
+      "top_level_bash_actions": [
+        "list the repository contents"
+      ]
+    },
+    "v1.3.7-max-cue-free-schema-a-turn-2": {
+      "top_level_tools": [
+        "Write",
+        "Write",
+        "Bash",
+        "Agent",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Write",
+        "Write"
+      ],
+      "agent_calls": [
+        "verifier"
+      ],
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix, Max account; byte-identical prompts to the Pro cells. The main session implemented the migration itself, then dispatched an outcome `verifier` which returned CONFIRMED; the trailing Bash calls are the main session re-running the acceptance checks.",
+      "top_level_bash_actions": [
+        "run the repository test command and check change scope",
+        "inspect git status and the diff",
+        "run npm test",
+        "exercise decode/encode edge cases",
+        "confirm the scope of changed files"
+      ],
+      "acceptance": {
+        "tests_after": "4 passed, 0 failed",
+        "changed_paths": [
+          "store.mjs",
+          "store.test.mjs"
+        ],
+        "final_store_mjs_sha256": "6aa2e2597d3b4744e10b2ec7047f7133527f9cf857b35b8861b1926a0c833e47",
+        "final_store_test_mjs_sha256": "618c49a63826686c76dffa2d30baa29d36ce5418ed30f0982444e916e260a9b6",
+        "readme_unchanged_sha256": "053d459251adb6074f420e3f72f813e9fcc8a31eefb7ab1f947c756afb70df9e"
+      }
+    },
+    "v1.3.7-max-cue-free-schema-b-turn-1": {
+      "top_level_tools": [
+        "Bash",
+        "Read",
+        "Read",
+        "Write",
+        "Write",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Write",
+        "Write"
+      ],
+      "agent_calls": [],
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix, Max account; byte-identical prompts to the Pro cells. No Agent call was made, and this attempt also skipped the approval gate by writing both source files in turn 1.",
+      "top_level_bash_actions": [
+        "list the repository contents and read package.json and README",
+        "run the repository test command"
+      ]
+    },
+    "v1.3.7-max-cue-free-schema-b-turn-2": {
+      "top_level_tools": [
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [],
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix, Max account; byte-identical prompts to the Pro cells. No Agent call was made; the work was already complete after turn 1.",
+      "top_level_bash_actions": [
+        "confirm working tree state and re-run the repository test command"
+      ],
+      "acceptance": {
+        "tests_after": "5 passed, 0 failed",
+        "changed_paths": [
+          "store.mjs",
+          "store.test.mjs"
+        ],
+        "final_store_mjs_sha256": "6aa2e2597d3b4744e10b2ec7047f7133527f9cf857b35b8861b1926a0c833e47",
+        "final_store_test_mjs_sha256": "89b59855b8899add18d7eb8fec4f484de8d1270d67fbb46d1522e28737955903",
+        "readme_unchanged_sha256": "053d459251adb6074f420e3f72f813e9fcc8a31eefb7ab1f947c756afb70df9e"
+      }
+    },
+    "v1.3.7-max-cue-free-routine-docs": {
+      "top_level_tools": [
+        "Bash",
+        "Read",
+        "Edit",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Edit"
+      ],
+      "agent_calls": [],
+      "note": "Cue-free arm of the v1.3.7 paired opt-in matrix, Max account; byte-identical prompts to the Pro cells. Routine control; no Agent call was made, which is the behaviour its contract requires.",
+      "top_level_bash_actions": [
+        "list files and show README",
+        "show package.json",
+        "run the repository test command"
+      ],
+      "acceptance": {
+        "tests_after": "1 passed, 0 failed",
+        "changed_paths": [
+          "README.md"
+        ],
+        "final_readme_sha256": "1bafe869338e9833d19a14cf90b13e5c51f68e2ab458295cfbcf65fcbb98ed30",
+        "store_mjs_unchanged_sha256": "84cce7009177d0817e417052da73810696727515f0c53daf0c0ac6ddbf168a18",
+        "store_test_mjs_unchanged_sha256": "73cf0fb1ae65995f8018d396614095a91d0cbda99796816978103664549962a6"
       }
     }
   }

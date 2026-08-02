@@ -282,10 +282,14 @@
     }
   ],
   "v1_3_7_paired_opt_in_matrix": {
-    "purpose": "Answers the open Gate item on #29: record the cue-free and the explicitly-directed lifecycle as separate cells, each carrying account plan, client build, model route and Agent call count.",
-    "design": "Paired. Both arms ran the same fixture against the same shipped policy bytes and the same generated payload, on one account and one client build. The intervention is a delegation instruction present only in the explicit arm: `schema-turn-1-explicit.txt` and `routine-docs-explicit.txt` prepend \"Use pilotfish and delegate eligible work to the named agents.\", while `schema-turn-2-explicit.txt` inserts \"Continue using pilotfish and delegate eligible work to the named agents.\" after the approval sentence rather than at the start. The cue-free prompts carry no such instruction anywhere. Everything else in each prompt pair is identical.",
+    "purpose": "Answers the open Gate item on #29: record the cue-free and the explicitly-directed lifecycle as separate cells, each carrying account plan, client build, model route and Agent call count. The cue-free arm was later re-run on a Max account, which turned the matrix into two comparisons rather than one.",
+    "design": "Two comparisons over one fixture and one set of shipped policy bytes. (1) Cue vs no cue, both on a Pro account: the intervention is a delegation instruction present only in the explicit arm — `schema-turn-1-explicit.txt` and `routine-docs-explicit.txt` prepend \"Use pilotfish and delegate eligible work to the named agents.\", while `schema-turn-2-explicit.txt` inserts \"Continue using pilotfish and delegate eligible work to the named agents.\" after the approval sentence rather than at the start. The cue-free prompts carry no such instruction anywhere; everything else in each prompt pair is identical. (2) Pro vs Max, both cue-free: byte-identical prompts, fixture, policy and client build, run on the same machine two hours apart across a subscription upgrade. That second comparison is not perfectly controlled — see `cue_free.tree_difference_between_plans`.",
     "environment": {
-      "account_plan": "pro",
+      "account_plans_observed": [
+        "pro",
+        "max"
+      ],
+      "account_plan_note": "The Pro cells ran before the account was upgraded; the Max cells ran after, on the same machine and client build. Plan at Max-run time is recorded locally as organizationType `claude_max`, organizationRateLimitTier `default_claude_max_5x`, profile fetched 2026-08-02T11:59:49Z, minutes before the Max cells.",
       "auth_method": "claude.ai",
       "api_provider": "firstParty",
       "client_version": "2.1.220",
@@ -300,58 +304,127 @@
       "agents_json_runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc"
     },
     "cue_free": {
-      "prompts": {
-        "schema_turn_1": {
-          "file_sha256": "2ed1a9c607d40b7c868bbe376611fb1b2e7e3ed7f6e3a0c1a86d98cef006f3f8",
-          "runtime_sha256": "da95fa74388bc97cc889a2ea2e70fc0897055152d42174c548632a0e415a1adc"
+      "pro": {
+        "prompts": {
+          "schema_turn_1": {
+            "file_sha256": "2ed1a9c607d40b7c868bbe376611fb1b2e7e3ed7f6e3a0c1a86d98cef006f3f8",
+            "runtime_sha256": "da95fa74388bc97cc889a2ea2e70fc0897055152d42174c548632a0e415a1adc"
+          },
+          "schema_turn_2": {
+            "file_sha256": "4840a3a008489b7f3f1a2895854ca0375c4ac8276c59e76b454571a95c4dd7da",
+            "runtime_sha256": "24d18dc9f819eaf5b510eb82b2981cd0e22b5fe46470ab7f939613db20f8ca80"
+          },
+          "routine_docs": {
+            "file_sha256": "b95cc5994c10a9b1d2669ca2020d6cde175b8199953dd3b40261575a3136d52d",
+            "runtime_sha256": "6705e52a14500be2d03be1b7f08a72d09670acc43261b69471a546f9ffcc5fb9"
+          }
         },
-        "schema_turn_2": {
-          "file_sha256": "4840a3a008489b7f3f1a2895854ca0375c4ac8276c59e76b454571a95c4dd7da",
-          "runtime_sha256": "24d18dc9f819eaf5b510eb82b2981cd0e22b5fe46470ab7f939613db20f8ca80"
+        "schema_attempts": 2,
+        "schema_agent_call_count": [
+          0,
+          0
+        ],
+        "routine_agent_call_count": 0,
+        "tests_after": "4 passed, 0 failed (both schema attempts); 1 passed, 0 failed (routine)",
+        "outcome_correct": true,
+        "raw_stream_sha256": {
+          "schema_a_turn_1": "251aeca4474963ebc36026e57c1bad559599470f1e0cdb9f3736703b9f94f1f4",
+          "schema_a_turn_2": "bcdd2bcdb5aff7c4395c6e6bb3f0f9d8d41bb2bee24c4160b78b62404ca2ed01",
+          "schema_b_turn_1": "4c3a486df2b4de138ecd7e9e3fd7f8c5f33c64aa89bdc6b81f7d26b7a0515811",
+          "schema_b_turn_2": "bbe8c3e69607ea01777511c74c1df70d4a1212c80c8ebfbb7f43214c803a2604",
+          "routine": "245bda5c6ac8f4f22fb112cfa0cd8dfbc43e275487703bbfed245209c185d1d4"
         },
-        "routine_docs": {
-          "file_sha256": "b95cc5994c10a9b1d2669ca2020d6cde175b8199953dd3b40261575a3136d52d",
-          "runtime_sha256": "6705e52a14500be2d03be1b7f08a72d09670acc43261b69471a546f9ffcc5fb9"
+        "reported_cost_usd_paired_cells": 1.253587,
+        "per_stream_reported_cost_usd": {
+          "schema_a_turn_1": 0.291079,
+          "schema_a_turn_2": 0.2269245,
+          "schema_b_turn_1": 0.3039965,
+          "schema_b_turn_2": 0.2314485,
+          "routine": 0.2001385
+        },
+        "cost_note": "Derived by summing the five per-stream values above.",
+        "evidence": {
+          "traces": "./traces.json",
+          "agent_calls": "./agent-calls.json",
+          "run_keys": [
+            "v1.3.7-pro-cue-free-schema-a-turn-1",
+            "v1.3.7-pro-cue-free-schema-a-turn-2",
+            "v1.3.7-pro-cue-free-schema-b-turn-1",
+            "v1.3.7-pro-cue-free-schema-b-turn-2",
+            "v1.3.7-pro-cue-free-routine-docs"
+          ],
+          "note": "Sanitized tool sequences and Agent-call records are committed for all five streams, matching how the other runs in this file are evidenced. The raw streams themselves are not committed, as elsewhere in this benchmark; the recorded digests bind them."
+        },
+        "account_plan": "pro",
+        "run_date": "2026-08-02"
+      },
+      "max": {
+        "account_plan": "max",
+        "run_date": "2026-08-02",
+        "prompts": {
+          "schema_turn_1": {
+            "file_sha256": "2ed1a9c607d40b7c868bbe376611fb1b2e7e3ed7f6e3a0c1a86d98cef006f3f8",
+            "runtime_sha256": "da95fa74388bc97cc889a2ea2e70fc0897055152d42174c548632a0e415a1adc"
+          },
+          "schema_turn_2": {
+            "file_sha256": "4840a3a008489b7f3f1a2895854ca0375c4ac8276c59e76b454571a95c4dd7da",
+            "runtime_sha256": "24d18dc9f819eaf5b510eb82b2981cd0e22b5fe46470ab7f939613db20f8ca80"
+          },
+          "routine_docs": {
+            "file_sha256": "b95cc5994c10a9b1d2669ca2020d6cde175b8199953dd3b40261575a3136d52d",
+            "runtime_sha256": "6705e52a14500be2d03be1b7f08a72d09670acc43261b69471a546f9ffcc5fb9"
+          }
+        },
+        "prompts_note": "Byte-identical to the Pro cells: the same three prompt files, same file digests. Runtime digests differ only where the client wraps the prompt with per-session context.",
+        "schema_attempts": 2,
+        "schema_agent_call_count": [
+          2,
+          0
+        ],
+        "schema_roles_dispatched": [
+          [
+            "plan-verifier",
+            "verifier"
+          ],
+          []
+        ],
+        "routine_agent_call_count": 0,
+        "tests_after": "4 passed, 0 failed (schema a); 5 passed, 0 failed (schema b); 1 passed, 0 failed (routine)",
+        "outcome_correct": true,
+        "dispatching_attempt_shape": "Schema attempt a ran the policy lifecycle unprompted: a foreground `plan-verifier` in turn 1 carrying a program envelope, a stable slice ID, acceptance and rollback, which returned bare `READY`; the main session then implemented the migration itself; a foreground `verifier` in turn 2 received the exact five-part claim and returned `CONFIRMED`. No `mech-executor` was dispatched — the plan named the main session as owner of the edit, which is what the dispatch brake prescribes for a two-file change. Schema attempt b dispatched nothing and also skipped the approval gate, writing both files in turn 1; that is the same stochastic failure mode already recorded for this cell in `../verifier-boundary/results.json#passing_gate.failed_attempts`.",
+        "raw_stream_sha256": {
+          "schema_a_turn_1": "5482878287b198fb239baeff9676a0322c79cf4fe2f625a866294dfefc00846d",
+          "schema_a_turn_2": "69222191e295af46882c4dd56b7a8e00791c99f2d93c7c0302e62927b30681de",
+          "schema_b_turn_1": "e4631afb24b9447a50a410c3d7ee8cc4b65b1cf8551d9fa6c1bfd3553eebc939",
+          "schema_b_turn_2": "dfa4070e2158ee5ec5300d5d09b793f1c26d965365133262485030360e784ea1",
+          "routine": "3c30f53fff46642d3b56fd072d573dbedacace924515163e14735c5142454c4a"
+        },
+        "reported_cost_usd_paired_cells": 1.756315,
+        "per_stream_reported_cost_usd": {
+          "schema_a_turn_1": 0.412807,
+          "schema_a_turn_2": 0.5946085,
+          "schema_b_turn_1": 0.2897485,
+          "schema_b_turn_2": 0.219255,
+          "routine": 0.239896
+        },
+        "cost_note": "Derived by summing the five per-stream values above.",
+        "evidence": {
+          "traces": "./traces.json",
+          "agent_calls": "./agent-calls.json",
+          "run_keys": [
+            "v1.3.7-max-cue-free-schema-a-turn-1",
+            "v1.3.7-max-cue-free-schema-a-turn-2",
+            "v1.3.7-max-cue-free-schema-b-turn-1",
+            "v1.3.7-max-cue-free-schema-b-turn-2",
+            "v1.3.7-max-cue-free-routine-docs"
+          ],
+          "note": "Sanitized tool sequences, Agent-call records with prompts, and final artifact digests are committed for all five streams. The raw streams themselves are not committed, as elsewhere in this benchmark; the recorded digests bind them."
         }
       },
-      "schema_attempts": 2,
-      "schema_agent_call_count": [
-        0,
-        0
-      ],
-      "routine_agent_call_count": 0,
-      "tests_after": "4 passed, 0 failed (both schema attempts); 1 passed, 0 failed (routine)",
-      "outcome_correct": true,
-      "raw_stream_sha256": {
-        "schema_a_turn_1": "251aeca4474963ebc36026e57c1bad559599470f1e0cdb9f3736703b9f94f1f4",
-        "schema_a_turn_2": "bcdd2bcdb5aff7c4395c6e6bb3f0f9d8d41bb2bee24c4160b78b62404ca2ed01",
-        "schema_b_turn_1": "4c3a486df2b4de138ecd7e9e3fd7f8c5f33c64aa89bdc6b81f7d26b7a0515811",
-        "schema_b_turn_2": "bbe8c3e69607ea01777511c74c1df70d4a1212c80c8ebfbb7f43214c803a2604",
-        "routine": "245bda5c6ac8f4f22fb112cfa0cd8dfbc43e275487703bbfed245209c185d1d4"
-      },
-      "reported_cost_usd_paired_cells": 1.25358700,
-      "per_stream_reported_cost_usd": {
-        "schema_a_turn_1": 0.29107900,
-        "schema_a_turn_2": 0.22692450,
-        "schema_b_turn_1": 0.30399650,
-        "schema_b_turn_2": 0.23144850,
-        "routine": 0.20013850
-      },
-      "cost_note": "Derived by summing the five per-stream values above.",
-      "evidence": {
-        "traces": "./traces.json",
-        "agent_calls": "./agent-calls.json",
-        "run_keys": [
-          "v1.3.7-cue-free-schema-a-turn-1",
-          "v1.3.7-cue-free-schema-a-turn-2",
-          "v1.3.7-cue-free-schema-b-turn-1",
-          "v1.3.7-cue-free-schema-b-turn-2",
-          "v1.3.7-cue-free-routine-docs"
-        ],
-        "note": "Sanitized tool sequences and Agent-call records are committed for all five streams, matching how the other runs in this file are evidenced. The raw streams themselves are not committed, as elsewhere in this benchmark; the recorded digests bind them."
-      }
+      "tree_difference_between_plans": "Not a single-variable comparison. The Pro cells' disposable repository also tracked a copy of `agents.json` (baseline tree `fd81141c7bb17fdf9c688150b7dde2cb9f4afd40`); the Max cells' did not (baseline tree `d31e20963655d0e8d08ec94e15395b0a0fc6e582`). That file is the only difference between the two trees — every other blob hash is identical — and it was removed because committing it was wrong: the verifier-boundary recipe passes the snapshot to `--agents` without adding it to the fixture, so the Pro tree was not the recorded input shape. The confound has a known direction. `agents.json` names all five roles and carries delegation and orchestration vocabulary, so the Pro tree held strictly more in-repository delegation cues than the Max tree, and it still produced zero dispatch on both attempts. Removing cues cannot explain an arm dispatching more, so this difference does not account for the Max result; it does mean the two arms are not byte-identical in task context, and the honest reading is that the account plan is the leading but not the sole difference."
     },
     "explicitly_directed": {
+      "account_plan": "pro",
       "evidence": "../verifier-boundary/results.json#passing_gate",
       "schema_attempts": 2,
       "schema_agent_call_count": [
@@ -368,14 +441,24 @@
       "reported_cost_usd_paired_cells": 2.67834725,
       "reported_cost_usd_paired_cells_note": "Schema lifecycle 2.42469775 plus routine control 0.253649500000. Excludes the post-cap plan control at 1.161167500000, which has no cue-free counterpart in this matrix; the full passing_gate campaign including it is 3.83951475."
     },
+    "plan_gate_probe": {
+      "what": "Two one-shot headless probes on the same machine, before and after the upgrade, asking a fresh session to report what its own Agent tool description and session guidance say about dispatching.",
+      "cost_usd": 0.134,
+      "observed_on_pro": "The session quoted \"Do not spawn agents unless the user asks.\" as present in the Agent tool description.",
+      "observed_on_max": "The session reported that sentence absent from the tool description, while \"Do NOT call the AgentTool unless the user requested it\" remained present in session guidance.",
+      "evidence_strength": "Model self-report about its own prompt, which is weaker than the static evidence in #29 and is recorded only as behavioural corroboration of it. The primary evidence that one of the two suppressions is subscription-gated is the `Aa() === \"pro\"` guard read out of the shipped client, not this probe.",
+      "why_it_matters": "#29 identifies two independent suppressions with different gates. If only the subscription-gated one lifts on Max, the remaining session-guidance line would still be present in the Max cells — which is consistent with those cells dispatching on one attempt out of two rather than on both."
+    },
     "observations": [
-      "Cue-free schema dispatched nothing on either attempt; the explicitly-directed arm dispatched three roles on both. The routine control dispatched nothing in either arm, which is the behaviour its contract requires.",
-      "Both arms produced correct results. The cue-free arm completed the migration in the main session with 4 of 4 repository tests passing, so this is a routing difference, not a correctness one.",
-      "Arm totals for the paired cells were 1.25358700 USD cue-free and 2.67834725 explicit. This is an observed difference between two arm totals, not a measurement of what review costs: the arms took different main-session trajectories with different token and cache usage, and two schema attempts plus one routine attempt do not isolate the incremental cost of the review calls. What the record does establish is that the cheaper arm is the non-compliant one \u2014 the schema cell is a data/schema/serialization migration, which the policy lists as a risk trigger requiring both pre-approval `plan-verifier` readiness and post-implementation `verifier` review, with the dispatch brake and coordination cost unable to waive either gate. The cue-free arm skipped that review rather than correctly applying the small-stable direct-work rule; the routine control is the cell where that rule genuinely applies, at 0.200138500 cue-free against 0.253649500 explicit with zero Agent calls in both.",
-      "Read together with the correctness result, the cue-free arm produced a correct migration while omitting the review the policy requires for that class of change. Correct output does not mean the lifecycle ran; on a change where the review exists to catch what tests do not, that distinction is the whole point of the trigger."
+      "Cue vs no cue on Pro: cue-free schema dispatched nothing on either attempt; the explicitly-directed arm dispatched three roles on both. The routine control dispatched nothing in either arm, which is the behaviour its contract requires.",
+      "Pro vs Max, both cue-free: one of the two Max schema attempts dispatched `plan-verifier` and then `verifier` with no instruction to delegate anywhere in the prompt, the fixture or the task. Neither Pro attempt did. The dispatching attempt is the closest any cue-free run in this benchmark has come to the policy lifecycle — envelope, slice, bare `READY`, main-session implementation, exact-claim outcome review, `CONFIRMED` — and it reached that shape unprompted.",
+      "One of two is not a rate. The other Max attempt dispatched nothing and additionally skipped the approval gate, the same stochastic failure mode already recorded for this cell in the explicit arm. What the Max cells establish is reachability: cue-free dispatch is not uniformly suppressed on every plan, which the Pro cells alone would have suggested.",
+      "All cells produced correct results. Every schema attempt in both arms and on both plans passed the repository tests, and the Max dispatching attempt's final `store.mjs` hashes to `6aa2e2597d3b4744e10b2ec7047f7133527f9cf857b35b8861b1926a0c833e47`, byte-identical to the Pro cue-free arm's. Same output, different route — this is a routing difference, not a correctness one.",
+      "Arm totals for the paired Pro cells were 1.25358700 USD cue-free and 2.67834725 explicit; the Max cue-free cells totalled 1.75631500. These are observed arm totals, not a measurement of what review costs: the arms took different main-session trajectories with different token and cache usage, and two schema attempts plus one routine attempt do not isolate the incremental cost of the review calls. What the record does establish is that the cheapest arm is the non-compliant one — the schema cell is a data/schema/serialization migration, which the policy lists as a risk trigger requiring both pre-approval `plan-verifier` readiness and post-implementation `verifier` review, with the dispatch brake and coordination cost unable to waive either gate. The cue-free Pro arm skipped that review rather than correctly applying the small-stable direct-work rule; the routine control is the cell where that rule genuinely applies, at 0.200138500 cue-free against 0.253649500 explicit with zero Agent calls in both.",
+      "Read together with the correctness result, a cue-free run can produce a correct migration while omitting the review the policy requires for that class of change. Correct output does not mean the lifecycle ran; on a change where the review exists to catch what tests do not, that distinction is the whole point of the trigger."
     ],
-    "claim": "On this account plan and client build, with the v1.3.7 policy installed, cue-free Agent dispatch did not occur in either schema attempt while explicit opt-in reached three named roles on both. This reproduces the behaviour #29 reported, now with a paired design on identical policy bytes.",
-    "claim_boundary": "One account, one client build, one fixture. Two schema attempts and one routine attempt per arm \u2014 the routine observation is a single attempt in each arm, not two. Establishes reachability and its absence under these exact conditions only. It does not identify a cause, does not measure dispatch frequency across workloads, and makes no efficiency claim in either direction.",
+    "claim": "On client 2.1.220 with the v1.3.7 policy installed, cue-free Agent dispatch did not occur in either Pro schema attempt, while explicit opt-in reached three named roles on both. Re-running the identical cue-free prompts after the account was upgraded to Max produced dispatch on one of two attempts, running `plan-verifier` and `verifier` unprompted. Cue-free dispatch is therefore reachable rather than absent, and the account plan is the leading difference between the two cue-free arms — but not the only one, and this matrix does not establish causation. See `cue_free.tree_difference_between_plans` and `plan_gate_probe`.",
+    "claim_boundary": "One account, one machine, one client build, one fixture. Two schema attempts and one routine attempt per arm per plan — the routine observation is a single attempt in each, not two. Establishes reachability and its absence under these exact conditions only. One dispatching attempt out of two is not a dispatch rate, and two attempts cannot distinguish a plan effect from ordinary run-to-run variance. The Pro and Max cue-free trees differ by one file. Nothing here identifies a cause, measures dispatch frequency across workloads, or makes an efficiency claim in either direction.",
     "input_contract": {
       "fixture": "../verifier-boundary/fixture",
       "fixture_digest": "de591dbbad4fa72c2f86e1e33543ade9bfa2269dc295f449a51f94f58e66d9b4",
@@ -383,7 +466,21 @@
       "cue_vocabulary": "agent|subagent|worker|\\brole\\b|policy|baton|parallel|independent|delegat|orchestrat|fan-out",
       "cue_scan_scope": "the three cue-free prompt files and every file in the fixture",
       "cue_scan_result": "no matches",
-      "why": "A cue-free classification is about the whole task context, not only the prompt. Prompt hashes alone would stay unchanged if a fixture copy carried a delegation cue, so the fixture is bound by digest and scanned with the same vocabulary the existing spontaneous-dispatch contract uses."
+      "why": "A cue-free classification is about the whole task context, not only the prompt. Prompt hashes alone would stay unchanged if a fixture copy carried a delegation cue, so the fixture is bound by digest and scanned with the same vocabulary the existing spontaneous-dispatch contract uses.",
+      "tree_binding": {
+        "why": "The scan above covers the pristine fixture. What each run actually saw is the committed baseline tree, so that tree is bound separately.",
+        "max_cells_baseline_tree": "d31e20963655d0e8d08ec94e15395b0a0fc6e582",
+        "max_cells_tracked_files": [
+          "CLAUDE.md",
+          "README.md",
+          "package.json",
+          "store.mjs",
+          "store.test.mjs"
+        ],
+        "max_cells_scan_result": "The four fixture files scan clean against the cue vocabulary. `CLAUDE.md` is the shipped policy under test and necessarily contains the vocabulary; it is identical in both arms and on both plans, so it is not a differentiating cue.",
+        "pro_cells_baseline_tree": "fd81141c7bb17fdf9c688150b7dde2cb9f4afd40",
+        "pro_cells_scan_result": "The same four fixture files plus a tracked `agents.json`, which names all five roles and does not scan clean. The Pro cells' task context therefore contained in-repository delegation vocabulary that the Max cells' did not; see `cue_free.tree_difference_between_plans`."
+      }
     }
   }
 }
