@@ -100,11 +100,13 @@ Negative cell 改複製 `benchmarks/dispatch-brake/fixture`、讀取 [`prompts/b
 | 有 cue 對無 cue，皆在 Pro | cue-free schema ×2、明確 schema ×2、各一個 routine control | cue-free 兩次都沒有委派；明確臂兩次都派出 `plan-verifier`、`mech-executor` 與 `verifier`。routine 兩臂都沒有委派，符合其合約 |
 | Pro 對 Max，皆為 cue-free | 每個方案各 cue-free schema ×2 與 routine ×1 | Max 兩次中有一次派出 `plan-verifier` 再派 `verifier`，而 prompt、fixture 與任務裡都沒有任何委派指示。Pro 兩次都沒有 |
 
-那次有委派的 Max attempt 在沒有被提示的情況下走完了政策 lifecycle：把帶 stable slice ID、acceptance 與 rollback 的 program envelope 交給 `plan-verifier`，取得 bare `READY`；接著由主 session 自己實作——兩檔案的改動正是 dispatch brake 規定的做法；最後把五項 exact claim 交給 outcome `verifier`，取得 `CONFIRMED`。它最終的 `store.mjs` 與 Pro cue-free 臂逐位元組相同——輸出一樣，路徑不同。
+那次有委派的 Max attempt 在沒有被提示的情況下走完了政策 lifecycle：把帶 stable slice ID、acceptance 與 rollback 的 program envelope 交給 `plan-verifier`，取得 bare `READY`；接著由主 session 自己實作——兩檔案的改動正是 dispatch brake 規定的做法；最後把五項 exact claim 交給 outcome `verifier`，取得 `CONFIRMED`。
 
-二取一不是發生率，兩次 attempt 也無法把方案效應和 run-to-run 變異分開。兩個 cue-free 樹另外還差一個檔案：Pro 那組追蹤了一份 `agents.json`，Max 那組沒有。這個差異連同它的方向記在 `cue_free.tree_difference_between_plans`——Pro 樹裡的委派詞彙嚴格較多，卻仍然完全沒有委派，所以移除它無法解釋 Max 的結果；但兩臂的任務脈絡並非逐位元組相同，這個 matrix 也不建立因果。
+二取一不是發生率。兩次 attempt 既無法把方案效應和 run-to-run 變異分開，也無法把它和隨方案一起變動的樹分開：Pro 那組追蹤了一份 `agents.json`，Max 那組沒有，這是兩個 baseline 唯一的 blob 差異。帳號方案與 repository 樹同時改變，所以這個 matrix 記錄的是可達性，不對成因排序。要釐清必須在 Max 的樹上重跑 Pro，而帳號已升級，該實驗不再可得。記在 `cue_free.tree_difference_between_plans`，含先前版本提出後又撤回的單調性論證。
 
-這個限制只涉及方案比較。有 cue 對無 cue 那組是配對的：兩個 Pro 臂都從完全相同的 baseline tree `fd81141c…` 出發，含 `agents.json`，所以該檔案在那裡是共用常數，委派句仍是唯一的介入。另外請注意 [`../verifier-boundary/README.md`](../verifier-boundary/README.zh-TW.md) 記載的做法是把 `agents.json` 從外部傳入；實際記錄的 run 是把它追蹤進樹，該 README 現已載明此事。細節見 `cue_free.pro_arms_share_one_tree`。
+這個限制只涉及方案比較。有 cue 對無 cue 那組是配對的：兩個 Pro 臂都從完全相同的 baseline tree `fd81141c…` 出發，含 `agents.json`，所以該檔案在那裡是共用常數，委派句仍是唯一的介入。明確臂兩次 attempt 都綁定到該樹，不只第一次。另外請注意 [`../verifier-boundary/README.md`](../verifier-boundary/README.zh-TW.md) 記載的做法是把 `agents.json` 從外部傳入；實際記錄的 run 是把它追蹤進樹，該 README 現已載明此事。細節見 `cue_free.pro_arms_share_one_tree`。
+
+四次 schema attempt 中有三次收斂到同一份 `store.mjs`（`6aa2e259…`）——Max attempt a、Pro cue-free attempt a 與明確 attempt a。Pro cue-free attempt b 不同，而每次的測試檔案彼此都不同。成立的地方是 attempt 層級而非臂層級：同一份原始碼，由不同路徑抵達。
 
 本 matrix 每個 run 也都把自己的 stream capture 以未追蹤檔案寫進 run 目錄，因此已提交的 baseline tree 並不完全等於 session 看得到的全部脈絡。在那唯一一次有委派的 run 裡，沒有任何被記錄的 tool call 讀過那些位元組——`ls -la`、`git status` 與 `git ls-files --others` 只會列出檔名，沒有任何指令讀取內容——但 `plan-verifier` subagent 自己的 tool call 不會出現在 parent stream，所以對它無法做出同樣陳述。這些檔案在兩臂與兩個方案都同樣存在。記在 `input_contract.tree_binding.untracked_stream_captures`，連同往後的修正做法：把 capture 寫到拋棄式 repo 之外。
 
@@ -164,7 +166,7 @@ EOF
 | 限制 | 影響 |
 |---|---|
 | 上面 baseline、candidate 與 release-payload 各格只有一筆已記錄觀察 | 結果是行為案例，不是發生率 |
-| v1.3.7 matrix 每個方案每臂為 schema ×2、routine ×1 | 同樣不是發生率。Max 二取一那次委派是可達性案例；兩次 attempt 無法把方案效應和 run-to-run 變異分開 |
+| v1.3.7 matrix 只有三個已觀察的 cell，不是完整 matrix——Pro 兩臂皆有，Max 只有 cue-free 臂，每個 cell 為 schema ×2、routine ×1 | 同樣不是發生率。Max 二取一那次委派是可達性案例；兩次 attempt 無法把方案效應、run-to-run 變異，以及隨方案一起變動的樹差異分開 |
 | Client 回報的 cost 欄位 | 不是 provider invoice |
 | Fable usage-credit gate | 沒有可用的 Fable 行為、正確性或效率比較 |
 | Candidate 只以 Opus 評估 | Opus 通過不能證明其他模型有相同 routing |
