@@ -89,6 +89,55 @@ For the negative cell, copy `benchmarks/dispatch-brake/fixture`, read [`prompts/
 
 > ⚠️ **Safety boundary:** permission bypass is used only in newly created disposable copies of repository-owned fixtures. Never run this command in a valuable or untrusted checkout.
 
+## v1.3.7 paired opt-in matrix
+
+Recorded under `v1_3_7_paired_opt_in_matrix` in [`results.json`](./results.json). It answers the open Gate item on [#29](https://github.com/Nanako0129/pilotfish/issues/29): the cue-free and the explicitly-directed lifecycle as separate cells, each carrying account plan, client build, model route and Agent call count.
+
+Its prompts live in [`../verifier-boundary/prompts/`](../verifier-boundary/prompts/), not in this benchmark's local `prompts/`, and its fixture is [`../verifier-boundary/fixture`](../verifier-boundary/fixture) bound by the digest recorded in the matrix. The schema cell is two turns and needs a resumed session, so it does not use `--no-session-persistence` like the older cells above.
+
+### Reproduction
+
+```bash
+SOURCE="$(git rev-parse --show-toplevel)"
+SNAPSHOT="$SOURCE/benchmarks/verifier-boundary/gate-snapshot-v2"
+PROMPTS="$SOURCE/benchmarks/verifier-boundary/prompts"
+WORK="$(mktemp -d /tmp/pilotfish-cue-free.XXXXXX)"
+
+cp -R "$SOURCE/benchmarks/verifier-boundary/fixture/." "$WORK/"
+cp "$SNAPSHOT/CLAUDE.md" "$WORK/CLAUDE.md"
+cp "$SNAPSHOT/agents.json" "$WORK/agents.json"
+git -C "$WORK" init -q && git -C "$WORK" add -A
+git -C "$WORK" -c user.name=pilotfish-gate   -c user.email=pilotfish-gate@example.invalid commit -qm baseline
+
+SESSION_ID="$(python3 -c 'import uuid; print(uuid.uuid4())')"
+cd "$WORK"
+
+# turn 1 — cue-free
+claude --dangerously-skip-permissions   -p --output-format stream-json --verbose --max-budget-usd 6   --session-id "$SESSION_ID" --model opus --effort high   --setting-sources project,local --strict-mcp-config   --agents "$(<agents.json)"   "$(<"$PROMPTS/schema-turn-1.txt")"
+
+# turn 2 — cue-free, resumed
+claude --dangerously-skip-permissions   -p --output-format stream-json --verbose --max-budget-usd 6   --resume "$SESSION_ID" --model opus --effort high   --setting-sources project,local --strict-mcp-config   --agents "$(<agents.json)"   "$(<"$PROMPTS/schema-turn-2.txt")"
+```
+
+Run the routine control in a fresh disposable copy with a new session ID, `--max-budget-usd 4`, and [`routine-docs.txt`](../verifier-boundary/prompts/routine-docs.txt). For the explicit arm, use the `-explicit` variants of the same three prompts; that arm's per-cell evidence is recorded in [`../verifier-boundary/results.json`](../verifier-boundary/results.json) under `passing_gate`.
+
+Recompute the fixture digest with:
+
+```bash
+python3 - <<'EOF'
+import hashlib, pathlib
+fx = pathlib.Path("benchmarks/verifier-boundary/fixture")
+files = sorted(p for p in fx.rglob("*") if p.is_file())
+manifest = "".join(
+    f"{hashlib.sha256(p.read_bytes()).hexdigest()}  {p.relative_to(fx).as_posix()}\n"
+    for p in files
+)
+print(hashlib.sha256(manifest.encode()).hexdigest())
+EOF
+```
+
+`--dangerously-skip-permissions` is limited to these disposable fixtures.
+
 ## Claim limits
 
 | Limit | Consequence |

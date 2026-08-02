@@ -89,6 +89,55 @@ Negative cell 改複製 `benchmarks/dispatch-brake/fixture`、讀取 [`prompts/b
 
 > ⚠️ **安全邊界：**permission bypass 只用於新建立、由 repository 自有 fixture 複製出的 disposable copy。不可在重要或不受信任的 checkout 執行。
 
+## v1.3.7 配對 opt-in matrix
+
+記錄在 [`results.json`](./results.json) 的 `v1_3_7_paired_opt_in_matrix`。它回答 [#29](https://github.com/Nanako0129/pilotfish/issues/29) 未結的 Gate 項目：把 cue-free 與明確指定的 lifecycle 分成獨立 cell，各自帶帳號方案、client build、model route 與 Agent call 數。
+
+它的 prompt 在 [`../verifier-boundary/prompts/`](../verifier-boundary/prompts/)，不在本 benchmark 的 `prompts/`；fixture 是 [`../verifier-boundary/fixture`](../verifier-boundary/fixture)，由 matrix 記錄的 digest 綁定。schema cell 是兩輪、需要 resume session，因此不像上面較舊的 cell 使用 `--no-session-persistence`。
+
+### 重現
+
+```bash
+SOURCE="$(git rev-parse --show-toplevel)"
+SNAPSHOT="$SOURCE/benchmarks/verifier-boundary/gate-snapshot-v2"
+PROMPTS="$SOURCE/benchmarks/verifier-boundary/prompts"
+WORK="$(mktemp -d /tmp/pilotfish-cue-free.XXXXXX)"
+
+cp -R "$SOURCE/benchmarks/verifier-boundary/fixture/." "$WORK/"
+cp "$SNAPSHOT/CLAUDE.md" "$WORK/CLAUDE.md"
+cp "$SNAPSHOT/agents.json" "$WORK/agents.json"
+git -C "$WORK" init -q && git -C "$WORK" add -A
+git -C "$WORK" -c user.name=pilotfish-gate   -c user.email=pilotfish-gate@example.invalid commit -qm baseline
+
+SESSION_ID="$(python3 -c 'import uuid; print(uuid.uuid4())')"
+cd "$WORK"
+
+# turn 1 — cue-free
+claude --dangerously-skip-permissions   -p --output-format stream-json --verbose --max-budget-usd 6   --session-id "$SESSION_ID" --model opus --effort high   --setting-sources project,local --strict-mcp-config   --agents "$(<agents.json)"   "$(<"$PROMPTS/schema-turn-1.txt")"
+
+# turn 2 — cue-free, resumed
+claude --dangerously-skip-permissions   -p --output-format stream-json --verbose --max-budget-usd 6   --resume "$SESSION_ID" --model opus --effort high   --setting-sources project,local --strict-mcp-config   --agents "$(<agents.json)"   "$(<"$PROMPTS/schema-turn-2.txt")"
+```
+
+routine control 在另一份全新的拋棄式複本執行，使用新的 session ID、`--max-budget-usd 4` 與 [`routine-docs.txt`](../verifier-boundary/prompts/routine-docs.txt)。明確臂使用同樣三個 prompt 的 `-explicit` 版本；該臂的逐格證據記在 [`../verifier-boundary/results.json`](../verifier-boundary/results.json) 的 `passing_gate`。
+
+重算 fixture digest：
+
+```bash
+python3 - <<'EOF'
+import hashlib, pathlib
+fx = pathlib.Path("benchmarks/verifier-boundary/fixture")
+files = sorted(p for p in fx.rglob("*") if p.is_file())
+manifest = "".join(
+    f"{hashlib.sha256(p.read_bytes()).hexdigest()}  {p.relative_to(fx).as_posix()}\n"
+    for p in files
+)
+print(hashlib.sha256(manifest.encode()).hexdigest())
+EOF
+```
+
+`--dangerously-skip-permissions` 僅限這些拋棄式 fixture 使用。
+
 ## 結論邊界
 
 | 限制 | 影響 |
