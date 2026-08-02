@@ -22,10 +22,10 @@ Plan control stopped after two `REVISE` verdicts before one closing check.
 Every Agent call omitted an invocation-level model override. The main session
 and both review roles resolved to Opus 5; `mech-executor` resolved to Sonnet 5.
 
-The current passing controls reported $3.839515 against the v1.3.7 compressed policy. The schema cell is not deterministic: it reproduced on one of two attempts against byte-identical inputs, and the non-reproducing attempt is recorded under `failed_attempts`. Including the earlier candidate Gate, the disclosed
+The current passing controls reported $3.83951475 against the v1.3.7 compressed policy. The schema cell fully reproduced on 2 of 2 attempts against the shipped bytes. Two failure modes seen on earlier byte revisions did not recur and remain under `failed_attempts` as historical context. Including the earlier candidate Gate, the disclosed
 operator-policy failure, the zero-cost quota failure, the non-reproducing schema
 attempt, and the diagnostic that the weekly limit truncated, the full campaign
-reported $29.836; `results.json` carries the breakdown.
+reported $29.8355; `results.json` carries the breakdown.
 
 This is not a cue-free claim. On this tested Claude Code account, a
 higher-priority operator contract prohibited Agent calls unless the user
