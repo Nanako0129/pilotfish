@@ -98,7 +98,7 @@ It holds two comparisons, not one.
 | Comparison | Cells | Result |
 |---|---|---|
 | Cue vs no cue, both on Pro | cue-free schema ×2, explicit schema ×2, routine control ×1 each | Cue-free dispatched nothing on either attempt; explicit reached `plan-verifier`, `mech-executor` and `verifier` on both. Routine dispatched nothing in either arm, as its contract requires |
-| Pro vs Max, both cue-free | cue-free schema ×2 and routine ×1 on each plan | One of two Max attempts dispatched `plan-verifier` and then `verifier` with no instruction to delegate anywhere in the prompt, fixture or task. Neither Pro attempt did |
+| Pro vs Max, both prompt-cue-free | schema ×2 and routine ×1 on each plan | One of two Max attempts dispatched `plan-verifier` and then `verifier` with no instruction to delegate in the prompt, from a tracked tree that passes the cue scan. Neither Pro attempt did |
 
 The dispatching Max attempt reached the policy lifecycle unprompted: a program envelope with a stable slice ID, acceptance and rollback sent to `plan-verifier`, which returned bare `READY`; the migration implemented in the main session, which is what the dispatch brake prescribes for a two-file change; then an outcome `verifier` given the exact five-part claim, which returned `CONFIRMED`.
 
@@ -141,13 +141,14 @@ claude --dangerously-skip-permissions   -p --output-format stream-json --verbose
 
 The role definitions are passed to `--agents` from the snapshot and never copied into `$WORK`, matching the [verifier-boundary](../verifier-boundary/README.md) recipe. Committing `agents.json` into the fixture would add a tracked file that names all five roles, changing the task context the run observes.
 
-**This block reproduces the Max cells, not the Pro ones.** It builds baseline tree `d31e2096…`. The recorded Pro cells — both the cue-free and the explicit arm — ran on `fd81141c…`, which tracks `agents.json`, so substituting the `-explicit` prompts here yields a new run rather than a reproduction of the published Pro matrix. To reproduce those exactly, add one line before the commit:
+**This block is the corrected shape for new runs, not an exact reproduction of any recorded cell.** It differs from every recorded run in two ways, both deliberate:
 
-```bash
-cp "$SNAPSHOT/agents.json" "$WORK/agents.json"   # recorded Pro cells only; do not use for new runs
-```
+| Delta | Recorded runs | This block |
+|---|---|---|
+| `agents.json` | Tracked in the Pro cells, baseline tree `fd81141c…`; absent from the Max cells, `d31e2096…` | Never copied in; builds `d31e2096…` |
+| Stream captures | Written into the run directory, so `t1.jsonl` and `t2.jsonl` were visible in the working tree | Not redirected; nothing cue-bearing is created inside `$WORK` |
 
-Use it only to re-examine the recorded Pro observations. New runs should use the corrected shape above, and `cue_free.tree_difference_between_plans` records what the difference does and does not license.
+To recreate a recorded task context rather than start a clean one, apply the matching deltas. For the Pro cells, add `cp "$SNAPSHOT/agents.json" "$WORK/agents.json"` before the commit. For any recorded cell, redirect each invocation into the run directory, `>"$WORK/t1.jsonl"` and `>"$WORK/t2.jsonl"`. Do both only to re-examine what was recorded; neither belongs in a new run. `cue_free.tree_difference_between_plans` and `input_contract.tree_binding.untracked_stream_captures` record what each difference does and does not license.
 
 Run the routine control in a fresh disposable copy with a new session ID, `--max-budget-usd 4`, and [`routine-docs.txt`](../verifier-boundary/prompts/routine-docs.txt). For the explicit arm, use the `-explicit` variants of the same three prompts; that arm's per-cell evidence is recorded in [`../verifier-boundary/results.json`](../verifier-boundary/results.json) under `passing_gate`.
 

@@ -98,7 +98,7 @@ Negative cell 改複製 `benchmarks/dispatch-brake/fixture`、讀取 [`prompts/b
 | 比較 | 測試格 | 結果 |
 |---|---|---|
 | 有 cue 對無 cue，皆在 Pro | cue-free schema ×2、明確 schema ×2、各一個 routine control | cue-free 兩次都沒有委派；明確臂兩次都派出 `plan-verifier`、`mech-executor` 與 `verifier`。routine 兩臂都沒有委派，符合其合約 |
-| Pro 對 Max，皆為 cue-free | 每個方案各 cue-free schema ×2 與 routine ×1 | Max 兩次中有一次派出 `plan-verifier` 再派 `verifier`，而 prompt、fixture 與任務裡都沒有任何委派指示。Pro 兩次都沒有 |
+| Pro 對 Max，皆為 prompt-cue-free | 每個方案各 schema ×2 與 routine ×1 | Max 兩次中有一次派出 `plan-verifier` 再派 `verifier`，prompt 裡沒有任何委派指示，且追蹤樹通過 cue 掃描。Pro 兩次都沒有 |
 
 那次有委派的 Max attempt 在沒有被提示的情況下走完了政策 lifecycle：把帶 stable slice ID、acceptance 與 rollback 的 program envelope 交給 `plan-verifier`，取得 bare `READY`；接著由主 session 自己實作——兩檔案的改動正是 dispatch brake 規定的做法；最後把五項 exact claim 交給 outcome `verifier`，取得 `CONFIRMED`。
 
@@ -141,13 +141,14 @@ claude --dangerously-skip-permissions   -p --output-format stream-json --verbose
 
 角色定義是從 snapshot 直接傳給 `--agents`，絕不複製進 `$WORK`，與 [verifier-boundary](../verifier-boundary/README.zh-TW.md) 的做法一致。把 `agents.json` commit 進 fixture 會多出一個列出全部五個角色的受追蹤檔案，改變 run 觀察到的任務脈絡。
 
-**這個區塊重現的是 Max 那組，不是 Pro 那組。** 它建出的 baseline tree 是 `d31e2096…`。已記錄的 Pro cell——cue-free 與明確臂皆然——跑在 `fd81141c…` 上，該樹追蹤 `agents.json`；因此在這裡換成 `-explicit` prompt 得到的是一次新的 run，不是對已發布 Pro matrix 的重現。要精確重現那些 cell，請在 commit 之前多加一行：
+**這個區塊是給新 run 用的修正形狀，不是任何已記錄 cell 的精確重現。** 它與每一次已記錄的 run 有兩處刻意的差異：
 
-```bash
-cp "$SNAPSHOT/agents.json" "$WORK/agents.json"   # 僅供重現已記錄的 Pro cell；新 run 請勿使用
-```
+| 差異 | 已記錄的 run | 這個區塊 |
+|---|---|---|
+| `agents.json` | Pro 那組有追蹤，baseline tree `fd81141c…`；Max 那組沒有，`d31e2096…` | 完全不複製進去；建出 `d31e2096…` |
+| Stream capture | 寫進 run 目錄，`t1.jsonl` 與 `t2.jsonl` 在工作樹裡看得到 | 不做導向；`$WORK` 內不會產生任何帶線索的檔案 |
 
-只在重新檢視已記錄的 Pro 觀察時使用它。新的 run 應採用上面修正後的形狀，`cue_free.tree_difference_between_plans` 記載了這個差異准許與不准許推導出什麼。
+若要重建已記錄的任務脈絡而非開一份乾淨的，請補上對應的差異。Pro 那組在 commit 之前加 `cp "$SNAPSHOT/agents.json" "$WORK/agents.json"`。任何已記錄的 cell，把每次呼叫導向 run 目錄：`>"$WORK/t1.jsonl"` 與 `>"$WORK/t2.jsonl"`。這兩者只在重新檢視已記錄內容時使用，都不該出現在新的 run。各差異准許與不准許推導出什麼，記在 `cue_free.tree_difference_between_plans` 與 `input_contract.tree_binding.untracked_stream_captures`。
 
 routine control 在另一份全新的拋棄式複本執行，使用新的 session ID、`--max-budget-usd 4` 與 [`routine-docs.txt`](../verifier-boundary/prompts/routine-docs.txt)。明確臂使用同樣三個 prompt 的 `-explicit` 版本；該臂的逐格證據記在 [`../verifier-boundary/results.json`](../verifier-boundary/results.json) 的 `passing_gate`。
 
