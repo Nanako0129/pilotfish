@@ -10,9 +10,10 @@
     "name": "Claude Code",
     "versions_observed": [
       "2.1.217",
-      "2.1.218"
+      "2.1.218",
+      "2.1.220"
     ],
-    "version_note": "baseline and candidate-1 runs used 2.1.217; release-payload replays used 2.1.218"
+    "version_note": "baseline and candidate-1 runs used 2.1.217; release-payload replays used 2.1.218; the 2026-08-02 paired opt-in matrix used 2.1.220"
   },
   "input_contract": {
     "mechanical_prompt_file_sha256": "8e583b26dcc1b4cb63601bb538b29e65677dce8009428e551d7906a30c3dc707",
@@ -282,7 +283,7 @@
   ],
   "v1_3_7_paired_opt_in_matrix": {
     "purpose": "Answers the open Gate item on #29: record the cue-free and the explicitly-directed lifecycle as separate cells, each carrying account plan, client build, model route and Agent call count.",
-    "design": "Paired. Both arms ran the same fixture against the same shipped policy bytes and the same generated payload, on one account and one client build. The only difference is the leading sentence 'Use pilotfish and delegate eligible work to the named agents.' present in the explicit prompts and absent from the cue-free ones.",
+    "design": "Paired. Both arms ran the same fixture against the same shipped policy bytes and the same generated payload, on one account and one client build. The intervention is a delegation instruction present only in the explicit arm: `schema-turn-1-explicit.txt` and `routine-docs-explicit.txt` prepend \"Use pilotfish and delegate eligible work to the named agents.\", while `schema-turn-2-explicit.txt` inserts \"Continue using pilotfish and delegate eligible work to the named agents.\" after the approval sentence rather than at the start. The cue-free prompts carry no such instruction anywhere. Everything else in each prompt pair is identical.",
     "environment": {
       "account_plan": "pro",
       "auth_method": "claude.ai",
@@ -321,14 +322,14 @@
       "routine_agent_call_count": 0,
       "tests_after": "4 passed, 0 failed (both schema attempts); 1 passed, 0 failed (routine)",
       "outcome_correct": true,
-      "reported_cost_usd": 1.253587,
       "raw_stream_sha256": {
         "schema_a_turn_1": "251aeca4474963ebc36026e57c1bad559599470f1e0cdb9f3736703b9f94f1f4",
         "schema_a_turn_2": "bcdd2bcdb5aff7c4395c6e6bb3f0f9d8d41bb2bee24c4160b78b62404ca2ed01",
         "schema_b_turn_1": "4c3a486df2b4de138ecd7e9e3fd7f8c5f33c64aa89bdc6b81f7d26b7a0515811",
         "schema_b_turn_2": "bbe8c3e69607ea01777511c74c1df70d4a1212c80c8ebfbb7f43214c803a2604",
         "routine": "245bda5c6ac8f4f22fb112cfa0cd8dfbc43e275487703bbfed245209c185d1d4"
-      }
+      },
+      "reported_cost_usd_paired_cells": 1.25358700
     },
     "explicitly_directed": {
       "evidence": "../verifier-boundary/results.json#passing_gate",
@@ -344,12 +345,13 @@
       ],
       "routine_agent_call_count": 0,
       "tests_after": "4 passed, 0 failed (both schema attempts); 1 passed, 0 failed (routine)",
-      "reported_cost_usd": 3.83951475
+      "reported_cost_usd_paired_cells": 2.67834725,
+      "reported_cost_usd_paired_cells_note": "Schema lifecycle 2.42469775 plus routine control 0.253649500. Excludes the post-cap plan control at 1.161167500, which has no cue-free counterpart in this matrix; the full passing_gate campaign including it is 3.83951475."
     },
     "observations": [
       "Cue-free schema dispatched nothing on either attempt; the explicitly-directed arm dispatched three roles on both. The routine control dispatched nothing in either arm, which is the behaviour its contract requires.",
       "Both arms produced correct results. The cue-free arm completed the migration in the main session with 4 of 4 repository tests passing, so this is a routing difference, not a correctness one.",
-      "The cue-free arm cost 1.25 USD against 3.84 for the explicit arm. On a fixture this small, delegating is more expensive, which is consistent with the policy's own direct-work rule for small stable work and is not evidence for or against delegation at any other scale."
+      "The cue-free arm cost 1.25358700 USD against 2.67834725 for the paired explicit cells, a factor of 2.14. The comparison excludes the post-cap plan control, which ran only in the explicit arm. On a fixture this small, delegating is more expensive, which is consistent with the policy's own direct-work rule for small stable work and is not evidence for or against delegation at any other scale."
     ],
     "claim": "On this account plan and client build, with the v1.3.7 policy installed, cue-free Agent dispatch did not occur in either schema attempt while explicit opt-in reached three named roles on both. This reproduces the behaviour #29 reported, now with a paired design on identical policy bytes.",
     "claim_boundary": "One account, one client build, one fixture, two attempts per arm. Establishes reachability and its absence under these exact conditions only. It does not identify a cause, does not measure dispatch frequency across workloads, and makes no efficiency claim in either direction."
