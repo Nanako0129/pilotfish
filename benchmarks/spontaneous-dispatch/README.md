@@ -106,7 +106,9 @@ One of two is not a rate. Two attempts cannot separate a plan effect from run-to
 
 That limitation reaches the plan comparison only. The cue-vs-no-cue comparison is paired: both Pro arms ran from the identical baseline tree `fd81141c…`, `agents.json` included, so the file is a shared constant there and the delegation sentence remains the sole intervention. Both explicit attempts are bound to that tree, not only the first. Note that [`../verifier-boundary/README.md`](../verifier-boundary/README.md) documents a recipe that passes `agents.json` externally; the recorded runs tracked it instead, and that README now says so. Details in `cue_free.pro_arms_share_one_tree`.
 
-Three of the four schema attempts converged on the same `store.mjs`, `6aa2e259…` — Max attempt a, Pro cue-free attempt a and explicit attempt a. Pro cue-free attempt b differs, and every attempt's test file differs from every other's. Where the identity holds it is attempt-level, not arm-level: the same source reached by different routes.
+Five of the six schema attempts converged on the same `store.mjs`, `6aa2e259…` — both explicit attempts, both Max cue-free attempts and Pro cue-free attempt a. Only Pro cue-free attempt b differs. Every attempt's test file differs from every other's. So the same implementation was reached by the main session alone, by a main session that dispatched two review roles, and by a three-role explicit lifecycle.
+
+One term needs care. `cue_free` marks the arm whose prompts carry no delegation instruction — prompt-cue-free. The stricter whole-context definition in `input_contract.why` is not met by any cell here: the Pro cells tracked `agents.json`, which does not pass the cue scan, and every cell had an untracked stream capture in its directory. The Pro zero-dispatch observations are therefore zero dispatch *despite* in-repository delegation vocabulary, which is a stronger negative than a clean-context zero, but they are not absolute cue-free evidence. `cue_free.classification` states what each arm satisfies.
 
 Every run in this matrix also wrote its own stream capture into the run directory as an untracked file, so the committed baseline tree is not quite the whole context the session could see. In the sole dispatching run no captured tool call read those bytes — `ls -la`, `git status` and `git ls-files --others` surface the filenames, nothing reads the contents — but the `plan-verifier` subagent's own tool calls are not captured in the parent stream, so the same cannot be shown for it. The presence is symmetric across both arms and both plans. Recorded in `input_contract.tree_binding.untracked_stream_captures`, along with the fix for future runs: write captures outside the disposable repository.
 
@@ -137,7 +139,15 @@ claude --dangerously-skip-permissions   -p --output-format stream-json --verbose
 claude --dangerously-skip-permissions   -p --output-format stream-json --verbose --max-budget-usd 6   --resume "$SESSION_ID" --model opus --effort high   --setting-sources project,local --strict-mcp-config   --agents "$(<"$SNAPSHOT/agents.json")"   "$(<"$PROMPTS/schema-turn-2.txt")"
 ```
 
-The role definitions are passed to `--agents` from the snapshot and never copied into `$WORK`, matching the [verifier-boundary](../verifier-boundary/README.md) recipe. Committing `agents.json` into the fixture would add a tracked file that names all five roles, changing the task context the run observes; the Pro cells in this matrix were recorded before that was corrected, and `cue_free.tree_difference_between_plans` records the resulting tree difference.
+The role definitions are passed to `--agents` from the snapshot and never copied into `$WORK`, matching the [verifier-boundary](../verifier-boundary/README.md) recipe. Committing `agents.json` into the fixture would add a tracked file that names all five roles, changing the task context the run observes.
+
+**This block reproduces the Max cells, not the Pro ones.** It builds baseline tree `d31e2096…`. The recorded Pro cells — both the cue-free and the explicit arm — ran on `fd81141c…`, which tracks `agents.json`, so substituting the `-explicit` prompts here yields a new run rather than a reproduction of the published Pro matrix. To reproduce those exactly, add one line before the commit:
+
+```bash
+cp "$SNAPSHOT/agents.json" "$WORK/agents.json"   # recorded Pro cells only; do not use for new runs
+```
+
+Use it only to re-examine the recorded Pro observations. New runs should use the corrected shape above, and `cue_free.tree_difference_between_plans` records what the difference does and does not license.
 
 Run the routine control in a fresh disposable copy with a new session ID, `--max-budget-usd 4`, and [`routine-docs.txt`](../verifier-boundary/prompts/routine-docs.txt). For the explicit arm, use the `-explicit` variants of the same three prompts; that arm's per-cell evidence is recorded in [`../verifier-boundary/results.json`](../verifier-boundary/results.json) under `passing_gate`.
 

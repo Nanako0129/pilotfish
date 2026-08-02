@@ -106,7 +106,9 @@ Negative cell 改複製 `benchmarks/dispatch-brake/fixture`、讀取 [`prompts/b
 
 這個限制只涉及方案比較。有 cue 對無 cue 那組是配對的：兩個 Pro 臂都從完全相同的 baseline tree `fd81141c…` 出發，含 `agents.json`，所以該檔案在那裡是共用常數，委派句仍是唯一的介入。明確臂兩次 attempt 都綁定到該樹，不只第一次。另外請注意 [`../verifier-boundary/README.md`](../verifier-boundary/README.zh-TW.md) 記載的做法是把 `agents.json` 從外部傳入；實際記錄的 run 是把它追蹤進樹，該 README 現已載明此事。細節見 `cue_free.pro_arms_share_one_tree`。
 
-四次 schema attempt 中有三次收斂到同一份 `store.mjs`（`6aa2e259…`）——Max attempt a、Pro cue-free attempt a 與明確 attempt a。Pro cue-free attempt b 不同，而每次的測試檔案彼此都不同。成立的地方是 attempt 層級而非臂層級：同一份原始碼，由不同路徑抵達。
+六次 schema attempt 中有五次收斂到同一份 `store.mjs`（`6aa2e259…`）——明確臂兩次、Max cue-free 兩次，以及 Pro cue-free attempt a。只有 Pro cue-free attempt b 不同。每次的測試檔案彼此都不同。也就是說，同一份實作分別由「主 session 獨力完成」、「主 session 加派兩個 review 角色」與「三角色明確 lifecycle」三種路徑抵達。
+
+有一個用詞需要小心。`cue_free` 標示的是 prompt 不含委派指示的那一臂——亦即 prompt-cue-free。`input_contract.why` 定義的全脈絡嚴格版本，本 matrix 沒有任何 cell 完全滿足：Pro 那組追蹤了無法通過 cue 掃描的 `agents.json`，而每個 cell 的目錄裡都有未追蹤的 stream capture。因此 Pro 的零委派觀察，是「在 repository 內已有委派詞彙的情況下仍然零委派」——這比乾淨脈絡下的零更強——但它不是絕對意義的 cue-free 證據。各臂實際滿足什麼，記在 `cue_free.classification`。
 
 本 matrix 每個 run 也都把自己的 stream capture 以未追蹤檔案寫進 run 目錄，因此已提交的 baseline tree 並不完全等於 session 看得到的全部脈絡。在那唯一一次有委派的 run 裡，沒有任何被記錄的 tool call 讀過那些位元組——`ls -la`、`git status` 與 `git ls-files --others` 只會列出檔名，沒有任何指令讀取內容——但 `plan-verifier` subagent 自己的 tool call 不會出現在 parent stream，所以對它無法做出同樣陳述。這些檔案在兩臂與兩個方案都同樣存在。記在 `input_contract.tree_binding.untracked_stream_captures`，連同往後的修正做法：把 capture 寫到拋棄式 repo 之外。
 
@@ -137,7 +139,15 @@ claude --dangerously-skip-permissions   -p --output-format stream-json --verbose
 claude --dangerously-skip-permissions   -p --output-format stream-json --verbose --max-budget-usd 6   --resume "$SESSION_ID" --model opus --effort high   --setting-sources project,local --strict-mcp-config   --agents "$(<"$SNAPSHOT/agents.json")"   "$(<"$PROMPTS/schema-turn-2.txt")"
 ```
 
-角色定義是從 snapshot 直接傳給 `--agents`，絕不複製進 `$WORK`，與 [verifier-boundary](../verifier-boundary/README.zh-TW.md) 的做法一致。把 `agents.json` commit 進 fixture 會多出一個列出全部五個角色的受追蹤檔案，改變 run 觀察到的任務脈絡；本 matrix 的 Pro 那組是在修正之前記錄的，造成的樹差異記在 `cue_free.tree_difference_between_plans`。
+角色定義是從 snapshot 直接傳給 `--agents`，絕不複製進 `$WORK`，與 [verifier-boundary](../verifier-boundary/README.zh-TW.md) 的做法一致。把 `agents.json` commit 進 fixture 會多出一個列出全部五個角色的受追蹤檔案，改變 run 觀察到的任務脈絡。
+
+**這個區塊重現的是 Max 那組，不是 Pro 那組。** 它建出的 baseline tree 是 `d31e2096…`。已記錄的 Pro cell——cue-free 與明確臂皆然——跑在 `fd81141c…` 上，該樹追蹤 `agents.json`；因此在這裡換成 `-explicit` prompt 得到的是一次新的 run，不是對已發布 Pro matrix 的重現。要精確重現那些 cell，請在 commit 之前多加一行：
+
+```bash
+cp "$SNAPSHOT/agents.json" "$WORK/agents.json"   # 僅供重現已記錄的 Pro cell；新 run 請勿使用
+```
+
+只在重新檢視已記錄的 Pro 觀察時使用它。新的 run 應採用上面修正後的形狀，`cue_free.tree_difference_between_plans` 記載了這個差異准許與不准許推導出什麼。
 
 routine control 在另一份全新的拋棄式複本執行，使用新的 session ID、`--max-budget-usd 4` 與 [`routine-docs.txt`](../verifier-boundary/prompts/routine-docs.txt)。明確臂使用同樣三個 prompt 的 `-explicit` 版本；該臂的逐格證據記在 [`../verifier-boundary/results.json`](../verifier-boundary/results.json) 的 `passing_gate`。
 
