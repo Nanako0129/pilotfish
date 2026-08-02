@@ -1,6 +1,6 @@
 # Spontaneous-dispatch behavior gate
 
-This gate asks whether Pilotfish chooses the intended execution topology from an ordinary task request. The prompts contain no instruction to delegate, avoid delegation, or consult an orchestration policy.
+This gate asks whether Pilotfish chooses the intended execution topology from an ordinary task request. In the two cells below and in the cue-free arm of the [v1.3.7 paired opt-in matrix](#v137-paired-opt-in-matrix), the prompts contain no instruction to delegate, avoid delegation, or consult an orchestration policy. The one exception is that matrix's explicitly directed arm, whose prompts state the instruction on purpose — it is the intervention being compared against, and its observations are not evidence of spontaneous dispatch.
 
 | Cell | Expected topology | Behavioral acceptance |
 |---|---|---|
@@ -89,11 +89,95 @@ For the negative cell, copy `benchmarks/dispatch-brake/fixture`, read [`prompts/
 
 > ⚠️ **Safety boundary:** permission bypass is used only in newly created disposable copies of repository-owned fixtures. Never run this command in a valuable or untrusted checkout.
 
+## v1.3.7 paired opt-in matrix
+
+Recorded under `v1_3_7_paired_opt_in_matrix` in [`results.json`](./results.json). It answers the open Gate item on [#29](https://github.com/Nanako0129/pilotfish/issues/29): the cue-free and the explicitly-directed lifecycle as separate cells, each carrying account plan, client build, model route and Agent call count.
+
+It holds two comparisons, not one.
+
+| Comparison | Cells | Result |
+|---|---|---|
+| Cue vs no cue, both on Pro | cue-free schema ×2, explicit schema ×2, routine control ×1 each | Cue-free dispatched nothing on either attempt; explicit reached `plan-verifier`, `mech-executor` and `verifier` on both. Routine dispatched nothing in either arm, as its contract requires |
+| Pro vs Max, both prompt-cue-free | schema ×2 and routine ×1 on each plan | One of two Max attempts dispatched `plan-verifier` and then `verifier` with no instruction to delegate in the prompt and none in the four fixture files, which pass the cue scan. Neither Pro attempt did |
+
+The dispatching Max attempt reached the policy lifecycle unprompted: a program envelope with a stable slice ID, acceptance and rollback sent to `plan-verifier`, which returned bare `READY`; the migration implemented in the main session with no executor dispatched; then an outcome `verifier` given the exact five-part claim, which returned `CONFIRMED`.
+
+One of two is not a rate. Two attempts cannot separate a plan effect from run-to-run variance, and they cannot separate it from the tree that changed alongside the plan: the Pro cells tracked a copy of `agents.json` that the Max cells did not, the only blob difference between the two baselines. Account plan and repository tree moved together, so the matrix records reachability and ranks no causes. Settling it would need Pro re-run on the Max tree, which is no longer available on an upgraded account. Recorded in `cue_free.tree_difference_between_plans`, including the monotonicity argument an earlier revision made and then withdrew.
+
+That limitation reaches the plan comparison only. The cue-vs-no-cue comparison is paired: both Pro arms ran from the identical baseline tree `fd81141c…`, `agents.json` included, so the file is a shared constant there and the delegation sentence remains the sole intervention. Both explicit attempts are bound to that tree, not only the first. Note that [`../verifier-boundary/README.md`](../verifier-boundary/README.md) documents a recipe that passes `agents.json` externally; the recorded runs tracked it instead, and that README now says so. Details in `cue_free.pro_arms_share_one_tree`.
+
+Five of the six schema attempts converged on the same `store.mjs`, `6aa2e259…` — both explicit attempts, both Max cue-free attempts and Pro cue-free attempt a. Only Pro cue-free attempt b differs. Every attempt's test file differs from every other's. So the same implementation was reached by the main session alone, by a main session that dispatched two review roles, and by a three-role explicit lifecycle.
+
+One term needs care. `cue_free` marks the arm whose prompts carry no delegation instruction — prompt-cue-free. The stricter whole-context definition in `input_contract.why` is not met by any cell here: the Pro cells tracked `agents.json`, which does not pass the cue scan, and every cell had an untracked stream capture in its directory. The Pro cells record zero dispatch with that vocabulary present in the repository; no ranking against a hypothetical clean-context run is drawn, because that would need the same monotonicity assumption withdrawn above. The Max fixture passes the scan, with `CLAUDE.md` and the untracked capture as the named remaining context. `cue_free.classification` states what each arm satisfies.
+
+Every run in this matrix also wrote its own stream capture into the run directory as an untracked file, so the committed baseline tree is not quite the whole context the session could see. In the sole dispatching run no captured tool call read those bytes — `ls -la`, `git status` and `git ls-files --others` surface the filenames, nothing reads the contents — but the `plan-verifier` subagent's own tool calls are not captured in the parent stream, so the same cannot be shown for it. The presence is symmetric across both arms and both plans. Recorded in `input_contract.tree_binding.untracked_stream_captures`, along with the fix for future runs: write captures outside the disposable repository.
+
+Its prompts live in [`../verifier-boundary/prompts/`](../verifier-boundary/prompts/), not in this benchmark's local `prompts/`, and its fixture is [`../verifier-boundary/fixture`](../verifier-boundary/fixture) bound by the digest recorded in the matrix. The schema cell is two turns and needs a resumed session, so it does not use `--no-session-persistence` like the older cells above.
+
+### Reproduction
+
+Reuse `$HARNESS` from the [Reproduce](#reproduce) block above rather than deriving the checkout from the working directory: that block leaves the shell inside `$FIXTURE`, which is itself a Git repository, so `git rev-parse --show-toplevel` would resolve to the disposable copy and every path below would be missing.
+
+```bash
+HARNESS=/path/to/pilotfish
+SNAPSHOT="$HARNESS/benchmarks/verifier-boundary/gate-snapshot-v2"
+PROMPTS="$HARNESS/benchmarks/verifier-boundary/prompts"
+WORK="$(mktemp -d /tmp/pilotfish-cue-free.XXXXXX)"
+
+cp -R "$HARNESS/benchmarks/verifier-boundary/fixture/." "$WORK/"
+cp "$SNAPSHOT/CLAUDE.md" "$WORK/CLAUDE.md"
+git -C "$WORK" init -q && git -C "$WORK" add -A
+git -C "$WORK" -c user.name=pilotfish-gate   -c user.email=pilotfish-gate@example.invalid commit -qm baseline
+
+SESSION_ID="$(python3 -c 'import uuid; print(uuid.uuid4())')"
+cd "$WORK"
+
+# turn 1 — cue-free
+claude --dangerously-skip-permissions   -p --output-format stream-json --verbose --max-budget-usd 6   --session-id "$SESSION_ID" --model opus --effort high   --setting-sources project,local --strict-mcp-config   --agents "$(<"$SNAPSHOT/agents.json")"   "$(<"$PROMPTS/schema-turn-1.txt")"
+
+# turn 2 — cue-free, resumed
+claude --dangerously-skip-permissions   -p --output-format stream-json --verbose --max-budget-usd 6   --resume "$SESSION_ID" --model opus --effort high   --setting-sources project,local --strict-mcp-config   --agents "$(<"$SNAPSHOT/agents.json")"   "$(<"$PROMPTS/schema-turn-2.txt")"
+```
+
+The role definitions are passed to `--agents` from the snapshot and never copied into `$WORK`, matching the [verifier-boundary](../verifier-boundary/README.md) recipe. Committing `agents.json` into the fixture would add a tracked file that names all five roles, changing the task context the run observes.
+
+**This block is the corrected shape for new runs, not an exact reproduction of any recorded cell.** It differs from every recorded run in two ways, both deliberate:
+
+| Delta | Recorded runs | This block |
+|---|---|---|
+| `agents.json` | Tracked in the Pro cells, baseline tree `fd81141c…`; absent from the Max cells, `d31e2096…` | Never copied in; builds `d31e2096…` |
+| Stream captures | Written into the run directory, so `t1.jsonl` and `t2.jsonl` were visible in the working tree | Not redirected; nothing cue-bearing is created inside `$WORK` |
+
+To recreate a recorded task context rather than start a clean one, apply the matching deltas. For the Pro cells, add `cp "$SNAPSHOT/agents.json" "$WORK/agents.json"` before the commit. For a recorded schema cell, redirect the two invocations into the run directory as `>"$WORK/t1.jsonl"` and `>"$WORK/t2.jsonl"`; for a recorded routine control, the single invocation goes to `>"$WORK/stream.jsonl"`. The filenames are part of the recorded context, since they are what a directory listing shows. Do both only to re-examine what was recorded; neither belongs in a new run. `cue_free.tree_difference_between_plans` and `input_contract.tree_binding.untracked_stream_captures` record what each difference does and does not license.
+
+Run the routine control in a fresh disposable copy with a new session ID, `--max-budget-usd 4`, and [`routine-docs.txt`](../verifier-boundary/prompts/routine-docs.txt). For the explicit arm, use the `-explicit` variants of the same three prompts; that arm's per-cell evidence is recorded in [`../verifier-boundary/results.json`](../verifier-boundary/results.json) under `passing_gate`.
+
+Recompute the fixture digest with:
+
+Run this from the source checkout, not from `$WORK` — the preceding block leaves the shell inside the disposable copy, where the relative path finds no files and prints the digest of an empty manifest:
+
+```bash
+cd "$HARNESS"
+python3 - <<'EOF'
+import hashlib, pathlib
+fx = pathlib.Path("benchmarks/verifier-boundary/fixture")
+files = sorted(p for p in fx.rglob("*") if p.is_file())
+manifest = "".join(
+    f"{hashlib.sha256(p.read_bytes()).hexdigest()}  {p.relative_to(fx).as_posix()}\n"
+    for p in files
+)
+print(hashlib.sha256(manifest.encode()).hexdigest())
+EOF
+```
+
+`--dangerously-skip-permissions` is limited to these disposable fixtures.
+
 ## Claim limits
 
 | Limit | Consequence |
 |---|---|
-| One observation per recorded cell | Outcomes are behavioral examples, not rates |
+| One observation per recorded cell, for the baseline, candidate and release-payload cells above | Outcomes are behavioral examples, not rates |
+| Three observed cells in the v1.3.7 matrix, not a full matrix — Pro has both arms, Max has the cue-free arm only, two schema attempts and one routine attempt in each | Still not a rate. The one dispatching Max attempt out of two is a reachability example; two attempts cannot separate a plan effect from run-to-run variance or from the tree difference that changed with the plan |
 | Client-reported cost field | It is not a provider invoice |
 | Fable usage-credit gate | No Fable behavior, correctness, or efficiency comparison is available |
 | Opus-only candidate evaluation | A passing Opus gate does not prove identical routing by another model |

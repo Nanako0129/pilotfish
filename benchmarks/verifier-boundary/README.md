@@ -56,6 +56,20 @@ Create separate disposable Git copies of `fixture/` for the schema and routine
 controls, copy `gate-snapshot-v2/CLAUDE.md` into each repository root, and commit
 the clean baseline. Then run:
 
+> **What the recorded runs actually tracked.** The commands below pass
+> `gate-snapshot-v2/agents.json` to `--agents` without copying it into the
+> repository, which is the shape a fresh reproduction should use. The runs
+> recorded in [`results.json`](./results.json) under `passing_gate` did copy and
+> commit it: their baseline tree is
+> `fd81141c7bb17fdf9c688150b7dde2cb9f4afd40`, which tracks `agents.json`
+> alongside `CLAUDE.md` and the four fixture files. Reproducing with the block
+> below therefore yields a different baseline tree from the recorded one. This
+> matters when the recorded runs are used as one arm of a comparison — see
+> `cue_free.pro_arms_share_one_tree` in
+> [`../spontaneous-dispatch/results.json`](../spontaneous-dispatch/results.json),
+> where both compared arms share this exact tree and the file is a constant of
+> the comparison rather than a difference between its arms.
+
 ```bash
 SOURCE="$(git rev-parse --show-toplevel)"
 SNAPSHOT="$SOURCE/benchmarks/verifier-boundary/gate-snapshot-v2"

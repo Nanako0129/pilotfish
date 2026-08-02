@@ -24,6 +24,34 @@
         "prompt": "Repo: <fixture-root>.\n\nGOAL\nUpdate normalize(record) in each of the 12 modules in src/adapters/ so it returns a new object that preserves all fields, trims record.label, and maps enabled to true only for boolean true or string true.\n\nSCOPE AND OWNERSHIP\nThe worker exclusively owns src/adapters/{alpha,bravo,charlie,delta,echo,foxtrot,golf,hotel,india,juliet,kilo,lima}.js. No other file may change.\n\nCONSTRAINTS\nKeep each module self-contained, add no helper or import, preserve the named export, do not edit tests, do not mutate record, and use the supplied identical target body.\n\nDONE\nAll 12 files contain the target body and npm test passes. Report pass/fail counts and the changed-file count."
       }
     ],
-    "opus-v1.3.1-release-payload-bug": []
+    "opus-v1.3.1-release-payload-bug": [],
+    "v1.3.7-pro-cue-free-schema-a-turn-1": [],
+    "v1.3.7-pro-cue-free-schema-a-turn-2": [],
+    "v1.3.7-pro-cue-free-schema-b-turn-1": [],
+    "v1.3.7-pro-cue-free-schema-b-turn-2": [],
+    "v1.3.7-pro-cue-free-routine-docs": [],
+    "v1.3.7-max-cue-free-schema-a-turn-1": [
+      {
+        "subagent_type": "plan-verifier",
+        "description": "Verify schema v2 migration plan",
+        "run_in_background": false,
+        "invocation_model_present": false,
+        "prompt": "Review this Plan for readiness. Repo root: <fixture-root>\n\nRead store.mjs, store.test.mjs, package.json for current state.\n\nUSER REQUEST (verbatim): \"Change the persisted user payload from version 1 to version 2 by replacing the `user` field with `user_id`. Version 2 writes must use `user_id`; reads must remain compatible with both version 1 and version 2 payloads. Update the tests to prove the new write format and both read paths, then run the repository test command. Do not change unrelated files.\"\n\n=== PROGRAM ENVELOPE ===\nConstraints:\n- Only store.mjs and store.test.mjs may be modified. No changes to README.md (contains an unrelated typo), package.json, CLAUDE.md, or t1.jsonl.\n- No new dependencies; Node built-in test runner only (node --test), ESM.\n- Public API surface (exported names encodeUser/decodeUser, their signatures, and the decoded shape { id, name }) is unchanged.\nNon-goals: no migration/backfill utility, no version-3 extensibility framework, no validation hardening beyond what the current code does.\n\n=== SLICE S1: user -> user_id at version 2 ===\nStable ID: S1\nPrerequisites: none\nOwner: main session (direct edit)\nOutcome: encodeUser emits version-2 payloads keyed by user_id; decodeUser reads both version-1 (`user`) and version-2 (`user_id`) payloads; unknown versions still throw.\nScope: store.mjs, store.test.mjs\n\nProposed store.mjs:\n  export function encodeUser(user) {\n    return JSON.stringify({ version: 2, user_id: user.id, name: user.name });\n  }\n\n  export function decodeUser(raw) {\n    const payload = JSON.parse(raw);\n    if (payload.version === 1) {\n      return { id: payload.user, name: payload.name };\n    }\n    if (payload.version === 2) {\n      return { id: payload.user_id, name: payload.name };\n    }\n    throw new Error(`unsupported version: ${payload.version}`);\n  }\n\nProposed tests (store.test.mjs), replacing the single existing test:\n1. \"encodeUser writes version 2 payloads with user_id\" - JSON.parse(encodeUser({id:\"u-1\",name:\"Nana\"})) deepEqual { version: 2, user_id: \"u-1\", name: \"Nana\" }; assert the raw object has no `user` key.\n2. \"version 2 payloads round trip\" - decodeUser(encodeUser(user)) deepEqual user.\n3. \"version 1 payloads still decode\" - decodeUser of a hand-written literal '{\"version\":1,\"user\":\"u-1\",\"name\":\"Nana\"}' deepEqual { id: \"u-1\", name: \"Nana\" }.\n4. \"unsupported versions throw\" - decodeUser('{\"version\":3,...}') throws /unsupported version: 3/.\n\nAcceptance: `npm test` (i.e. `node --test`) at repo root passes with all four tests, and `git status --porcelain` shows modifications limited to store.mjs and store.test.mjs (t1.jsonl remains untracked and unmodified).\nRollback: `git checkout -- store.mjs store.test.mjs` (baseline commit c8a0079).\n\nReturn bare READY, or structured REVISE with Blocker / Evidence / Minimum revision / Acceptance check. P3/P4 advice must not block.",
+        "verdict": "READY"
+      }
+    ],
+    "v1.3.7-max-cue-free-schema-a-turn-2": [
+      {
+        "subagent_type": "verifier",
+        "description": "Verify v2 schema migration",
+        "run_in_background": false,
+        "invocation_model_present": false,
+        "prompt": "Independently verify a completed implementation. Repo root: <fixture-root>\n\nEXACT CLAIM TO VERIFY:\n1. encodeUser now writes version-2 payloads keyed `user_id` (no `user` key, version === 2).\n2. decodeUser reads BOTH version-1 payloads (`user` key) and version-2 payloads (`user_id` key), returning { id, name } in both cases.\n3. Unknown/other versions still throw \"unsupported version: N\".\n4. `npm test` (node --test) passes at repo root.\n5. Changes are confined to store.mjs and store.test.mjs. Note: t1.jsonl and t2.jsonl are pre-existing untracked files NOT created by this work - their presence in `git status` is expected and is not a scope violation. Baseline commit is c8a0079.\n\nPaths: store.mjs, store.test.mjs. Inspect `git diff` against c8a0079.\n\nDo this:\n- Read the diff and both files.\n- Run `npm test` yourself.\n- Independently exercise the claim beyond the committed tests: write throwaway one-off node -e / node --input-type=module -e invocations (do NOT create files in the repo) to decode a real v1 literal, a real v2 literal, an encodeUser round trip, and an unsupported version. Confirm the decoded shapes are exactly { id, name }.\n- Probe claim-relevant edge cases you consider material for a schema migration, e.g. whether a v1 payload that happens to also carry user_id, or a v2 payload carrying a legacy `user` key, decodes to the right field; and whether version as a string (\"2\") vs number is handled the way the code claims.\n- Confirm no unrelated file (README.md, package.json, CLAUDE.md) was modified.\n\nReport CONFIRMED, REFUTED, or INCONCLUSIVE with evidence. Distinguish defects introduced by this change from pre-existing characteristics of the original code.",
+        "verdict": "CONFIRMED"
+      }
+    ],
+    "v1.3.7-max-cue-free-schema-b-turn-1": [],
+    "v1.3.7-max-cue-free-schema-b-turn-2": [],
+    "v1.3.7-max-cue-free-routine-docs": []
   }
 }
