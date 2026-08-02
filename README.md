@@ -56,19 +56,29 @@ Three layers, three files' worth of configuration, all under `~/.claude/`:
 
 > **Configuration root:** these paths assume the default. If you set [`CLAUDE_CONFIG_DIR`](https://code.claude.com/docs/en/env-vars), every `~/.claude/` path below lives under that directory instead, and the installer resolves it in Step 0 of the [runbook](./install/AGENT-INSTALL.md).
 
-> ⚠️ **Explicit Agent opt-in was required on one tested Claude Pro setup.**
-> On one first-party Pro account running Claude Code 2.1.220, a higher-priority
-> Agent tool contract blocked spawning unless the user explicitly requested
-> agents. A user-level `CLAUDE.md` could not override that session contract, so
-> a successful pilotfish install does not guarantee cue-free delegation in every
-> environment. Add
-> `Use pilotfish and delegate eligible work to the named agents.` to the request
-> when you want the orchestration lifecycle. Explicit direction reached the
-> exercised `scout`, `plan-verifier`, `mech-executor`, and `verifier` paths;
-> other roles were not tested. Both the v1.3.4 compressed candidate and unchanged
-> v1.3.3 cue-free control recorded zero dispatch, so this observation is not
-> attributed to prompt compression. Tracking:
-> [#29](https://github.com/Nanako0129/pilotfish/issues/29).
+> ⚠️ **A successful install does not guarantee automatic delegation. Add an explicit opt-in when you need the lifecycle.**
+> Higher-priority Claude Code instructions can suppress Agent dispatch, and a
+> user-level `CLAUDE.md` cannot override them. This is not confined to one plan.
+> On a first-party Pro account running Claude Code 2.1.220, two cue-free schema
+> attempts dispatched nothing. On the same machine and client after an upgrade to
+> Max, a four-cell baseline reached the expected topology on **one positive attempt
+> out of four** — the twelve-file mechanical cell failed both attempts with the main
+> session rewriting every file itself. Dispatch was observed on Max and not on Pro,
+> but the two are not a ranking: the cells differ, the repository tree changed
+> alongside the plan, and a handful of attempts is not a rate. There are two separate
+> injections with different gates; the subscription-gated one was observed absent on
+> Max while the session-guidance one remained. Neither plan reliably dispatches.
+> When you want the orchestration lifecycle, add
+> `Use pilotfish and delegate eligible work to the named agents.` to the request.
+> Explicit direction reached the exercised `scout`, `plan-verifier`,
+> `mech-executor`, and `verifier` paths on the Pro account, which is the only plan
+> where the explicit arm was run; other roles, and explicit direction on Max, were
+> not tested. This is not attributed to prompt compression: the unchanged v1.3.3
+> cue-free control recorded zero dispatch alongside the v1.3.4 compressed
+> candidate. Per-cell evidence, including what "cue-free" does and does not mean
+> in those records, is in
+> [`benchmarks/spontaneous-dispatch`](./benchmarks/spontaneous-dispatch/README.md).
+> Tracking: [#29](https://github.com/Nanako0129/pilotfish/issues/29).
 
 <details>
 <summary><b>What the mechanism is</b> — two independent injections, and what we can and cannot claim about them</summary>

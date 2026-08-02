@@ -498,5 +498,155 @@
         }
       }
     }
+  },
+  "v1_3_7_max_prompt_baseline": {
+    "purpose": "Reference point for prompt work on #29. Records what the shipped v1.3.7 policy does on a Max account across both positive and negative dispatch cells, so a later policy candidate can be measured against it rather than against an impression. Any candidate that raises positive dispatch must be shown not to break the negative cells, which is why they are baselined together.",
+    "environment": {
+      "account_plan": "max",
+      "auth_method": "claude.ai",
+      "api_provider": "firstParty",
+      "client_version": "2.1.220",
+      "requested_model": "opus",
+      "observed_main_model": "claude-opus-5",
+      "effort": "high",
+      "setting_sources": [
+        "project",
+        "local"
+      ],
+      "policy_version": "1.3.7",
+      "policy_sha256": "b26ef4a6a0e02575a39ecc8d3303a8cd7f9e9180548311de399fff527efb3b75",
+      "policy_source": "`templates/claude-md.orchestration.md` at v1.3.7, byte-identical to `../verifier-boundary/gate-snapshot-v2/CLAUDE.md`",
+      "agents_json_sha256": "e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f",
+      "agents_json_runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc",
+      "agents_json_digest_note": "`agents_json_sha256` is the committed snapshot file. `agents_json_runtime_sha256` is what the client actually received: the runner passes `\"$(<\"$G/agents.json\")\"`, and command substitution strips the trailing newline, so the payload hash differs from the file hash. The exercised payload is the runtime one."
+    },
+    "hygiene": "This baseline fixes both contamination sources the #43 review found. `agents.json` is passed to `--agents` and never copied into a repository, and every stream capture is written outside the disposable repository. `git ls-files --others --exclude-standard` returns empty in all five newly run directories, so the tracked tree is the whole tree the session could see. The three earlier Max attempts reused here — schema lifecycle a and b, routine docs a, five underlying streams between them — did not have the second property, and each says so.",
+    "cells": {
+      "mechanical": {
+        "expected_topology": "Exactly one foreground `mech-executor`; the main session performs no source mutation; 12 adapter files change; 12/12 tests pass.",
+        "baseline_tree": "7d671f5f3f8bf372e9caecd21bbc4a7cba224b90",
+        "attempts": [
+          {
+            "id": "a",
+            "agent_calls": 0,
+            "topology": "FAIL",
+            "observed": "Main session enumerated and catted the adapters, rewrote all twelve with a `cat > \"$f\"` heredoc loop, read them back, rewrote each again with a `Write` call, then ran the suite. Both mutation paths were the main session's. No Agent call.",
+            "tests_after": "12 passed, 0 failed",
+            "changed_paths_count": 12,
+            "client_reported_cost_usd": 0.931978,
+            "raw_stream_sha256": "567577c4cce8bca9fccf84945c3f2d0cf4f77379cbfbc8e7949a31e0b8524d12"
+          },
+          {
+            "id": "b",
+            "agent_calls": 0,
+            "topology": "FAIL",
+            "observed": "Main session listed and catted the adapters, then rewrote all twelve with `cat > \"$f\"` and `cat >| \"$f\"` heredoc loops, and ran the suite. No Agent call and no `Write` tool use at all — the mutation path was shell redirection, which this benchmark's input contract rejects outright.",
+            "tests_after": "12 passed, 0 failed",
+            "changed_paths_count": 12,
+            "client_reported_cost_usd": 0.3240865,
+            "raw_stream_sha256": "806c11e6564b1f5799a869de6be587603f68e6b91df231b6079da29e71d22171"
+          }
+        ]
+      },
+      "tightly_coupled_bug": {
+        "expected_topology": "Negative cell. Main session owns diagnosis and the first minimal fix; no discovery or implementation agent before the fix and the focused pass.",
+        "baseline_tree": "3f4f36922824ebff00775d2ab4cb72e6ee87ec4c",
+        "attempts": [
+          {
+            "id": "a",
+            "agent_calls": 0,
+            "topology": "PASS",
+            "observed": "Three Bash triage commands, five reads, one `Edit` to `src/reducer.js`, then the tests. No Agent call before or after the fix.",
+            "tests_after": "2 passed, 0 failed",
+            "changed_paths_count": 1,
+            "client_reported_cost_usd": 0.370751,
+            "raw_stream_sha256": "623cf6aabcc248e68b73daa4cb8e61e160d726183ca07c6c7151be9736f7ae32"
+          },
+          {
+            "id": "b",
+            "agent_calls": 0,
+            "topology": "PASS",
+            "observed": "Same shape with one extra triage command: four Bash calls, five reads, one `Edit` to `src/reducer.js`, then the tests. No Agent call.",
+            "tests_after": "2 passed, 0 failed",
+            "changed_paths_count": 1,
+            "client_reported_cost_usd": 0.3730545,
+            "raw_stream_sha256": "d5c318079f30a828bc97d1078343b60cc2ab2fc79bd0c8b232cc2329c03921b6"
+          }
+        ]
+      },
+      "schema_lifecycle": {
+        "expected_topology": "`plan-verifier` before approval, implementation, then an outcome `verifier`.",
+        "baseline_tree": "d31e20963655d0e8d08ec94e15395b0a0fc6e582",
+        "attempts": [
+          {
+            "id": "a",
+            "agent_calls": 2,
+            "topology": "PASS",
+            "observed": "Recorded in `v1_3_7_paired_opt_in_matrix.cue_free.max`. `plan-verifier` returned bare READY, the main session implemented, and an outcome `verifier` returned CONFIRMED.",
+            "tests_after": "4 passed, 0 failed",
+            "evidence": "#v1_3_7_paired_opt_in_matrix",
+            "caveat": "Ran before the capture-placement fix, so its run directory held untracked `t1.jsonl` and `t2.jsonl`."
+          },
+          {
+            "id": "b",
+            "agent_calls": 0,
+            "topology": "FAIL",
+            "observed": "Dispatched nothing and skipped the approval gate, writing both source files in turn 1.",
+            "tests_after": "5 passed, 0 failed",
+            "evidence": "#v1_3_7_paired_opt_in_matrix",
+            "caveat": "Same capture-placement caveat as attempt a."
+          }
+        ]
+      },
+      "routine_docs_control": {
+        "expected_topology": "Negative cell. Zero Agent calls.",
+        "baseline_tree": "d31e20963655d0e8d08ec94e15395b0a0fc6e582",
+        "attempts": [
+          {
+            "id": "a",
+            "agent_calls": 0,
+            "topology": "PASS",
+            "observed": "Recorded in `v1_3_7_paired_opt_in_matrix.cue_free.max`.",
+            "tests_after": "1 passed, 0 failed",
+            "evidence": "#v1_3_7_paired_opt_in_matrix",
+            "caveat": "Ran before the capture-placement fix; its directory held an untracked `stream.jsonl`."
+          },
+          {
+            "id": "b",
+            "agent_calls": 0,
+            "topology": "PASS",
+            "observed": "Listed files, read and edited `README.md`, ran the suite. No Agent call.",
+            "tests_after": "1 passed, 0 failed",
+            "changed_paths_count": 1,
+            "client_reported_cost_usd": 0.219294,
+            "raw_stream_sha256": "76686e6a6ffa00de04b86acabd7443cf2b3f17f302b4fc20823926961e6ef8ab"
+          }
+        ]
+      }
+    },
+    "scoreboard": {
+      "positive_attempts": "1 of 4 reached the expected topology: mechanical 0 of 2, schema lifecycle 1 of 2.",
+      "negative_attempts": "4 of 4 correct: tightly coupled bug 2 of 2, routine docs control 2 of 2.",
+      "correctness": "5 of 5 newly run attempts passed their repository tests, as did the 3 reused earlier ones. Every failure recorded here is a routing failure, never a wrong result.",
+      "reading": "The negative side has headroom and the positive side does not. A policy candidate has room to push harder; the thing to watch is whether pushing breaks the two negative cells that currently hold."
+    },
+    "regression_context": "The mechanical cell is the sharpest comparison available, because the same prompt file and the same fixture were run before. `runs` in this file records `opus-v1.3.1-candidate-1-mechanical` and `opus-v1.3.1-release-payload-mechanical` both passing the cell with exactly one foreground `mech-executor`, on Opus 4.8 and clients 2.1.217 and 2.1.218. The same cell now fails 2 of 2 on Opus 5 and client 2.1.220. The observable capability regressed. The cause is not established: the model, the client and the policy version all differ between those records and this one, and this baseline holds the policy constant rather than isolating any of them. It is recorded as the measured starting point for prompt work, not as an attribution.",
+    "claim_boundary": "One account, one machine, one client build, one model. Two attempts per cell. Establishes the shipped policy's behaviour under these exact conditions as a comparison point; it is not a dispatch rate and does not generalise across workloads, models or plans.",
+    "cost": {
+      "newly_run_streams_usd": 2.219164,
+      "note": "Five streams: mechanical a and b, bug a and b, routine b. Derived by summing the per-attempt values recorded above. The three reused attempts — schema a, schema b, routine a — were run earlier and are costed in `v1_3_7_paired_opt_in_matrix.cue_free.max`."
+    },
+    "evidence": {
+      "traces": "./traces.json",
+      "agent_calls": "./agent-calls.json",
+      "run_keys": [
+        "v1.3.7-max-baseline-mechanical-a",
+        "v1.3.7-max-baseline-mechanical-b",
+        "v1.3.7-max-baseline-bug-a",
+        "v1.3.7-max-baseline-bug-b",
+        "v1.3.7-max-baseline-routine-b"
+      ],
+      "note": "Sanitized tool sequences and Agent-call records are committed for the five newly run streams, as for every other run in this file. The three reused attempts are keyed under `v1.3.7-max-cue-free-*`."
+    }
   }
 }
