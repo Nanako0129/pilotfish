@@ -172,6 +172,23 @@ EOF
 
 `--dangerously-skip-permissions` 僅限這些拋棄式 fixture 使用。
 
+## v1.3.7 Max prompt baseline
+
+記錄在 [`results.json`](./results.json) 的 `v1_3_7_max_prompt_baseline`。它是 [#29](https://github.com/Nanako0129/pilotfish/issues/29) 上 prompt 工作的比較基準：出貨的 v1.3.7 政策在 Max 帳號上、正向與負向格一起量出來的行為，讓候選政策有東西可比，而不是憑印象。
+
+| 測試格 | 預期 | a | b |
+|---|---|---|---|
+| Mechanical，12 檔案 | 一個 foreground `mech-executor`，主 session 不動原始碼 | **FAIL** — 0 Agent call，主 session 改完 12 檔 | **FAIL** — 0 Agent call，用 shell 重導向改完 12 檔 |
+| 緊耦合 bug | 負向：主 session 自己診斷與首次修正 | PASS — 0 Agent call，一個 `Edit` | PASS — 0 Agent call，一個 `Edit` |
+| Schema lifecycle | `plan-verifier`、實作、`verifier` | PASS — 2 個 Agent call | **FAIL** — 0 Agent call，跳過 approval gate |
+| Routine docs | 負向：零 Agent call | PASS | PASS |
+
+**正向嘗試：四取一。負向嘗試：四取四。正確性：每一格的測試都通過。** 所有失敗都是 routing 失敗，沒有一次是結果錯誤。負向那側有餘裕、正向那側沒有——候選要改善的正是這個形狀，而且不能把負向那側弄壞。
+
+Mechanical 是目前最銳利的比較：同一份 prompt、同一個 fixture，在 Opus 4.8 與 client 2.1.217／2.1.218 上曾經二取二通過，即上面的 `opus-v1.3.1-candidate-1-mechanical` 與 `opus-v1.3.1-release-payload-mechanical`。現在二取二失敗。可觀察能力確實退化，但那些記錄與這一組之間，model、client 與政策版本三者都不同，所以這份 baseline 是起點，不是歸因。
+
+這是第一組同時修掉 review 找出的兩個污染源的 run：`agents.json` 只經 `--agents` 傳入、絕不複製進去，每一份 capture 都寫在拋棄式 repo 之外。五個新建目錄的 `git ls-files --others --exclude-standard` 都是空的。從配對 matrix 沿用的那四格早於 capture 修正，各自都已載明。
+
 ## 結論邊界
 
 | 限制 | 影響 |

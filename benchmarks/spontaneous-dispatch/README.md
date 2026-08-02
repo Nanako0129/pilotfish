@@ -172,6 +172,23 @@ EOF
 
 `--dangerously-skip-permissions` is limited to these disposable fixtures.
 
+## v1.3.7 Max prompt baseline
+
+Recorded under `v1_3_7_max_prompt_baseline` in [`results.json`](./results.json). It is the reference point for the prompt work tracked on [#29](https://github.com/Nanako0129/pilotfish/issues/29): what the shipped v1.3.7 policy does on a Max account across positive and negative cells together, so a candidate policy can be measured against it rather than against an impression.
+
+| Cell | Expected | a | b |
+|---|---|---|---|
+| Mechanical, 12 files | one foreground `mech-executor`, no main-session mutation | **FAIL** — 0 Agent calls, main rewrote all 12 | **FAIL** — 0 Agent calls, main rewrote all 12 by shell redirection |
+| Tightly coupled bug | negative: main owns diagnosis and first fix | PASS — 0 Agent calls, one `Edit` | PASS — 0 Agent calls, one `Edit` |
+| Schema lifecycle | `plan-verifier`, implement, `verifier` | PASS — 2 Agent calls | **FAIL** — 0 Agent calls, approval gate skipped |
+| Routine docs | negative: zero Agent calls | PASS | PASS |
+
+**Positive attempts: 1 of 4. Negative attempts: 4 of 4. Correctness: every cell passed its tests.** Every failure is a routing failure, never a wrong result. The negative side has headroom and the positive side does not, which is the shape a candidate has to improve without disturbing.
+
+The mechanical cell is the sharpest comparison available: the same prompt and fixture passed 2 of 2 on Opus 4.8 with clients 2.1.217 and 2.1.218, recorded above as `opus-v1.3.1-candidate-1-mechanical` and `opus-v1.3.1-release-payload-mechanical`. It now fails 2 of 2. The observable capability regressed, but the model, the client and the policy version all differ between those records and this one, so the baseline is a starting point, not an attribution.
+
+This baseline is the first set of runs to fix both contamination sources found in review: `agents.json` is passed to `--agents` and never copied in, and every capture is written outside the disposable repository. `git ls-files --others --exclude-standard` is empty in all five newly run directories. The four cells reused from the paired matrix predate the capture fix and each says so.
+
 ## Claim limits
 
 | Limit | Consequence |
