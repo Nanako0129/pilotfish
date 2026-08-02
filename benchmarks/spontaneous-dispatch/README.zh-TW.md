@@ -98,7 +98,7 @@ Negative cell 改複製 `benchmarks/dispatch-brake/fixture`、讀取 [`prompts/b
 | 比較 | 測試格 | 結果 |
 |---|---|---|
 | 有 cue 對無 cue，皆在 Pro | cue-free schema ×2、明確 schema ×2、各一個 routine control | cue-free 兩次都沒有委派；明確臂兩次都派出 `plan-verifier`、`mech-executor` 與 `verifier`。routine 兩臂都沒有委派，符合其合約 |
-| Pro 對 Max，皆為 prompt-cue-free | 每個方案各 schema ×2 與 routine ×1 | Max 兩次中有一次派出 `plan-verifier` 再派 `verifier`，prompt 裡沒有任何委派指示，且追蹤樹通過 cue 掃描。Pro 兩次都沒有 |
+| Pro 對 Max，皆為 prompt-cue-free | 每個方案各 schema ×2 與 routine ×1 | Max 兩次中有一次派出 `plan-verifier` 再派 `verifier`，prompt 裡沒有任何委派指示，四個 fixture 檔案也通過 cue 掃描。Pro 兩次都沒有 |
 
 那次有委派的 Max attempt 在沒有被提示的情況下走完了政策 lifecycle：把帶 stable slice ID、acceptance 與 rollback 的 program envelope 交給 `plan-verifier`，取得 bare `READY`；接著由主 session 自己實作——兩檔案的改動正是 dispatch brake 規定的做法；最後把五項 exact claim 交給 outcome `verifier`，取得 `CONFIRMED`。
 
@@ -108,7 +108,7 @@ Negative cell 改複製 `benchmarks/dispatch-brake/fixture`、讀取 [`prompts/b
 
 六次 schema attempt 中有五次收斂到同一份 `store.mjs`（`6aa2e259…`）——明確臂兩次、Max cue-free 兩次，以及 Pro cue-free attempt a。只有 Pro cue-free attempt b 不同。每次的測試檔案彼此都不同。也就是說，同一份實作分別由「主 session 獨力完成」、「主 session 加派兩個 review 角色」與「三角色明確 lifecycle」三種路徑抵達。
 
-有一個用詞需要小心。`cue_free` 標示的是 prompt 不含委派指示的那一臂——亦即 prompt-cue-free。`input_contract.why` 定義的全脈絡嚴格版本，本 matrix 沒有任何 cell 完全滿足：Pro 那組追蹤了無法通過 cue 掃描的 `agents.json`，而每個 cell 的目錄裡都有未追蹤的 stream capture。因此 Pro 的零委派觀察，是「在 repository 內已有委派詞彙的情況下仍然零委派」——這比乾淨脈絡下的零更強——但它不是絕對意義的 cue-free 證據。各臂實際滿足什麼，記在 `cue_free.classification`。
+有一個用詞需要小心。`cue_free` 標示的是 prompt 不含委派指示的那一臂——亦即 prompt-cue-free。`input_contract.why` 定義的全脈絡嚴格版本，本 matrix 沒有任何 cell 完全滿足：Pro 那組追蹤了無法通過 cue 掃描的 `agents.json`，而每個 cell 的目錄裡都有未追蹤的 stream capture。Pro 那組記錄的是「repository 內已有該詞彙，仍然零委派」；這裡不與假想的乾淨脈絡 run 做強弱排序，因為那需要上面已撤回的同一個單調性假設。Max 那組的 fixture 通過掃描，餘下的脈絡明列為 `CLAUDE.md` 與那份未追蹤的 capture。各臂實際滿足什麼，記在 `cue_free.classification`。
 
 本 matrix 每個 run 也都把自己的 stream capture 以未追蹤檔案寫進 run 目錄，因此已提交的 baseline tree 並不完全等於 session 看得到的全部脈絡。在那唯一一次有委派的 run 裡，沒有任何被記錄的 tool call 讀過那些位元組——`ls -la`、`git status` 與 `git ls-files --others` 只會列出檔名，沒有任何指令讀取內容——但 `plan-verifier` subagent 自己的 tool call 不會出現在 parent stream，所以對它無法做出同樣陳述。這些檔案在兩臂與兩個方案都同樣存在。記在 `input_contract.tree_binding.untracked_stream_captures`，連同往後的修正做法：把 capture 寫到拋棄式 repo 之外。
 
