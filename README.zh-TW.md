@@ -62,12 +62,14 @@ Anthropic 在 2026-07-24 發布 [Opus 5](https://www.anthropic.com/news/claude-o
 > first-party Pro 帳號上，兩次 cue-free schema attempt 都沒有委派；同一台機器、
 > 同一個 client 升級 Max 之後，一組四格 baseline **四次正向嘗試只有一次**達到預期
 > 拓撲——十二檔案的 mechanical 那格兩次全失敗，主 session 自己改完全部檔案。
-> 比 Pro 好，但遠談不上可靠。有兩個各自獨立、gate 不同的注入：訂閱層級那個在
-> Max 上實測消失，session guidance 那個仍在。**兩種方案都受影響，只是方式不同。**
+> Max 上觀察到委派、Pro 上沒有，但這兩者不構成排序：測試格不同、repository 樹
+> 隨方案一起變動，而且區區數次嘗試不是發生率。有兩個各自獨立、gate 不同的注入：
+> 訂閱層級那個在 Max 上實測消失，session guidance 那個仍在。**兩種方案都不可靠。**
 > 需要 orchestration lifecycle 時，請在 request 加上
 > `Use pilotfish and delegate eligible work to the named agents.`。
-> 明確指定後，在兩個已測方案上，已實測的 `scout`、`plan-verifier`、
-> `mech-executor` 與 `verifier` paths 都可正常啟動；其他 roles 未測。
+> 明確指定後，已實測的 `scout`、`plan-verifier`、`mech-executor` 與 `verifier`
+> paths 都可正常啟動——但那只在 Pro 帳號上跑過，明確臂沒有在 Max 上執行；
+> 其他 roles，以及 Max 上的明確指定，都未測。
 > 目前不把此觀察歸因於 prompt compression：未修改的 v1.3.3 cue-free control
 > 與 v1.3.4 壓縮版同樣是 0 dispatch。逐格證據，以及那些記錄裡「cue-free」
 > 究竟指什麼、不指什麼，見

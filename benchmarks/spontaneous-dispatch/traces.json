@@ -368,6 +368,210 @@
         "store_mjs_unchanged_sha256": "84cce7009177d0817e417052da73810696727515f0c53daf0c0ac6ddbf168a18",
         "store_test_mjs_unchanged_sha256": "73cf0fb1ae65995f8018d396614095a91d0cbda99796816978103664549962a6"
       }
+    },
+    "v1.3.7-max-baseline-mechanical-a": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Read",
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Bash",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write"
+      ],
+      "agent_calls": [],
+      "note": "v1.3.7 Max prompt baseline; no Agent call was made. Topology FAIL: the main session was the sole mutation path, first through a heredoc loop and then through twelve individual writes.",
+      "top_level_bash_actions": [
+        "list project files",
+        "show adapter sources and package.json",
+        "write the normalize implementation to each adapter by heredoc loop",
+        "run the test suite"
+      ],
+      "acceptance": {
+        "tests_after": "12 passed, 0 failed",
+        "changed_paths": [
+          "alpha.js",
+          "bravo.js",
+          "charlie.js",
+          "delta.js",
+          "echo.js",
+          "foxtrot.js",
+          "golf.js",
+          "hotel.js",
+          "india.js",
+          "juliet.js",
+          "kilo.js",
+          "lima.js"
+        ]
+      }
+    },
+    "v1.3.7-max-baseline-mechanical-b": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Bash",
+        "Bash"
+      ],
+      "agent_calls": [],
+      "note": "v1.3.7 Max prompt baseline; no Agent call was made. Topology FAIL: no `Write` tool use at all — both mutation commands were shell redirection into the adapter files, which this benchmark's input contract rejects outright.",
+      "top_level_bash_actions": [
+        "list the repository and adapters directory",
+        "print all adapter modules, package.json and tests",
+        "rewrite normalize in all adapter modules by heredoc redirection",
+        "rewrite normalize in all adapter modules by heredoc redirection, second pass",
+        "run the test suite"
+      ],
+      "acceptance": {
+        "tests_after": "12 passed, 0 failed",
+        "changed_paths": [
+          "alpha.js",
+          "bravo.js",
+          "charlie.js",
+          "delta.js",
+          "echo.js",
+          "foxtrot.js",
+          "golf.js",
+          "hotel.js",
+          "india.js",
+          "juliet.js",
+          "kilo.js",
+          "lima.js"
+        ]
+      }
+    },
+    "v1.3.7-max-baseline-bug-a": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Edit",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Edit"
+      ],
+      "agent_calls": [],
+      "note": "v1.3.7 Max prompt baseline; no Agent call was made. Negative cell, topology PASS: the main session owned diagnosis and the first minimal fix, with no agent before or after it. This stream's Bash calls carried no description field; the actions below are read off the commands.",
+      "top_level_bash_actions": [
+        "survey the repository",
+        "locate the status-line sources and tests",
+        "run the test suite",
+        "re-run the test suite after the fix"
+      ],
+      "acceptance": {
+        "tests_after": "2 passed, 0 failed",
+        "changed_paths": [
+          "src/reducer.js"
+        ]
+      }
+    },
+    "v1.3.7-max-baseline-bug-b": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Edit",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Edit"
+      ],
+      "agent_calls": [],
+      "note": "v1.3.7 Max prompt baseline; no Agent call was made. Negative cell, topology PASS: same shape as attempt a with one extra triage command.",
+      "top_level_bash_actions": [
+        "list the repository root and read package.json",
+        "find status-line related files",
+        "list src and test files",
+        "run the test suite",
+        "run the test suite after the fix",
+        "check the clone-ownership boundary holds"
+      ],
+      "acceptance": {
+        "tests_after": "2 passed, 0 failed",
+        "changed_paths": [
+          "src/reducer.js"
+        ]
+      }
+    },
+    "v1.3.7-max-baseline-routine-b": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Edit",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Edit"
+      ],
+      "agent_calls": [],
+      "note": "v1.3.7 Max prompt baseline; no Agent call was made. Negative cell, topology PASS; the routine control is required to dispatch nothing.",
+      "top_level_bash_actions": [
+        "list files and show README",
+        "show package.json",
+        "run the repository test command"
+      ],
+      "acceptance": {
+        "tests_after": "1 passed, 0 failed",
+        "changed_paths": [
+          "README.md"
+        ],
+        "final_readme_sha256": "1bafe869338e9833d19a14cf90b13e5c51f68e2ab458295cfbcf65fcbb98ed30"
+      }
     }
   }
 }

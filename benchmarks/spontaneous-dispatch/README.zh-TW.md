@@ -187,7 +187,7 @@ EOF
 
 Mechanical 是目前最銳利的比較：同一份 prompt、同一個 fixture，在 Opus 4.8 與 client 2.1.217／2.1.218 上曾經二取二通過，即上面的 `opus-v1.3.1-candidate-1-mechanical` 與 `opus-v1.3.1-release-payload-mechanical`。現在二取二失敗。可觀察能力確實退化，但那些記錄與這一組之間，model、client 與政策版本三者都不同，所以這份 baseline 是起點，不是歸因。
 
-這是第一組同時修掉 review 找出的兩個污染源的 run：`agents.json` 只經 `--agents` 傳入、絕不複製進去，每一份 capture 都寫在拋棄式 repo 之外。五個新建目錄的 `git ls-files --others --exclude-standard` 都是空的。從配對 matrix 沿用的那四格早於 capture 修正，各自都已載明。
+這是第一組同時修掉 review 找出的兩個污染源的 run：`agents.json` 只經 `--agents` 傳入、絕不複製進去，每一份 capture 都寫在拋棄式 repo 之外。五個新建目錄的 `git ls-files --others --exclude-standard` 都是空的。從配對 matrix 沿用的那三次 attempt——schema a 與 b、routine a——早於 capture 修正，各自都已載明。
 
 ## 結論邊界
 
