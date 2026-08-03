@@ -206,7 +206,7 @@ Historical Candidate 3 is evidence for the wording direction, not a release cand
 
 ## Issue #29 opt-in recovery
 
-The exact behavioral policy passed the corrected matrix with this explicit opt-in; the v1.3.8 release candidate differs only by its version marker:
+The recorded Gate candidate passed the corrected matrix with this explicit opt-in. The v1.3.8 release candidate now also restores the independent-review qualifier and defines the background exception for a mechanical worker that may need a long command; those post-Gate policy bytes require a fresh replay before release:
 
 ```text
 Use pilotfish. Follow its dispatch brake: keep direct work in the main session and call the named agents only when the policy selects delegation.
@@ -221,7 +221,7 @@ Use pilotfish. Follow its dispatch brake: keep direct work in the main session a
 
 Schema review and implementation routing are separate decisions. Serialization makes Plan and outcome review mandatory; it does not make a two-file implementation delegation mandatory. Mechanical delegation has its own positive cell. Treating an execution-agent hop as a schema blocker would contradict the policy's net-benefit brake and previously caused a one-line docs task to over-delegate.
 
-[`issue-29-recovery.json`](./issue-29-recovery.json) binds the policy, generated agents payload, prompts, costs, and raw-stream hashes. Qualifying completed cells reported `$3.91628855`; one otherwise-correct mechanical invocation exhausted its `$0.60` cap before child-result collection and is disclosed but excluded. Including it, the campaign reported `$4.53105325`.
+[`issue-29-recovery.json`](./issue-29-recovery.json) binds the repository policy, injection method, generated agents payload, prompts, costs, and raw-stream hashes. The historical transcript observes the fixture `CLAUDE.md` at the expected 17,996 bytes but does not expose a digest of the bytes incorporated into the runtime system prompt, so this is not an exact-loaded-policy claim. Qualifying completed cells reported `$3.91628855`; one otherwise-correct mechanical invocation exhausted its `$0.60` cap before child-result collection and is disclosed but excluded. Including it, the campaign reported `$4.53105325`.
 
 ## Claim limits
 

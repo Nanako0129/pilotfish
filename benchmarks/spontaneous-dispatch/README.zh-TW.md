@@ -206,7 +206,7 @@ Mechanical 是目前最銳利的比較：同一份 prompt、同一個 fixture，
 
 ## Issue #29 opt-in recovery
 
-Exact behavioral policy 使用以下明確 opt-in 後通過修正 matrix；v1.3.8 release candidate 只改 version marker：
+記錄中的 Gate candidate 使用以下明確 opt-in 後通過修正 matrix。v1.3.8 release candidate 之後又恢復 independent-review qualifier，並補上 mechanical worker 可能需要長指令時的 background 例外；這些 post-Gate policy bytes 發版前必須重新 replay：
 
 ```text
 Use pilotfish. Follow its dispatch brake: keep direct work in the main session and call the named agents only when the policy selects delegation.
@@ -221,7 +221,7 @@ Use pilotfish. Follow its dispatch brake: keep direct work in the main session a
 
 Schema review 與 implementation routing 是兩個不同決策。Serialization 會強制 Plan 與 outcome review，但不會強制兩檔實作一定委派。Mechanical delegation 已有獨立正向格。若把 execution-agent hop 當成 schema blocker，就會違反 policy 的 net-benefit brake；先前實測也曾讓一行 docs 工作過度委派。
 
-[`issue-29-recovery.json`](./issue-29-recovery.json) 綁定 policy、generated agents payload、prompts、成本與 raw-stream hashes。合格完成 cells reported `$3.91628855`；另有一次 routing 正確的 mechanical invocation 在收回 child result 前用完 `$0.60` cap，已揭露但不算通過。連同該次，campaign reported `$4.53105325`。
+[`issue-29-recovery.json`](./issue-29-recovery.json) 綁定 repository policy、注入方法、generated agents payload、prompts、成本與 raw-stream hashes。歷史 transcript 觀察到 fixture `CLAUDE.md` 為預期的 17,996 bytes，但沒有提供實際併入 runtime system prompt 的位元組 digest，因此這不是 exact-loaded-policy claim。合格完成 cells reported `$3.91628855`；另有一次 routing 正確的 mechanical invocation 在收回 child result 前用完 `$0.60` cap，已揭露但不算通過。連同該次，campaign reported `$4.53105325`。
 
 ## 結論邊界
 

@@ -88,6 +88,22 @@ def is_shell_separator(token: str) -> bool:
     return bool(token) and set(token) <= SHELL_SEPARATOR_CHARS
 
 
+def has_unquoted_redirect(command: str) -> bool:
+    quote = None
+    index = 0
+    while index < len(command):
+        char = command[index]
+        if char == "\\" and quote != "'" and index + 1 < len(command):
+            index += 2
+            continue
+        if char in {"'", '"'}:
+            quote = None if quote == char else char if quote is None else quote
+        elif char == ">" and quote is None:
+            return True
+        index += 1
+    return False
+
+
 def bash_writes(command: str) -> bool:
     sanitized = SAFE_REDIRECT.sub(" ", strip_shell_comments(command))
     if REDIRECT.search(sanitized) or WRITE_COMMAND.search(sanitized):
@@ -172,6 +188,8 @@ def bash_writes(command: str) -> bool:
 
 def bash_proves_write(command: str) -> bool:
     sanitized = SAFE_REDIRECT.sub(" ", strip_shell_comments(command))
+    if has_unquoted_redirect(sanitized):
+        return True
     try:
         lexer = shlex.shlex(
             sanitized, posix=False, punctuation_chars=";&|<>\n"
@@ -182,11 +200,6 @@ def bash_proves_write(command: str) -> bool:
         tokens = list(lexer)
     except ValueError:
         return False
-
-    if any(
-        ">" in token and not token.startswith(("'", '"')) for token in tokens
-    ):
-        return True
 
     segment: list[str] = []
     for token in tokens + [";"]:

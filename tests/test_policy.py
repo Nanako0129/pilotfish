@@ -82,6 +82,11 @@ class PolicyContractTests(unittest.TestCase):
                             "name": "Bash",
                             "input": {"command": "printf 'cp old new'"},
                         },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {"command": "printf a\\>b"},
+                        },
                     ]
                 },
             },
@@ -733,6 +738,10 @@ class PolicyContractTests(unittest.TestCase):
         )
         attempts = evidence["attempts"]
         contract = evidence["topology_contract"]
+        modified_paths_digest = hashlib.sha256(
+            "".join(f"{item}\n" for item in contract["modified_paths"]).encode()
+        ).hexdigest()
+        self.assertEqual(modified_paths_digest, contract["modified_paths_sha256"])
 
         def passes(attempt: dict[str, object]) -> bool:
             return (
@@ -745,9 +754,18 @@ class PolicyContractTests(unittest.TestCase):
                 and attempt["main_mutated"] is contract["main_session_mutated"]
                 and attempt["worker_write_count"]
                 >= contract["worker_write_count_minimum"]
+                and attempt["modified_paths_sha256"]
+                == contract["modified_paths_sha256"]
             )
 
         self.assertEqual(len(attempts), 20)
+        self.assertTrue(
+            all(
+                attempt["modified_paths_sha256"]
+                == contract["modified_paths_sha256"]
+                for attempt in attempts
+            )
+        )
         self.assertTrue(
             all(
                 attempt["tests_passed"] == 12
@@ -781,13 +799,13 @@ class PolicyContractTests(unittest.TestCase):
             evidence["classifier"]["sha256"],
         )
 
-    def test_issue_29_recovery_gate_is_exact_and_brake_calibrated(self) -> None:
+    def test_issue_29_recovery_gate_is_bounded_and_brake_calibrated(self) -> None:
         path = ROOT / "benchmarks" / "spontaneous-dispatch"
         evidence = json.loads(
             (path / "issue-29-recovery.json").read_text(encoding="utf-8"),
             parse_float=Decimal,
         )
-        self.assertEqual(evidence["status"], "passed")
+        self.assertEqual(evidence["status"], "gate_passed_release_pending_replay")
 
         inputs = evidence["inputs"]
         self.assertEqual(
@@ -817,12 +835,13 @@ class PolicyContractTests(unittest.TestCase):
         self.assertEqual(
             hashlib.sha256(policy).hexdigest(), inputs["policy"]["release_sha256"]
         )
-        gate_policy = policy.replace(b"pilotfish v1.3.8", b"pilotfish v1.3.7", 1)
-        self.assertNotEqual(gate_policy, policy)
-        self.assertEqual(len(gate_policy), inputs["policy"]["gate_bytes"])
+        self.assertRegex(inputs["policy"]["gate_source_commit"], r"^[0-9a-f]{40}$")
+        self.assertRegex(inputs["policy"]["gate_sha256"], r"^[0-9a-f]{64}$")
+        self.assertEqual(inputs["policy"]["gate_bytes"], 17996)
+        self.assertIsNone(inputs["policy"]["runtime_loaded_sha256"])
+        self.assertEqual(inputs["policy"]["observed_runtime_bytes"], 17996)
         self.assertEqual(
-            hashlib.sha256(gate_policy).hexdigest(),
-            inputs["policy"]["gate_sha256"],
+            inputs["policy"]["release_gate_status"], "pending fresh paid replay"
         )
         agents = (path / inputs["agents"]["path"]).read_bytes()
         self.assertEqual(
@@ -1253,9 +1272,10 @@ class PolicyContractTests(unittest.TestCase):
             runtime["release_candidate_generated_by"],
             "benchmarks/baton-compatibility/build-agents-json.py templates/agents",
         )
-        self.assertEqual(
-            runtime["release_candidate_behavioral_gate_status"],
-            "passed; exact behavioral policy before the version-stamp-only v1.3.8 delta and exact shell-normalized generated payload; narrow explicit opt-in; routine and single-bug direct controls 2/2, mechanical delegation 2/2, and schema Plan/approval/tests/outcome review 2/2 on 2026-08-04",
+        self.assertTrue(
+            runtime["release_candidate_behavioral_gate_status"].startswith(
+                "pending replay;"
+            )
         )
         self.assertEqual(
             runtime["release_candidate_runtime_evidence"],
@@ -1263,7 +1283,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["release_candidate_offline_evidence"],
-            "tests/test_policy.py::PolicyContractTests.test_issue_29_recovery_gate_is_exact_and_brake_calibrated",
+            "tests/test_policy.py::PolicyContractTests.test_issue_29_recovery_gate_is_bounded_and_brake_calibrated",
         )
         self.assertTrue(
             runtime["release_candidate_policy_delta_from_final_gate"].startswith(
@@ -1872,12 +1892,16 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("exclusive ownership", policy)
         self.assertIn("per-item acceptance", policy)
         self.assertIn(
-            "dispatch a foreground `mech-executor` before main edits; wait",
+            "Dispatch a `mech-executor`",
             policy,
         )
+        self.assertIn("possible long command requires background", policy)
+        self.assertIn("Collect before main edits", policy)
         self.assertIn("files stay worker-only until done", policy)
-        self.assertIn("don't redo its work", policy)
-        self.assertIn("before editing", policy)
+        self.assertIn("don't redo", policy)
+        self.assertIn("prior blocker", policy)
+        self.assertIn("Triggers: user asks for independent review", policy)
+        self.assertNotIn("Triggers: requested review", policy)
         for blocker in (
             "evolving/coupled evidence",
             "ownership/integration conflict",
