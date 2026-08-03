@@ -69,11 +69,12 @@ Three layers, three files' worth of configuration, all under `~/.claude/`:
 > injections with different gates; the subscription-gated one was observed absent on
 > Max while the session-guidance one remained. Neither plan reliably dispatches.
 > When you want the orchestration lifecycle, add
-> `Use pilotfish and delegate eligible work to the named agents.` to the request.
-> Explicit direction reached the exercised `scout`, `plan-verifier`,
-> `mech-executor`, and `verifier` paths on the Pro account, which is the only plan
-> where the explicit arm was run; other roles, and explicit direction on Max, were
-> not tested. This is not attributed to prompt compression: the unchanged v1.3.3
+> `Use pilotfish. Follow its dispatch brake: keep direct work in the main session and call the named agents only when the policy selects delegation.` to the request.
+> The historical Pro explicit arm reached `scout`, `plan-verifier`,
+> `mech-executor`, and `verifier`. The current Max recovery matrix reached
+> `plan-verifier`, `mech-executor`, and `verifier` while keeping routine docs and a
+> single unknown bug direct; it did not exercise the other roles. This is not
+> attributed to prompt compression: the unchanged v1.3.3
 > cue-free control recorded zero dispatch alongside the v1.3.4 compressed
 > candidate. Per-cell evidence, including what "cue-free" does and does not mean
 > in those records, is in

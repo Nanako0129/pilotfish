@@ -6,6 +6,7 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -24,6 +25,83 @@ ROLES = (
 
 
 class PolicyContractTests(unittest.TestCase):
+    def test_spontaneous_dispatch_classifier_separates_child_tools(self) -> None:
+        events = [
+            {
+                "type": "assistant",
+                "parent_tool_use_id": None,
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "name": "Agent",
+                            "input": {
+                                "subagent_type": "mech-executor",
+                                "run_in_background": False,
+                            },
+                        }
+                    ]
+                },
+            },
+            {
+                "type": "assistant",
+                "parent_tool_use_id": "toolu_worker",
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {
+                                "command": (
+                                    "cd /private/tmp/run/src && printf done > out.js"
+                                )
+                            },
+                        }
+                    ]
+                },
+            },
+            {
+                "type": "assistant",
+                "parent_tool_use_id": None,
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {"command": "npm test 2>&1"},
+                        }
+                    ]
+                },
+            },
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            stream = Path(directory) / "stream.jsonl"
+            stream.write_text(
+                "".join(json.dumps(event) + "\n" for event in events),
+                encoding="utf-8",
+            )
+            output = subprocess.run(
+                [
+                    sys.executable,
+                    str(
+                        ROOT
+                        / "benchmarks"
+                        / "spontaneous-dispatch"
+                        / "classify_stream.py"
+                    ),
+                    str(stream),
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+
+        trace = json.loads(output.stdout)[0]
+        self.assertEqual(trace["top_level_tools"], ["Agent", "Bash"])
+        self.assertFalse(trace["main_session_mutated"])
+        self.assertEqual(trace["worker_source_write_tools"], ["Bash"])
+        self.assertIn("> out.js", trace["worker_mutation_paths"][0])
+
     def test_baton_dispatch_matrix_prompts_are_neutral_and_recorded(self) -> None:
         benchmark = ROOT / "benchmarks" / "baton-dispatch-effect"
         results = json.loads(
@@ -358,6 +436,142 @@ class PolicyContractTests(unittest.TestCase):
             (benchmark / "README.md").read_text(encoding="utf-8"),
         )
 
+    def test_issue_29_topology_correction_is_self_consistent(self) -> None:
+        path = ROOT / "benchmarks" / "spontaneous-dispatch"
+        evidence = json.loads(
+            (path / "issue-29-topology.json").read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        attempts = evidence["attempts"]
+        contract = evidence["topology_contract"]
+
+        def passes(attempt: dict[str, object]) -> bool:
+            return (
+                attempt["agent_calls"] == contract["agent_calls"]
+                and attempt["mode"] == contract["mode"]
+                and attempt["collected"] is contract["result_collected"]
+                and attempt["main_mutated"] is contract["main_session_mutated"]
+                and attempt["worker_write_count"]
+                >= contract["worker_write_count_minimum"]
+            )
+
+        self.assertEqual(len(attempts), 20)
+        self.assertEqual(sum(passes(attempt) for attempt in attempts), 7)
+        self.assertEqual(
+            sum(not attempt["main_mutated"] for attempt in attempts), 10
+        )
+        self.assertEqual(
+            sum(attempt["cost_usd"] for attempt in attempts).quantize(
+                Decimal("0.0000001")
+            ),
+            evidence["summary"]["client_reported_mechanical_cost_usd"],
+        )
+        self.assertEqual(
+            {attempt["topology"] for attempt in attempts if passes(attempt)},
+            {"PASS"},
+        )
+        self.assertEqual(
+            {attempt["topology"] for attempt in attempts if not passes(attempt)},
+            {"FAIL"},
+        )
+        self.assertEqual(
+            len({attempt["raw_stream_sha256"] for attempt in attempts}), 20
+        )
+        self.assertEqual(
+            hashlib.sha256((path / "classify_stream.py").read_bytes()).hexdigest(),
+            evidence["classifier"]["sha256"],
+        )
+
+    def test_issue_29_recovery_gate_is_exact_and_brake_calibrated(self) -> None:
+        path = ROOT / "benchmarks" / "spontaneous-dispatch"
+        evidence = json.loads(
+            (path / "issue-29-recovery.json").read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        self.assertEqual(evidence["status"], "passed")
+
+        inputs = evidence["inputs"]
+        policy = (path / inputs["policy"]["path"]).read_bytes()
+        self.assertEqual(len(policy), inputs["policy"]["bytes"])
+        self.assertEqual(
+            hashlib.sha256(policy).hexdigest(), inputs["policy"]["sha256"]
+        )
+        agents = (path / inputs["agents"]["path"]).read_bytes()
+        self.assertEqual(
+            hashlib.sha256(agents).hexdigest(), inputs["agents"]["file_sha256"]
+        )
+        self.assertEqual(
+            hashlib.sha256(agents.rstrip(b"\n")).hexdigest(),
+            inputs["agents"]["runtime_sha256"],
+        )
+        for prompt in inputs["prompts"].values():
+            payload = (path / prompt["path"]).read_bytes()
+            self.assertEqual(
+                hashlib.sha256(payload).hexdigest(), prompt["file_sha256"]
+            )
+
+        results = evidence["results"]
+        routine = results["routine_docs"]["attempts"]
+        bug = results["single_unknown_bug"]["attempts"]
+        mechanical = results["mechanical_repetition"]
+        schema = results["schema_lifecycle"]
+        self.assertEqual(len(routine), 2)
+        self.assertTrue(all(attempt["agent_calls"] == 0 for attempt in routine))
+        self.assertEqual(len(bug), 2)
+        self.assertTrue(all(attempt["agent_calls"] == 0 for attempt in bug))
+        self.assertEqual(len(mechanical["attempts"]), 2)
+        for attempt in mechanical["attempts"]:
+            self.assertEqual(attempt["agent_calls"], 1)
+            self.assertEqual(attempt["agent_role"], "mech-executor")
+            self.assertTrue(attempt["foreground"])
+            self.assertTrue(attempt["collected"])
+            self.assertEqual(attempt["main_session_source_writes"], 0)
+            self.assertEqual(attempt["modified_adapter_count"], 12)
+        self.assertFalse(mechanical["budget_incomplete_diagnostic"]["collected"])
+
+        self.assertTrue(schema["implementation_route_is_non_blocking"])
+        self.assertEqual(len(schema["attempts"]), 2)
+        for attempt in schema["attempts"]:
+            self.assertEqual(attempt["turn_1"]["plan_verifier_calls"], 1)
+            self.assertEqual(attempt["turn_1"]["verdict"], "READY")
+            self.assertFalse(attempt["turn_1"]["writes_before_approval"])
+            self.assertTrue(attempt["turn_1"]["stopped_for_approval"])
+            self.assertEqual(
+                attempt["turn_2"]["implementation_route"],
+                "main_session_direct",
+            )
+            self.assertEqual(attempt["turn_2"]["execution_agent_calls"], 0)
+            self.assertEqual(attempt["turn_2"]["verifier_calls"], 1)
+            self.assertEqual(attempt["turn_2"]["verifier_verdict"], "CONFIRMED")
+
+        completed = routine + bug + mechanical["attempts"]
+        completed_cost = sum(
+            attempt["client_reported_cost_usd"] for attempt in completed
+        ) + sum(
+            attempt[turn]["client_reported_cost_usd"]
+            for attempt in schema["attempts"]
+            for turn in ("turn_1", "turn_2")
+        )
+        costs = evidence["cost"]
+        self.assertEqual(completed_cost, costs["qualifying_completed_cells_usd"])
+        self.assertEqual(
+            costs["qualifying_completed_cells_usd"]
+            + costs["budget_incomplete_diagnostic_usd"],
+            costs["campaign_total_usd"],
+        )
+
+        raw_hashes = {
+            attempt["raw_stream_sha256"] for attempt in completed
+        } | {
+            attempt[turn]["raw_stream_sha256"]
+            for attempt in schema["attempts"]
+            for turn in ("turn_1", "turn_2")
+        }
+        raw_hashes.add(
+            mechanical["budget_incomplete_diagnostic"]["raw_stream_sha256"]
+        )
+        self.assertEqual(len(raw_hashes), 11)
+
     def test_spontaneous_dispatch_baseline_is_additive_and_evidence_bound(self) -> None:
         benchmark = ROOT / "benchmarks" / "spontaneous-dispatch"
         results = json.loads((benchmark / "results.json").read_text(encoding="utf-8"))
@@ -626,15 +840,15 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["release_candidate_behavioral_gate_status"],
-            "passed; exact compressed policy and shell-normalized generated payload; explicit agent opt-in; schema Plan/outcome review, routine-docs control, and post-cap closing readiness control re-run on 2026-08-02",
+            "passed; exact current policy and shell-normalized generated payload; narrow explicit opt-in; routine and single-bug direct controls 2/2, mechanical delegation 2/2, and schema Plan/approval/tests/outcome review 2/2 on 2026-08-04",
         )
         self.assertEqual(
             runtime["release_candidate_runtime_evidence"],
-            "../verifier-boundary/results.json#passing_gate",
+            "../spontaneous-dispatch/issue-29-recovery.json",
         )
         self.assertEqual(
             runtime["release_candidate_offline_evidence"],
-            "tests/test_policy.py::PolicyContractTests.test_baton_gate_snapshot_matches_recorded_hashes",
+            "tests/test_policy.py::PolicyContractTests.test_issue_29_recovery_gate_is_exact_and_brake_calibrated",
         )
         self.assertTrue(
             runtime["release_candidate_policy_delta_from_final_gate"].startswith(
@@ -643,7 +857,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["release_candidate_agents_json_delta_from_final_gate"],
-            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow fallback, and bounded-recheck contracts; verifier-boundary gate-snapshot-v2 exercised these current exact bytes",
+            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow fallback, and bounded-recheck contracts; the issue #29 recovery Gate exercised this exact generated payload",
         )
         final_policy = (gate / runtime["final_gate_snapshot_policy"]).read_bytes()
         self.assertEqual(
@@ -761,7 +975,9 @@ class PolicyContractTests(unittest.TestCase):
         )
         inputs = evidence["inputs"]
         policy = (gate / inputs["policy"]["path"]).read_bytes()
-        self.assertEqual(
+        # v1.3.7 evidence remains immutable historical input. Current exact-byte
+        # qualification is bound by issue-29-recovery.json instead.
+        self.assertNotEqual(
             policy,
             (ROOT / "templates/claude-md.orchestration.md").read_bytes(),
         )
@@ -1241,9 +1457,11 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("exclusive ownership", policy)
         self.assertIn("per-item acceptance", policy)
         self.assertIn(
-            "dispatch one `mech-executor` before main-session edits, by default",
+            "dispatch a foreground `mech-executor` before main edits; wait",
             policy,
         )
+        self.assertIn("files stay worker-only until done", policy)
+        self.assertIn("don't redo its work", policy)
         self.assertIn("before editing", policy)
         for blocker in (
             "evolving/coupled evidence",
@@ -1336,8 +1554,11 @@ class PolicyContractTests(unittest.TestCase):
             "smallest coherent integration boundary",
             "Independent falsification",
             "Independent review is risk-triggered",
+            "Risk triggers override size; check first",
             "A listed trigger makes the unit risky for this lifecycle",
             "pre-approval `plan-verifier` readiness and post-implementation `verifier` outcome review are mandatory",
+            "This policy explicitly directs mandatory Agent calls",
+            "pause before edits—no direct fallback",
             "The bounded fail-soft exception applies only when none of the listed risks is crossed",
             "The initial request is not approval of an unseen risk-triggered Plan",
             "implementation starts only after explicit approval in a later user turn",

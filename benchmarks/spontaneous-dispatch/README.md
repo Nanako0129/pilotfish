@@ -7,7 +7,7 @@ This gate asks whether Pilotfish chooses the intended execution topology from an
 | Stable 12-file mechanical edit | Exactly one foreground `mech-executor` | The main session performs no source mutation; the worker is the sole mutation path; exactly 12 adapter files change; 12/12 tests pass |
 | One unknown tightly coupled bug | Main session owns diagnosis and the first minimal fix | No discovery or implementation agent runs before the main session changes the fix and observes the focused 2/2 pass; a closing `verifier` remains allowed |
 
-The exact prompts are in [`prompts/`](./prompts/). Recorded outcomes, normalized tool traces, and observable Agent calls are in [`results.json`](./results.json), [`traces.json`](./traces.json), and [`agent-calls.json`](./agent-calls.json). Raw streams are not committed because initialization events contain local paths, session identifiers, hooks, and plugin inventory; their SHA-256 hashes are retained instead.
+The exact prompts are in [`prompts/`](./prompts/). Recorded outcomes, normalized tool traces, and observable Agent calls are in [`results.json`](./results.json), [`traces.json`](./traces.json), and [`agent-calls.json`](./agent-calls.json). The corrected issue #29 retrospective is in [`issue-29-topology.json`](./issue-29-topology.json), produced with [`classify_stream.py`](./classify_stream.py). Raw streams are not committed because initialization events contain local paths, session identifiers, hooks, and plugin inventory; their SHA-256 hashes are retained instead.
 
 ## Input contract
 
@@ -17,7 +17,7 @@ The exact prompts are in [`prompts/`](./prompts/). Recorded outcomes, normalized
 | Fixture vocabulary | Apply the same scan to both the mechanical and tightly coupled bug fixtures |
 | Model attribution | Record the model from the stream initialization event; a requested alias is not proof of the observed model |
 | Role attribution | Require an observable `Agent` call with `subagent_type: mech-executor`; reject an invocation-level model override |
-| Mutation attribution | Reject top-level `Edit` or `Write`; classify every top-level Bash command conservatively and reject redirection or commands capable of source writes |
+| Mutation attribution | An assistant event is top level only when `parent_tool_use_id` is absent or null. Reject its `Edit` or `Write`; classify every top-level Bash command conservatively and reject redirection or commands capable of source writes |
 | Isolation | Run only in a fresh disposable copy with a clean committed baseline |
 
 The strict Bash classifier treats uncertainty as a failure. A correct final diff does not prove worker ownership when the main session had any unclassified write-capable command.
@@ -188,6 +188,40 @@ Recorded under `v1_3_7_max_prompt_baseline` in [`results.json`](./results.json).
 The mechanical cell is the sharpest comparison available: the same prompt and fixture passed 2 of 2 on Opus 4.8 with clients 2.1.217 and 2.1.218, recorded above as `opus-v1.3.1-candidate-1-mechanical` and `opus-v1.3.1-release-payload-mechanical`. It now fails 2 of 2. The observable capability regressed, but the model, the client and the policy version all differ between those records and this one, so the baseline is a starting point, not an attribution.
 
 This baseline is the first set of runs to fix both contamination sources found in review: `agents.json` is passed to `--agents` and never copied in, and every capture is written outside the disposable repository. `git ls-files --others --exclude-standard` is empty in all five newly run directories. The three attempts reused from the paired matrix — schema a and b, routine a — predate the capture fix and each says so.
+
+## Issue #29 classifier correction
+
+Closed PR #45 reported zero topology passes in twenty mechanical attempts. Its extractor included child-agent events in `top_level_tools`, so a worker's Sonnet `Bash`, `Write`, and `Edit` calls were incorrectly attributed to the Opus main session.
+
+| Corrected configuration | Topology |
+|---|---|
+| Candidate 3, Opus 5, client 2.1.220 | 2/2 pass |
+| v1.3.1 and v1.3.7 policies, Opus 4.8, client 2.1.218, current roles | 4/4 pass |
+| Full v1.3.1 reproduction with release roles | 1/2 pass |
+| Remaining configurations | 0/13 pass |
+
+The corrected total is **7/20**, with all twenty attempts still at 12/12 correctness. Three additional attempts kept the main session read-only but failed because their worker ran asynchronously or was not collected. This is a retrospective classification correction, not a dispatch rate. Client 2.1.218 also ran at default effort while 2.1.220 ran at high effort, so the comparison does not isolate the client.
+
+Historical Candidate 3 is evidence for the wording direction, not a release candidate: its mechanical topology passed 2/2, but it exceeded the prompt-density budget and skipped the approval gate in both schema attempts. A compressed candidate must pass fresh mechanical, bug, routine, and schema gates before its snapshot hashes move.
+
+## Issue #29 opt-in recovery
+
+The exact current policy passed the corrected matrix with this explicit opt-in:
+
+```text
+Use pilotfish. Follow its dispatch brake: keep direct work in the main session and call the named agents only when the policy selects delegation.
+```
+
+| Cell | Blocking contract | Result |
+|---|---|---|
+| Routine docs | Direct main-session edit; zero Agent calls | 2/2 pass |
+| Single unknown bug | Main session owns diagnosis and first minimal fix; zero Agent calls | 2/2 pass |
+| Stable 12-file repetition | One foreground, collected `mech-executor`; no main source write | 2/2 pass, 12/12 tests each |
+| Schema lifecycle | `plan-verifier` → approval stop → implementation → primary tests → `verifier`; implementation owner follows the brake | 2/2 pass; both direct implementations ended `CONFIRMED` |
+
+Schema review and implementation routing are separate decisions. Serialization makes Plan and outcome review mandatory; it does not make a two-file implementation delegation mandatory. Mechanical delegation has its own positive cell. Treating an execution-agent hop as a schema blocker would contradict the policy's net-benefit brake and previously caused a one-line docs task to over-delegate.
+
+[`issue-29-recovery.json`](./issue-29-recovery.json) binds the policy, generated agents payload, prompts, costs, and raw-stream hashes. Qualifying completed cells reported `$3.91628855`; one otherwise-correct mechanical invocation exhausted its `$0.60` cap before child-result collection and is disclosed but excluded. Including it, the campaign reported `$4.53105325`.
 
 ## Claim limits
 

@@ -7,7 +7,7 @@
 | 穩定的 12 檔機械式修改 | 恰好一個前景 `mech-executor` | 主 session 全程不得修改 source；worker 是唯一修改路徑；diff 恰好 12 個 adapter；12/12 測試通過 |
 | 單一未知且緊耦合的 bug | 主 session 負責診斷與第一個最小修正 | 主 session 完成修正並觀察 focused 2/2 通過之前，不得呼叫 discovery 或 implementation agent；結尾可呼叫 `verifier` |
 
-精確 Prompt 位於 [`prompts/`](./prompts/)。執行結果、正規化工具序列與可觀測 Agent 呼叫分別位於 [`results.json`](./results.json)、[`traces.json`](./traces.json) 與 [`agent-calls.json`](./agent-calls.json)。Raw stream 的初始化事件會包含本機路徑、session ID、hook 與 plugin inventory，因此不提交原文，只保留 SHA-256。
+精確 Prompt 位於 [`prompts/`](./prompts/)。執行結果、正規化工具序列與可觀測 Agent 呼叫分別位於 [`results.json`](./results.json)、[`traces.json`](./traces.json) 與 [`agent-calls.json`](./agent-calls.json)。Issue #29 的修正回溯記錄在 [`issue-29-topology.json`](./issue-29-topology.json)，由 [`classify_stream.py`](./classify_stream.py) 產生。Raw stream 的初始化事件會包含本機路徑、session ID、hook 與 plugin inventory，因此不提交原文，只保留 SHA-256。
 
 ## 輸入契約
 
@@ -17,7 +17,7 @@
 | Fixture 詞彙 | 對 mechanical 與 tightly coupled bug fixtures 使用同一掃描 |
 | 模型歸因 | 以 stream initialization event 為準；請求 alias 不能證明實際模型 |
 | 角色歸因 | 必須觀察到 `subagent_type: mech-executor` 的 `Agent` 呼叫；不得在 invocation 指定 model |
-| 修改歸因 | 拒絕 top-level `Edit` 或 `Write`；保守分類每個 top-level Bash，任何 redirection 或可修改 source 的命令都判定失敗 |
+| 修改歸因 | Assistant event 只有在 `parent_tool_use_id` 缺省或為 null 時才算 top-level。拒絕其中的 `Edit` 或 `Write`；保守分類每個 top-level Bash，任何 redirection 或可修改 source 的命令都判定失敗 |
 | 隔離 | 只在全新 disposable copy 與乾淨的 committed baseline 執行 |
 
 嚴格 Bash classifier 遇到不確定就判定失敗。即使最終 diff 正確，只要主 session 曾執行未分類或可寫入的命令，就不能證明修改由 worker 獨佔。
@@ -188,6 +188,40 @@ EOF
 Mechanical 是目前最銳利的比較：同一份 prompt、同一個 fixture，在 Opus 4.8 與 client 2.1.217／2.1.218 上曾經二取二通過，即上面的 `opus-v1.3.1-candidate-1-mechanical` 與 `opus-v1.3.1-release-payload-mechanical`。現在二取二失敗。可觀察能力確實退化，但那些記錄與這一組之間，model、client 與政策版本三者都不同，所以這份 baseline 是起點，不是歸因。
 
 這是第一組同時修掉 review 找出的兩個污染源的 run：`agents.json` 只經 `--agents` 傳入、絕不複製進去，每一份 capture 都寫在拋棄式 repo 之外。五個新建目錄的 `git ls-files --others --exclude-standard` 都是空的。從配對 matrix 沿用的那三次 attempt——schema a 與 b、routine a——早於 capture 修正，各自都已載明。
+
+## Issue #29 classifier 修正
+
+已關閉的 PR #45 曾把二十次 mechanical attempt 報成零次 topology pass。它的 extractor 把 child-agent event 也放進 `top_level_tools`，因此 worker 的 Sonnet `Bash`、`Write` 與 `Edit` 被錯算成 Opus 主 session 的操作。
+
+| 修正後設定 | Topology |
+|---|---|
+| Candidate 3、Opus 5、client 2.1.220 | 二取二通過 |
+| v1.3.1 與 v1.3.7 policy、Opus 4.8、client 2.1.218、current roles | 四取四通過 |
+| 使用 release roles 的完整 v1.3.1 reproduction | 二取一通過 |
+| 其餘設定 | 十三取零通過 |
+
+修正後總數是 **7/20**，二十次的正確性仍全為 12/12。另有三次保持主 session 唯讀，但因 worker 非同步執行或未收回結果而失敗。這是回溯分類修正，不是 dispatch rate。Client 2.1.218 使用 default effort，2.1.220 使用 high effort，因此這組比較也不能單獨歸因於 client。
+
+歷史 Candidate 3 只證明 wording 方向，不是 release candidate：它的 mechanical topology 二取二通過，但超出 prompt density 預算，且兩次 schema attempt 都跳過 approval gate。壓縮後候選必須重新通過 mechanical、bug、routine 與 schema gate，才能更新 snapshot hash。
+
+## Issue #29 opt-in recovery
+
+Exact current policy 使用以下明確 opt-in 後，通過修正後的 matrix：
+
+```text
+Use pilotfish. Follow its dispatch brake: keep direct work in the main session and call the named agents only when the policy selects delegation.
+```
+
+| 測試格 | Blocking contract | 結果 |
+|---|---|---|
+| Routine docs | 主 session 直接修改；零 Agent call | 二取二通過 |
+| 單一未知 bug | 主 session 負責診斷與首次最小修正；零 Agent call | 二取二通過 |
+| 穩定 12 檔重複工作 | 一個 foreground、已收回的 `mech-executor`；主 session 不寫原始碼 | 二取二通過，每次 12/12 tests |
+| Schema lifecycle | `plan-verifier` → approval stop → 實作 → primary tests → `verifier`；實作 owner 由 brake 決定 | 二取二通過；兩次直接實作最後皆為 `CONFIRMED` |
+
+Schema review 與 implementation routing 是兩個不同決策。Serialization 會強制 Plan 與 outcome review，但不會強制兩檔實作一定委派。Mechanical delegation 已有獨立正向格。若把 execution-agent hop 當成 schema blocker，就會違反 policy 的 net-benefit brake；先前實測也曾讓一行 docs 工作過度委派。
+
+[`issue-29-recovery.json`](./issue-29-recovery.json) 綁定 policy、generated agents payload、prompts、成本與 raw-stream hashes。合格完成 cells reported `$3.91628855`；另有一次 routing 正確的 mechanical invocation 在收回 child result 前用完 `$0.60` cap，已揭露但不算通過。連同該次，campaign reported `$4.53105325`。
 
 ## 結論邊界
 

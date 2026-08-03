@@ -1,0 +1,1 @@
+Use pilotfish. Follow its dispatch brake: keep direct work in the main session and call the named agents only when the policy selects delegation. Correct the spelling error in README.md and run the repository test command. Do not change any other file.
