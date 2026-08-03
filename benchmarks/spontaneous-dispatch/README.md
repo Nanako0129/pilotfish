@@ -195,14 +195,14 @@ Closed PR #45 reported zero topology passes in twenty mechanical attempts. Its e
 
 | Corrected configuration | Topology |
 |---|---|
-| Candidate 3, Opus 5, client 2.1.220 | 1/2 pass |
+| Candidate 3, Opus 5, client 2.1.220 | 0/2 pass |
 | v1.3.1 and v1.3.7 policies, Opus 4.8, client 2.1.218, current roles | 3/4 pass |
 | Full v1.3.1 reproduction with release roles | 1/2 pass |
 | Remaining configurations | 0/12 pass |
 
-The corrected total is **5/20**, with all twenty attempts still at 12/12 correctness. Two additional attempts kept the main session read-only but failed because their worker ran asynchronously or was not collected. Git diff calls without `--no-ext-diff` now fail closed because unbound repository or global configuration may execute an external helper. This is a retrospective classification correction, not a dispatch rate. Client 2.1.218 also ran at default effort while 2.1.220 ran at high effort, so the comparison does not isolate the client.
+The corrected total is **4/20**, with all twenty attempts still at 12/12 correctness. One additional attempt kept the main session read-only but failed because its worker ran asynchronously and was not collected. Git commands whose repository or global configuration may execute an external helper now fail closed; only `git rev-parse` remains allowlisted. This is a retrospective classification correction, not a dispatch rate. Client 2.1.218 also ran at default effort while 2.1.220 ran at high effort, so the comparison does not isolate the client.
 
-Historical Candidate 3 is evidence for the wording direction, not a release candidate: its mechanical topology passed 1/2 under the stricter classifier, and it exceeded the prompt-density budget and skipped the approval gate in both schema attempts. A compressed candidate must pass fresh mechanical, bug, routine, and schema gates before its snapshot hashes move.
+Historical Candidate 3 is evidence for the wording direction, not a release candidate: its mechanical topology passed 0/2 under the stricter classifier, and it exceeded the prompt-density budget and skipped the approval gate in both schema attempts. A compressed candidate must pass fresh mechanical, bug, routine, and schema gates before its snapshot hashes move.
 
 ## Issue #29 opt-in recovery
 

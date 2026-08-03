@@ -195,14 +195,14 @@ Mechanical 是目前最銳利的比較：同一份 prompt、同一個 fixture，
 
 | 修正後設定 | Topology |
 |---|---|
-| Candidate 3、Opus 5、client 2.1.220 | 二取二通過 |
-| v1.3.1 與 v1.3.7 policy、Opus 4.8、client 2.1.218、current roles | 四取四通過 |
+| Candidate 3、Opus 5、client 2.1.220 | 二取零通過 |
+| v1.3.1 與 v1.3.7 policy、Opus 4.8、client 2.1.218、current roles | 四取三通過 |
 | 使用 release roles 的完整 v1.3.1 reproduction | 二取一通過 |
-| 其餘設定 | 十三取零通過 |
+| 其餘設定 | 十二取零通過 |
 
-修正後總數是 **7/20**，二十次的正確性仍全為 12/12。另有三次保持主 session 唯讀，但因 worker 非同步執行或未收回結果而失敗。這是回溯分類修正，不是 dispatch rate。Client 2.1.218 使用 default effort，2.1.220 使用 high effort，因此這組比較也不能單獨歸因於 client。
+修正後總數是 **4/20**，二十次的正確性仍全為 12/12。另有一次保持主 session 唯讀，但因 worker 非同步執行且未收回結果而失敗。若 Git command 可能透過未綁定的 repository 或 global configuration 執行外部 helper，一律 fail closed；allowlist 只保留 `git rev-parse`。這是回溯分類修正，不是 dispatch rate。Client 2.1.218 使用 default effort，2.1.220 使用 high effort，因此這組比較也不能單獨歸因於 client。
 
-歷史 Candidate 3 只證明 wording 方向，不是 release candidate：它的 mechanical topology 二取二通過，但超出 prompt density 預算，且兩次 schema attempt 都跳過 approval gate。壓縮後候選必須重新通過 mechanical、bug、routine 與 schema gate，才能更新 snapshot hash。
+歷史 Candidate 3 只證明 wording 方向，不是 release candidate：它的 mechanical topology 在更嚴格的 classifier 下二取零通過，而且超出 prompt density 預算，兩次 schema attempt 也都跳過 approval gate。壓縮後候選必須重新通過 mechanical、bug、routine 與 schema gate，才能更新 snapshot hash。
 
 ## Issue #29 opt-in recovery
 

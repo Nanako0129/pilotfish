@@ -8,7 +8,7 @@ Calibrate issue #29 dispatch recovery without making delegation universal. Risk 
 
 The recommended explicit opt-in now tells Claude to follow Pilotfish's dispatch brake instead of delegating every eligible task. On the exact behavioral policy bytes, routine docs and the single-bug control stayed direct `2/2`, mechanical repetition delegated and passed `2/2`, and the schema lifecycle preserved Plan review, approval, primary tests, and outcome review `2/2`. The qualifying cells reported `$3.91628855`; including one disclosed budget-incomplete mechanical run, the narrow campaign reported `$4.53105325`.
 
-Correct the issue #29 retrospective classifier: child-agent tools are no longer attributed to the main session, unknown Bash commands fail closed, Agent result collection uses the matching structured tool result, and role/model routing plus each cell's acceptance fields are contract-tested. The corrected historical result is 7/20 topology passes rather than 0/20; all twenty attempts still passed 12/12 fixture tests. This remains bounded reachability evidence, not a dispatch rate or client-version attribution.
+Correct the issue #29 retrospective classifier: child-agent tools are no longer attributed to the main session, unknown Bash commands and Git invocations with unbound external helpers fail closed, Agent result collection uses the matching structured tool result, and role/model routing plus each cell's acceptance fields are contract-tested. The corrected historical result is 4/20 topology passes rather than 0/20; all twenty attempts still passed 12/12 fixture tests. This remains bounded reachability evidence, not a dispatch rate or client-version attribution.
 
 ## v1.3.7 — 2026-08-02
 

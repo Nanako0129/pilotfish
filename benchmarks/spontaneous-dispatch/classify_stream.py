@@ -48,12 +48,13 @@ READ_ONLY_COMMANDS = {
     "uname",
     "wc",
 }
-SAFE_GIT_SUBCOMMANDS = {"diff", "log", "ls-files", "rev-parse", "show", "status"}
+SAFE_GIT_SUBCOMMANDS = {"rev-parse"}
 SHELL_SEPARATORS = {";", "&&", "||", "|", "|&", "&", "\n"}
 SHELL_PREFIXES = {"!", "do", "elif", "if", "then", "until", "while"}
 SHELL_ONLY_SEGMENTS = {"done", "else", "esac", "fi"}
 ASSIGNMENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=.*")
 SAFE_SED_PRINT = re.compile(r"^(?:\d+|\$)(?:,(?:\d+|\$))?[pP]$")
+PROVEN_WRITE_COMMANDS = {"cp", "dd", "mv", "tee", "truncate"}
 
 
 def strip_shell_comments(command: str) -> str:
@@ -115,7 +116,7 @@ def bash_writes(command: str) -> bool:
         while segment and ASSIGNMENT.fullmatch(segment[0]):
             has_environment = True
             segment.pop(0)
-        if has_environment and segment:
+        if has_environment:
             return True
         if segment and segment[0] not in SHELL_ONLY_SEGMENTS:
             program = segment[0]
@@ -124,12 +125,6 @@ def bash_writes(command: str) -> bool:
                 read_only = (
                     bool(args)
                     and args[0] in SAFE_GIT_SUBCOMMANDS
-                    and (args[0] != "diff" or "--no-ext-diff" in args[1:])
-                    and not any(
-                        arg in {"--ext-diff", "--output", "--textconv"}
-                        or arg.startswith("--output=")
-                        for arg in args[1:]
-                    )
                 )
             elif program == "npm":
                 read_only = args == ["test"]
@@ -172,7 +167,50 @@ def bash_writes(command: str) -> bool:
 
 def bash_proves_write(command: str) -> bool:
     sanitized = SAFE_REDIRECT.sub(" ", strip_shell_comments(command))
-    return bool(REDIRECT.search(sanitized) or WRITE_COMMAND.search(sanitized))
+    try:
+        lexer = shlex.shlex(
+            sanitized, posix=False, punctuation_chars=";&|<>\n"
+        )
+        lexer.whitespace = " \t\r"
+        lexer.whitespace_split = True
+        lexer.commenters = ""
+        tokens = list(lexer)
+    except ValueError:
+        return False
+
+    if any(
+        ">" in token and not token.startswith(("'", '"')) for token in tokens
+    ):
+        return True
+
+    segment: list[str] = []
+    for token in tokens + [";"]:
+        if token not in SHELL_SEPARATORS:
+            segment.append(token)
+            continue
+        while segment and segment[0] in SHELL_PREFIXES:
+            segment.pop(0)
+        while segment and ASSIGNMENT.fullmatch(segment[0]):
+            segment.pop(0)
+        if segment:
+            program = segment[0]
+            args = segment[1:]
+            if program in PROVEN_WRITE_COMMANDS:
+                return True
+            if program == "sed" and any(
+                arg == "-i"
+                or arg.startswith("-i")
+                or arg == "--in-place"
+                or arg.startswith("--in-place=")
+                for arg in args
+            ):
+                return True
+            if program == "set" and args[:2] == ["+o", "noclobber"]:
+                return True
+            if program == "setopt" and any("clobber" in arg for arg in args):
+                return True
+        segment = []
+    return False
 
 
 def summarize(command: str) -> str:

@@ -77,6 +77,11 @@ class PolicyContractTests(unittest.TestCase):
                             "name": "Bash",
                             "input": {"command": "python3 -m unittest"},
                         },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {"command": "printf 'cp old new'"},
+                        },
                     ]
                 },
             },
@@ -105,7 +110,7 @@ class PolicyContractTests(unittest.TestCase):
                         {
                             "type": "tool_use",
                             "name": "Bash",
-                            "input": {"command": "git diff --no-ext-diff --stat"},
+                            "input": {"command": "git rev-parse --show-toplevel"},
                         },
                     ]
                 },
@@ -287,6 +292,16 @@ class PolicyContractTests(unittest.TestCase):
                         {
                             "type": "tool_use",
                             "name": "Bash",
+                            "input": {"command": "PATH=.; cat input"},
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {"command": "git status"},
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
                             "input": {
                                 "command": (
                                     "node --test --test-reporter=tap "
@@ -339,12 +354,13 @@ class PolicyContractTests(unittest.TestCase):
         self.assertFalse(trace["main_session_mutated"])
         self.assertTrue(trace["subagent_result_collected"])
         self.assertEqual(trace["worker_source_write_tools"], ["Bash"])
+        self.assertEqual(len(trace["worker_mutation_paths"]), 1)
         self.assertIn("> out.js", trace["worker_mutation_paths"][0])
         self.assertFalse(uncollected["subagent_result_collected"])
         self.assertTrue(uncollected["main_session_mutated"])
         self.assertEqual(
             uncollected["top_level_source_write_tools"],
-            ["Bash"] * 20 + ["NotebookEdit"],
+            ["Bash"] * 22 + ["NotebookEdit"],
         )
 
     def test_baton_dispatch_matrix_prompts_are_neutral_and_recorded(self) -> None:
@@ -711,9 +727,9 @@ class PolicyContractTests(unittest.TestCase):
                 for attempt in attempts
             )
         )
-        self.assertEqual(sum(passes(attempt) for attempt in attempts), 5)
+        self.assertEqual(sum(passes(attempt) for attempt in attempts), 4)
         self.assertEqual(
-            sum(not attempt["main_mutated"] for attempt in attempts), 7
+            sum(not attempt["main_mutated"] for attempt in attempts), 5
         )
         self.assertEqual(
             sum(attempt["cost_usd"] for attempt in attempts).quantize(
