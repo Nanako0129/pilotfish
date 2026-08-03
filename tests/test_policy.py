@@ -304,6 +304,33 @@ class PolicyContractTests(unittest.TestCase):
                             "name": "Bash",
                             "input": {
                                 "command": (
+                                    "rg --hostname-bin=./writer "
+                                    "--hyperlink-format='file://{host}{path}' needle input"
+                                )
+                            },
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {
+                                "command": (
+                                    "printf x;\npython3 -c 'from pathlib import Path; "
+                                    'Path("out.js").write_text("x")\''
+                                )
+                            },
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {
+                                "command": "API_TOKEN=super-secret python3 write.py"
+                            },
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {
+                                "command": (
                                     "node --test --test-reporter=tap "
                                     "--test-reporter-destination=src/out.js"
                                 )
@@ -355,13 +382,14 @@ class PolicyContractTests(unittest.TestCase):
         self.assertTrue(trace["subagent_result_collected"])
         self.assertEqual(trace["worker_source_write_tools"], ["Bash"])
         self.assertEqual(len(trace["worker_mutation_paths"]), 1)
-        self.assertIn("> out.js", trace["worker_mutation_paths"][0])
+        self.assertEqual(trace["worker_mutation_paths"], ["Bash"])
         self.assertFalse(uncollected["subagent_result_collected"])
         self.assertTrue(uncollected["main_session_mutated"])
         self.assertEqual(
             uncollected["top_level_source_write_tools"],
-            ["Bash"] * 22 + ["NotebookEdit"],
+            ["Bash"] * 25 + ["NotebookEdit"],
         )
+        self.assertNotIn("super-secret", json.dumps(uncollected))
 
     def test_baton_dispatch_matrix_prompts_are_neutral_and_recorded(self) -> None:
         benchmark = ROOT / "benchmarks" / "baton-dispatch-effect"

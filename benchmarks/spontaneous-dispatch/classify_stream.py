@@ -19,7 +19,6 @@ WRITE_COMMAND = re.compile(
     r"\btee\b|\bsed\s+-i|\bdd\b|\btruncate\b|\bmv\b|\bcp\b|"
     r"set \+o noclobber|setopt.*clobber"
 )
-RUN_ROOT = re.compile(r"/private/tmp/[^\s\"']*|/tmp/[^\s\"']*")
 READ_ONLY_COMMANDS = {
     "[",
     "basename",
@@ -49,7 +48,7 @@ READ_ONLY_COMMANDS = {
     "wc",
 }
 SAFE_GIT_SUBCOMMANDS = {"rev-parse"}
-SHELL_SEPARATORS = {";", "&&", "||", "|", "|&", "&", "\n"}
+SHELL_SEPARATOR_CHARS = frozenset(";&|\n")
 SHELL_PREFIXES = {"!", "do", "elif", "if", "then", "until", "while"}
 SHELL_ONLY_SEGMENTS = {"done", "else", "esac", "fi"}
 ASSIGNMENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=.*")
@@ -85,6 +84,10 @@ def strip_shell_comments(command: str) -> str:
     return "".join(output)
 
 
+def is_shell_separator(token: str) -> bool:
+    return bool(token) and set(token) <= SHELL_SEPARATOR_CHARS
+
+
 def bash_writes(command: str) -> bool:
     sanitized = SAFE_REDIRECT.sub(" ", strip_shell_comments(command))
     if REDIRECT.search(sanitized) or WRITE_COMMAND.search(sanitized):
@@ -102,7 +105,7 @@ def bash_writes(command: str) -> bool:
 
     segment: list[str] = []
     for token in tokens + [";"]:
-        if token not in SHELL_SEPARATORS:
+        if not is_shell_separator(token):
             segment.append(token)
             continue
         if not segment:
@@ -132,7 +135,9 @@ def bash_writes(command: str) -> bool:
                 read_only = args in (["--test"], ["--version"], ["-v"])
             elif program == "rg":
                 read_only = not any(
-                    arg == "--pre" or arg.startswith("--pre=") for arg in args
+                    arg in {"--pre", "--hostname-bin"}
+                    or arg.startswith(("--pre=", "--hostname-bin="))
+                    for arg in args
                 )
             elif program == "sed":
                 read_only = (
@@ -185,7 +190,7 @@ def bash_proves_write(command: str) -> bool:
 
     segment: list[str] = []
     for token in tokens + [";"]:
-        if token not in SHELL_SEPARATORS:
+        if not is_shell_separator(token):
             segment.append(token)
             continue
         while segment and segment[0] in SHELL_PREFIXES:
@@ -211,15 +216,6 @@ def bash_proves_write(command: str) -> bool:
                 return True
         segment = []
     return False
-
-
-def summarize(command: str) -> str:
-    text = re.sub(r"\s+", " ", RUN_ROOT.sub("RUN_ROOT", command)).strip()
-    match = REDIRECT.search(SAFE_REDIRECT.sub(" ", text)) or WRITE_COMMAND.search(text)
-    if not match:
-        return text[:240]
-    start = max(0, match.start() - 100)
-    return text[start : match.end() + 140]
 
 
 def classify(path: Path) -> dict[str, object]:
@@ -272,7 +268,7 @@ def classify(path: Path) -> dict[str, object]:
                     if (is_worker and bash_proves_write(command)) or (
                         not is_worker and bash_writes(command)
                     ):
-                        writes.append(f"Bash {summarize(command)}")
+                        writes.append("Bash")
         if event.get("type") == "user" and event.get("parent_tool_use_id") is None:
             result = event.get("tool_use_result") or {}
             if not isinstance(result, dict):
