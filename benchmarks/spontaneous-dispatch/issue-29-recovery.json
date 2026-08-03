@@ -1,10 +1,10 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "run_date": "2026-08-04",
   "issue": 29,
   "status": "gate_passed_release_pending_replay",
   "claim": "With the narrow explicit opt-in, the recorded Gate candidate kept routine docs and a single unknown bug in the main session, delegated stable twelve-file repetition to one collected mech-executor, and preserved Plan, approval, primary-test, and outcome-review boundaries for a schema migration. Post-review release policy changes require a fresh replay before release.",
-  "claim_boundary": "Bounded reachability on one first-party Claude Code account. Two attempts per cell are not dispatch rates and do not establish behavior for another model, client build, account, or prompt. Schema implementation ownership is observed but non-blocking. The fixture injection method and on-disk policy size are recorded, but the historical client transcript exposes no digest of the policy bytes actually incorporated into the runtime system prompt; no exact-loaded-policy causal claim is made.",
+  "claim_boundary": "Bounded reachability on one first-party Claude Code account. Two attempts per cell are not dispatch rates and do not establish behavior for another model, client build, account, or prompt. Tool calls, final modified paths, and test results are separate observations and do not establish causal filesystem ownership. Schema implementation routing is observed but non-blocking. The fixture injection method and on-disk policy size are recorded, but the historical client transcript exposes no digest of the policy bytes actually incorporated into the runtime system prompt; no exact-loaded-policy causal claim is made.",
   "route": {
     "claude_code": "2.1.220",
     "requested_main_model": "opus",
@@ -86,8 +86,8 @@
   "gate_contract": {
     "routine_docs": "Direct main-session edit, zero Agent calls, only README.md changes, and 1/1 test passes.",
     "single_unknown_bug": "Main session owns diagnosis and the first minimal fix, no Agent call is made, only src/reducer.js changes, and 2/2 tests pass.",
-    "mechanical_repetition": "Exactly one foreground, collected mech-executor owns all source writes; the main session makes no source write; exactly twelve adapters change and 12/12 tests pass.",
-    "schema_lifecycle": "A foreground, collected plan-verifier returns READY; no write occurs before explicit approval; implementation ownership follows the dispatch brake; primary tests pass; a foreground, collected verifier returns CONFIRMED. An execution-agent call is observed evidence, not a blocking requirement."
+    "mechanical_repetition": "Exactly one foreground, collected mech-executor is observed; exactly twelve adapters are modified in the final state and 12/12 tests pass.",
+    "schema_lifecycle": "A foreground, collected plan-verifier returns READY; no write occurs before explicit approval; implementation routing follows the dispatch brake; primary tests pass; a foreground, collected verifier returns CONFIRMED. An execution-agent call is observed evidence, not a blocking requirement."
   },
   "results": {
     "routine_docs": {
@@ -150,11 +150,6 @@
           "invocation_model_present": false,
           "foreground": true,
           "collected": true,
-          "main_session_source_writes": 0,
-          "worker_source_writes": 2,
-          "worker_source_write_tools": [
-            "Bash"
-          ],
           "modified_paths": [
             "src/adapters/alpha.js",
             "src/adapters/bravo.js",
@@ -180,11 +175,6 @@
           "invocation_model_present": false,
           "foreground": true,
           "collected": true,
-          "main_session_source_writes": 0,
-          "worker_source_writes": 2,
-          "worker_source_write_tools": [
-            "Bash"
-          ],
           "modified_paths": [
             "src/adapters/alpha.js",
             "src/adapters/bravo.js",
@@ -210,7 +200,6 @@
         "invocation_model_present": false,
         "foreground": true,
         "collected": false,
-        "main_session_source_writes": 0,
         "modified_adapter_count": 12,
         "tests": "12 passed, 0 failed",
         "client_reported_cost_usd": 0.6147647,

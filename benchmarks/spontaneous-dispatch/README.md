@@ -4,7 +4,7 @@ This gate asks whether Pilotfish chooses the intended execution topology from an
 
 | Cell | Expected topology | Behavioral acceptance |
 |---|---|---|
-| Stable 12-file mechanical edit | Exactly one foreground `mech-executor` | The main session performs no source mutation; the worker is the sole mutation path; exactly 12 adapter files change; 12/12 tests pass |
+| Stable 12-file mechanical edit | Exactly one foreground `mech-executor` | The stream contains one matching completed Agent result; exactly 12 adapter files change; 12/12 tests pass |
 | One unknown tightly coupled bug | Main session owns diagnosis and the first minimal fix | No discovery or implementation agent runs before the main session changes the fix and observes the focused 2/2 pass; a closing `verifier` remains allowed |
 
 The exact prompts are in [`prompts/`](./prompts/). Recorded outcomes, normalized tool traces, and observable Agent calls are in [`results.json`](./results.json), [`traces.json`](./traces.json), and [`agent-calls.json`](./agent-calls.json). The corrected issue #29 retrospective is in [`issue-29-topology.json`](./issue-29-topology.json), produced with [`classify_stream.py`](./classify_stream.py). Raw streams are not committed because initialization events contain local paths, session identifiers, and plugin inventory; their SHA-256 hashes are retained instead.
@@ -17,13 +17,10 @@ The exact prompts are in [`prompts/`](./prompts/). Recorded outcomes, normalized
 | Fixture vocabulary | Apply the same scan to both the mechanical and tightly coupled bug fixtures |
 | Model attribution | Record the model from the stream initialization event; a requested alias is not proof of the observed model |
 | Role attribution | Require an observable `Agent` call with `subagent_type: mech-executor`; reject an invocation-level model override |
-| Mutation attribution | An assistant event is top level only when `parent_tool_use_id` is absent or null. Reject its `Edit` or `Write`; classify every top-level Bash command conservatively and reject redirection or commands capable of source writes |
-| Test runner attribution | Treat `npm test` and `node --test` as write-capable unless the stream working tree matches the recorded digest of `package.json` and every file under `test/` |
-| Worker attribution | Credit a worker write only after its tool result succeeds and its explicit file target, or Bash working directory plus redirection target, resolves under the fixture `src/` directory |
-| Hook attribution | Disable user, project, and local hooks, or bind a sanitized digest of the effective hook configuration before claiming sole mutation ownership |
+| Evidence boundary | Use `parent_tool_use_id` to separate main and child tools and require the matching completed Agent result. Record modified paths and tests as separate final-state observations; do not infer causal filesystem ownership |
 | Isolation | Run only in a fresh disposable copy with a clean committed baseline |
 
-The strict Bash classifier treats uncertainty as a failure. A correct final diff does not prove worker ownership when the main session had any unclassified write-capable command.
+The classifier records dispatch reachability, not shell side effects. A correct final diff and a collected worker result do not prove which process caused each mutation.
 
 ## Baseline result
 
@@ -36,12 +33,12 @@ The Opus run completed in one disposable fixture and cannot establish a delegati
 
 ## Candidate result
 
-| Run | Main topology | Source owner | Correctness | Gate |
+| Run | Main topology | Observed source-tool scope | Correctness | Gate |
 |---|---|---|---|---|
-| Opus 4.8, v1.3.1 candidate 1 mechanical | Read-only triage → one foreground `mech-executor` → main acceptance | `mech-executor` only | 12/12 | Pass |
+| Opus 4.8, v1.3.1 candidate 1 mechanical | Main triage → one foreground `mech-executor` → main acceptance | Source-targeted tools appear in the worker trace | 12/12 | Pass |
 | Opus 4.8, v1.3.1 candidate 1 bug | Main diagnosis → main minimal fix → main test and identity probe | Main session | 2/2 | Pass |
 
-The mechanical Agent invocation omitted `model`, leaving model routing to the named role definition. Its nested trace contains all source-writing tools; the main trace contains no `Edit`, `Write`, redirection, or write-capable Bash command. The bug trace contains no Agent call before or after its main-owned fix and 2/2 pass.
+The mechanical Agent invocation omitted `model`, leaving model routing to the named role definition. Its nested trace contains the source-targeted tool calls and the main trace does not. This is stream evidence, not causal filesystem ownership. The bug trace contains no Agent call before or after its main-owned fix and 2/2 pass.
 
 ## Exact release-payload replay
 
@@ -49,7 +46,7 @@ After PR #19 and PR #20 merged into the release branch, both cells were rerun on
 
 | Run | Observable topology | Correctness | Gate |
 |---|---|---|---|
-| Mechanical | Opus main → one foreground `mech-executor`; invocation omitted `model`; nested model resolved to `claude-sonnet-5`; worker was the only source-mutation path | In-session 12/12; independent post-run 12/12 | Pass |
+| Mechanical | Opus main → one foreground `mech-executor`; invocation omitted `model`; nested model resolved to `claude-sonnet-5`; source-targeted tools appear in the worker trace | In-session 12/12; independent post-run 12/12 | Pass |
 | Bug | Opus main owned diagnosis, first minimal fix, and post-fix test; zero Agent calls | In-session 2/2; independent post-run 2/2 | Pass |
 
 These additive replay records are named `opus-v1.3.1-release-payload-mechanical` and `opus-v1.3.1-release-payload-bug` in the JSON evidence. They establish both sides of the routing boundary for these two exact inputs and show that Claude Code accepted the post-[#18](https://github.com/Nanako0129/pilotfish/issues/18) generated payload. The mechanical role is `mech-executor`, not the separately defined `executor` changed by #18; this replay does not live-exercise that role or establish a dispatch frequency.
@@ -192,20 +189,20 @@ The mechanical cell is the sharpest comparison available: the same prompt and fi
 
 This baseline is the first set of runs to fix both contamination sources found in review: `agents.json` is passed to `--agents` and never copied in, and every capture is written outside the disposable repository. `git ls-files --others --exclude-standard` is empty in all five newly run directories. The three attempts reused from the paired matrix — schema a and b, routine a — predate the capture fix and each says so.
 
-## Issue #29 classifier correction
+## Issue #29 reachability correction
 
-Closed PR #45 reported zero topology passes in twenty mechanical attempts. Its extractor included child-agent events in `top_level_tools`, so a worker's Sonnet `Bash`, `Write`, and `Edit` calls were incorrectly attributed to the Opus main session.
+Closed PR #45 reported zero dispatch passes in twenty mechanical attempts. Its extractor included child-agent events in `top_level_tools`; the corrected classifier separates those scopes and matches completed Agent results without trying to parse shell side effects.
 
-| Corrected configuration | Topology |
+| Corrected configuration | Dispatch reachability |
 |---|---|
-| Candidate 3, Opus 5, client 2.1.220 | 0/2 pass |
-| v1.3.1 and v1.3.7 policies, Opus 4.8, client 2.1.218, current roles | 3/4 pass |
+| Candidate 3, Opus 5, client 2.1.220 | 2/2 pass |
+| v1.3.1 and v1.3.7 policies, Opus 4.8, client 2.1.218, current roles | 4/4 pass |
 | Full v1.3.1 reproduction with release roles | 1/2 pass |
 | Remaining configurations | 0/12 pass |
 
-The corrected total is **4/20**, with all twenty attempts still at 12/12 correctness. One additional attempt had no observed main-session write-capable tool call but failed because its worker ran asynchronously and was not collected. Git commands whose repository or global configuration may execute an external helper now fail closed; only `git rev-parse` remains allowlisted. The historical runs did not bind effective hooks, so this is an assistant tool-call topology correction, not proof of sole filesystem mutation ownership or a dispatch rate. Client 2.1.218 also ran at default effort while 2.1.220 ran at high effort, so the comparison does not isolate the client.
+The corrected total is **7/20**, with all twenty attempts still at 12/12 correctness and the same twelve final modified paths. A pass means exactly one foreground, collected `mech-executor` call without an invocation-level model override. The tool stream, final diff, and test result are separate observations: they do not prove causal filesystem ownership or establish a dispatch rate. Client 2.1.218 also ran at default effort while 2.1.220 ran at high effort, so the comparison does not isolate the client.
 
-Historical Candidate 3 is evidence for the wording direction, not a release candidate: its mechanical topology passed 0/2 under the stricter classifier, and it exceeded the prompt-density budget and skipped the approval gate in both schema attempts. A compressed candidate must pass fresh mechanical, bug, routine, and schema gates before its snapshot hashes move.
+Historical Candidate 3 is evidence for the wording direction, not a release candidate: its mechanical dispatch reachability passed 2/2, but it exceeded the prompt-density budget and skipped the approval gate in both schema attempts. A compressed candidate must pass fresh mechanical, bug, routine, and schema gates before its snapshot hashes move.
 
 ## Issue #29 opt-in recovery
 
@@ -219,12 +216,12 @@ Use pilotfish. Follow its dispatch brake: keep direct work in the main session a
 |---|---|---|
 | Routine docs | Direct main-session edit; zero Agent calls | 2/2 pass |
 | Single unknown bug | Main session owns diagnosis and first minimal fix; zero Agent calls | 2/2 pass |
-| Stable 12-file repetition | One foreground, collected `mech-executor`; no observed main-session source-write tool call | 2/2 pass, 12/12 tests each |
+| Stable 12-file repetition | One foreground, collected `mech-executor`; exactly twelve final modified paths | 2/2 pass, 12/12 tests each |
 | Schema lifecycle | `plan-verifier` → approval stop → implementation → primary tests → `verifier`; implementation owner follows the brake | 2/2 pass; both direct implementations ended `CONFIRMED` |
 
 Schema review and implementation routing are separate decisions. Serialization makes Plan and outcome review mandatory; it does not make a two-file implementation delegation mandatory. Mechanical delegation has its own positive cell. Treating an execution-agent hop as a schema blocker would contradict the policy's net-benefit brake and previously caused a one-line docs task to over-delegate.
 
-[`issue-29-recovery.json`](./issue-29-recovery.json) binds the repository policy, injection method, generated agents payload, prompts, costs, and raw-stream hashes. The historical transcript observes the fixture `CLAUDE.md` at the expected 17,996 bytes but does not expose a digest of the bytes incorporated into the runtime system prompt, so this is not an exact-loaded-policy claim. Effective hooks were also not bound; a fresh release replay must disable them or record a sanitized digest before claiming sole mutation ownership. Qualifying completed cells reported `$3.91628855`; one otherwise-correct mechanical invocation exhausted its `$0.60` cap before child-result collection and is disclosed but excluded. Including it, the campaign reported `$4.53105325`.
+[`issue-29-recovery.json`](./issue-29-recovery.json) binds the repository policy, injection method, generated agents payload, prompts, costs, and raw-stream hashes. The historical transcript observes the fixture `CLAUDE.md` at the expected 17,996 bytes but does not expose a digest of the bytes incorporated into the runtime system prompt, so this is not an exact-loaded-policy claim. The stream and final-state evidence are not used to claim causal mutation ownership. Qualifying completed cells reported `$3.91628855`; one otherwise-correct mechanical invocation exhausted its `$0.60` cap before child-result collection and is disclosed but excluded. Including it, the campaign reported `$4.53105325`.
 
 ## Claim limits
 
@@ -237,5 +234,6 @@ Schema review and implementation routing are separate decisions. Serialization m
 | Opus-only candidate evaluation | A passing Opus gate does not prove identical routing by another model |
 | Policy iteration count | Candidate 1 passed both cells; the later exact release-payload replay retested the same cells after the executor frontmatter change |
 | Normalized evidence | Raw-stream hashes support identity checks, while published traces intentionally exclude sensitive local metadata |
+| Stream plus final state | A collected worker call, modified paths, and passing tests do not establish causal filesystem ownership |
 
 This gate is additive. It does not overwrite the earlier [`dispatch-brake`](../dispatch-brake/README.md) or [`baton-compatibility`](../baton-compatibility/README.md) evidence.

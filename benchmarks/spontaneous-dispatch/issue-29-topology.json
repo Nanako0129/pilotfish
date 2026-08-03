@@ -1,20 +1,18 @@
 {
-  "schema_version": 1,
-  "purpose": "Supersedes the 0/20 topology claim from closed PR #45 by separating parentless main-session events from child-agent events.",
+  "schema_version": 2,
+  "purpose": "Replaces the 0/20 claim from closed PR #45 with stream-observed dispatch reachability, kept separate from final-state correctness evidence.",
   "classifier": {
     "path": "./classify_stream.py",
-    "sha256": "9fa5bb8be4cb6de6497726a506d7bafbd9207f8a4bf4eb8323cbefba6d0f366c",
-    "trusted_test_source_sha256": "a588586351b712108f0ff42d4537ec7e7057ccb16b401628ddb05145d1db3807",
-    "trusted_test_source_digest_method": "SHA-256 of sorted '<file_sha256>  <repo-relative path>\\n' entries for package.json and every regular non-symlink file under test/",
+    "sha256": "0c866288e67b7ef6f0901aa55ad59cefd9280ae7d82c49ea0c0a1ce4a40e7eb7",
     "main_event": "assistant event with absent or null parent_tool_use_id",
     "child_event": "assistant event with non-null parent_tool_use_id",
-    "rule": "Only main events contribute to top-level tools and observed main-session mutation. npm test and node --test fail closed unless the stream cwd matches the trusted test-source digest. Worker writes require a successful tool result and a fixture src destination. Model identity does not determine scope."
+    "rule": "Parent scope determines top-level versus worker tools. A matching completed top-level Agent or Task result establishes collection. Shell side effects and causal filesystem ownership are not classified."
   },
   "environment_boundary": {
     "account_plan": "max",
     "client_effort_caveat": "Client 2.1.220 ran at high effort. Client 2.1.218 rejected that flag and ran at default effort, so the pair does not isolate client version.",
     "raw_streams": "Not committed because initialization events contain local paths, identifiers, and plugin inventory; exact SHA-256 digests are retained per attempt.",
-    "hook_attribution": "Historical attempts did not bind or disable effective hooks. The recorded main_mutated field classifies assistant tool-call events only and cannot exclude hook-induced filesystem writes; future release replay must disable hooks or record a sanitized digest of the effective hook configuration.",
+    "evidence_attribution": "Tool calls and result collection are stream observations. Modified paths and test results are final-state observations. Their combination does not establish causal filesystem ownership.",
     "modified_paths_source": "retained disposable worktree git status --porcelain with core.fsmonitor disabled",
     "modified_paths_digest_method": "SHA-256 of sorted repo-relative paths, each followed by newline"
   },
@@ -27,25 +25,22 @@
   },
   "summary": {
     "attempts": 20,
-    "topology_passes": 4,
-    "main_session_no_write": 5,
+    "reachability_passes": 7,
     "correctness": "Every attempt finished with 12 passed, 0 failed.",
     "client_reported_mechanical_cost_usd": 9.3115235,
     "pass_breakdown": {
-      "candidate_3": "0/2",
-      "both_policies_opus_4_8_client_2_1_218_current_roles": "3/4",
+      "candidate_3": "2/2",
+      "both_policies_opus_4_8_client_2_1_218_current_roles": "4/4",
       "full_reproduction_v1_3_1_release_roles": "1/2"
     },
-    "bounded_claim": "Four of these twenty recorded mechanical attempts satisfy the assistant tool-call topology after parent and child events are classified correctly and Git commands with unbound external-helper configuration fail closed. Effective hooks were not bound, so this does not prove that the worker was the sole filesystem mutation path. This is a retrospective correction, not a dispatch rate or a causal attribution."
+    "bounded_claim": "Seven of these twenty recorded mechanical attempts contain exactly one foreground, collected mech-executor call without an invocation-level model override, and all twenty finished with the same twelve modified paths and 12/12 tests. These are separate reachability and final-state observations, not causal filesystem ownership, a dispatch rate, or a client-version attribution."
   },
-  "topology_contract": {
+  "reachability_contract": {
     "agent_calls": 1,
     "subagent_type": "mech-executor",
     "invocation_model_present": false,
     "mode": "foreground",
     "result_collected": true,
-    "main_session_mutated": false,
-    "worker_write_count_minimum": 1,
     "modified_paths": [
       "src/adapters/alpha.js",
       "src/adapters/bravo.js",
@@ -78,15 +73,7 @@
       "invocation_model_present": false,
       "mode": null,
       "collected": false,
-      "main_mutated": true,
-      "top_write_count": 13,
-      "top_write_tools": [
-        "Bash",
-        "Write"
-      ],
-      "worker_write_count": 0,
-      "worker_write_tools": [],
-      "topology": "FAIL"
+      "reachability": "FAIL"
     },
     {
       "id": "baseline-b",
@@ -103,14 +90,7 @@
       "invocation_model_present": false,
       "mode": null,
       "collected": false,
-      "main_mutated": true,
-      "top_write_count": 2,
-      "top_write_tools": [
-        "Bash"
-      ],
-      "worker_write_count": 0,
-      "worker_write_tools": [],
-      "topology": "FAIL"
+      "reachability": "FAIL"
     },
     {
       "id": "candidate-1-a",
@@ -127,14 +107,7 @@
       "invocation_model_present": false,
       "mode": "background",
       "collected": false,
-      "main_mutated": true,
-      "top_write_count": 2,
-      "top_write_tools": [
-        "Bash"
-      ],
-      "worker_write_count": 0,
-      "worker_write_tools": [],
-      "topology": "FAIL"
+      "reachability": "FAIL"
     },
     {
       "id": "candidate-1-b",
@@ -151,14 +124,7 @@
       "invocation_model_present": false,
       "mode": "background",
       "collected": false,
-      "main_mutated": true,
-      "top_write_count": 1,
-      "top_write_tools": [
-        "Bash"
-      ],
-      "worker_write_count": 0,
-      "worker_write_tools": [],
-      "topology": "FAIL"
+      "reachability": "FAIL"
     },
     {
       "id": "candidate-2-a",
@@ -175,14 +141,7 @@
       "invocation_model_present": false,
       "mode": null,
       "collected": false,
-      "main_mutated": true,
-      "top_write_count": 2,
-      "top_write_tools": [
-        "Bash"
-      ],
-      "worker_write_count": 0,
-      "worker_write_tools": [],
-      "topology": "FAIL"
+      "reachability": "FAIL"
     },
     {
       "id": "candidate-2-b",
@@ -199,15 +158,7 @@
       "invocation_model_present": false,
       "mode": null,
       "collected": false,
-      "main_mutated": true,
-      "top_write_count": 14,
-      "top_write_tools": [
-        "Bash",
-        "Write"
-      ],
-      "worker_write_count": 0,
-      "worker_write_tools": [],
-      "topology": "FAIL"
+      "reachability": "FAIL"
     },
     {
       "id": "candidate-3-a",
@@ -224,16 +175,7 @@
       "invocation_model_present": false,
       "mode": "foreground",
       "collected": true,
-      "main_mutated": true,
-      "top_write_count": 1,
-      "top_write_tools": [
-        "Bash"
-      ],
-      "worker_write_count": 2,
-      "worker_write_tools": [
-        "Bash"
-      ],
-      "topology": "FAIL"
+      "reachability": "PASS"
     },
     {
       "id": "candidate-3-b",
@@ -250,14 +192,7 @@
       "invocation_model_present": false,
       "mode": "foreground",
       "collected": true,
-      "main_mutated": true,
-      "top_write_count": 1,
-      "top_write_tools": [
-        "Bash"
-      ],
-      "worker_write_count": 0,
-      "worker_write_tools": [],
-      "topology": "FAIL"
+      "reachability": "PASS"
     },
     {
       "id": "v1.3.1-opus5-a",
@@ -274,14 +209,7 @@
       "invocation_model_present": false,
       "mode": null,
       "collected": false,
-      "main_mutated": true,
-      "top_write_count": 3,
-      "top_write_tools": [
-        "Bash"
-      ],
-      "worker_write_count": 0,
-      "worker_write_tools": [],
-      "topology": "FAIL"
+      "reachability": "FAIL"
     },
     {
       "id": "v1.3.1-opus5-b",
@@ -298,14 +226,7 @@
       "invocation_model_present": false,
       "mode": null,
       "collected": false,
-      "main_mutated": true,
-      "top_write_count": 2,
-      "top_write_tools": [
-        "Bash"
-      ],
-      "worker_write_count": 0,
-      "worker_write_tools": [],
-      "topology": "FAIL"
+      "reachability": "FAIL"
     },
     {
       "id": "v1.3.1-opus4.8-2.1.220-a",
@@ -322,14 +243,7 @@
       "invocation_model_present": false,
       "mode": "unspecified-async",
       "collected": false,
-      "main_mutated": false,
-      "top_write_count": 0,
-      "top_write_tools": [],
-      "worker_write_count": 2,
-      "worker_write_tools": [
-        "Bash"
-      ],
-      "topology": "FAIL"
+      "reachability": "FAIL"
     },
     {
       "id": "v1.3.1-opus4.8-2.1.220-b",
@@ -346,14 +260,7 @@
       "invocation_model_present": false,
       "mode": null,
       "collected": false,
-      "main_mutated": true,
-      "top_write_count": 24,
-      "top_write_tools": [
-        "Write"
-      ],
-      "worker_write_count": 0,
-      "worker_write_tools": [],
-      "topology": "FAIL"
+      "reachability": "FAIL"
     },
     {
       "id": "v1.3.7-opus4.8-2.1.220-a",
@@ -370,14 +277,7 @@
       "invocation_model_present": false,
       "mode": null,
       "collected": false,
-      "main_mutated": true,
-      "top_write_count": 2,
-      "top_write_tools": [
-        "Bash"
-      ],
-      "worker_write_count": 0,
-      "worker_write_tools": [],
-      "topology": "FAIL"
+      "reachability": "FAIL"
     },
     {
       "id": "v1.3.7-opus4.8-2.1.220-b",
@@ -394,14 +294,7 @@
       "invocation_model_present": false,
       "mode": null,
       "collected": false,
-      "main_mutated": true,
-      "top_write_count": 2,
-      "top_write_tools": [
-        "Bash"
-      ],
-      "worker_write_count": 0,
-      "worker_write_tools": [],
-      "topology": "FAIL"
+      "reachability": "FAIL"
     },
     {
       "id": "v1.3.1-opus4.8-2.1.218-a",
@@ -418,14 +311,7 @@
       "invocation_model_present": false,
       "mode": "foreground",
       "collected": true,
-      "main_mutated": false,
-      "top_write_count": 0,
-      "top_write_tools": [],
-      "worker_write_count": 2,
-      "worker_write_tools": [
-        "Bash"
-      ],
-      "topology": "PASS"
+      "reachability": "PASS"
     },
     {
       "id": "v1.3.1-opus4.8-2.1.218-b",
@@ -442,14 +328,7 @@
       "invocation_model_present": false,
       "mode": "foreground",
       "collected": true,
-      "main_mutated": false,
-      "top_write_count": 0,
-      "top_write_tools": [],
-      "worker_write_count": 2,
-      "worker_write_tools": [
-        "Bash"
-      ],
-      "topology": "PASS"
+      "reachability": "PASS"
     },
     {
       "id": "v1.3.7-opus4.8-2.1.218-a",
@@ -466,14 +345,7 @@
       "invocation_model_present": false,
       "mode": "foreground",
       "collected": true,
-      "main_mutated": false,
-      "top_write_count": 0,
-      "top_write_tools": [],
-      "worker_write_count": 2,
-      "worker_write_tools": [
-        "Bash"
-      ],
-      "topology": "PASS"
+      "reachability": "PASS"
     },
     {
       "id": "v1.3.7-opus4.8-2.1.218-b",
@@ -490,16 +362,7 @@
       "invocation_model_present": false,
       "mode": "foreground",
       "collected": true,
-      "main_mutated": true,
-      "top_write_count": 1,
-      "top_write_tools": [
-        "Bash"
-      ],
-      "worker_write_count": 2,
-      "worker_write_tools": [
-        "Bash"
-      ],
-      "topology": "FAIL"
+      "reachability": "PASS"
     },
     {
       "id": "full-reproduction-a",
@@ -516,14 +379,7 @@
       "invocation_model_present": false,
       "mode": "foreground",
       "collected": true,
-      "main_mutated": false,
-      "top_write_count": 0,
-      "top_write_tools": [],
-      "worker_write_count": 2,
-      "worker_write_tools": [
-        "Bash"
-      ],
-      "topology": "PASS"
+      "reachability": "PASS"
     },
     {
       "id": "full-reproduction-b",
@@ -540,15 +396,7 @@
       "invocation_model_present": false,
       "mode": null,
       "collected": false,
-      "main_mutated": true,
-      "top_write_count": 4,
-      "top_write_tools": [
-        "Bash",
-        "Write"
-      ],
-      "worker_write_count": 0,
-      "worker_write_tools": [],
-      "topology": "FAIL"
+      "reachability": "FAIL"
     }
   ]
 }

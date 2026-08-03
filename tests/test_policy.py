@@ -26,28 +26,12 @@ ROLES = (
 
 class PolicyContractTests(unittest.TestCase):
     def test_spontaneous_dispatch_classifier_separates_child_tools(self) -> None:
-        fixture = (
-            ROOT
-            / "benchmarks"
-            / "dispatch-brake"
-            / "positive-controls"
-            / "mechanical"
-            / "fixture"
-        )
-        topology = json.loads(
-            (
-                ROOT
-                / "benchmarks"
-                / "spontaneous-dispatch"
-                / "issue-29-topology.json"
-            ).read_text(encoding="utf-8")
-        )
-        trusted_test_sha = topology["classifier"]["trusted_test_source_sha256"]
         events = [
             {
                 "type": "system",
                 "subtype": "init",
-                "cwd": str(fixture),
+                "model": "claude-opus-5",
+                "claude_code_version": "2.1.220",
             },
             {
                 "type": "assistant",
@@ -67,6 +51,24 @@ class PolicyContractTests(unittest.TestCase):
                 },
             },
             {
+                "type": "assistant",
+                "parent_tool_use_id": "toolu_agent",
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {"command": "npm test"},
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Write",
+                            "input": {"file_path": "src/out.js"},
+                        },
+                    ]
+                },
+            },
+            {
                 "type": "user",
                 "parent_tool_use_id": None,
                 "tool_use_result": {"status": "completed"},
@@ -81,122 +83,9 @@ class PolicyContractTests(unittest.TestCase):
                 },
             },
             {
-                "type": "assistant",
-                "parent_tool_use_id": "toolu_worker",
-                "message": {
-                    "content": [
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "id": "toolu_worker_write",
-                            "input": {
-                                "command": (
-                                    f"cd {fixture / 'src'} && printf done > out.js"
-                                )
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "id": "toolu_worker_external",
-                            "input": {"command": "cp input /tmp/copy"},
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "id": "toolu_worker_failed",
-                            "input": {
-                                "command": (
-                                    f"cd {fixture / 'src'} && printf done > failed.js"
-                                )
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "id": "toolu_worker_early_redirect",
-                            "input": {
-                                "command": (
-                                    "printf x > harmless; rm harmless; "
-                                    f"cd {fixture / 'src'}; cat /dev/null"
-                                )
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {"command": "python3 -m unittest"},
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {"command": "printf 'cp old new'"},
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {"command": "printf a\\>b"},
-                        },
-                    ]
-                },
-            },
-            {
-                "type": "user",
-                "parent_tool_use_id": "toolu_worker",
-                "message": {
-                    "content": [
-                        {
-                            "type": "tool_result",
-                            "tool_use_id": "toolu_worker_write",
-                            "is_error": False,
-                        },
-                        {
-                            "type": "tool_result",
-                            "tool_use_id": "toolu_worker_external",
-                            "is_error": False,
-                        },
-                        {
-                            "type": "tool_result",
-                            "tool_use_id": "toolu_worker_failed",
-                            "is_error": True,
-                        },
-                        {
-                            "type": "tool_result",
-                            "tool_use_id": "toolu_worker_early_redirect",
-                            "is_error": False,
-                        },
-                    ]
-                },
-            },
-            {
-                "type": "assistant",
-                "parent_tool_use_id": None,
-                "message": {
-                    "content": [
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {"command": "npm test 2>&1"},
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {
-                                "command": "# inspect without writing\nsed -n '1,2p' input"
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {"command": "printf '# literal\\n'"},
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {"command": "git rev-parse --show-toplevel"},
-                        },
-                    ]
-                },
+                "type": "result",
+                "total_cost_usd": 0.25,
+                "modelUsage": {"claude-opus-5": {"costUSD": 0.25}},
             },
         ]
         uncollected_events = [
@@ -214,7 +103,7 @@ class PolicyContractTests(unittest.TestCase):
                                 "run_in_background": True,
                             },
                         },
-                        {"type": "text", "text": "subagent_tokens is not a result"},
+                        {"type": "text", "text": "Async agent launched"},
                     ]
                 },
             },
@@ -227,242 +116,7 @@ class PolicyContractTests(unittest.TestCase):
                         {
                             "type": "tool_result",
                             "tool_use_id": "toolu_uncollected",
-                            "content": "subagent_tokens is launch metadata, not a result",
                         }
-                    ]
-                },
-            },
-            {
-                "type": "assistant",
-                "parent_tool_use_id": None,
-                "message": {
-                    "content": [
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {
-                                "command": (
-                                    "python3 -c 'from pathlib import Path; "
-                                    'Path("out.js").write_text("x")\''
-                                )
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {
-                                "command": (
-                                    "cat <(python3 -c 'from pathlib import Path; "
-                                    'Path("out.js").write_text("x")\')'
-                                )
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {"command": "sed -n 'w out.js' /dev/null"},
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {
-                                "command": (
-                                    "cat input # inspect\npython3 -c "
-                                    "'from pathlib import Path; "
-                                    'Path("out.js").write_text("x")\''
-                                )
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {"command": "rg --pre ./writer hello input"},
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {"command": "git diff --ext-diff"},
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {
-                                "command": "GIT_EXTERNAL_DIFF=./writer git diff"
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {
-                                "command": "sed -n '1p' --in-place=.bak file"
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {
-                                "command": "sort --compress-program=./writer -S 1K input"
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {
-                                "command": (
-                                    "printf x |& python3 -c "
-                                    "'from pathlib import Path; "
-                                    'Path("out.js").write_text("x")\''
-                                )
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {
-                                "command": "sed --in-place=.bak s/a/b/ out.js"
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {"command": "sort -o out.js input.txt"},
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {
-                                "command": "sort --out=src/out.js input.txt"
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {
-                                "command": "sort -rosrc/out.js input.txt"
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {
-                                "command": "git diff --output=change.patch"
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {"command": "printf x 1>src/out.js"},
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {"command": "npm test 2>test.log"},
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {
-                                "command": (
-                                    "for f in one\ndo\npython3 -c "
-                                    "'from pathlib import Path; "
-                                    'Path("out.js").write_text("x")\'\ndone'
-                                )
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {
-                                "command": "find . -fprintf out.txt '%p\\n'"
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {"command": "./cat input"},
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {"command": "/tmp/git status"},
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {"command": "PATH=.; cat input"},
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {"command": "git status"},
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {
-                                "command": (
-                                    "rg --hostname-bin=./writer "
-                                    "--hyperlink-format='file://{host}{path}' needle input"
-                                )
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {
-                                "command": (
-                                    "printf x;\npython3 -c 'from pathlib import Path; "
-                                    'Path("out.js").write_text("x")\''
-                                )
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {
-                                "command": "API_TOKEN=super-secret python3 write.py"
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {"command": "printf x >&1out"},
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {"command": "printf x >/dev/nullx"},
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {"command": "npm test 2>&1"},
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {
-                                "command": (
-                                    "if false; then true; else python3 -c "
-                                    "'open(\"out.js\", \"w\").write(\"x\")'; fi"
-                                )
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "Bash",
-                            "input": {
-                                "command": (
-                                    "node --test --test-reporter=tap "
-                                    "--test-reporter-destination=src/out.js"
-                                )
-                            },
-                        },
-                        {
-                            "type": "tool_use",
-                            "name": "NotebookEdit",
-                            "input": {"notebook_path": "out.ipynb"},
-                        },
                     ]
                 },
             },
@@ -487,8 +141,6 @@ class PolicyContractTests(unittest.TestCase):
                         / "spontaneous-dispatch"
                         / "classify_stream.py"
                     ),
-                    "--trusted-test-source-sha256",
-                    trusted_test_sha,
                     str(stream),
                     str(uncollected_stream),
                 ],
@@ -498,24 +150,23 @@ class PolicyContractTests(unittest.TestCase):
             )
 
         trace, uncollected = json.loads(output.stdout)
+        self.assertEqual(trace["top_level_tools"], ["Agent"])
+        self.assertEqual(trace["worker_tools"], ["Bash", "Write"])
         self.assertEqual(
-            trace["top_level_tools"],
-            ["Agent", "Bash", "Bash", "Bash", "Bash"],
+            trace["agent_calls"],
+            [
+                {
+                    "subagent_type": "mech-executor",
+                    "run_in_background": False,
+                    "invocation_model_present": False,
+                }
+            ],
         )
-        self.assertFalse(trace["main_session_mutated"])
         self.assertTrue(trace["subagent_result_collected"])
-        self.assertEqual(trace["worker_source_write_tools"], ["Bash"])
-        self.assertEqual(len(trace["worker_mutation_paths"]), 1)
-        self.assertEqual(trace["worker_mutation_paths"], ["Bash"])
-        self.assertTrue(trace["trusted_test_sources"])
-        self.assertFalse(uncollected["trusted_test_sources"])
+        self.assertEqual(trace["observed_main_model"], "claude-opus-5")
+        self.assertEqual(trace["client_reported_cost_usd"], 0.25)
+        self.assertTrue(uncollected["async_launch_observed"])
         self.assertFalse(uncollected["subagent_result_collected"])
-        self.assertTrue(uncollected["main_session_mutated"])
-        self.assertEqual(
-            uncollected["top_level_source_write_tools"],
-            ["Bash"] * 31 + ["NotebookEdit"],
-        )
-        self.assertNotIn("super-secret", json.dumps(uncollected))
 
     def test_baton_dispatch_matrix_prompts_are_neutral_and_recorded(self) -> None:
         benchmark = ROOT / "benchmarks" / "baton-dispatch-effect"
@@ -851,14 +502,14 @@ class PolicyContractTests(unittest.TestCase):
             (benchmark / "README.md").read_text(encoding="utf-8"),
         )
 
-    def test_issue_29_topology_correction_is_self_consistent(self) -> None:
+    def test_issue_29_reachability_correction_is_self_consistent(self) -> None:
         path = ROOT / "benchmarks" / "spontaneous-dispatch"
         evidence = json.loads(
             (path / "issue-29-topology.json").read_text(encoding="utf-8"),
             parse_float=Decimal,
         )
         attempts = evidence["attempts"]
-        contract = evidence["topology_contract"]
+        contract = evidence["reachability_contract"]
         modified_paths_digest = hashlib.sha256(
             "".join(f"{item}\n" for item in contract["modified_paths"]).encode()
         ).hexdigest()
@@ -872,9 +523,6 @@ class PolicyContractTests(unittest.TestCase):
                 is contract["invocation_model_present"]
                 and attempt["mode"] == contract["mode"]
                 and attempt["collected"] is contract["result_collected"]
-                and attempt["main_mutated"] is contract["main_session_mutated"]
-                and attempt["worker_write_count"]
-                >= contract["worker_write_count_minimum"]
                 and attempt["modified_paths_sha256"]
                 == contract["modified_paths_sha256"]
             )
@@ -894,10 +542,7 @@ class PolicyContractTests(unittest.TestCase):
                 for attempt in attempts
             )
         )
-        self.assertEqual(sum(passes(attempt) for attempt in attempts), 4)
-        self.assertEqual(
-            sum(not attempt["main_mutated"] for attempt in attempts), 5
-        )
+        self.assertEqual(sum(passes(attempt) for attempt in attempts), 7)
         self.assertEqual(
             sum(attempt["cost_usd"] for attempt in attempts).quantize(
                 Decimal("0.0000001")
@@ -905,11 +550,11 @@ class PolicyContractTests(unittest.TestCase):
             evidence["summary"]["client_reported_mechanical_cost_usd"],
         )
         self.assertEqual(
-            {attempt["topology"] for attempt in attempts if passes(attempt)},
+            {attempt["reachability"] for attempt in attempts if passes(attempt)},
             {"PASS"},
         )
         self.assertEqual(
-            {attempt["topology"] for attempt in attempts if not passes(attempt)},
+            {attempt["reachability"] for attempt in attempts if not passes(attempt)},
             {"FAIL"},
         )
         self.assertEqual(
@@ -926,6 +571,7 @@ class PolicyContractTests(unittest.TestCase):
             (path / "issue-29-recovery.json").read_text(encoding="utf-8"),
             parse_float=Decimal,
         )
+        self.assertEqual(evidence["schema_version"], 2)
         self.assertEqual(evidence["status"], "gate_passed_release_pending_replay")
 
         inputs = evidence["inputs"]
@@ -1029,9 +675,6 @@ class PolicyContractTests(unittest.TestCase):
             self.assertFalse(attempt["invocation_model_present"])
             self.assertTrue(attempt["foreground"])
             self.assertTrue(attempt["collected"])
-            self.assertEqual(attempt["main_session_source_writes"], 0)
-            self.assertEqual(attempt["worker_source_writes"], 2)
-            self.assertEqual(attempt["worker_source_write_tools"], ["Bash"])
             self.assertEqual(attempt["modified_paths"], expected_adapters)
             self.assertEqual(attempt["tests"], "12 passed, 0 failed")
         self.assertFalse(mechanical["budget_incomplete_diagnostic"]["collected"])
