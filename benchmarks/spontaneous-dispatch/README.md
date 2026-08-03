@@ -206,7 +206,7 @@ Historical Candidate 3 is evidence for the wording direction, not a release cand
 
 ## Issue #29 opt-in recovery
 
-The exact current policy passed the corrected matrix with this explicit opt-in:
+The exact behavioral policy passed the corrected matrix with this explicit opt-in; the v1.3.8 release candidate differs only by its version marker:
 
 ```text
 Use pilotfish. Follow its dispatch brake: keep direct work in the main session and call the named agents only when the policy selects delegation.

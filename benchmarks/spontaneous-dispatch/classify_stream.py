@@ -92,7 +92,7 @@ def bash_writes(command: str) -> bool:
                 read_only = bool(args) and args[0] in {"--test", "--version", "-v"}
             elif program == "sed":
                 read_only = not any(
-                    arg == "--in-place" or arg.startswith("-i") for arg in args
+                    arg.startswith(("-i", "--in-place")) for arg in args
                 )
             elif program == "find":
                 read_only = not any(

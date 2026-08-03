@@ -206,7 +206,7 @@ Mechanical 是目前最銳利的比較：同一份 prompt、同一個 fixture，
 
 ## Issue #29 opt-in recovery
 
-Exact current policy 使用以下明確 opt-in 後，通過修正後的 matrix：
+Exact behavioral policy 使用以下明確 opt-in 後通過修正 matrix；v1.3.8 release candidate 只改 version marker：
 
 ```text
 Use pilotfish. Follow its dispatch brake: keep direct work in the main session and call the named agents only when the policy selects delegation.

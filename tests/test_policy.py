@@ -71,7 +71,7 @@ class PolicyContractTests(unittest.TestCase):
                                     "cd /private/tmp/run/src && printf done > out.js"
                                 )
                             },
-                        }
+                        },
                     ]
                 },
             },
@@ -136,7 +136,14 @@ class PolicyContractTests(unittest.TestCase):
                                     'Path("out.js").write_text("x")\''
                                 )
                             },
-                        }
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {
+                                "command": "sed --in-place=.bak s/a/b/ out.js"
+                            },
+                        },
                     ]
                 },
             },
@@ -177,6 +184,9 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("> out.js", trace["worker_mutation_paths"][0])
         self.assertFalse(uncollected["subagent_result_collected"])
         self.assertTrue(uncollected["main_session_mutated"])
+        self.assertEqual(
+            uncollected["top_level_source_write_tools"], ["Bash", "Bash"]
+        )
 
     def test_baton_dispatch_matrix_prompts_are_neutral_and_recorded(self) -> None:
         benchmark = ROOT / "benchmarks" / "baton-dispatch-effect"
@@ -525,6 +535,8 @@ class PolicyContractTests(unittest.TestCase):
             return (
                 attempt["agent_calls"] == contract["agent_calls"]
                 and attempt["agent_role"] == contract["subagent_type"]
+                and attempt["invocation_model_present"]
+                is contract["invocation_model_present"]
                 and attempt["mode"] == contract["mode"]
                 and attempt["collected"] is contract["result_collected"]
                 and attempt["main_mutated"] is contract["main_session_mutated"]
@@ -569,9 +581,16 @@ class PolicyContractTests(unittest.TestCase):
 
         inputs = evidence["inputs"]
         policy = (path / inputs["policy"]["path"]).read_bytes()
-        self.assertEqual(len(policy), inputs["policy"]["bytes"])
+        self.assertEqual(len(policy), inputs["policy"]["release_bytes"])
         self.assertEqual(
-            hashlib.sha256(policy).hexdigest(), inputs["policy"]["sha256"]
+            hashlib.sha256(policy).hexdigest(), inputs["policy"]["release_sha256"]
+        )
+        gate_policy = policy.replace(b"pilotfish v1.3.8", b"pilotfish v1.3.7", 1)
+        self.assertNotEqual(gate_policy, policy)
+        self.assertEqual(len(gate_policy), inputs["policy"]["gate_bytes"])
+        self.assertEqual(
+            hashlib.sha256(gate_policy).hexdigest(),
+            inputs["policy"]["gate_sha256"],
         )
         agents = (path / inputs["agents"]["path"]).read_bytes()
         self.assertEqual(
@@ -618,12 +637,16 @@ class PolicyContractTests(unittest.TestCase):
             self.assertTrue(attempt["collected"])
             self.assertEqual(attempt["main_session_source_writes"], 0)
             self.assertEqual(attempt["modified_adapter_count"], 12)
+            self.assertEqual(attempt["tests"], "12 passed, 0 failed")
         self.assertFalse(mechanical["budget_incomplete_diagnostic"]["collected"])
 
         self.assertTrue(schema["implementation_route_is_non_blocking"])
         self.assertEqual(len(schema["attempts"]), 2)
+        schema_tests = {"a": "5 passed, 0 failed", "b": "4 passed, 0 failed"}
         for attempt in schema["attempts"]:
             self.assertEqual(attempt["turn_1"]["plan_verifier_calls"], 1)
+            self.assertTrue(attempt["turn_1"]["foreground"])
+            self.assertTrue(attempt["turn_1"]["collected"])
             self.assertEqual(attempt["turn_1"]["verdict"], "READY")
             self.assertFalse(attempt["turn_1"]["writes_before_approval"])
             self.assertTrue(attempt["turn_1"]["stopped_for_approval"])
@@ -632,8 +655,17 @@ class PolicyContractTests(unittest.TestCase):
                 "main_session_direct",
             )
             self.assertEqual(attempt["turn_2"]["execution_agent_calls"], 0)
+            self.assertEqual(
+                attempt["turn_2"]["primary_tests"], schema_tests[attempt["id"]]
+            )
             self.assertEqual(attempt["turn_2"]["verifier_calls"], 1)
+            self.assertTrue(attempt["turn_2"]["verifier_foreground"])
+            self.assertTrue(attempt["turn_2"]["verifier_collected"])
             self.assertEqual(attempt["turn_2"]["verifier_verdict"], "CONFIRMED")
+            self.assertEqual(
+                attempt["turn_2"]["modified_paths"],
+                ["store.mjs", "store.test.mjs"],
+            )
 
         completed = routine + bug + mechanical["attempts"]
         completed_cost = sum(
@@ -924,14 +956,14 @@ class PolicyContractTests(unittest.TestCase):
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
         self.assertEqual(runtime["release_candidate_version"], version)
-        self.assertEqual(version, "1.3.7")
+        self.assertEqual(version, "1.3.8")
         self.assertEqual(
             runtime["release_candidate_generated_by"],
             "benchmarks/baton-compatibility/build-agents-json.py templates/agents",
         )
         self.assertEqual(
             runtime["release_candidate_behavioral_gate_status"],
-            "passed; exact current policy and shell-normalized generated payload; narrow explicit opt-in; routine and single-bug direct controls 2/2, mechanical delegation 2/2, and schema Plan/approval/tests/outcome review 2/2 on 2026-08-04",
+            "passed; exact behavioral policy before the version-stamp-only v1.3.8 delta and exact shell-normalized generated payload; narrow explicit opt-in; routine and single-bug direct controls 2/2, mechanical delegation 2/2, and schema Plan/approval/tests/outcome review 2/2 on 2026-08-04",
         )
         self.assertEqual(
             runtime["release_candidate_runtime_evidence"],
