@@ -605,7 +605,9 @@
       "observed_main_model": "claude-opus-5",
       "client_version": "2.1.220",
       "raw_stream_sha256": "68a5fb449755583a6ab44473f53b12540f78e7fc2b9f569f6d46556b48debc37",
-      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry.",
+      "async_launch_observed": true,
+      "subagent_result_collected": false
     },
     "v1.3.7-cand1-mechanical-b": {
       "top_level_tools": [
@@ -637,7 +639,9 @@
       "observed_main_model": "claude-opus-5",
       "client_version": "2.1.220",
       "raw_stream_sha256": "c2298a0d2e427d2a6b16f42bcdb56c58deefb65742cc49a79dd368deefe802bb",
-      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry.",
+      "async_launch_observed": true,
+      "subagent_result_collected": false
     },
     "v1.3.7-cand1-bug-a": {
       "top_level_tools": [
@@ -1064,7 +1068,9 @@
       "observed_main_model": "claude-opus-5",
       "client_version": "2.1.220",
       "raw_stream_sha256": "44e553f909d0abf5d50285f069eeb4f5f97aa9d8ae9a4d24b297a8f0c20bbfcf",
-      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry.",
+      "async_launch_observed": false,
+      "subagent_result_collected": true
     },
     "v1.3.7-cand3-mechanical-b": {
       "top_level_tools": [
@@ -1152,7 +1158,9 @@
       "observed_main_model": "claude-opus-5",
       "client_version": "2.1.220",
       "raw_stream_sha256": "d722807f45c5dd732789a2637452537608dcf9af3447cac4ca05bd9f600a4ddc",
-      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry.",
+      "async_launch_observed": false,
+      "subagent_result_collected": true
     },
     "v1.3.7-cand3-bug-a": {
       "top_level_tools": [
@@ -1452,7 +1460,9 @@
       "observed_main_model": "claude-opus-4-8",
       "client_version": "2.1.220",
       "raw_stream_sha256": "e5c0ad4abc4a626f77200b49bd00881ee6d83e5193a0db70927c069c22e044d6",
-      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry.",
+      "async_launch_observed": true,
+      "subagent_result_collected": false
     },
     "elim-v131policy-opus48-2.1.220-mechanical-b": {
       "top_level_tools": [
@@ -1658,7 +1668,9 @@
       "observed_main_model": "claude-opus-4-8",
       "client_version": "2.1.218",
       "raw_stream_sha256": "2e5339751d6f4cc4dcff97a027d56969a8c67fc3f74cf4e247e6c83429be58bc",
-      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry.",
+      "async_launch_observed": false,
+      "subagent_result_collected": true
     },
     "elim-v131policy-opus48-2.1.218-mechanical-b": {
       "top_level_tools": [
@@ -1691,7 +1703,9 @@
       "observed_main_model": "claude-opus-4-8",
       "client_version": "2.1.218",
       "raw_stream_sha256": "8a9db8e1d2e2e6cc81e7cf3bac5ed22eea80f842db006457377857e212ea4752",
-      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry.",
+      "async_launch_observed": false,
+      "subagent_result_collected": true
     },
     "elim-v137policy-opus48-2.1.218-mechanical-a": {
       "top_level_tools": [
@@ -1727,7 +1741,9 @@
       "observed_main_model": "claude-opus-4-8",
       "client_version": "2.1.218",
       "raw_stream_sha256": "453c8897800daaf1c0718f08e5fc739f18219541612d64f4ed5c640361af372d",
-      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry.",
+      "async_launch_observed": false,
+      "subagent_result_collected": true
     },
     "elim-v137policy-opus48-2.1.218-mechanical-b": {
       "top_level_tools": [
@@ -1762,7 +1778,9 @@
       "observed_main_model": "claude-opus-4-8",
       "client_version": "2.1.218",
       "raw_stream_sha256": "72c302987e776a67e8d306023012b99ce88b6475ce9d4ae90fae62963dc7a46c",
-      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry.",
+      "async_launch_observed": false,
+      "subagent_result_collected": true
     },
     "elim-full-reproduction-2.1.218-mechanical-a": {
       "top_level_tools": [
@@ -1796,7 +1814,9 @@
       "observed_main_model": "claude-opus-4-8",
       "client_version": "2.1.218",
       "raw_stream_sha256": "933b4e7d28ac095172a52202ae0aae6d7c90ff4a70fe8aad5dad0d8ee1d9f23a",
-      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry.",
+      "async_launch_observed": false,
+      "subagent_result_collected": true
     },
     "elim-full-reproduction-2.1.218-mechanical-b": {
       "top_level_tools": [

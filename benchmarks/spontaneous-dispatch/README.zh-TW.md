@@ -193,12 +193,12 @@ Mechanical 是目前最銳利的比較：同一份 prompt、同一個 fixture，
 
 記錄在 [`results.json`](./results.json) 的 `v1_3_7_dispatch_prompt_investigation`。它回答一個問題：[#29](https://github.com/Nanako0129/pilotfish/issues/29) 上 mechanical 格的退化，能不能靠加強政策文字修好。答案是不能，這份記錄的存在就是為了不讓人重做一次。
 
-十種 policy-model-client 組合、二十次 mechanical 嘗試，歸納成下面八列，**零次通過 topology**。每一次的測試都通過 —— 這從來不是正確性問題。
+十種 policy-model-client 組合 —— 三個候選配置加上另外七種 —— 共二十次 mechanical 嘗試，歸納成下面八列，**零次通過 topology**。每一次的測試都通過 —— 這從來不是正確性問題。
 
 | 組合 | 委派 | Topology |
 |---|---|---|
 | Baseline，v1.3.7，Opus 5，2.1.220 | 0/2 | 0/2 |
-| 候選 1 —— 祈使化規則（負向 gate 不完整：routine 只跑一次） | 2/2，背景，從未回收 | 0/2 |
+| 候選 1 —— 祈使化規則（負向 gate 不完整：routine 只跑一次） | 2/2，async launch，從未回收 | 0/2 |
 | 候選 2 —— 放回對沖並加所有權子句 | 0/2 | 0/2 |
 | 候選 3 —— 祈使 ＋ 所有權 ＋ 等待 | 2/2，前景，有回收 | 0/2 |
 | v1.3.1 政策，Opus 5，2.1.220 | 0/2 | 0/2 |

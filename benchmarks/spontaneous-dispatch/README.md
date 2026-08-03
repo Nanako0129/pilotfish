@@ -193,12 +193,12 @@ This baseline is the first set of runs to fix both contamination sources found i
 
 Recorded under `v1_3_7_dispatch_prompt_investigation` in [`results.json`](./results.json). It answers whether the mechanical-cell regression on [#29](https://github.com/Nanako0129/pilotfish/issues/29) can be fixed by strengthening the policy text. It cannot, and the record exists so nobody repeats it.
 
-Twenty mechanical attempts across ten policy-model-client combinations, grouped into the eight rows below. **Zero topology passes.** Every attempt passed its tests — this was never a correctness problem.
+Twenty mechanical attempts across ten policy-model-client combinations — three candidate configurations plus seven others — grouped into the eight rows below. **Zero topology passes.** Every attempt passed its tests — this was never a correctness problem.
 
 | Configuration | Dispatch | Topology |
 |---|---|---|
 | Baseline, v1.3.7, Opus 5, 2.1.220 | 0 of 2 | 0 of 2 |
-| Candidate 1 — imperative rule (negative gate incomplete: routine ran once) | 2 of 2, background, never collected | 0 of 2 |
+| Candidate 1 — imperative rule (negative gate incomplete: routine ran once) | 2 of 2, async launch, never collected | 0 of 2 |
 | Candidate 2 — hedge restored plus ownership clause | 0 of 2 | 0 of 2 |
 | Candidate 3 — imperative plus ownership plus wait | 2 of 2, foreground, collected | 0 of 2 |
 | v1.3.1 policy, Opus 5, 2.1.220 | 0 of 2 | 0 of 2 |

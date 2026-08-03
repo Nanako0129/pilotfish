@@ -549,7 +549,7 @@
             "raw_stream_sha256": "806c11e6564b1f5799a869de6be587603f68e6b91df231b6079da29e71d22171"
           }
         ],
-        "topology_followup": "Both attempts are topology failures under the conservative classifier, and so is every later attempt: see `v1_3_7_dispatch_prompt_investigation`, which took this cell through three policy candidates and five further configurations for twenty attempts and zero passes. Do not read this baseline as a gap that policy text can close."
+        "topology_followup": "Both attempts are topology failures under the conservative classifier, and so is every later attempt: see `v1_3_7_dispatch_prompt_investigation`, which took this cell through three candidate policy configurations and seven further policy-model-client combinations for twenty attempts and zero passes. Do not read this baseline as a gap that policy text can close on its own — no tested text did, though candidate 3 did move dispatch without moving ownership."
       },
       "tightly_coupled_bug": {
         "expected_topology": "Negative cell. Main session owns diagnosis and the first minimal fix; no discovery or implementation agent before the fix and the focused pass.",
@@ -653,9 +653,9 @@
     }
   },
   "v1_3_7_dispatch_prompt_investigation": {
-    "purpose": "Records the attempt to fix the mechanical-cell regression on #29 by strengthening the policy text, and the elimination chain that followed. It exists so the next person does not repeat it: the answer is that no input this repository controls accounts for the regression.",
+    "purpose": "Records the attempt to fix the mechanical-cell regression on #29 by strengthening the policy text, and the elimination chain that followed. It exists so the next person does not repeat it: no input tested accounts for the regression. That is a negative result over the variants listed here, not a reason to stop testing other repository-controlled variants — candidate 3 shows policy text can move dispatch behaviour, just not file ownership.",
     "question": "Can the shipped policy text be changed so the cue-free mechanical cell reaches its expected topology again — exactly one foreground `mech-executor` with no main-session source mutation?",
-    "verdict": "No. Three candidates and five further configurations produced twenty mechanical attempts with zero topology passes.",
+    "verdict": "No. Three candidate policy configurations plus seven further policy-model-client combinations, grouped into eight rows below, produced twenty mechanical attempts with zero topology passes.",
     "method": "Every attempt ran the committed `prompts/mechanical.txt` against a fresh disposable copy of `../dispatch-brake/positive-controls/mechanical/fixture`, with the policy under test as `CLAUDE.md` and the role payload passed to `--agents`. Topology is judged as the benchmark's input contract requires: exactly one foreground `mech-executor`, and the main session performing no source mutation, with every top-level Bash command classified conservatively so that any redirection into a file counts as a main-session write. `traces.json` publishes the flagged mutation paths per attempt so each verdict can be rechecked without the raw stream.",
     "classifier_note": "An earlier pass of this analysis under-detected main-session writes because it looked for redirects into `src/...`; several attempts had already `cd`-ed into the adapter directory and wrote to `\"$f.js\"`. The published verdicts come from the conservative classifier, which flags any redirect to a target plus `tee`, `sed -i`, `mv`, `cp` and clobber-option changes. Every flagged path was then read by hand and is a real source write; there are no false positives among the twenty attempts.",
     "candidates": {
@@ -1100,9 +1100,6 @@
               "agent_roles": [
                 "mech-executor"
               ],
-              "run_in_background": [
-                null
-              ],
               "main_session_mutated": true,
               "topology": "FAIL",
               "subagent_result_collected": false,
@@ -1110,13 +1107,16 @@
               "raw_stream_sha256": "e5c0ad4abc4a626f77200b49bd00881ee6d83e5193a0db70927c069c22e044d6",
               "evidence_key": "elim-v131policy-opus48-2.1.220-mechanical-a",
               "tests_after": "12 passed, 0 failed",
-              "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
+              "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary.",
+              "run_in_background_requested": [
+                null
+              ],
+              "async_launch_observed": true
             },
             {
               "id": "v1.3.1 b",
               "agent_calls": 0,
               "agent_roles": [],
-              "run_in_background": [],
               "main_session_mutated": true,
               "topology": "FAIL",
               "subagent_result_collected": false,
@@ -1130,7 +1130,6 @@
               "id": "v1.3.7 a",
               "agent_calls": 0,
               "agent_roles": [],
-              "run_in_background": [],
               "main_session_mutated": true,
               "topology": "FAIL",
               "subagent_result_collected": false,
@@ -1144,7 +1143,6 @@
               "id": "v1.3.7 b",
               "agent_calls": 0,
               "agent_roles": [],
-              "run_in_background": [],
               "main_session_mutated": true,
               "topology": "FAIL",
               "subagent_result_collected": false,
@@ -1155,7 +1153,7 @@
               "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
             }
           ],
-          "result": "1 of 4 dispatched, 0 of 4 topology. The one dispatch was background and uncollected.",
+          "result": "1 of 4 dispatched, 0 of 4 topology. That one invocation left `run_in_background` unset, so the requested mode is unknown; the harness returned `Async agent launched successfully` and no `subagent_tokens` block ever appeared, so it ran asynchronously and was never collected. The uncollected result and the topology failure stand on that evidence; the requested mode does not.",
           "cost_usd": 2.0370727,
           "agents_json_runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc"
         },
