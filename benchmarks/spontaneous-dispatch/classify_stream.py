@@ -50,8 +50,8 @@ READ_ONLY_COMMANDS = {
 }
 SAFE_GIT_SUBCOMMANDS = {"rev-parse"}
 SHELL_SEPARATOR_CHARS = frozenset(";&|\n")
-SHELL_PREFIXES = {"!", "do", "elif", "if", "then", "until", "while"}
-SHELL_ONLY_SEGMENTS = {"done", "else", "esac", "fi"}
+SHELL_PREFIXES = {"!", "do", "elif", "else", "if", "then", "until", "while"}
+SHELL_ONLY_SEGMENTS = {"done", "esac", "fi"}
 ASSIGNMENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=.*")
 SAFE_SED_PRINT = re.compile(r"^(?:\d+|\$)(?:,(?:\d+|\$))?[pP]$")
 WRITE_REDIRECT_TARGET = re.compile(
@@ -101,6 +101,37 @@ def strip_shell_comments(command: str) -> str:
         output.append(char)
         index += 1
     return "".join(output)
+
+
+def split_shell_segments(command: str) -> list[str]:
+    segments: list[str] = []
+    current: list[str] = []
+    quote = None
+    index = 0
+    while index < len(command):
+        char = command[index]
+        if char == "\\" and quote != "'" and index + 1 < len(command):
+            current.extend(command[index : index + 2])
+            index += 2
+            continue
+        if char in {"'", '"'}:
+            quote = None if quote == char else char if quote is None else quote
+        if (
+            quote is None
+            and char in ";&|\n"
+            and not (char == "|" and current and current[-1] == ">")
+        ):
+            if current:
+                segments.append("".join(current))
+                current = []
+            while index + 1 < len(command) and command[index + 1] in ";&|\n":
+                index += 1
+        else:
+            current.append(char)
+        index += 1
+    if current:
+        segments.append("".join(current))
+    return segments
 
 
 def is_shell_separator(token: str) -> bool:
@@ -221,20 +252,9 @@ def bash_proves_fixture_source_write(command: str, cwd: Path | None) -> bool:
         return False
     sanitized = SAFE_REDIRECT.sub(" ", strip_shell_comments(command))
     source = (cwd / "src").resolve()
-    directories: list[Path] = []
-    for match in re.finditer(
-        r"(?:^|[;&|\n])\s*cd\s+('[^']*'|\"[^\"]*\"|[^\s;&|]+)",
-        sanitized,
-    ):
-        token = match.group(1).strip("'\"")
-        directory = Path(token)
-        directories.append(
-            directory.resolve() if directory.is_absolute() else (cwd / directory).resolve()
-        )
-    for directory in directories:
-        if directory != source and source not in directory.parents:
-            continue
-        for match in WRITE_REDIRECT_TARGET.finditer(sanitized):
+    directory = cwd.resolve()
+    for segment in split_shell_segments(sanitized):
+        for match in WRITE_REDIRECT_TARGET.finditer(segment):
             token = match.group(1).strip("'\"")
             if "/" in token and "$" in token:
                 continue
@@ -242,6 +262,19 @@ def bash_proves_fixture_source_write(command: str, cwd: Path | None) -> bool:
             target = target.resolve() if target.is_absolute() else (directory / target).resolve()
             if target != source and source in target.parents:
                 return True
+        try:
+            tokens = shlex.split(segment)
+        except ValueError:
+            continue
+        while tokens and tokens[0] in SHELL_PREFIXES:
+            tokens.pop(0)
+        if len(tokens) >= 2 and tokens[0] == "cd":
+            target = Path(tokens[1])
+            directory = (
+                target.resolve()
+                if target.is_absolute()
+                else (directory / target).resolve()
+            )
     return False
 
 

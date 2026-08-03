@@ -114,6 +114,17 @@ class PolicyContractTests(unittest.TestCase):
                         {
                             "type": "tool_use",
                             "name": "Bash",
+                            "id": "toolu_worker_early_redirect",
+                            "input": {
+                                "command": (
+                                    "printf x > harmless; rm harmless; "
+                                    f"cd {fixture / 'src'}; cat /dev/null"
+                                )
+                            },
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
                             "input": {"command": "python3 -m unittest"},
                         },
                         {
@@ -148,6 +159,11 @@ class PolicyContractTests(unittest.TestCase):
                             "type": "tool_result",
                             "tool_use_id": "toolu_worker_failed",
                             "is_error": True,
+                        },
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": "toolu_worker_early_redirect",
+                            "is_error": False,
                         },
                     ]
                 },
@@ -427,6 +443,16 @@ class PolicyContractTests(unittest.TestCase):
                             "name": "Bash",
                             "input": {
                                 "command": (
+                                    "if false; then true; else python3 -c "
+                                    "'open(\"out.js\", \"w\").write(\"x\")'; fi"
+                                )
+                            },
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {
+                                "command": (
                                     "node --test --test-reporter=tap "
                                     "--test-reporter-destination=src/out.js"
                                 )
@@ -487,7 +513,7 @@ class PolicyContractTests(unittest.TestCase):
         self.assertTrue(uncollected["main_session_mutated"])
         self.assertEqual(
             uncollected["top_level_source_write_tools"],
-            ["Bash"] * 30 + ["NotebookEdit"],
+            ["Bash"] * 31 + ["NotebookEdit"],
         )
         self.assertNotIn("super-secret", json.dumps(uncollected))
 
