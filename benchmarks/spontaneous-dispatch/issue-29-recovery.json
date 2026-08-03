@@ -144,6 +144,10 @@
           "foreground": true,
           "collected": true,
           "main_session_source_writes": 0,
+          "worker_source_writes": 2,
+          "worker_source_write_tools": [
+            "Bash"
+          ],
           "modified_paths": [
             "src/adapters/alpha.js",
             "src/adapters/bravo.js",
@@ -170,6 +174,10 @@
           "foreground": true,
           "collected": true,
           "main_session_source_writes": 0,
+          "worker_source_writes": 2,
+          "worker_source_write_tools": [
+            "Bash"
+          ],
           "modified_paths": [
             "src/adapters/alpha.js",
             "src/adapters/bravo.js",
@@ -209,6 +217,11 @@
       "attempts": [
         {
           "id": "a",
+          "session_binding": {
+            "sanitized_session_id_sha256": "6a469ba4ca28f321722ef1d914d17bc642dba461ce8e6b905da456ae320e813e",
+            "turn_1_invocation": "--session-id",
+            "turn_2_invocation": "--resume"
+          },
           "turn_1": {
             "plan_verifier_calls": 1,
             "invocation_model_present": false,
@@ -239,6 +252,11 @@
         },
         {
           "id": "b",
+          "session_binding": {
+            "sanitized_session_id_sha256": "777a5725926b1e012a91489baff5dfdb236458559cb9e374b229b395d6ba61c4",
+            "turn_1_invocation": "--session-id",
+            "turn_2_invocation": "--resume"
+          },
           "turn_1": {
             "plan_verifier_calls": 1,
             "invocation_model_present": false,

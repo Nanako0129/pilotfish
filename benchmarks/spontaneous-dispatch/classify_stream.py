@@ -109,10 +109,14 @@ def bash_writes(command: str) -> bool:
         if segment[0] == "for":
             segment = []
             continue
-        while segment and (
-            segment[0] in SHELL_PREFIXES or ASSIGNMENT.fullmatch(segment[0])
-        ):
+        while segment and segment[0] in SHELL_PREFIXES:
             segment.pop(0)
+        has_environment = False
+        while segment and ASSIGNMENT.fullmatch(segment[0]):
+            has_environment = True
+            segment.pop(0)
+        if has_environment and segment:
+            return True
         if segment and segment[0] not in SHELL_ONLY_SEGMENTS:
             program = segment[0]
             args = segment[1:]
@@ -121,7 +125,8 @@ def bash_writes(command: str) -> bool:
                     bool(args)
                     and args[0] in SAFE_GIT_SUBCOMMANDS
                     and not any(
-                        arg == "--output" or arg.startswith("--output=")
+                        arg in {"--ext-diff", "--output", "--textconv"}
+                        or arg.startswith("--output=")
                         for arg in args[1:]
                     )
                 )
@@ -138,6 +143,9 @@ def bash_writes(command: str) -> bool:
                     len(args) >= 2
                     and args[0] in {"-n", "--quiet", "--silent"}
                     and SAFE_SED_PRINT.fullmatch(args[1]) is not None
+                    and not any(
+                        arg.startswith("-") and arg != "-" for arg in args[2:]
+                    )
                 )
             elif program == "find":
                 read_only = not any(

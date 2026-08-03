@@ -183,6 +183,25 @@ class PolicyContractTests(unittest.TestCase):
                         {
                             "type": "tool_use",
                             "name": "Bash",
+                            "input": {"command": "git diff --ext-diff"},
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {
+                                "command": "GIT_EXTERNAL_DIFF=./writer git diff"
+                            },
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {
+                                "command": "sed -n '1p' --in-place=.bak file"
+                            },
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
                             "input": {
                                 "command": "sed --in-place=.bak s/a/b/ out.js"
                             },
@@ -290,7 +309,7 @@ class PolicyContractTests(unittest.TestCase):
         self.assertFalse(uncollected["subagent_result_collected"])
         self.assertTrue(uncollected["main_session_mutated"])
         self.assertEqual(
-            uncollected["top_level_source_write_tools"], ["Bash"] * 15
+            uncollected["top_level_source_write_tools"], ["Bash"] * 18
         )
 
     def test_baton_dispatch_matrix_prompts_are_neutral_and_recorded(self) -> None:
@@ -792,6 +811,8 @@ class PolicyContractTests(unittest.TestCase):
             self.assertTrue(attempt["foreground"])
             self.assertTrue(attempt["collected"])
             self.assertEqual(attempt["main_session_source_writes"], 0)
+            self.assertEqual(attempt["worker_source_writes"], 2)
+            self.assertEqual(attempt["worker_source_write_tools"], ["Bash"])
             self.assertEqual(attempt["modified_paths"], expected_adapters)
             self.assertEqual(attempt["tests"], "12 passed, 0 failed")
         self.assertFalse(mechanical["budget_incomplete_diagnostic"]["collected"])
@@ -801,8 +822,21 @@ class PolicyContractTests(unittest.TestCase):
 
         self.assertTrue(schema["implementation_route_is_non_blocking"])
         self.assertEqual(len(schema["attempts"]), 2)
+        self.assertEqual(
+            len(
+                {
+                    attempt["session_binding"]["sanitized_session_id_sha256"]
+                    for attempt in schema["attempts"]
+                }
+            ),
+            2,
+        )
         schema_tests = {"a": "5 passed, 0 failed", "b": "4 passed, 0 failed"}
         for attempt in schema["attempts"]:
+            binding = attempt["session_binding"]
+            self.assertRegex(binding["sanitized_session_id_sha256"], r"^[0-9a-f]{64}$")
+            self.assertEqual(binding["turn_1_invocation"], "--session-id")
+            self.assertEqual(binding["turn_2_invocation"], "--resume")
             self.assertEqual(attempt["turn_1"]["plan_verifier_calls"], 1)
             self.assertFalse(attempt["turn_1"]["invocation_model_present"])
             self.assertTrue(attempt["turn_1"]["foreground"])
