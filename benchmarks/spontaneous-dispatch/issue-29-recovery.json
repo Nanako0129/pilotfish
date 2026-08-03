@@ -219,6 +219,7 @@
           "id": "a",
           "session_binding": {
             "sanitized_session_id_sha256": "6a469ba4ca28f321722ef1d914d17bc642dba461ce8e6b905da456ae320e813e",
+            "event_index_source": "persisted Claude session transcript JSONL zero-based line index",
             "turn_1_invocation": "--session-id",
             "turn_2_invocation": "--resume"
           },
@@ -237,7 +238,11 @@
             "implementation_route": "main_session_direct",
             "execution_agent_calls": 0,
             "primary_tests": "5 passed, 0 failed",
+            "primary_test_call_event_index": 39,
+            "primary_test_result_event_index": 40,
             "verifier_calls": 1,
+            "verifier_call_event_index": 44,
+            "verifier_result_event_index": 45,
             "verifier_invocation_model_present": false,
             "verifier_foreground": true,
             "verifier_collected": true,
@@ -254,6 +259,7 @@
           "id": "b",
           "session_binding": {
             "sanitized_session_id_sha256": "777a5725926b1e012a91489baff5dfdb236458559cb9e374b229b395d6ba61c4",
+            "event_index_source": "persisted Claude session transcript JSONL zero-based line index",
             "turn_1_invocation": "--session-id",
             "turn_2_invocation": "--resume"
           },
@@ -272,7 +278,11 @@
             "implementation_route": "main_session_direct",
             "execution_agent_calls": 0,
             "primary_tests": "4 passed, 0 failed",
+            "primary_test_call_event_index": 44,
+            "primary_test_result_event_index": 45,
             "verifier_calls": 1,
+            "verifier_call_event_index": 49,
+            "verifier_result_event_index": 50,
             "verifier_invocation_model_present": false,
             "verifier_foreground": true,
             "verifier_collected": true,

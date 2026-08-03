@@ -3,7 +3,7 @@
   "purpose": "Supersedes the 0/20 topology claim from closed PR #45 by separating parentless main-session events from child-agent events.",
   "classifier": {
     "path": "./classify_stream.py",
-    "sha256": "a6b3a3ca6cf26c86015de1f049ce6d0c950d48656c07c73674238230101a2e1b",
+    "sha256": "c18a4c50ee71c356db8b351e58d9a61470a697c705698c69ae35683a48c2b291",
     "main_event": "assistant event with absent or null parent_tool_use_id",
     "child_event": "assistant event with non-null parent_tool_use_id",
     "rule": "Only main events contribute to top-level tools and main-session mutation. Model identity does not determine scope."
@@ -22,16 +22,16 @@
   },
   "summary": {
     "attempts": 20,
-    "topology_passes": 7,
-    "main_session_no_write": 10,
+    "topology_passes": 5,
+    "main_session_no_write": 7,
     "correctness": "Every attempt finished with 12 passed, 0 failed.",
     "client_reported_mechanical_cost_usd": 9.3115235,
     "pass_breakdown": {
-      "candidate_3": "2/2",
-      "both_policies_opus_4_8_client_2_1_218_current_roles": "4/4",
+      "candidate_3": "1/2",
+      "both_policies_opus_4_8_client_2_1_218_current_roles": "3/4",
       "full_reproduction_v1_3_1_release_roles": "1/2"
     },
-    "bounded_claim": "Seven of these twenty recorded mechanical attempts satisfy the topology after parent and child events are classified correctly. This is a retrospective correction, not a dispatch rate or a causal attribution."
+    "bounded_claim": "Five of these twenty recorded mechanical attempts satisfy the topology after parent and child events are classified correctly and Git diff calls without --no-ext-diff fail closed. This is a retrospective correction, not a dispatch rate or a causal attribution."
   },
   "topology_contract": {
     "agent_calls": 1,
@@ -127,9 +127,11 @@
       "invocation_model_present": false,
       "mode": "background",
       "collected": false,
-      "main_mutated": false,
-      "top_write_count": 0,
-      "top_write_tools": [],
+      "main_mutated": true,
+      "top_write_count": 1,
+      "top_write_tools": [
+        "Bash"
+      ],
       "worker_write_count": 2,
       "worker_write_tools": [
         "Bash"
@@ -197,14 +199,16 @@
       "invocation_model_present": false,
       "mode": "foreground",
       "collected": true,
-      "main_mutated": false,
-      "top_write_count": 0,
-      "top_write_tools": [],
+      "main_mutated": true,
+      "top_write_count": 1,
+      "top_write_tools": [
+        "Bash"
+      ],
       "worker_write_count": 2,
       "worker_write_tools": [
         "Bash"
       ],
-      "topology": "PASS"
+      "topology": "FAIL"
     },
     {
       "id": "candidate-3-b",
@@ -246,7 +250,7 @@
       "mode": null,
       "collected": false,
       "main_mutated": true,
-      "top_write_count": 2,
+      "top_write_count": 3,
       "top_write_tools": [
         "Bash"
       ],
@@ -452,14 +456,16 @@
       "invocation_model_present": false,
       "mode": "foreground",
       "collected": true,
-      "main_mutated": false,
-      "top_write_count": 0,
-      "top_write_tools": [],
+      "main_mutated": true,
+      "top_write_count": 1,
+      "top_write_tools": [
+        "Bash"
+      ],
       "worker_write_count": 2,
       "worker_write_tools": [
         "Bash"
       ],
-      "topology": "PASS"
+      "topology": "FAIL"
     },
     {
       "id": "full-reproduction-a",

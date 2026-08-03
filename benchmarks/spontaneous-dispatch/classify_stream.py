@@ -124,6 +124,7 @@ def bash_writes(command: str) -> bool:
                 read_only = (
                     bool(args)
                     and args[0] in SAFE_GIT_SUBCOMMANDS
+                    and (args[0] != "diff" or "--no-ext-diff" in args[1:])
                     and not any(
                         arg in {"--ext-diff", "--output", "--textconv"}
                         or arg.startswith("--output=")
@@ -167,6 +168,11 @@ def bash_writes(command: str) -> bool:
                 return True
         segment = []
     return False
+
+
+def bash_proves_write(command: str) -> bool:
+    sanitized = SAFE_REDIRECT.sub(" ", strip_shell_comments(command))
+    return bool(REDIRECT.search(sanitized) or WRITE_COMMAND.search(sanitized))
 
 
 def summarize(command: str) -> str:
@@ -218,10 +224,17 @@ def classify(path: Path) -> dict[str, object]:
                             "invocation_model_present": bool(inputs.get("model")),
                         }
                     )
-                if name in ("Write", "Edit"):
-                    writes.append(f"{name} {Path(inputs.get('file_path', '')).name}")
-                elif name == "Bash" and bash_writes(inputs.get("command", "")):
-                    writes.append(f"Bash {summarize(inputs.get('command', ''))}")
+                if name in ("Write", "Edit", "NotebookEdit"):
+                    write_path = inputs.get("file_path") or inputs.get(
+                        "notebook_path", ""
+                    )
+                    writes.append(f"{name} {Path(write_path).name}")
+                elif name == "Bash":
+                    command = inputs.get("command", "")
+                    if (is_worker and bash_proves_write(command)) or (
+                        not is_worker and bash_writes(command)
+                    ):
+                        writes.append(f"Bash {summarize(command)}")
         if event.get("type") == "user" and event.get("parent_tool_use_id") is None:
             result = event.get("tool_use_result") or {}
             if not isinstance(result, dict):

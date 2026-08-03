@@ -72,6 +72,11 @@ class PolicyContractTests(unittest.TestCase):
                                 )
                             },
                         },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {"command": "python3 -m unittest"},
+                        },
                     ]
                 },
             },
@@ -96,6 +101,11 @@ class PolicyContractTests(unittest.TestCase):
                             "type": "tool_use",
                             "name": "Bash",
                             "input": {"command": "printf '# literal\\n'"},
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {"command": "git diff --no-ext-diff --stat"},
                         },
                     ]
                 },
@@ -284,6 +294,11 @@ class PolicyContractTests(unittest.TestCase):
                                 )
                             },
                         },
+                        {
+                            "type": "tool_use",
+                            "name": "NotebookEdit",
+                            "input": {"notebook_path": "out.ipynb"},
+                        },
                     ]
                 },
             },
@@ -318,7 +333,8 @@ class PolicyContractTests(unittest.TestCase):
 
         trace, uncollected = json.loads(output.stdout)
         self.assertEqual(
-            trace["top_level_tools"], ["Agent", "Bash", "Bash", "Bash"]
+            trace["top_level_tools"],
+            ["Agent", "Bash", "Bash", "Bash", "Bash"],
         )
         self.assertFalse(trace["main_session_mutated"])
         self.assertTrue(trace["subagent_result_collected"])
@@ -327,7 +343,8 @@ class PolicyContractTests(unittest.TestCase):
         self.assertFalse(uncollected["subagent_result_collected"])
         self.assertTrue(uncollected["main_session_mutated"])
         self.assertEqual(
-            uncollected["top_level_source_write_tools"], ["Bash"] * 20
+            uncollected["top_level_source_write_tools"],
+            ["Bash"] * 20 + ["NotebookEdit"],
         )
 
     def test_baton_dispatch_matrix_prompts_are_neutral_and_recorded(self) -> None:
@@ -694,9 +711,9 @@ class PolicyContractTests(unittest.TestCase):
                 for attempt in attempts
             )
         )
-        self.assertEqual(sum(passes(attempt) for attempt in attempts), 7)
+        self.assertEqual(sum(passes(attempt) for attempt in attempts), 5)
         self.assertEqual(
-            sum(not attempt["main_mutated"] for attempt in attempts), 10
+            sum(not attempt["main_mutated"] for attempt in attempts), 7
         )
         self.assertEqual(
             sum(attempt["cost_usd"] for attempt in attempts).quantize(
@@ -853,6 +870,10 @@ class PolicyContractTests(unittest.TestCase):
         for attempt in schema["attempts"]:
             binding = attempt["session_binding"]
             self.assertRegex(binding["sanitized_session_id_sha256"], r"^[0-9a-f]{64}$")
+            self.assertEqual(
+                binding["event_index_source"],
+                "persisted Claude session transcript JSONL zero-based line index",
+            )
             self.assertEqual(binding["turn_1_invocation"], "--session-id")
             self.assertEqual(binding["turn_2_invocation"], "--resume")
             self.assertEqual(attempt["turn_1"]["plan_verifier_calls"], 1)
@@ -869,6 +890,18 @@ class PolicyContractTests(unittest.TestCase):
             self.assertEqual(attempt["turn_2"]["execution_agent_calls"], 0)
             self.assertEqual(
                 attempt["turn_2"]["primary_tests"], schema_tests[attempt["id"]]
+            )
+            self.assertLess(
+                attempt["turn_2"]["primary_test_call_event_index"],
+                attempt["turn_2"]["primary_test_result_event_index"],
+            )
+            self.assertLess(
+                attempt["turn_2"]["primary_test_result_event_index"],
+                attempt["turn_2"]["verifier_call_event_index"],
+            )
+            self.assertLess(
+                attempt["turn_2"]["verifier_call_event_index"],
+                attempt["turn_2"]["verifier_result_event_index"],
             )
             self.assertEqual(attempt["turn_2"]["verifier_calls"], 1)
             self.assertFalse(
