@@ -49,7 +49,7 @@ READ_ONLY_COMMANDS = {
     "wc",
 }
 SAFE_GIT_SUBCOMMANDS = {"diff", "log", "ls-files", "rev-parse", "show", "status"}
-SHELL_SEPARATORS = {";", "&&", "||", "|", "&"}
+SHELL_SEPARATORS = {";", "&&", "||", "|", "&", "\n"}
 SHELL_PREFIXES = {"!", "do", "elif", "if", "then", "until", "while"}
 SHELL_ONLY_SEGMENTS = {"done", "else", "esac", "fi"}
 ASSIGNMENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=.*")
@@ -62,7 +62,8 @@ def bash_writes(command: str) -> bool:
     if "$(" in sanitized or "`" in sanitized:
         return True
     try:
-        lexer = shlex.shlex(sanitized, posix=True, punctuation_chars=";&|")
+        lexer = shlex.shlex(sanitized, posix=True, punctuation_chars=";&|\n")
+        lexer.whitespace = " \t\r"
         lexer.whitespace_split = True
         lexer.commenters = ""
         tokens = list(lexer)
@@ -105,7 +106,8 @@ def bash_writes(command: str) -> bool:
                 )
             elif program == "find":
                 read_only = not any(
-                    arg in {"-delete", "-exec", "-execdir", "-fprint", "-ok", "-okdir"}
+                    arg in {"-delete", "-exec", "-execdir", "-ok", "-okdir"}
+                    or arg.startswith(("-fprint", "-fls"))
                     for arg in args
                 )
             elif program == "sort":

@@ -166,6 +166,24 @@ class PolicyContractTests(unittest.TestCase):
                             "name": "Bash",
                             "input": {"command": "npm test 2>test.log"},
                         },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {
+                                "command": (
+                                    "for f in one\ndo\npython3 -c "
+                                    "'from pathlib import Path; "
+                                    'Path("out.js").write_text("x")\'\ndone'
+                                )
+                            },
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {
+                                "command": "find . -fprintf out.txt '%p\\n'"
+                            },
+                        },
                     ]
                 },
             },
@@ -207,7 +225,7 @@ class PolicyContractTests(unittest.TestCase):
         self.assertFalse(uncollected["subagent_result_collected"])
         self.assertTrue(uncollected["main_session_mutated"])
         self.assertEqual(
-            uncollected["top_level_source_write_tools"], ["Bash"] * 6
+            uncollected["top_level_source_write_tools"], ["Bash"] * 8
         )
 
     def test_baton_dispatch_matrix_prompts_are_neutral_and_recorded(self) -> None:
@@ -567,6 +585,13 @@ class PolicyContractTests(unittest.TestCase):
             )
 
         self.assertEqual(len(attempts), 20)
+        self.assertTrue(
+            all(
+                attempt["tests_passed"] == 12
+                and attempt["tests_failed"] == 0
+                for attempt in attempts
+            )
+        )
         self.assertEqual(sum(passes(attempt) for attempt in attempts), 7)
         self.assertEqual(
             sum(not attempt["main_mutated"] for attempt in attempts), 10
@@ -606,6 +631,24 @@ class PolicyContractTests(unittest.TestCase):
             inputs["prompt_invocation"],
             "double-quoted shell command substitution $(<file); trailing newlines stripped",
         )
+        self.assertEqual(
+            inputs["fixture_digest_method"],
+            "SHA-256 of sorted '<file_sha256>  <repo-relative path>\\n' entries",
+        )
+        for fixture in inputs["fixtures"].values():
+            fixture_path = (path / fixture["path"]).resolve()
+            digest_lines = []
+            for file_path in sorted(
+                item for item in fixture_path.rglob("*") if item.is_file()
+            ):
+                digest_lines.append(
+                    f"{hashlib.sha256(file_path.read_bytes()).hexdigest()}  "
+                    f"{file_path.relative_to(ROOT)}\n"
+                )
+            self.assertEqual(
+                hashlib.sha256("".join(digest_lines).encode()).hexdigest(),
+                fixture["sha256"],
+            )
         policy = (path / inputs["policy"]["path"]).read_bytes()
         self.assertEqual(len(policy), inputs["policy"]["release_bytes"])
         self.assertEqual(

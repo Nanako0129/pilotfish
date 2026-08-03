@@ -33,6 +33,21 @@
       "runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc"
     },
     "prompt_invocation": "double-quoted shell command substitution $(<file); trailing newlines stripped",
+    "fixture_digest_method": "SHA-256 of sorted '<file_sha256>  <repo-relative path>\\n' entries",
+    "fixtures": {
+      "routine_and_schema": {
+        "path": "../verifier-boundary/fixture",
+        "sha256": "a94d2327102ca46ac35fe0af1a57ef17855910e205cb619d43f62b852ee9b46f"
+      },
+      "single_unknown_bug": {
+        "path": "../dispatch-brake/fixture",
+        "sha256": "d5e0e35b96f25317750e28a495e249c745049eb9ffc7d0fcb6d51287c03f49eb"
+      },
+      "mechanical_repetition": {
+        "path": "../dispatch-brake/positive-controls/mechanical/fixture",
+        "sha256": "4dffc6efd10a630fd1e5842c133252f857314bb564d98bb7dac92bb1c315ea7b"
+      }
+    },
     "prompts": {
       "routine": {
         "path": "prompts/issue-29-narrow-routine.txt",
