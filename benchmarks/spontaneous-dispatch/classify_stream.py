@@ -56,9 +56,37 @@ ASSIGNMENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=.*")
 SAFE_SED_PRINT = re.compile(r"^(?:\d+|\$)(?:,(?:\d+|\$))?[pP]$")
 
 
+def strip_shell_comments(command: str) -> str:
+    output: list[str] = []
+    quote = None
+    index = 0
+    while index < len(command):
+        char = command[index]
+        if char == "\\" and quote != "'" and index + 1 < len(command):
+            output.extend(command[index : index + 2])
+            index += 2
+            continue
+        if char in {"'", '"'}:
+            quote = None if quote == char else char if quote is None else quote
+        if (
+            char == "#"
+            and quote is None
+            and (index == 0 or command[index - 1] in " \t\r\n;&|")
+        ):
+            newline = command.find("\n", index)
+            if newline < 0:
+                break
+            output.append("\n")
+            index = newline + 1
+            continue
+        output.append(char)
+        index += 1
+    return "".join(output)
+
+
 def bash_writes(command: str) -> bool:
-    sanitized = SAFE_REDIRECT.sub(" ", command)
-    if REDIRECT.search(sanitized) or WRITE_COMMAND.search(command):
+    sanitized = SAFE_REDIRECT.sub(" ", strip_shell_comments(command))
+    if REDIRECT.search(sanitized) or WRITE_COMMAND.search(sanitized):
         return True
     if any(operator in sanitized for operator in ("$(", "`", "<(", ">(")):
         return True
@@ -66,7 +94,7 @@ def bash_writes(command: str) -> bool:
         lexer = shlex.shlex(sanitized, posix=True, punctuation_chars=";&|\n")
         lexer.whitespace = " \t\r"
         lexer.whitespace_split = True
-        lexer.commenters = "#"
+        lexer.commenters = ""
         tokens = list(lexer)
     except ValueError:
         return True
@@ -101,6 +129,10 @@ def bash_writes(command: str) -> bool:
                 read_only = args == ["test"]
             elif program == "node":
                 read_only = args in (["--test"], ["--version"], ["-v"])
+            elif program == "rg":
+                read_only = not any(
+                    arg == "--pre" or arg.startswith("--pre=") for arg in args
+                )
             elif program == "sed":
                 read_only = (
                     len(args) >= 2
