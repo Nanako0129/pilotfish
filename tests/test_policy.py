@@ -184,6 +184,26 @@ class PolicyContractTests(unittest.TestCase):
                                 "command": "find . -fprintf out.txt '%p\\n'"
                             },
                         },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {"command": "./cat input"},
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {"command": "/tmp/git status"},
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {
+                                "command": (
+                                    "node --test --test-reporter=tap "
+                                    "--test-reporter-destination=src/out.js"
+                                )
+                            },
+                        },
                     ]
                 },
             },
@@ -225,7 +245,7 @@ class PolicyContractTests(unittest.TestCase):
         self.assertFalse(uncollected["subagent_result_collected"])
         self.assertTrue(uncollected["main_session_mutated"])
         self.assertEqual(
-            uncollected["top_level_source_write_tools"], ["Bash"] * 8
+            uncollected["top_level_source_write_tools"], ["Bash"] * 11
         )
 
     def test_baton_dispatch_matrix_prompts_are_neutral_and_recorded(self) -> None:

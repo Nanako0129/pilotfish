@@ -85,7 +85,7 @@ def bash_writes(command: str) -> bool:
         ):
             segment.pop(0)
         if segment and segment[0] not in SHELL_ONLY_SEGMENTS:
-            program = Path(segment[0]).name
+            program = segment[0]
             args = segment[1:]
             if program == "git":
                 read_only = (
@@ -97,9 +97,9 @@ def bash_writes(command: str) -> bool:
                     )
                 )
             elif program == "npm":
-                read_only = bool(args) and args[0] == "test"
+                read_only = args == ["test"]
             elif program == "node":
-                read_only = bool(args) and args[0] in {"--test", "--version", "-v"}
+                read_only = args in (["--test"], ["--version"], ["-v"])
             elif program == "sed":
                 read_only = not any(
                     arg.startswith(("-i", "--in-place")) for arg in args
