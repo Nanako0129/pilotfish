@@ -32,26 +32,32 @@
       "file_sha256": "e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f",
       "runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc"
     },
+    "prompt_invocation": "double-quoted shell command substitution $(<file); trailing newlines stripped",
     "prompts": {
       "routine": {
         "path": "prompts/issue-29-narrow-routine.txt",
-        "file_sha256": "5f4d752986bff73d144950fde17a15c85e44266b862e8f2246f0378b7b066fa0"
+        "file_sha256": "5f4d752986bff73d144950fde17a15c85e44266b862e8f2246f0378b7b066fa0",
+        "runtime_sha256": "120ecc6c51894e6977dc2ac955827d5476d3ea83b2a7c610646598f1687f8ac7"
       },
       "bug": {
         "path": "prompts/issue-29-narrow-bug.txt",
-        "file_sha256": "b13fcc6407b56ff3da55f356d83dd985342d034b25044f21f76afaaa921a7da8"
+        "file_sha256": "b13fcc6407b56ff3da55f356d83dd985342d034b25044f21f76afaaa921a7da8",
+        "runtime_sha256": "ea238854c4d7dbb4421f368e9893db0c967a760b01fd15af057ed74e36156f90"
       },
       "mechanical": {
         "path": "prompts/issue-29-narrow-mechanical.txt",
-        "file_sha256": "6da2aab4f1aae077984de16d2132601766be81056f2e1557be610468be84dd0a"
+        "file_sha256": "6da2aab4f1aae077984de16d2132601766be81056f2e1557be610468be84dd0a",
+        "runtime_sha256": "a0a13600fbea1f927b97baacf095f48a265e38cf305adc75cc85f88d559a6dc6"
       },
       "schema_turn_1": {
         "path": "prompts/issue-29-narrow-schema-turn-1.txt",
-        "file_sha256": "d2a74db6acf5fab0c31d4aafcbb041446c478607ce01c124c6364b9193cc4ac9"
+        "file_sha256": "d2a74db6acf5fab0c31d4aafcbb041446c478607ce01c124c6364b9193cc4ac9",
+        "runtime_sha256": "0045951f4199f3d3d7285ce4d5780921141863df9a4ac1ac91729c23b6d22155"
       },
       "schema_turn_2": {
         "path": "prompts/issue-29-narrow-schema-turn-2.txt",
-        "file_sha256": "ca84acc4791688971566360ccd00ed87e662584ee93961b99458fa529330805e"
+        "file_sha256": "ca84acc4791688971566360ccd00ed87e662584ee93961b99458fa529330805e",
+        "runtime_sha256": "9fe70e6276b2d5cb26b29d4d23cdbfb62dd7f229788307d1c9794b1ff55813a7"
       }
     }
   },
@@ -119,6 +125,7 @@
           "id": "a",
           "agent_calls": 1,
           "agent_role": "mech-executor",
+          "invocation_model_present": false,
           "foreground": true,
           "collected": true,
           "main_session_source_writes": 0,
@@ -144,6 +151,7 @@
           "id": "b",
           "agent_calls": 1,
           "agent_role": "mech-executor",
+          "invocation_model_present": false,
           "foreground": true,
           "collected": true,
           "main_session_source_writes": 0,
@@ -169,6 +177,7 @@
       "budget_incomplete_diagnostic": {
         "agent_calls": 1,
         "agent_role": "mech-executor",
+        "invocation_model_present": false,
         "foreground": true,
         "collected": false,
         "main_session_source_writes": 0,
@@ -187,6 +196,7 @@
           "id": "a",
           "turn_1": {
             "plan_verifier_calls": 1,
+            "invocation_model_present": false,
             "foreground": true,
             "collected": true,
             "verdict": "READY",
@@ -200,6 +210,7 @@
             "execution_agent_calls": 0,
             "primary_tests": "5 passed, 0 failed",
             "verifier_calls": 1,
+            "verifier_invocation_model_present": false,
             "verifier_foreground": true,
             "verifier_collected": true,
             "verifier_verdict": "CONFIRMED",
@@ -215,6 +226,7 @@
           "id": "b",
           "turn_1": {
             "plan_verifier_calls": 1,
+            "invocation_model_present": false,
             "foreground": true,
             "collected": true,
             "verdict": "READY",
@@ -228,6 +240,7 @@
             "execution_agent_calls": 0,
             "primary_tests": "4 passed, 0 failed",
             "verifier_calls": 1,
+            "verifier_invocation_model_present": false,
             "verifier_foreground": true,
             "verifier_collected": true,
             "verifier_verdict": "CONFIRMED",

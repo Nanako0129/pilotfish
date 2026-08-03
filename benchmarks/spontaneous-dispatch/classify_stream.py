@@ -11,8 +11,10 @@ import shlex
 from pathlib import Path
 
 
-SAFE_REDIRECT = re.compile(r"2>&1|>\s*/dev/null|2>\s*/dev/null|>&\d")
-REDIRECT = re.compile(r"(?<![0-9&])>\|?\s*[^&|\s]")
+SAFE_REDIRECT = re.compile(
+    r"(?:\d*|&)>>?\|?\s*/dev/null|(?:\d*)?>\s*&\d+"
+)
+REDIRECT = re.compile(r"(?:\d*|&)>>?\|?\s*[^&|\s>]")
 WRITE_COMMAND = re.compile(
     r"\btee\b|\bsed\s+-i|\bdd\b|\btruncate\b|\bmv\b|\bcp\b|"
     r"set \+o noclobber|setopt.*clobber"

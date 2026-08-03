@@ -156,6 +156,16 @@ class PolicyContractTests(unittest.TestCase):
                                 "command": "git diff --output=change.patch"
                             },
                         },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {"command": "printf x 1>src/out.js"},
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {"command": "npm test 2>test.log"},
+                        },
                     ]
                 },
             },
@@ -197,7 +207,7 @@ class PolicyContractTests(unittest.TestCase):
         self.assertFalse(uncollected["subagent_result_collected"])
         self.assertTrue(uncollected["main_session_mutated"])
         self.assertEqual(
-            uncollected["top_level_source_write_tools"], ["Bash"] * 4
+            uncollected["top_level_source_write_tools"], ["Bash"] * 6
         )
 
     def test_baton_dispatch_matrix_prompts_are_neutral_and_recorded(self) -> None:
@@ -592,6 +602,10 @@ class PolicyContractTests(unittest.TestCase):
         self.assertEqual(evidence["status"], "passed")
 
         inputs = evidence["inputs"]
+        self.assertEqual(
+            inputs["prompt_invocation"],
+            "double-quoted shell command substitution $(<file); trailing newlines stripped",
+        )
         policy = (path / inputs["policy"]["path"]).read_bytes()
         self.assertEqual(len(policy), inputs["policy"]["release_bytes"])
         self.assertEqual(
@@ -616,6 +630,10 @@ class PolicyContractTests(unittest.TestCase):
             payload = (path / prompt["path"]).read_bytes()
             self.assertEqual(
                 hashlib.sha256(payload).hexdigest(), prompt["file_sha256"]
+            )
+            self.assertEqual(
+                hashlib.sha256(payload.rstrip(b"\n")).hexdigest(),
+                prompt["runtime_sha256"],
             )
 
         results = evidence["results"]
@@ -662,18 +680,23 @@ class PolicyContractTests(unittest.TestCase):
         for attempt in mechanical["attempts"]:
             self.assertEqual(attempt["agent_calls"], 1)
             self.assertEqual(attempt["agent_role"], "mech-executor")
+            self.assertFalse(attempt["invocation_model_present"])
             self.assertTrue(attempt["foreground"])
             self.assertTrue(attempt["collected"])
             self.assertEqual(attempt["main_session_source_writes"], 0)
             self.assertEqual(attempt["modified_paths"], expected_adapters)
             self.assertEqual(attempt["tests"], "12 passed, 0 failed")
         self.assertFalse(mechanical["budget_incomplete_diagnostic"]["collected"])
+        self.assertFalse(
+            mechanical["budget_incomplete_diagnostic"]["invocation_model_present"]
+        )
 
         self.assertTrue(schema["implementation_route_is_non_blocking"])
         self.assertEqual(len(schema["attempts"]), 2)
         schema_tests = {"a": "5 passed, 0 failed", "b": "4 passed, 0 failed"}
         for attempt in schema["attempts"]:
             self.assertEqual(attempt["turn_1"]["plan_verifier_calls"], 1)
+            self.assertFalse(attempt["turn_1"]["invocation_model_present"])
             self.assertTrue(attempt["turn_1"]["foreground"])
             self.assertTrue(attempt["turn_1"]["collected"])
             self.assertEqual(attempt["turn_1"]["verdict"], "READY")
@@ -688,6 +711,9 @@ class PolicyContractTests(unittest.TestCase):
                 attempt["turn_2"]["primary_tests"], schema_tests[attempt["id"]]
             )
             self.assertEqual(attempt["turn_2"]["verifier_calls"], 1)
+            self.assertFalse(
+                attempt["turn_2"]["verifier_invocation_model_present"]
+            )
             self.assertTrue(attempt["turn_2"]["verifier_foreground"])
             self.assertTrue(attempt["turn_2"]["verifier_collected"])
             self.assertEqual(attempt["turn_2"]["verifier_verdict"], "CONFIRMED")
