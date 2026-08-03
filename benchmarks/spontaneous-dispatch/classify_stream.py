@@ -49,7 +49,7 @@ READ_ONLY_COMMANDS = {
     "wc",
 }
 SAFE_GIT_SUBCOMMANDS = {"diff", "log", "ls-files", "rev-parse", "show", "status"}
-SHELL_SEPARATORS = {";", "&&", "||", "|", "&", "\n"}
+SHELL_SEPARATORS = {";", "&&", "||", "|", "|&", "&", "\n"}
 SHELL_PREFIXES = {"!", "do", "elif", "if", "then", "until", "while"}
 SHELL_ONLY_SEGMENTS = {"done", "else", "esac", "fi"}
 ASSIGNMENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=.*")
@@ -158,6 +158,7 @@ def bash_writes(command: str) -> bool:
                     arg.startswith("-o")
                     or arg == "--output"
                     or arg.startswith("--output=")
+                    or arg.startswith("--compress-program")
                     for arg in args
                 )
             else:

@@ -203,6 +203,24 @@ class PolicyContractTests(unittest.TestCase):
                             "type": "tool_use",
                             "name": "Bash",
                             "input": {
+                                "command": "sort --compress-program=./writer -S 1K input"
+                            },
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {
+                                "command": (
+                                    "printf x |& python3 -c "
+                                    "'from pathlib import Path; "
+                                    'Path("out.js").write_text("x")\''
+                                )
+                            },
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {
                                 "command": "sed --in-place=.bak s/a/b/ out.js"
                             },
                         },
@@ -309,7 +327,7 @@ class PolicyContractTests(unittest.TestCase):
         self.assertFalse(uncollected["subagent_result_collected"])
         self.assertTrue(uncollected["main_session_mutated"])
         self.assertEqual(
-            uncollected["top_level_source_write_tools"], ["Bash"] * 18
+            uncollected["top_level_source_write_tools"], ["Bash"] * 20
         )
 
     def test_baton_dispatch_matrix_prompts_are_neutral_and_recorded(self) -> None:
