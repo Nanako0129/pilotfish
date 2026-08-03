@@ -143,7 +143,7 @@
         }
       },
       "claim": "The mechanical positive cell passed: exactly one named mech-executor owned every source mutation, the main session performed read-only triage and acceptance, and the expected 12-file diff passed 12/12 tests.",
-      "reproducibility": "Not currently reproducible. `v1_3_7_dispatch_prompt_investigation` re-ran this cell against the exact policy bytes and role payload recorded here, on client 2.1.218 and Opus 4.8, and got 1 of 2 dispatch with 0 of 2 topology. The account has since moved from Pro to Max and client 2.1.217 is no longer retained, so the configuration cannot be fully restored. This row remains a true observation of its time; it is no longer a target this benchmark expects to hit."
+      "reproducibility": "Reproducibility untested. `v1_3_7_dispatch_prompt_investigation` did not replay these inputs: this row ran policy `7ff86564…` with role payload `e901e16a…`, while the reproduction arm used the release-payload pair `17d272b6…` / `0b42c137…`. That arm failed, and five further policy texts including v1.3.1's own bytes also failed, so there is no configuration in that investigation that reaches this cell's topology — but none of it is a direct replay of this row. Treat this row as a true observation of its time whose current reproducibility is unknown, not as a target."
     },
     {
       "name": "opus-v1.3.1-candidate-1-bug",
@@ -238,7 +238,7 @@
         }
       },
       "claim": "The exact release payload passed the mechanical cell: one foreground mech-executor resolved to Sonnet 5, owned all 12 source mutations, and produced a 12/12 passing result while the Opus main session remained read-only.",
-      "reproducibility": "Not currently reproducible. `v1_3_7_dispatch_prompt_investigation` re-ran this cell against the exact policy bytes and role payload recorded here, on client 2.1.218 and Opus 4.8, and got 1 of 2 dispatch with 0 of 2 topology. The account has since moved from Pro to Max and client 2.1.217 is no longer retained, so the configuration cannot be fully restored. This row remains a true observation of its time; it is no longer a target this benchmark expects to hit."
+      "reproducibility": "Not currently reproducible. `v1_3_7_dispatch_prompt_investigation` replayed these exact inputs — policy `17d272b6…` and role payload `0b42c137…`, rebuilt from tag v1.3.1 — on client 2.1.218 and Opus 4.8, and got 1 of 2 dispatch with 0 of 2 topology. The account has since moved from Pro to Max and client 2.1.217 is no longer retained, so the configuration cannot be fully restored. This row remains a true observation of its time; it is no longer a target this benchmark expects to hit."
     },
     {
       "name": "opus-v1.3.1-release-payload-bug",
@@ -659,7 +659,7 @@
     "method": "Every attempt ran the committed `prompts/mechanical.txt` against a fresh disposable copy of `../dispatch-brake/positive-controls/mechanical/fixture`, with the policy under test as `CLAUDE.md` and the role payload passed to `--agents`. Topology is judged as the benchmark's input contract requires: exactly one foreground `mech-executor`, and the main session performing no source mutation, with every top-level Bash command classified conservatively so that any redirection into a file counts as a main-session write. `traces.json` publishes the flagged mutation paths per attempt so each verdict can be rechecked without the raw stream.",
     "classifier_note": "An earlier pass of this analysis under-detected main-session writes because it looked for redirects into `src/...`; several attempts had already `cd`-ed into the adapter directory and wrote to `\"$f.js\"`. The published verdicts come from the conservative classifier, which flags any redirect to a target plus `tee`, `sed -i`, `mv`, `cp` and clobber-option changes. Every flagged path was then read by hand and is a real source write; there are no false positives among the twenty attempts.",
     "candidates": {
-      "shared_constraints": "Each candidate had to keep the prompt-size budget in `../prompt-compression/budget.json`, keep the pinned rule count at 36, hold the two negative cells at 2 of 2, and remove no rule added after v1.3.3. The last constraint matters because v1.3.1 — the version with the only recorded pass — predates `Verification recovery and long autonomous runs`, the AUTO/ASK modes, the five-pass recovery budget, candidate fingerprinting and the whole `Parallel agents` section. Recovering dispatch by reverting to it would trade one regression for a larger one.",
+      "shared_constraints": "Each candidate had to keep the prompt-size budget in `../prompt-compression/budget.json`, keep the pinned rule count at 36, hold the two negative cells, and remove no rule added after v1.3.3. The negative gate was applied unevenly: candidates 2 and 3 ran both negative cells twice, candidate 1 ran the bug cell twice and the routine control once, so candidate 1 was never held to the full two-attempt gate. Its verdict does not turn on that — it failed the positive cell — but it is not a fully qualified candidate and should not be read as one. The last constraint matters because v1.3.1 — the version with the only recorded pass — predates `Verification recovery and long autonomous runs`, the AUTO/ASK modes, the five-pass recovery budget, candidate fingerprinting and the whole `Parallel agents` section. Recovering dispatch by reverting to it would trade one regression for a larger one.",
       "candidate_1": {
         "policy_sha256": "b5d4471dd8168b12ea320fee27e64c46b956fbc1124064d8bda3463ee1c571a0",
         "bytes": 17949,
@@ -702,7 +702,7 @@
             "evidence_key": "v1.3.7-cand1-mechanical-b"
           }
         ],
-        "negative_cells": "bug 2 of 2 correct, routine 1 attempt correct; no dispatch in any of them.",
+        "negative_cells": "bug 2 of 2 correct, routine 1 attempt correct; no dispatch in any of them. The second routine attempt was never run, so this candidate did not meet the two-attempt negative gate the other two did.",
         "observed": "Both mechanical attempts dispatched — the first candidate to do so — but with `run_in_background: true`, and then rewrote all twelve adapters themselves without ever collecting the worker. `Async agent launched` appears once per stream and `subagent_tokens` never appears. This is the `uncollected-background-verification` shape already recorded in the root `failed_attempts` array of `../verifier-boundary/results.json`.",
         "verdict": "FAIL. Counting Agent calls would have scored this a win; the topology gate is what it fails.",
         "cost_usd": 1.8719715
@@ -804,7 +804,7 @@
       "configurations": [
         {
           "id": "v1.3.1 policy, Opus 5, client 2.1.220",
-          "isolates": "Policy text, against the current environment. Role payload held at the current `e6257911…` so only the policy moves.",
+          "isolates": "Policy text, against the current environment. The role payload is held at the current gate-snapshot-v2 file `e6257911…`, whose runtime digest after command substitution strips the trailing newline is `b5dc352f…`; that runtime value is what the client received and it is identical to the Max baseline's, so only the policy moves.",
           "policy_sha256": "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf",
           "attempts": [
             {
@@ -833,7 +833,8 @@
             }
           ],
           "result": "0 of 2 dispatched, 0 of 2 topology. The exact bytes that recorded the pass produce no dispatch on the current client and model.",
-          "cost_usd": 0.6726005
+          "cost_usd": 0.6726005,
+          "agents_json_runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc"
         },
         {
           "id": "both policies, Opus 4.8, client 2.1.220",
@@ -893,7 +894,8 @@
             }
           ],
           "result": "1 of 4 dispatched, 0 of 4 topology. The one dispatch was background and uncollected.",
-          "cost_usd": 2.0370727
+          "cost_usd": 2.0370727,
+          "agents_json_runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc"
         },
         {
           "id": "both policies, Opus 4.8, client 2.1.218",
@@ -964,9 +966,10 @@
               "evidence_key": "elim-v137policy-opus48-2.1.218-mechanical-b"
             }
           ],
-          "result": "4 of 4 dispatched a foreground `mech-executor` with Sonnet 5 billed in every stream, and 0 of 4 topology: every attempt then rewrote all twelve adapters itself. The client moves whether a worker is summoned; it does not move whether the main session yields the files.",
+          "result": "4 of 4 dispatched a foreground `mech-executor` with Sonnet 5 billed in every stream, and 0 of 4 topology: every attempt then rewrote all twelve adapters itself. Read as a difference between two combined configurations, not as a client effect: the 2.1.220 comparisons ran at `--effort high` and these ran at default effort, because 2.1.218 rejects that flag, so client version and effort moved together. Isolating the client would need a 2.1.220 run at default effort, which has not been done.",
           "effort_caveat": "These runs omit `--effort high`, which 2.1.218 does not accept, so they ran at default effort while the 2.1.220 comparisons used high. The difference does not weaken the dispatch observation — the older client dispatched more at lower effort — and no topology conclusion rests on it.",
-          "cost_usd": 1.60149145
+          "cost_usd": 1.60149145,
+          "agents_json_runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc"
         },
         {
           "id": "full reproduction: v1.3.1 policy, v1.3.1 role payload, Opus 4.8, client 2.1.218",
@@ -1005,7 +1008,8 @@
             }
           ],
           "result": "1 of 2 dispatched, 0 of 2 topology. The recorded pass does not reproduce.",
-          "cost_usd": 0.78748905
+          "cost_usd": 0.78748905,
+          "agents_json_file_sha256": "39238b91c59c8a1493de95b0add08c944e7696132163e3b2160ff967edfda74b"
         }
       ],
       "uncontrolled_input": "One input of the recorded pass cannot be restored: it ran on a Pro account, and this account has since been upgraded to Max. Client 2.1.217, the other client in the recorded pass, is also no longer retained locally — though 2.1.218 is, and it was equally a passing client at the time. Both suppressions #29 documents are resolved at runtime and are account- and flag-dependent: one behind a subscription-type comparison, the other behind a resolver reading client data, then a flag lookup, then a built-in default. A plan change is therefore expected to change the injection set, which is why the plan is named here as the difference that remains rather than dismissed."
@@ -1013,11 +1017,11 @@
     "conclusion": [
       "The regression is real and is recorded: the same prompt and fixture passed the cell 2 of 2 on Opus 4.8 with clients 2.1.217 and 2.1.218, and no configuration tested here passes it.",
       "Neither input this repository controls accounts for it. Five policy texts spanning 12,714 to 18,071 bytes and two writing registers, including the exact bytes from the recorded pass, all fail. The role payload from the recorded pass also fails.",
-      "The client version moves one half of the behaviour and not the other: on 2.1.218 all four attempts summoned a foreground worker that really ran, and all four then redid its work. Whatever holds the main session's ownership open is not reachable from a user-level `CLAUDE.md`, which is the claim #29 has made from the start.",
+      "The 2.1.218 configuration moves one half of the behaviour and not the other: all four attempts summoned a foreground worker that really ran, and all four then redid its work. Because client version and effort moved together in that pair, the dispatch half is a combined-configuration difference and not attributed to the client alone. What holds across every configuration tested, with no such caveat, is the other half: the main session never yielded ownership of the files. That is not reachable from a user-level `CLAUDE.md`, which is the claim #29 has made from the start.",
       "Twenty mechanical attempts, zero topology passes, and every attempt correct on its tests. This was never a correctness problem.",
       "The prompt-size budget was not raised. Since the text is not the variable, spending budget headroom on it would grow the policy without buying anything."
     ],
-    "claim_boundary": "Two attempts per configuration on one machine and one account. This establishes that the listed configurations did not reach the topology under these exact conditions; it is not a dispatch rate and does not prove that no policy text could ever work. It does establish that the recorded pass is not currently reproducible, which is the part that matters for how this benchmark's historical rows should be read.",
+    "claim_boundary": "Two attempts per policy on one machine and one account. Six single-policy configurations carry two attempts each and the two grouped rows — both policies on Opus 4.8 at 2.1.220, and both on Opus 4.8 at 2.1.218 — carry four each, two per policy, for twenty mechanical attempts across ten policy-model-client combinations. This establishes that the listed configurations did not reach the topology under these exact conditions; it is not a dispatch rate and does not prove that no policy text could ever work. It does establish that the release-payload pass is not currently reproducible, which is the part that matters for how this benchmark's historical rows should be read.",
     "cost": {
       "total_usd": 13.598162,
       "breakdown": {

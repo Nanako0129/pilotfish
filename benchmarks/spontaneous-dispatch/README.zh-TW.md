@@ -193,12 +193,12 @@ Mechanical 是目前最銳利的比較：同一份 prompt、同一個 fixture，
 
 記錄在 [`results.json`](./results.json) 的 `v1_3_7_dispatch_prompt_investigation`。它回答一個問題：[#29](https://github.com/Nanako0129/pilotfish/issues/29) 上 mechanical 格的退化，能不能靠加強政策文字修好。答案是不能，這份記錄的存在就是為了不讓人重做一次。
 
-八種組合、二十次 mechanical 嘗試，**零次通過 topology**。每一次的測試都通過 —— 這從來不是正確性問題。
+十種 policy-model-client 組合、二十次 mechanical 嘗試，歸納成下面八列，**零次通過 topology**。每一次的測試都通過 —— 這從來不是正確性問題。
 
 | 組合 | 委派 | Topology |
 |---|---|---|
 | Baseline，v1.3.7，Opus 5，2.1.220 | 0/2 | 0/2 |
-| 候選 1 —— 祈使化規則 | 2/2，背景，從未回收 | 0/2 |
+| 候選 1 —— 祈使化規則（負向 gate 不完整：routine 只跑一次） | 2/2，背景，從未回收 | 0/2 |
 | 候選 2 —— 放回對沖並加所有權子句 | 0/2 | 0/2 |
 | 候選 3 —— 祈使 ＋ 所有權 ＋ 等待 | 2/2，前景，有回收 | 0/2 |
 | v1.3.1 政策，Opus 5，2.1.220 | 0/2 | 0/2 |
@@ -210,7 +210,9 @@ Mechanical 是目前最銳利的比較：同一份 prompt、同一個 fixture，
 
 **這個 repo 能控制的兩個輸入都不是成因。** 五份政策文字，12,714 到 18,071 bytes、兩種書寫語域，含已記錄通過的那份原始位元組，全部失敗；已記錄通過的角色酬載也失敗，該酬載是重新產生並與 `0b42c137…` 逐位元組對上的。client 版本會影響「要不要叫工人」—— 2.1.218 是 4/4，每條 stream 都有 Sonnet 5 計費 —— 但不影響「主 session 要不要放手」。
 
-有一個輸入無法還原：已記錄的通過是在 Pro 帳號上跑的，現在是 Max。#29 記載的兩個壓制都在 runtime 依帳號與 flag 狀態解析，所以方案改變本來就會改變注入組合。這也是上面那兩筆歷史 mechanical 紀錄現在帶 `reproducibility` 註記的原因。它們仍是當時的真實觀察，但不再是本 benchmark 預期能達到的目標。
+有一個輸入無法還原：已記錄的通過是在 Pro 帳號上跑的，現在是 Max。#29 記載的兩個壓制都在 runtime 依帳號與 flag 狀態解析，所以方案改變本來就會改變注入組合。這也是上面那兩筆歷史 mechanical 紀錄現在帶 `reproducibility` 註記的原因 —— release-payload 那筆的輸入被精確重放過且失敗；candidate-1 那筆的輸入**沒有**被重放，因此它當前是否可重現屬於未知。兩筆都仍是當時的真實觀察，也都不是本 benchmark 預期能達到的目標。
+
+2.1.218 那列有兩點但書。它的委派結果是兩個「組合配置」之間的差異，不是 client 效應：2.1.218 不接受 `--effort high`，所以那些 run 用 default effort，而 2.1.220 的對照用 high —— client 版本和 effort 是一起變的。要單獨隔離 client，需要在 2.1.220 上跑一次 default effort，這件事還沒做。跨所有配置都成立、且沒有這類但書的是另外一半：主 session 從來沒有交出所有權。
 
 prompt-size budget **沒有**放寬。候選 3 超出 `max_bytes_per_rule` 2 bytes，ceiling 維持 500：既然文字不是變數，把餘裕花在它上面只會讓政策白長。
 

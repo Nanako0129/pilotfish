@@ -193,12 +193,12 @@ This baseline is the first set of runs to fix both contamination sources found i
 
 Recorded under `v1_3_7_dispatch_prompt_investigation` in [`results.json`](./results.json). It answers whether the mechanical-cell regression on [#29](https://github.com/Nanako0129/pilotfish/issues/29) can be fixed by strengthening the policy text. It cannot, and the record exists so nobody repeats it.
 
-Twenty mechanical attempts across eight configurations. **Zero topology passes.** Every attempt passed its tests — this was never a correctness problem.
+Twenty mechanical attempts across ten policy-model-client combinations, grouped into the eight rows below. **Zero topology passes.** Every attempt passed its tests — this was never a correctness problem.
 
 | Configuration | Dispatch | Topology |
 |---|---|---|
 | Baseline, v1.3.7, Opus 5, 2.1.220 | 0 of 2 | 0 of 2 |
-| Candidate 1 — imperative rule | 2 of 2, background, never collected | 0 of 2 |
+| Candidate 1 — imperative rule (negative gate incomplete: routine ran once) | 2 of 2, background, never collected | 0 of 2 |
 | Candidate 2 — hedge restored plus ownership clause | 0 of 2 | 0 of 2 |
 | Candidate 3 — imperative plus ownership plus wait | 2 of 2, foreground, collected | 0 of 2 |
 | v1.3.1 policy, Opus 5, 2.1.220 | 0 of 2 | 0 of 2 |
@@ -210,7 +210,9 @@ Candidate 3 is the shape of the whole finding. Its text says `don't edit them, d
 
 **Neither input this repository controls accounts for the regression.** Five policy texts from 12,714 to 18,071 bytes in two writing registers, including the exact bytes from the recorded pass, all fail; so does the role payload from the recorded pass, rebuilt and digest-matched to `0b42c137…`. The client version moves whether a worker is summoned — 2.1.218 dispatched 4 of 4 with Sonnet 5 billed in every stream — and does not move whether the main session yields the files.
 
-One input cannot be restored: the recorded pass ran on a Pro account and this one is now Max. Both suppressions #29 documents resolve at runtime against account and flag state, so a plan change is expected to change the injection set. That is why the two historical mechanical rows above now carry a `reproducibility` note. They remain true observations of their time; they are no longer a target this benchmark expects to hit.
+One input cannot be restored: the recorded pass ran on a Pro account and this one is now Max. Both suppressions #29 documents resolve at runtime against account and flag state, so a plan change is expected to change the injection set. That is why the two historical mechanical rows above now carry a `reproducibility` note — one for the release-payload row, whose exact inputs were replayed and failed, and a narrower one for the candidate-1 row, whose inputs were **not** replayed and whose current reproducibility is therefore unknown. Both remain true observations of their time; neither is a target this benchmark expects to hit.
+
+Two caveats on the 2.1.218 row. Its dispatch result is a difference between combined configurations, not a client effect: 2.1.218 rejects `--effort high`, so those runs used default effort while the 2.1.220 comparisons used high, and client version and effort moved together. Isolating the client would need a 2.1.220 run at default effort, which has not been done. What holds across every configuration with no such caveat is the other half — the main session never yielded ownership.
 
 The prompt-size budget was **not** raised. Candidate 3 exceeded `max_bytes_per_rule` by 2 bytes and the ceiling stayed at 500: since the text is not the variable, spending headroom on it would grow the policy without buying anything.
 
