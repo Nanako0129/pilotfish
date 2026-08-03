@@ -53,19 +53,20 @@ SHELL_SEPARATORS = {";", "&&", "||", "|", "&", "\n"}
 SHELL_PREFIXES = {"!", "do", "elif", "if", "then", "until", "while"}
 SHELL_ONLY_SEGMENTS = {"done", "else", "esac", "fi"}
 ASSIGNMENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=.*")
+SAFE_SED_PRINT = re.compile(r"^(?:\d+|\$)(?:,(?:\d+|\$))?[pP]$")
 
 
 def bash_writes(command: str) -> bool:
     sanitized = SAFE_REDIRECT.sub(" ", command)
     if REDIRECT.search(sanitized) or WRITE_COMMAND.search(command):
         return True
-    if "$(" in sanitized or "`" in sanitized:
+    if any(operator in sanitized for operator in ("$(", "`", "<(", ">(")):
         return True
     try:
         lexer = shlex.shlex(sanitized, posix=True, punctuation_chars=";&|\n")
         lexer.whitespace = " \t\r"
         lexer.whitespace_split = True
-        lexer.commenters = ""
+        lexer.commenters = "#"
         tokens = list(lexer)
     except ValueError:
         return True
@@ -101,8 +102,10 @@ def bash_writes(command: str) -> bool:
             elif program == "node":
                 read_only = args in (["--test"], ["--version"], ["-v"])
             elif program == "sed":
-                read_only = not any(
-                    arg.startswith(("-i", "--in-place")) for arg in args
+                read_only = (
+                    len(args) >= 2
+                    and args[0] in {"-n", "--quiet", "--silent"}
+                    and SAFE_SED_PRINT.fullmatch(args[1]) is not None
                 )
             elif program == "find":
                 read_only = not any(

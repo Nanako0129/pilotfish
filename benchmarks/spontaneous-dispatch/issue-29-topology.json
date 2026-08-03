@@ -3,7 +3,7 @@
   "purpose": "Supersedes the 0/20 topology claim from closed PR #45 by separating parentless main-session events from child-agent events.",
   "classifier": {
     "path": "./classify_stream.py",
-    "sha256": "f820efafe6941c94d4ef566fd55c67b2d944382252c80fbc07f3c6dfc12ccd5b",
+    "sha256": "d3391c93551aaa4a6a62cb59051d4411a86b520ca4672a599b16075470e2ddb3",
     "main_event": "assistant event with absent or null parent_tool_use_id",
     "child_event": "assistant event with non-null parent_tool_use_id",
     "rule": "Only main events contribute to top-level tools and main-session mutation. Model identity does not determine scope."
