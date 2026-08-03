@@ -26,7 +26,29 @@ ROLES = (
 
 class PolicyContractTests(unittest.TestCase):
     def test_spontaneous_dispatch_classifier_separates_child_tools(self) -> None:
+        fixture = (
+            ROOT
+            / "benchmarks"
+            / "dispatch-brake"
+            / "positive-controls"
+            / "mechanical"
+            / "fixture"
+        )
+        topology = json.loads(
+            (
+                ROOT
+                / "benchmarks"
+                / "spontaneous-dispatch"
+                / "issue-29-topology.json"
+            ).read_text(encoding="utf-8")
+        )
+        trusted_test_sha = topology["classifier"]["trusted_test_source_sha256"]
         events = [
+            {
+                "type": "system",
+                "subtype": "init",
+                "cwd": str(fixture),
+            },
             {
                 "type": "assistant",
                 "parent_tool_use_id": None,
@@ -66,9 +88,26 @@ class PolicyContractTests(unittest.TestCase):
                         {
                             "type": "tool_use",
                             "name": "Bash",
+                            "id": "toolu_worker_write",
                             "input": {
                                 "command": (
-                                    "cd /private/tmp/run/src && printf done > out.js"
+                                    f"cd {fixture / 'src'} && printf done > out.js"
+                                )
+                            },
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "id": "toolu_worker_external",
+                            "input": {"command": "cp input /tmp/copy"},
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "id": "toolu_worker_failed",
+                            "input": {
+                                "command": (
+                                    f"cd {fixture / 'src'} && printf done > failed.js"
                                 )
                             },
                         },
@@ -86,6 +125,29 @@ class PolicyContractTests(unittest.TestCase):
                             "type": "tool_use",
                             "name": "Bash",
                             "input": {"command": "printf a\\>b"},
+                        },
+                    ]
+                },
+            },
+            {
+                "type": "user",
+                "parent_tool_use_id": "toolu_worker",
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": "toolu_worker_write",
+                            "is_error": False,
+                        },
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": "toolu_worker_external",
+                            "is_error": False,
+                        },
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": "toolu_worker_failed",
+                            "is_error": True,
                         },
                     ]
                 },
@@ -358,6 +420,11 @@ class PolicyContractTests(unittest.TestCase):
                         {
                             "type": "tool_use",
                             "name": "Bash",
+                            "input": {"command": "npm test 2>&1"},
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
                             "input": {
                                 "command": (
                                     "node --test --test-reporter=tap "
@@ -394,6 +461,8 @@ class PolicyContractTests(unittest.TestCase):
                         / "spontaneous-dispatch"
                         / "classify_stream.py"
                     ),
+                    "--trusted-test-source-sha256",
+                    trusted_test_sha,
                     str(stream),
                     str(uncollected_stream),
                 ],
@@ -412,11 +481,13 @@ class PolicyContractTests(unittest.TestCase):
         self.assertEqual(trace["worker_source_write_tools"], ["Bash"])
         self.assertEqual(len(trace["worker_mutation_paths"]), 1)
         self.assertEqual(trace["worker_mutation_paths"], ["Bash"])
+        self.assertTrue(trace["trusted_test_sources"])
+        self.assertFalse(uncollected["trusted_test_sources"])
         self.assertFalse(uncollected["subagent_result_collected"])
         self.assertTrue(uncollected["main_session_mutated"])
         self.assertEqual(
             uncollected["top_level_source_write_tools"],
-            ["Bash"] * 29 + ["NotebookEdit"],
+            ["Bash"] * 30 + ["NotebookEdit"],
         )
         self.assertNotIn("super-secret", json.dumps(uncollected))
 
@@ -1290,8 +1361,8 @@ class PolicyContractTests(unittest.TestCase):
             )
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
-        self.assertEqual(runtime["release_candidate_version"], version)
-        self.assertEqual(version, "1.3.8")
+        self.assertEqual(runtime["release_candidate_version"], "1.3.8")
+        self.assertEqual(version, "1.3.7")
         self.assertEqual(
             runtime["release_candidate_generated_by"],
             "benchmarks/baton-compatibility/build-agents-json.py templates/agents",
@@ -1511,15 +1582,16 @@ class PolicyContractTests(unittest.TestCase):
             passing["client_reported_cost_usd"],
         )
 
-    def test_version_stamps_move_together(self) -> None:
+    def test_release_pin_and_candidate_stamp_are_explicit(self) -> None:
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn(f"<!-- pilotfish v{version} -->", policy)
+        self.assertIn("<!-- pilotfish v1.3.8 -->", policy)
 
         changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
         self.assertRegex(changelog, rf"(?m)^## v{re.escape(version)} ")
+        self.assertRegex(changelog, r"(?m)^## v1\.3\.8 ")
 
         for readme in ("README.md", "README.zh-TW.md"):
             content = (ROOT / readme).read_text(encoding="utf-8")

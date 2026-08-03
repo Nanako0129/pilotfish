@@ -54,7 +54,25 @@ SHELL_PREFIXES = {"!", "do", "elif", "if", "then", "until", "while"}
 SHELL_ONLY_SEGMENTS = {"done", "else", "esac", "fi"}
 ASSIGNMENT = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=.*")
 SAFE_SED_PRINT = re.compile(r"^(?:\d+|\$)(?:,(?:\d+|\$))?[pP]$")
-PROVEN_WRITE_COMMANDS = {"cp", "dd", "mv", "tee", "truncate"}
+WRITE_REDIRECT_TARGET = re.compile(
+    r"(?:\d*|&)>>?\|?\s*(?!&)([^\s;&|<>]+)"
+)
+
+
+def fixture_test_source_digest(root: Path) -> str | None:
+    package = root / "package.json"
+    tests = root / "test"
+    if not package.is_file() or package.is_symlink() or not tests.is_dir():
+        return None
+    paths = [package, *sorted(path for path in tests.rglob("*") if path.is_file())]
+    if any(path.is_symlink() for path in paths):
+        return None
+    lines = [
+        f"{hashlib.sha256(path.read_bytes()).hexdigest()}  "
+        f"{path.relative_to(root).as_posix()}\n"
+        for path in paths
+    ]
+    return hashlib.sha256("".join(lines).encode()).hexdigest()
 
 
 def strip_shell_comments(command: str) -> str:
@@ -105,7 +123,7 @@ def has_unquoted_redirect(command: str) -> bool:
     return False
 
 
-def bash_writes(command: str) -> bool:
+def bash_writes(command: str, trusted_test_sources: bool = False) -> bool:
     sanitized = SAFE_REDIRECT.sub(" ", strip_shell_comments(command))
     if REDIRECT.search(sanitized) or WRITE_COMMAND.search(sanitized):
         return True
@@ -147,9 +165,11 @@ def bash_writes(command: str) -> bool:
                     and args[0] in SAFE_GIT_SUBCOMMANDS
                 )
             elif program == "npm":
-                read_only = args == ["test"]
+                read_only = trusted_test_sources and args == ["test"]
             elif program == "node":
-                read_only = args in (["--test"], ["--version"], ["-v"])
+                read_only = args in (["--version"], ["-v"]) or (
+                    trusted_test_sources and args == ["--test"]
+                )
             elif program == "rg":
                 read_only = not any(
                     arg in {"--pre", "--hostname-bin"}
@@ -196,52 +216,38 @@ def bash_writes(command: str) -> bool:
     return False
 
 
-def bash_proves_write(command: str) -> bool:
-    sanitized = SAFE_REDIRECT.sub(" ", strip_shell_comments(command))
-    if has_unquoted_redirect(sanitized):
-        return True
-    try:
-        lexer = shlex.shlex(
-            sanitized, posix=False, punctuation_chars=";&|<>\n"
-        )
-        lexer.whitespace = " \t\r"
-        lexer.whitespace_split = True
-        lexer.commenters = ""
-        tokens = list(lexer)
-    except ValueError:
+def bash_proves_fixture_source_write(command: str, cwd: Path | None) -> bool:
+    if cwd is None:
         return False
-
-    segment: list[str] = []
-    for token in tokens + [";"]:
-        if not is_shell_separator(token):
-            segment.append(token)
+    sanitized = SAFE_REDIRECT.sub(" ", strip_shell_comments(command))
+    source = (cwd / "src").resolve()
+    directories: list[Path] = []
+    for match in re.finditer(
+        r"(?:^|[;&|\n])\s*cd\s+('[^']*'|\"[^\"]*\"|[^\s;&|]+)",
+        sanitized,
+    ):
+        token = match.group(1).strip("'\"")
+        directory = Path(token)
+        directories.append(
+            directory.resolve() if directory.is_absolute() else (cwd / directory).resolve()
+        )
+    for directory in directories:
+        if directory != source and source not in directory.parents:
             continue
-        while segment and segment[0] in SHELL_PREFIXES:
-            segment.pop(0)
-        while segment and ASSIGNMENT.fullmatch(segment[0]):
-            segment.pop(0)
-        if segment:
-            program = segment[0]
-            args = segment[1:]
-            if program in PROVEN_WRITE_COMMANDS:
+        for match in WRITE_REDIRECT_TARGET.finditer(sanitized):
+            token = match.group(1).strip("'\"")
+            if "/" in token and "$" in token:
+                continue
+            target = Path(token)
+            target = target.resolve() if target.is_absolute() else (directory / target).resolve()
+            if target != source and source in target.parents:
                 return True
-            if program == "sed" and any(
-                arg == "-i"
-                or arg.startswith("-i")
-                or arg == "--in-place"
-                or arg.startswith("--in-place=")
-                for arg in args
-            ):
-                return True
-            if program == "set" and args[:2] == ["+o", "noclobber"]:
-                return True
-            if program == "setopt" and any("clobber" in arg for arg in args):
-                return True
-        segment = []
     return False
 
 
-def classify(path: Path) -> dict[str, object]:
+def classify(
+    path: Path, trusted_test_source_sha256: str | None = None
+) -> dict[str, object]:
     top_tools: list[str] = []
     worker_tools: list[str] = []
     top_writes: list[str] = []
@@ -249,7 +255,10 @@ def classify(path: Path) -> dict[str, object]:
     agent_calls: list[dict[str, object]] = []
     agent_tool_ids: set[str] = set()
     collected_agent_ids: set[str] = set()
+    worker_write_candidates: dict[str, str] = {}
     main_model = client_version = None
+    cwd = None
+    trusted_test_sources = False
     cost = None
     model_costs: dict[str, float] = {}
 
@@ -261,6 +270,12 @@ def classify(path: Path) -> dict[str, object]:
         if event.get("subtype") == "init":
             main_model = event.get("model")
             client_version = event.get("claude_code_version")
+            cwd = Path(event["cwd"]) if event.get("cwd") else None
+            trusted_test_sources = bool(
+                trusted_test_source_sha256
+                and cwd
+                and fixture_test_source_digest(cwd) == trusted_test_source_sha256
+            )
         if event.get("type") == "assistant":
             is_worker = event.get("parent_tool_use_id") is not None
             tools = worker_tools if is_worker else top_tools
@@ -281,17 +296,45 @@ def classify(path: Path) -> dict[str, object]:
                             "invocation_model_present": bool(inputs.get("model")),
                         }
                     )
-                if name in ("Write", "Edit", "NotebookEdit"):
+                if is_worker:
+                    tool_id = item.get("id")
+                    if not tool_id:
+                        continue
+                    if name in ("Write", "Edit"):
+                        write_path = inputs.get("file_path", "")
+                        target = Path(write_path)
+                        target = (
+                            target.resolve()
+                            if target.is_absolute()
+                            else (cwd / target).resolve() if cwd else None
+                        )
+                        source = (cwd / "src").resolve() if cwd else None
+                        if target and source and source in target.parents:
+                            worker_write_candidates[tool_id] = (
+                                f"{name} {target.name}"
+                            )
+                    elif name == "Bash" and bash_proves_fixture_source_write(
+                        inputs.get("command", ""), cwd
+                    ):
+                        worker_write_candidates[tool_id] = "Bash"
+                elif name in ("Write", "Edit", "NotebookEdit"):
                     write_path = inputs.get("file_path") or inputs.get(
                         "notebook_path", ""
                     )
                     writes.append(f"{name} {Path(write_path).name}")
                 elif name == "Bash":
                     command = inputs.get("command", "")
-                    if (is_worker and bash_proves_write(command)) or (
-                        not is_worker and bash_writes(command)
-                    ):
+                    if bash_writes(command, trusted_test_sources):
                         writes.append("Bash")
+        if event.get("type") == "user":
+            for item in event.get("message", {}).get("content", []):
+                if item.get("type") != "tool_result":
+                    continue
+                candidate = worker_write_candidates.pop(
+                    item.get("tool_use_id"), None
+                )
+                if candidate and item.get("is_error") is False:
+                    worker_writes.append(candidate)
         if event.get("type") == "user" and event.get("parent_tool_use_id") is None:
             result = event.get("tool_use_result") or {}
             if not isinstance(result, dict):
@@ -326,6 +369,7 @@ def classify(path: Path) -> dict[str, object]:
         "worker_tools": worker_tools,
         "worker_source_write_tools": [entry.split(" ", 1)[0] for entry in worker_writes],
         "worker_mutation_paths": worker_writes,
+        "trusted_test_sources": trusted_test_sources,
         "async_launch_observed": "Async agent launched" in text,
         "subagent_result_collected": bool(collected_agent_ids),
     }
@@ -333,9 +377,22 @@ def classify(path: Path) -> dict[str, object]:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--trusted-test-source-sha256")
     parser.add_argument("streams", nargs="+", type=Path)
     args = parser.parse_args()
-    print(json.dumps([classify(path) for path in args.streams], indent=2))
+    if args.trusted_test_source_sha256 and not re.fullmatch(
+        r"[0-9a-f]{64}", args.trusted_test_source_sha256
+    ):
+        parser.error("--trusted-test-source-sha256 must be lowercase SHA-256")
+    print(
+        json.dumps(
+            [
+                classify(path, args.trusted_test_source_sha256)
+                for path in args.streams
+            ],
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

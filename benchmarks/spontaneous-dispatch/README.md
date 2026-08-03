@@ -18,6 +18,8 @@ The exact prompts are in [`prompts/`](./prompts/). Recorded outcomes, normalized
 | Model attribution | Record the model from the stream initialization event; a requested alias is not proof of the observed model |
 | Role attribution | Require an observable `Agent` call with `subagent_type: mech-executor`; reject an invocation-level model override |
 | Mutation attribution | An assistant event is top level only when `parent_tool_use_id` is absent or null. Reject its `Edit` or `Write`; classify every top-level Bash command conservatively and reject redirection or commands capable of source writes |
+| Test runner attribution | Treat `npm test` and `node --test` as write-capable unless the stream working tree matches the recorded digest of `package.json` and every file under `test/` |
+| Worker attribution | Credit a worker write only after its tool result succeeds and its explicit file target, or Bash working directory plus redirection target, resolves under the fixture `src/` directory |
 | Hook attribution | Disable user, project, and local hooks, or bind a sanitized digest of the effective hook configuration before claiming sole mutation ownership |
 | Isolation | Run only in a fresh disposable copy with a clean committed baseline |
 

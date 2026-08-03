@@ -18,6 +18,8 @@
 | 模型歸因 | 以 stream initialization event 為準；請求 alias 不能證明實際模型 |
 | 角色歸因 | 必須觀察到 `subagent_type: mech-executor` 的 `Agent` 呼叫；不得在 invocation 指定 model |
 | 修改歸因 | Assistant event 只有在 `parent_tool_use_id` 缺省或為 null 時才算 top-level。拒絕其中的 `Edit` 或 `Write`；保守分類每個 top-level Bash，任何 redirection 或可修改 source 的命令都判定失敗 |
+| Test runner 歸因 | 除非 stream worktree 的 `package.json` 與 `test/` 全部檔案符合已記錄 digest，否則把 `npm test` 與 `node --test` 視為可寫入 |
+| Worker 歸因 | Worker tool result 成功，且明確 file target 或 Bash working directory 加 redirection target 位於 fixture `src/` 下，才計入 worker write |
 | Hook 歸因 | 宣稱 worker 獨佔修改前，必須停用 user、project、local hooks，或綁定 effective hook configuration 的 sanitized digest |
 | 隔離 | 只在全新 disposable copy 與乾淨的 committed baseline 執行 |
 
