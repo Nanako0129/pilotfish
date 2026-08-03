@@ -661,6 +661,21 @@
     "candidates": {
       "shared_constraints": "Each candidate had to keep the prompt-size budget in `../prompt-compression/budget.json`, keep the pinned rule count at 36, hold the two negative cells, and remove no rule added after v1.3.3. The negative gate was applied unevenly: candidates 2 and 3 ran both negative cells twice, candidate 1 ran the bug cell twice and the routine control once, so candidate 1 was never held to the full two-attempt gate. Its verdict does not turn on that — it failed the positive cell — but it is not a fully qualified candidate and should not be read as one. The last constraint matters because v1.3.1 — the version with the only recorded pass — predates `Verification recovery and long autonomous runs`, the AUTO/ASK modes, the five-pass recovery budget, candidate fingerprinting and the whole `Parallel agents` section. Recovering dispatch by reverting to it would trade one regression for a larger one.",
       "candidate_1": {
+        "environment": {
+          "account_plan": "max",
+          "client_version": "2.1.220",
+          "requested_model": "opus",
+          "observed_main_model": "claude-opus-5",
+          "effort": "high",
+          "setting_sources": [
+            "project",
+            "local"
+          ],
+          "session_persistence": "--no-session-persistence for the single-turn cells; a fixed --session-id with --resume for the two-turn schema cell",
+          "agents_json_file_sha256": "e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f",
+          "agents_json_runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc",
+          "note": "All three candidates ran in this one environment; only the policy bytes differ between them. The top-level `client.version_note` sentence about candidate-1 runs on 2.1.217 refers to the historical `opus-v1.3.1-candidate-1-*` rows, not to these `v1.3.7-cand*` runs."
+        },
         "policy_sha256": "b5d4471dd8168b12ea320fee27e64c46b956fbc1124064d8bda3463ee1c571a0",
         "bytes": 17949,
         "bytes_per_rule": 498.6,
@@ -683,7 +698,9 @@
             "subagent_result_collected": false,
             "client_reported_cost_usd": 0.48885535000000013,
             "raw_stream_sha256": "68a5fb449755583a6ab44473f53b12540f78e7fc2b9f569f6d46556b48debc37",
-            "evidence_key": "v1.3.7-cand1-mechanical-a"
+            "evidence_key": "v1.3.7-cand1-mechanical-a",
+            "tests_after": "12 passed, 0 failed",
+            "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
           },
           {
             "id": "b",
@@ -699,15 +716,65 @@
             "subagent_result_collected": false,
             "client_reported_cost_usd": 0.45682365,
             "raw_stream_sha256": "c2298a0d2e427d2a6b16f42bcdb56c58deefb65742cc49a79dd368deefe802bb",
-            "evidence_key": "v1.3.7-cand1-mechanical-b"
+            "evidence_key": "v1.3.7-cand1-mechanical-b",
+            "tests_after": "12 passed, 0 failed",
+            "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
           }
         ],
         "negative_cells": "bug 2 of 2 correct, routine 1 attempt correct; no dispatch in any of them. The second routine attempt was never run, so this candidate did not meet the two-attempt negative gate the other two did.",
         "observed": "Both mechanical attempts dispatched — the first candidate to do so — but with `run_in_background: true`, and then rewrote all twelve adapters themselves without ever collecting the worker. `Async agent launched` appears once per stream and `subagent_tokens` never appears. This is the `uncollected-background-verification` shape already recorded in the root `failed_attempts` array of `../verifier-boundary/results.json`.",
         "verdict": "FAIL. Counting Agent calls would have scored this a win; the topology gate is what it fails.",
-        "cost_usd": 1.8719715
+        "cost_usd": 1.8719715,
+        "other_cells": {
+          "bug": [
+            {
+              "id": "a",
+              "agent_calls": 0,
+              "main_session_mutated": true,
+              "tests_after": "2 passed, 0 failed",
+              "client_reported_cost_usd": 0.35680599999999996,
+              "raw_stream_sha256": "5a0049852684ce99e712f5d983df954bf76c42d67ea540e30f8d77742a8dc2e9",
+              "evidence_key": "v1.3.7-cand1-bug-a"
+            },
+            {
+              "id": "b",
+              "agent_calls": 0,
+              "main_session_mutated": true,
+              "tests_after": "2 passed, 0 failed",
+              "client_reported_cost_usd": 0.3465785,
+              "raw_stream_sha256": "f8b7d5054551fb645bd42f5609d389929cd43e2701a60a4884ad0d527a0a5140",
+              "evidence_key": "v1.3.7-cand1-bug-b"
+            }
+          ],
+          "routine_docs": [
+            {
+              "id": "b",
+              "agent_calls": 0,
+              "main_session_mutated": true,
+              "tests_after": "1 passed, 0 failed",
+              "client_reported_cost_usd": 0.22290800000000002,
+              "raw_stream_sha256": "736ce48731cd38c510c5fef7eb71cac7325f2c34852eec9c98521212cc2a7a4f",
+              "evidence_key": "v1.3.7-cand1-routine-b"
+            }
+          ]
+        }
       },
       "candidate_2": {
+        "environment": {
+          "account_plan": "max",
+          "client_version": "2.1.220",
+          "requested_model": "opus",
+          "observed_main_model": "claude-opus-5",
+          "effort": "high",
+          "setting_sources": [
+            "project",
+            "local"
+          ],
+          "session_persistence": "--no-session-persistence for the single-turn cells; a fixed --session-id with --resume for the two-turn schema cell",
+          "agents_json_file_sha256": "e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f",
+          "agents_json_runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc",
+          "note": "All three candidates ran in this one environment; only the policy bytes differ between them. The top-level `client.version_note` sentence about candidate-1 runs on 2.1.217 refers to the historical `opus-v1.3.1-candidate-1-*` rows, not to these `v1.3.7-cand*` runs."
+        },
         "policy_sha256": "f460bb86da03eff766125359cab54171179b6c3e9809a41f605fb2dfe72d4ad3",
         "bytes": 17993,
         "bytes_per_rule": 499.8,
@@ -727,7 +794,9 @@
             "subagent_result_collected": false,
             "client_reported_cost_usd": 0.328599,
             "raw_stream_sha256": "a41e3497606027ec0a8ea82cea54e763840c59b09a1f91ecc07e26fde0fac920",
-            "evidence_key": "v1.3.7-cand2-mechanical-a"
+            "evidence_key": "v1.3.7-cand2-mechanical-a",
+            "tests_after": "12 passed, 0 failed",
+            "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
           },
           {
             "id": "b",
@@ -739,7 +808,9 @@
             "subagent_result_collected": false,
             "client_reported_cost_usd": 0.5959534999999999,
             "raw_stream_sha256": "675a924566c7ae8dd43b9ff43f038e0db42de53145909d8ff79140d7d0535b52",
-            "evidence_key": "v1.3.7-cand2-mechanical-b"
+            "evidence_key": "v1.3.7-cand2-mechanical-b",
+            "tests_after": "12 passed, 0 failed",
+            "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
           }
         ],
         "negative_cells": "bug 2 of 2 correct, routine 2 of 2 correct.",
@@ -747,9 +818,104 @@
         "observed": "Zero Agent calls across all eight attempts — worse than the baseline, which had one schema attempt pass.",
         "method_error": "Three variables moved at once against candidate 1, so this result cannot attribute the loss to any one of them. Recorded as a method fault rather than a finding.",
         "verdict": "FAIL, and a regression against the baseline.",
-        "cost_usd": 3.2653845
+        "cost_usd": 3.2653845,
+        "other_cells": {
+          "bug": [
+            {
+              "id": "a",
+              "agent_calls": 0,
+              "main_session_mutated": true,
+              "tests_after": "2 passed, 0 failed",
+              "client_reported_cost_usd": 0.374457,
+              "raw_stream_sha256": "d46502026421ed8992688890793d3bbaf56fce98f9f0ba6dd56de7fba4744bc7",
+              "evidence_key": "v1.3.7-cand2-bug-a"
+            },
+            {
+              "id": "b",
+              "agent_calls": 0,
+              "main_session_mutated": true,
+              "tests_after": "2 passed, 0 failed",
+              "client_reported_cost_usd": 0.3718875,
+              "raw_stream_sha256": "cab0d3ffe1640ce9e949d0c6bdcbd9a45e08c1fe3d1255d6ba1e57f5f8baf3cd",
+              "evidence_key": "v1.3.7-cand2-bug-b"
+            }
+          ],
+          "routine_docs": [
+            {
+              "id": "a",
+              "agent_calls": 0,
+              "main_session_mutated": true,
+              "tests_after": "1 passed, 0 failed",
+              "client_reported_cost_usd": 0.219183,
+              "raw_stream_sha256": "52ca569c1d00e3ea005ed68cbfeab6b7bdc799d9f4fecc39ae15997aec1bf6ce",
+              "evidence_key": "v1.3.7-cand2-routine-a"
+            },
+            {
+              "id": "b",
+              "agent_calls": 0,
+              "main_session_mutated": true,
+              "tests_after": "1 passed, 0 failed",
+              "client_reported_cost_usd": 0.21953000000000003,
+              "raw_stream_sha256": "62b7ba13456749bc141f244157e4b6d36bb302aaeed0e954a4f9d87751569c65",
+              "evidence_key": "v1.3.7-cand2-routine-b"
+            }
+          ],
+          "schema_lifecycle": [
+            {
+              "id": "a turn 1",
+              "agent_calls": 0,
+              "main_session_mutated": true,
+              "tests_after": "not separately measured; see the cell's final-turn entry",
+              "client_reported_cost_usd": 0.3095395000000001,
+              "raw_stream_sha256": "1276c33d9823091a4129084c48ccc3f4e475935baa8fa32da5e6dc87e7d36c94",
+              "evidence_key": "v1.3.7-cand2-schema-a-turn-1"
+            },
+            {
+              "id": "a turn 2",
+              "agent_calls": 0,
+              "main_session_mutated": false,
+              "tests_after": "5 passed, 0 failed",
+              "client_reported_cost_usd": 0.2315905,
+              "raw_stream_sha256": "0e53f67ff471be04e8c89f90a830a2f5defa3d44ff6a81c3519dcc64c68947ec",
+              "evidence_key": "v1.3.7-cand2-schema-a-turn-2"
+            },
+            {
+              "id": "b turn 1",
+              "agent_calls": 0,
+              "main_session_mutated": true,
+              "tests_after": "not separately measured; see the cell's final-turn entry",
+              "client_reported_cost_usd": 0.3794695,
+              "raw_stream_sha256": "a75778a4d8dc66fe9c7e89c75c8681d73d025504848d7e6170324421f39fcf21",
+              "evidence_key": "v1.3.7-cand2-schema-b-turn-1"
+            },
+            {
+              "id": "b turn 2",
+              "agent_calls": 0,
+              "main_session_mutated": false,
+              "tests_after": "4 passed, 0 failed",
+              "client_reported_cost_usd": 0.23517499999999997,
+              "raw_stream_sha256": "3874c274c6e934c03330f6cd9de3b2a975568a1c9e7639df52eb939d2cfed0bc",
+              "evidence_key": "v1.3.7-cand2-schema-b-turn-2"
+            }
+          ]
+        }
       },
       "candidate_3": {
+        "environment": {
+          "account_plan": "max",
+          "client_version": "2.1.220",
+          "requested_model": "opus",
+          "observed_main_model": "claude-opus-5",
+          "effort": "high",
+          "setting_sources": [
+            "project",
+            "local"
+          ],
+          "session_persistence": "--no-session-persistence for the single-turn cells; a fixed --session-id with --resume for the two-turn schema cell",
+          "agents_json_file_sha256": "e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f",
+          "agents_json_runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc",
+          "note": "All three candidates ran in this one environment; only the policy bytes differ between them. The top-level `client.version_note` sentence about candidate-1 runs on 2.1.217 refers to the historical `opus-v1.3.1-candidate-1-*` rows, not to these `v1.3.7-cand*` runs."
+        },
         "bytes": 18071,
         "bytes_per_rule": 501.97,
         "budget_status": "Exceeded `max_bytes_per_rule` of 500 by 2. The filler-word half of the density test passed, so the new text is written at the same density as the rest; the policy simply grew. The ceiling was not raised, because no candidate earned it.",
@@ -772,7 +938,9 @@
             "subagent_result_collected": true,
             "client_reported_cost_usd": 0.4550031,
             "raw_stream_sha256": "44e553f909d0abf5d50285f069eeb4f5f97aa9d8ae9a4d24b297a8f0c20bbfcf",
-            "evidence_key": "v1.3.7-cand3-mechanical-a"
+            "evidence_key": "v1.3.7-cand3-mechanical-a",
+            "tests_after": "12 passed, 0 failed",
+            "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
           },
           {
             "id": "b",
@@ -788,7 +956,9 @@
             "subagent_result_collected": true,
             "client_reported_cost_usd": 0.6315706999999998,
             "raw_stream_sha256": "d722807f45c5dd732789a2637452537608dcf9af3447cac4ca05bd9f600a4ddc",
-            "evidence_key": "v1.3.7-cand3-mechanical-b"
+            "evidence_key": "v1.3.7-cand3-mechanical-b",
+            "tests_after": "12 passed, 0 failed",
+            "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
           }
         ],
         "negative_cells": "bug 2 of 2 correct, routine 2 of 2 correct.",
@@ -796,7 +966,87 @@
         "observed": "Both mechanical attempts dispatched a foreground `mech-executor` and collected its result — the best dispatch behaviour of any configuration tested — and then rewrote all twelve adapters anyway. The text says `don't edit them, don't redo its work`; the first half was followed and the second was not.",
         "verdict": "FAIL. Dispatch improved; ownership did not move at all.",
         "cost_usd": 3.3621523,
-        "policy_sha256": "fce06059fae3e67e3dd3e4281b161975a17b434e0a9af28aa50fdac76864b153"
+        "policy_sha256": "fce06059fae3e67e3dd3e4281b161975a17b434e0a9af28aa50fdac76864b153",
+        "other_cells": {
+          "bug": [
+            {
+              "id": "a",
+              "agent_calls": 0,
+              "main_session_mutated": true,
+              "tests_after": "2 passed, 0 failed",
+              "client_reported_cost_usd": 0.37141450000000004,
+              "raw_stream_sha256": "f49110d41230dedda2b1af805a33079bb7ccfa72e1949fa21e20a1db954348a3",
+              "evidence_key": "v1.3.7-cand3-bug-a"
+            },
+            {
+              "id": "b",
+              "agent_calls": 0,
+              "main_session_mutated": true,
+              "tests_after": "2 passed, 0 failed",
+              "client_reported_cost_usd": 0.36813700000000005,
+              "raw_stream_sha256": "eff75d68960b4c09afe79cc3b95a86ab954679223751bc5f704377837706b831",
+              "evidence_key": "v1.3.7-cand3-bug-b"
+            }
+          ],
+          "routine_docs": [
+            {
+              "id": "a",
+              "agent_calls": 0,
+              "main_session_mutated": true,
+              "tests_after": "1 passed, 0 failed",
+              "client_reported_cost_usd": 0.20888500000000002,
+              "raw_stream_sha256": "114ef501f855edfadf4824c8200083c8933e33e425e965b9b13a77bf6fe9c2d7",
+              "evidence_key": "v1.3.7-cand3-routine-a"
+            },
+            {
+              "id": "b",
+              "agent_calls": 0,
+              "main_session_mutated": true,
+              "tests_after": "1 passed, 0 failed",
+              "client_reported_cost_usd": 0.21077049999999997,
+              "raw_stream_sha256": "0850e8ba1b003b67974a35db54a118fe54639828762a6aff31d713828a1c2031",
+              "evidence_key": "v1.3.7-cand3-routine-b"
+            }
+          ],
+          "schema_lifecycle": [
+            {
+              "id": "a turn 1",
+              "agent_calls": 0,
+              "main_session_mutated": true,
+              "tests_after": "not separately measured; see the cell's final-turn entry",
+              "client_reported_cost_usd": 0.33866199999999996,
+              "raw_stream_sha256": "75010ec2eb136738048e9837493d6f2950f8378041c4efea2cb6f56d498eec84",
+              "evidence_key": "v1.3.7-cand3-schema-a-turn-1"
+            },
+            {
+              "id": "a turn 2",
+              "agent_calls": 0,
+              "main_session_mutated": false,
+              "tests_after": "5 passed, 0 failed",
+              "client_reported_cost_usd": 0.20740399999999998,
+              "raw_stream_sha256": "a04993f2c2ea07ac1f1a0243cd63a7fdb2a3126126449f4b52d56e59c6d01fcf",
+              "evidence_key": "v1.3.7-cand3-schema-a-turn-2"
+            },
+            {
+              "id": "b turn 1",
+              "agent_calls": 0,
+              "main_session_mutated": true,
+              "tests_after": "not separately measured; see the cell's final-turn entry",
+              "client_reported_cost_usd": 0.32897099999999996,
+              "raw_stream_sha256": "05ba489aecd46e53a2466e36e318cae97f0a438e915f02d020a9108ad5527f69",
+              "evidence_key": "v1.3.7-cand3-schema-b-turn-1"
+            },
+            {
+              "id": "b turn 2",
+              "agent_calls": 0,
+              "main_session_mutated": false,
+              "tests_after": "5 passed, 0 failed",
+              "client_reported_cost_usd": 0.2413345,
+              "raw_stream_sha256": "caed8c3e5e67f1ae510cb5e260e832ceba9b666d29cd66101ca63b0d8ba74698",
+              "evidence_key": "v1.3.7-cand3-schema-b-turn-2"
+            }
+          ]
+        }
       }
     },
     "elimination_chain": {
@@ -817,7 +1067,9 @@
               "subagent_result_collected": false,
               "client_reported_cost_usd": 0.341369,
               "raw_stream_sha256": "5075874b6a7476839abd04c40b8f43417017eb74e32250e55b4fb3de3788308b",
-              "evidence_key": "elim-v131policy-opus5-2.1.220-mechanical-a"
+              "evidence_key": "elim-v131policy-opus5-2.1.220-mechanical-a",
+              "tests_after": "12 passed, 0 failed",
+              "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
             },
             {
               "id": "b",
@@ -829,7 +1081,9 @@
               "subagent_result_collected": false,
               "client_reported_cost_usd": 0.3312315,
               "raw_stream_sha256": "db5a747ee8c6c072149d14e0a52c0c4253968da652948861b31e2a6a3b181e5d",
-              "evidence_key": "elim-v131policy-opus5-2.1.220-mechanical-b"
+              "evidence_key": "elim-v131policy-opus5-2.1.220-mechanical-b",
+              "tests_after": "12 passed, 0 failed",
+              "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
             }
           ],
           "result": "0 of 2 dispatched, 0 of 2 topology. The exact bytes that recorded the pass produce no dispatch on the current client and model.",
@@ -854,7 +1108,9 @@
               "subagent_result_collected": false,
               "client_reported_cost_usd": 0.41031619999999996,
               "raw_stream_sha256": "e5c0ad4abc4a626f77200b49bd00881ee6d83e5193a0db70927c069c22e044d6",
-              "evidence_key": "elim-v131policy-opus48-2.1.220-mechanical-a"
+              "evidence_key": "elim-v131policy-opus48-2.1.220-mechanical-a",
+              "tests_after": "12 passed, 0 failed",
+              "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
             },
             {
               "id": "v1.3.1 b",
@@ -866,7 +1122,9 @@
               "subagent_result_collected": false,
               "client_reported_cost_usd": 0.9816725,
               "raw_stream_sha256": "b36831c30be48590880879a7a150ac79a8cfdf8cf0028aec2786179e78f6137c",
-              "evidence_key": "elim-v131policy-opus48-2.1.220-mechanical-b"
+              "evidence_key": "elim-v131policy-opus48-2.1.220-mechanical-b",
+              "tests_after": "12 passed, 0 failed",
+              "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
             },
             {
               "id": "v1.3.7 a",
@@ -878,7 +1136,9 @@
               "subagent_result_collected": false,
               "client_reported_cost_usd": 0.33018050000000004,
               "raw_stream_sha256": "e7b35ac2e426a7a722159f3f6450f93a795592faabd530b431c8e27a7a48b3c6",
-              "evidence_key": "elim-v137policy-opus48-2.1.220-mechanical-a"
+              "evidence_key": "elim-v137policy-opus48-2.1.220-mechanical-a",
+              "tests_after": "12 passed, 0 failed",
+              "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
             },
             {
               "id": "v1.3.7 b",
@@ -890,7 +1150,9 @@
               "subagent_result_collected": false,
               "client_reported_cost_usd": 0.3149035,
               "raw_stream_sha256": "4902a5b163dfb5c185d266f7195178467f2c7c28822ba948fdcedf02d3ca145b",
-              "evidence_key": "elim-v137policy-opus48-2.1.220-mechanical-b"
+              "evidence_key": "elim-v137policy-opus48-2.1.220-mechanical-b",
+              "tests_after": "12 passed, 0 failed",
+              "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
             }
           ],
           "result": "1 of 4 dispatched, 0 of 4 topology. The one dispatch was background and uncollected.",
@@ -915,7 +1177,9 @@
               "subagent_result_collected": true,
               "client_reported_cost_usd": 0.41715149999999995,
               "raw_stream_sha256": "2e5339751d6f4cc4dcff97a027d56969a8c67fc3f74cf4e247e6c83429be58bc",
-              "evidence_key": "elim-v131policy-opus48-2.1.218-mechanical-a"
+              "evidence_key": "elim-v131policy-opus48-2.1.218-mechanical-a",
+              "tests_after": "12 passed, 0 failed",
+              "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
             },
             {
               "id": "v1.3.1 b",
@@ -931,7 +1195,9 @@
               "subagent_result_collected": true,
               "client_reported_cost_usd": 0.3502459,
               "raw_stream_sha256": "8a9db8e1d2e2e6cc81e7cf3bac5ed22eea80f842db006457377857e212ea4752",
-              "evidence_key": "elim-v131policy-opus48-2.1.218-mechanical-b"
+              "evidence_key": "elim-v131policy-opus48-2.1.218-mechanical-b",
+              "tests_after": "12 passed, 0 failed",
+              "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
             },
             {
               "id": "v1.3.7 a",
@@ -947,7 +1213,9 @@
               "subagent_result_collected": true,
               "client_reported_cost_usd": 0.43980445,
               "raw_stream_sha256": "453c8897800daaf1c0718f08e5fc739f18219541612d64f4ed5c640361af372d",
-              "evidence_key": "elim-v137policy-opus48-2.1.218-mechanical-a"
+              "evidence_key": "elim-v137policy-opus48-2.1.218-mechanical-a",
+              "tests_after": "12 passed, 0 failed",
+              "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
             },
             {
               "id": "v1.3.7 b",
@@ -963,7 +1231,9 @@
               "subagent_result_collected": true,
               "client_reported_cost_usd": 0.39428959999999996,
               "raw_stream_sha256": "72c302987e776a67e8d306023012b99ce88b6475ce9d4ae90fae62963dc7a46c",
-              "evidence_key": "elim-v137policy-opus48-2.1.218-mechanical-b"
+              "evidence_key": "elim-v137policy-opus48-2.1.218-mechanical-b",
+              "tests_after": "12 passed, 0 failed",
+              "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
             }
           ],
           "result": "4 of 4 dispatched a foreground `mech-executor` with Sonnet 5 billed in every stream, and 0 of 4 topology: every attempt then rewrote all twelve adapters itself. Read as a difference between two combined configurations, not as a client effect: the 2.1.220 comparisons ran at `--effort high` and these ran at default effort, because 2.1.218 rejects that flag, so client version and effort moved together. Isolating the client would need a 2.1.220 run at default effort, which has not been done.",
@@ -992,7 +1262,9 @@
               "subagent_result_collected": true,
               "client_reported_cost_usd": 0.39043305000000006,
               "raw_stream_sha256": "933b4e7d28ac095172a52202ae0aae6d7c90ff4a70fe8aad5dad0d8ee1d9f23a",
-              "evidence_key": "elim-full-reproduction-2.1.218-mechanical-a"
+              "evidence_key": "elim-full-reproduction-2.1.218-mechanical-a",
+              "tests_after": "12 passed, 0 failed",
+              "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
             },
             {
               "id": "b",
@@ -1004,7 +1276,9 @@
               "subagent_result_collected": false,
               "client_reported_cost_usd": 0.3970560000000001,
               "raw_stream_sha256": "9861393a16a128470651d8f2f64fe6a207eec4451d315c320693e4a6545e0d20",
-              "evidence_key": "elim-full-reproduction-2.1.218-mechanical-b"
+              "evidence_key": "elim-full-reproduction-2.1.218-mechanical-b",
+              "tests_after": "12 passed, 0 failed",
+              "tests_after_method": "`npm test` run against the attempt's final tree after the session ended; counts read from the node --test summary."
             }
           ],
           "result": "1 of 2 dispatched, 0 of 2 topology. The recorded pass does not reproduce.",
@@ -1016,7 +1290,7 @@
     },
     "conclusion": [
       "The regression is real and is recorded: the same prompt and fixture passed the cell 2 of 2 on Opus 4.8 with clients 2.1.217 and 2.1.218, and no configuration tested here passes it.",
-      "Neither input this repository controls accounts for it. Five policy texts spanning 12,714 to 18,071 bytes and two writing registers, including the exact bytes from the recorded pass, all fail. The role payload from the recorded pass also fails.",
+      "No policy text tested accounts for it, and the tested set is wide: five texts from 12,714 to 18,071 bytes in two writing registers, including the exact bytes of the recorded pass. The role payload from the recorded pass also fails. This is a negative result over those variants, not a proof that no policy text could work — `claim_boundary` says the same, and candidate 3 is the counter-example to any stronger reading: its text moved mechanical dispatch from 0 of 2 to 2 of 2 foreground and collected, so policy text demonstrably reaches part of the behaviour. What no tested text reached is the main session's ownership of the files.",
       "The 2.1.218 configuration moves one half of the behaviour and not the other: all four attempts summoned a foreground worker that really ran, and all four then redid its work. Because client version and effort moved together in that pair, the dispatch half is a combined-configuration difference and not attributed to the client alone. What holds across every configuration tested, with no such caveat, is the other half: the main session never yielded ownership of the files. That is not reachable from a user-level `CLAUDE.md`, which is the claim #29 has made from the start.",
       "Twenty mechanical attempts, zero topology passes, and every attempt correct on its tests. This was never a correctness problem.",
       "The prompt-size budget was not raised. Since the text is not the variable, spending budget headroom on it would grow the policy without buying anything."

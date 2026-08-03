@@ -208,7 +208,9 @@ Twenty mechanical attempts across ten policy-model-client combinations, grouped 
 
 Candidate 3 is the shape of the whole finding. Its text says `don't edit them, don't redo its work`. Both attempts dispatched a foreground worker, collected its result, and then rewrote all twelve adapters anyway.
 
-**Neither input this repository controls accounts for the regression.** Five policy texts from 12,714 to 18,071 bytes in two writing registers, including the exact bytes from the recorded pass, all fail; so does the role payload from the recorded pass, rebuilt and digest-matched to `0b42c137…`. The client version moves whether a worker is summoned — 2.1.218 dispatched 4 of 4 with Sonnet 5 billed in every stream — and does not move whether the main session yields the files.
+**No input tested accounts for the regression.** Five policy texts from 12,714 to 18,071 bytes in two writing registers, including the exact bytes from the recorded pass, all fail; so does the role payload from the recorded pass, rebuilt and digest-matched to `0b42c137…`.
+
+That is a negative result over those variants, not a proof that no policy text could work. Candidate 3 is the counter-example to any stronger reading: its text moved mechanical dispatch from 0 of 2 to 2 of 2, foreground and collected. Policy text demonstrably reaches part of the behaviour. What no tested text reached is the main session's ownership of the files.
 
 One input cannot be restored: the recorded pass ran on a Pro account and this one is now Max. Both suppressions #29 documents resolve at runtime against account and flag state, so a plan change is expected to change the injection set. That is why the two historical mechanical rows above now carry a `reproducibility` note — one for the release-payload row, whose exact inputs were replayed and failed, and a narrower one for the candidate-1 row, whose inputs were **not** replayed and whose current reproducibility is therefore unknown. Both remain true observations of their time; neither is a target this benchmark expects to hit.
 
