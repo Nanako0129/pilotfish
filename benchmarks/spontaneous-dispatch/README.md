@@ -193,7 +193,7 @@ This baseline is the first set of runs to fix both contamination sources found i
 
 Recorded under `v1_3_7_dispatch_prompt_investigation` in [`results.json`](./results.json). It answers whether the mechanical-cell regression on [#29](https://github.com/Nanako0129/pilotfish/issues/29) can be fixed by strengthening the policy text. It cannot, and the record exists so nobody repeats it.
 
-Twenty mechanical attempts across ten policy-model-client combinations — three candidate configurations plus seven others — grouped into the eight rows below. **Zero topology passes.** Every attempt passed its tests — this was never a correctness problem.
+Twenty mechanical attempts across ten configurations of policy, model, client and role payload, grouped into the eight rows below. **Zero topology passes.** Along policy, model and client alone there are nine distinct triples: the v1.3.1 / Opus 4.8 / 2.1.218 arm and the full reproduction share all three and differ only in the role payload. Every attempt passed its tests — this was never a correctness problem.
 
 | Configuration | Dispatch | Topology |
 |---|---|---|
@@ -210,7 +210,9 @@ Candidate 3 is the shape of the whole finding. Its text says `don't edit them, d
 
 **No input tested accounts for the regression.** Five policy texts from 12,714 to 18,071 bytes in two writing registers, including the exact bytes from the recorded pass, all fail; so does the role payload from the recorded pass, rebuilt and digest-matched to `0b42c137…`.
 
-That is a negative result over those variants, not a proof that no policy text could work. Candidate 3 is the counter-example to any stronger reading: its text moved mechanical dispatch from 0 of 2 to 2 of 2, foreground and collected. Policy text demonstrably reaches part of the behaviour. What no tested text reached is the main session's ownership of the files.
+That is a negative result over those variants, not a proof that no policy text could work. Candidate 3 is the counter-example to any stronger reading: its text moved mechanical dispatch from 0 of 2 to 2 of 2, foreground and collected. Policy text demonstrably reaches part of the behaviour. What no tested text reached is the main session's ownership of the files — consistent with #29's account of a higher-priority instruction a user-level `CLAUDE.md` cannot override, and not by itself a proof that none could.
+
+The worker really ran: every 2.1.218 attempt's `model_costs_usd` in [`traces.json`](./traces.json) carries a `claude-sonnet-5` line between 0.0723 and 0.1056 USD.
 
 One input cannot be restored: the recorded pass ran on a Pro account and this one is now Max. Both suppressions #29 documents resolve at runtime against account and flag state, so a plan change is expected to change the injection set. That is why the two historical mechanical rows above now carry a `reproducibility` note — one for the release-payload row, whose exact inputs were replayed and failed, and a narrower one for the candidate-1 row, whose inputs were **not** replayed and whose current reproducibility is therefore unknown. Both remain true observations of their time; neither is a target this benchmark expects to hit.
 
