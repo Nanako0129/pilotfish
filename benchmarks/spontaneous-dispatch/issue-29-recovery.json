@@ -122,7 +122,20 @@
           "foreground": true,
           "collected": true,
           "main_session_source_writes": 0,
-          "modified_adapter_count": 12,
+          "modified_paths": [
+            "src/adapters/alpha.js",
+            "src/adapters/bravo.js",
+            "src/adapters/charlie.js",
+            "src/adapters/delta.js",
+            "src/adapters/echo.js",
+            "src/adapters/foxtrot.js",
+            "src/adapters/golf.js",
+            "src/adapters/hotel.js",
+            "src/adapters/india.js",
+            "src/adapters/juliet.js",
+            "src/adapters/kilo.js",
+            "src/adapters/lima.js"
+          ],
           "tests": "12 passed, 0 failed",
           "client_reported_cost_usd": 0.43028845,
           "raw_stream_sha256": "0cf9098a13e03d2348211378a2c2a1326ef294dce64b40affaa75837e253dd87"
@@ -134,7 +147,20 @@
           "foreground": true,
           "collected": true,
           "main_session_source_writes": 0,
-          "modified_adapter_count": 12,
+          "modified_paths": [
+            "src/adapters/alpha.js",
+            "src/adapters/bravo.js",
+            "src/adapters/charlie.js",
+            "src/adapters/delta.js",
+            "src/adapters/echo.js",
+            "src/adapters/foxtrot.js",
+            "src/adapters/golf.js",
+            "src/adapters/hotel.js",
+            "src/adapters/india.js",
+            "src/adapters/juliet.js",
+            "src/adapters/kilo.js",
+            "src/adapters/lima.js"
+          ],
           "tests": "12 passed, 0 failed",
           "client_reported_cost_usd": 0.44560135,
           "raw_stream_sha256": "f0059254b87975e072d4ceabcca1a35db461f3a4f32bf79f22b1814e0b948b90"

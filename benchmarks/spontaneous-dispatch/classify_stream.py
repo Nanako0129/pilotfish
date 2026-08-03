@@ -85,7 +85,14 @@ def bash_writes(command: str) -> bool:
             program = Path(segment[0]).name
             args = segment[1:]
             if program == "git":
-                read_only = bool(args) and args[0] in SAFE_GIT_SUBCOMMANDS
+                read_only = (
+                    bool(args)
+                    and args[0] in SAFE_GIT_SUBCOMMANDS
+                    and not any(
+                        arg == "--output" or arg.startswith("--output=")
+                        for arg in args[1:]
+                    )
+                )
             elif program == "npm":
                 read_only = bool(args) and args[0] == "test"
             elif program == "node":
@@ -97,6 +104,13 @@ def bash_writes(command: str) -> bool:
             elif program == "find":
                 read_only = not any(
                     arg in {"-delete", "-exec", "-execdir", "-fprint", "-ok", "-okdir"}
+                    for arg in args
+                )
+            elif program == "sort":
+                read_only = not any(
+                    arg.startswith("-o")
+                    or arg == "--output"
+                    or arg.startswith("--output=")
                     for arg in args
                 )
             else:
