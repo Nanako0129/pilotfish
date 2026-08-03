@@ -35,10 +35,25 @@ class PolicyContractTests(unittest.TestCase):
                         {
                             "type": "tool_use",
                             "name": "Agent",
+                            "id": "toolu_agent",
                             "input": {
                                 "subagent_type": "mech-executor",
                                 "run_in_background": False,
                             },
+                        }
+                    ]
+                },
+            },
+            {
+                "type": "user",
+                "parent_tool_use_id": None,
+                "tool_use_result": {"status": "completed"},
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": "toolu_agent",
+                            "content": [{"type": "text", "text": "done"}],
                         }
                     ]
                 },
@@ -74,10 +89,67 @@ class PolicyContractTests(unittest.TestCase):
                 },
             },
         ]
+        uncollected_events = [
+            {
+                "type": "assistant",
+                "parent_tool_use_id": None,
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "name": "Agent",
+                            "id": "toolu_uncollected",
+                            "input": {
+                                "subagent_type": "mech-executor",
+                                "run_in_background": True,
+                            },
+                        },
+                        {"type": "text", "text": "subagent_tokens is not a result"},
+                    ]
+                },
+            },
+            {
+                "type": "user",
+                "parent_tool_use_id": None,
+                "tool_use_result": {"status": "async_launched", "isAsync": True},
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": "toolu_uncollected",
+                            "content": "subagent_tokens is launch metadata, not a result",
+                        }
+                    ]
+                },
+            },
+            {
+                "type": "assistant",
+                "parent_tool_use_id": None,
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {
+                                "command": (
+                                    "python3 -c 'from pathlib import Path; "
+                                    'Path("out.js").write_text("x")\''
+                                )
+                            },
+                        }
+                    ]
+                },
+            },
+        ]
         with tempfile.TemporaryDirectory() as directory:
             stream = Path(directory) / "stream.jsonl"
             stream.write_text(
                 "".join(json.dumps(event) + "\n" for event in events),
+                encoding="utf-8",
+            )
+            uncollected_stream = Path(directory) / "uncollected.jsonl"
+            uncollected_stream.write_text(
+                "".join(json.dumps(event) + "\n" for event in uncollected_events),
                 encoding="utf-8",
             )
             output = subprocess.run(
@@ -90,17 +162,21 @@ class PolicyContractTests(unittest.TestCase):
                         / "classify_stream.py"
                     ),
                     str(stream),
+                    str(uncollected_stream),
                 ],
                 check=True,
                 capture_output=True,
                 text=True,
             )
 
-        trace = json.loads(output.stdout)[0]
+        trace, uncollected = json.loads(output.stdout)
         self.assertEqual(trace["top_level_tools"], ["Agent", "Bash"])
         self.assertFalse(trace["main_session_mutated"])
+        self.assertTrue(trace["subagent_result_collected"])
         self.assertEqual(trace["worker_source_write_tools"], ["Bash"])
         self.assertIn("> out.js", trace["worker_mutation_paths"][0])
+        self.assertFalse(uncollected["subagent_result_collected"])
+        self.assertTrue(uncollected["main_session_mutated"])
 
     def test_baton_dispatch_matrix_prompts_are_neutral_and_recorded(self) -> None:
         benchmark = ROOT / "benchmarks" / "baton-dispatch-effect"
@@ -448,6 +524,7 @@ class PolicyContractTests(unittest.TestCase):
         def passes(attempt: dict[str, object]) -> bool:
             return (
                 attempt["agent_calls"] == contract["agent_calls"]
+                and attempt["agent_role"] == contract["subagent_type"]
                 and attempt["mode"] == contract["mode"]
                 and attempt["collected"] is contract["result_collected"]
                 and attempt["main_mutated"] is contract["main_session_mutated"]
@@ -517,8 +594,22 @@ class PolicyContractTests(unittest.TestCase):
         schema = results["schema_lifecycle"]
         self.assertEqual(len(routine), 2)
         self.assertTrue(all(attempt["agent_calls"] == 0 for attempt in routine))
+        self.assertTrue(
+            all(attempt["modified_paths"] == ["README.md"] for attempt in routine)
+        )
+        self.assertTrue(
+            all(attempt["tests"] == "1 passed, 0 failed" for attempt in routine)
+        )
         self.assertEqual(len(bug), 2)
         self.assertTrue(all(attempt["agent_calls"] == 0 for attempt in bug))
+        self.assertTrue(
+            all(
+                attempt["modified_paths"] == ["src/reducer.js"] for attempt in bug
+            )
+        )
+        self.assertTrue(
+            all(attempt["tests"] == "2 passed, 0 failed" for attempt in bug)
+        )
         self.assertEqual(len(mechanical["attempts"]), 2)
         for attempt in mechanical["attempts"]:
             self.assertEqual(attempt["agent_calls"], 1)
