@@ -7,7 +7,7 @@
 | 穩定的 12 檔機械式修改 | 恰好一個前景 `mech-executor` | 主 session 全程不得修改 source；worker 是唯一修改路徑；diff 恰好 12 個 adapter；12/12 測試通過 |
 | 單一未知且緊耦合的 bug | 主 session 負責診斷與第一個最小修正 | 主 session 完成修正並觀察 focused 2/2 通過之前，不得呼叫 discovery 或 implementation agent；結尾可呼叫 `verifier` |
 
-精確 Prompt 位於 [`prompts/`](./prompts/)。執行結果、正規化工具序列與可觀測 Agent 呼叫分別位於 [`results.json`](./results.json)、[`traces.json`](./traces.json) 與 [`agent-calls.json`](./agent-calls.json)。Issue #29 的修正回溯記錄在 [`issue-29-topology.json`](./issue-29-topology.json)，由 [`classify_stream.py`](./classify_stream.py) 產生。Raw stream 的初始化事件會包含本機路徑、session ID、hook 與 plugin inventory，因此不提交原文，只保留 SHA-256。
+精確 Prompt 位於 [`prompts/`](./prompts/)。執行結果、正規化工具序列與可觀測 Agent 呼叫分別位於 [`results.json`](./results.json)、[`traces.json`](./traces.json) 與 [`agent-calls.json`](./agent-calls.json)。Issue #29 的修正回溯記錄在 [`issue-29-topology.json`](./issue-29-topology.json)，由 [`classify_stream.py`](./classify_stream.py) 產生。Raw stream 的初始化事件會包含本機路徑、session ID 與 plugin inventory，因此不提交原文，只保留 SHA-256。
 
 ## 輸入契約
 
@@ -18,6 +18,7 @@
 | 模型歸因 | 以 stream initialization event 為準；請求 alias 不能證明實際模型 |
 | 角色歸因 | 必須觀察到 `subagent_type: mech-executor` 的 `Agent` 呼叫；不得在 invocation 指定 model |
 | 修改歸因 | Assistant event 只有在 `parent_tool_use_id` 缺省或為 null 時才算 top-level。拒絕其中的 `Edit` 或 `Write`；保守分類每個 top-level Bash，任何 redirection 或可修改 source 的命令都判定失敗 |
+| Hook 歸因 | 宣稱 worker 獨佔修改前，必須停用 user、project、local hooks，或綁定 effective hook configuration 的 sanitized digest |
 | 隔離 | 只在全新 disposable copy 與乾淨的 committed baseline 執行 |
 
 嚴格 Bash classifier 遇到不確定就判定失敗。即使最終 diff 正確，只要主 session 曾執行未分類或可寫入的命令，就不能證明修改由 worker 獨佔。
@@ -200,7 +201,7 @@ Mechanical 是目前最銳利的比較：同一份 prompt、同一個 fixture，
 | 使用 release roles 的完整 v1.3.1 reproduction | 二取一通過 |
 | 其餘設定 | 十二取零通過 |
 
-修正後總數是 **4/20**，二十次的正確性仍全為 12/12。另有一次保持主 session 唯讀，但因 worker 非同步執行且未收回結果而失敗。若 Git command 可能透過未綁定的 repository 或 global configuration 執行外部 helper，一律 fail closed；allowlist 只保留 `git rev-parse`。這是回溯分類修正，不是 dispatch rate。Client 2.1.218 使用 default effort，2.1.220 使用 high effort，因此這組比較也不能單獨歸因於 client。
+修正後總數是 **4/20**，二十次的正確性仍全為 12/12。另有一次未觀察到主 session 的可寫入 tool call，但因 worker 非同步執行且未收回結果而失敗。若 Git command 可能透過未綁定的 repository 或 global configuration 執行外部 helper，一律 fail closed；allowlist 只保留 `git rev-parse`。歷史執行沒有綁定 effective hooks，因此這只是 assistant tool-call topology 的回溯分類修正，不能證明 worker 是唯一 filesystem mutation path，也不是 dispatch rate。Client 2.1.218 使用 default effort，2.1.220 使用 high effort，因此這組比較也不能單獨歸因於 client。
 
 歷史 Candidate 3 只證明 wording 方向，不是 release candidate：它的 mechanical topology 在更嚴格的 classifier 下二取零通過，而且超出 prompt density 預算，兩次 schema attempt 也都跳過 approval gate。壓縮後候選必須重新通過 mechanical、bug、routine 與 schema gate，才能更新 snapshot hash。
 
@@ -216,18 +217,18 @@ Use pilotfish. Follow its dispatch brake: keep direct work in the main session a
 |---|---|---|
 | Routine docs | 主 session 直接修改；零 Agent call | 二取二通過 |
 | 單一未知 bug | 主 session 負責診斷與首次最小修正；零 Agent call | 二取二通過 |
-| 穩定 12 檔重複工作 | 一個 foreground、已收回的 `mech-executor`；主 session 不寫原始碼 | 二取二通過，每次 12/12 tests |
+| 穩定 12 檔重複工作 | 一個 foreground、已收回的 `mech-executor`；未觀察到主 session 的 source-write tool call | 二取二通過，每次 12/12 tests |
 | Schema lifecycle | `plan-verifier` → approval stop → 實作 → primary tests → `verifier`；實作 owner 由 brake 決定 | 二取二通過；兩次直接實作最後皆為 `CONFIRMED` |
 
 Schema review 與 implementation routing 是兩個不同決策。Serialization 會強制 Plan 與 outcome review，但不會強制兩檔實作一定委派。Mechanical delegation 已有獨立正向格。若把 execution-agent hop 當成 schema blocker，就會違反 policy 的 net-benefit brake；先前實測也曾讓一行 docs 工作過度委派。
 
-[`issue-29-recovery.json`](./issue-29-recovery.json) 綁定 repository policy、注入方法、generated agents payload、prompts、成本與 raw-stream hashes。歷史 transcript 觀察到 fixture `CLAUDE.md` 為預期的 17,996 bytes，但沒有提供實際併入 runtime system prompt 的位元組 digest，因此這不是 exact-loaded-policy claim。合格完成 cells reported `$3.91628855`；另有一次 routing 正確的 mechanical invocation 在收回 child result 前用完 `$0.60` cap，已揭露但不算通過。連同該次，campaign reported `$4.53105325`。
+[`issue-29-recovery.json`](./issue-29-recovery.json) 綁定 repository policy、注入方法、generated agents payload、prompts、成本與 raw-stream hashes。歷史 transcript 觀察到 fixture `CLAUDE.md` 為預期的 17,996 bytes，但沒有提供實際併入 runtime system prompt 的位元組 digest，因此這不是 exact-loaded-policy claim。Effective hooks 同樣未綁定；fresh release replay 必須停用 hooks 或記錄 sanitized digest，才能宣稱 worker 獨佔修改。合格完成 cells reported `$3.91628855`；另有一次 routing 正確的 mechanical invocation 在收回 child result 前用完 `$0.60` cap，已揭露但不算通過。連同該次，campaign reported `$4.53105325`。
 
 ## 結論邊界
 
 | 限制 | 影響 |
 |---|---|
-| 上面 baseline、candidate 與 release-payload 各格只有一筆已記錄觀察 | 結果是行為案例，不是發生率 |
+| Baseline、candidate 與 release-payload sections 各格一筆觀察；Issue #29 recovery matrix 各格兩次 attempt | 結果是行為案例，不是發生率 |
 | v1.3.7 matrix 只有三個已觀察的 cell，不是完整 matrix——Pro 兩臂皆有，Max 只有 cue-free 臂，每個 cell 為 schema ×2、routine ×1 | 同樣不是發生率。Max 二取一那次委派是可達性案例；兩次 attempt 無法把方案效應、run-to-run 變異，以及隨方案一起變動的樹差異分開 |
 | Client 回報的 cost 欄位 | 不是 provider invoice |
 | Fable usage-credit gate | 沒有可用的 Fable 行為、正確性或效率比較 |

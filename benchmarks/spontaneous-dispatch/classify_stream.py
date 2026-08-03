@@ -173,10 +173,19 @@ def bash_writes(command: str) -> bool:
                 )
             elif program == "sort":
                 read_only = not any(
-                    arg.startswith("-o")
-                    or arg == "--output"
-                    or arg.startswith("--output=")
-                    or arg.startswith("--compress-program")
+                    (
+                        arg.startswith("--")
+                        and len(arg.split("=", 1)[0]) > 2
+                        and any(
+                            option.startswith(arg.split("=", 1)[0])
+                            for option in ("--output", "--compress-program")
+                        )
+                    )
+                    or (
+                        arg.startswith("-")
+                        and not arg.startswith("--")
+                        and "o" in arg[1:]
+                    )
                     for arg in args
                 )
             else:

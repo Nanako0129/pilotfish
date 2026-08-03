@@ -7,7 +7,7 @@ This gate asks whether Pilotfish chooses the intended execution topology from an
 | Stable 12-file mechanical edit | Exactly one foreground `mech-executor` | The main session performs no source mutation; the worker is the sole mutation path; exactly 12 adapter files change; 12/12 tests pass |
 | One unknown tightly coupled bug | Main session owns diagnosis and the first minimal fix | No discovery or implementation agent runs before the main session changes the fix and observes the focused 2/2 pass; a closing `verifier` remains allowed |
 
-The exact prompts are in [`prompts/`](./prompts/). Recorded outcomes, normalized tool traces, and observable Agent calls are in [`results.json`](./results.json), [`traces.json`](./traces.json), and [`agent-calls.json`](./agent-calls.json). The corrected issue #29 retrospective is in [`issue-29-topology.json`](./issue-29-topology.json), produced with [`classify_stream.py`](./classify_stream.py). Raw streams are not committed because initialization events contain local paths, session identifiers, hooks, and plugin inventory; their SHA-256 hashes are retained instead.
+The exact prompts are in [`prompts/`](./prompts/). Recorded outcomes, normalized tool traces, and observable Agent calls are in [`results.json`](./results.json), [`traces.json`](./traces.json), and [`agent-calls.json`](./agent-calls.json). The corrected issue #29 retrospective is in [`issue-29-topology.json`](./issue-29-topology.json), produced with [`classify_stream.py`](./classify_stream.py). Raw streams are not committed because initialization events contain local paths, session identifiers, and plugin inventory; their SHA-256 hashes are retained instead.
 
 ## Input contract
 
@@ -18,6 +18,7 @@ The exact prompts are in [`prompts/`](./prompts/). Recorded outcomes, normalized
 | Model attribution | Record the model from the stream initialization event; a requested alias is not proof of the observed model |
 | Role attribution | Require an observable `Agent` call with `subagent_type: mech-executor`; reject an invocation-level model override |
 | Mutation attribution | An assistant event is top level only when `parent_tool_use_id` is absent or null. Reject its `Edit` or `Write`; classify every top-level Bash command conservatively and reject redirection or commands capable of source writes |
+| Hook attribution | Disable user, project, and local hooks, or bind a sanitized digest of the effective hook configuration before claiming sole mutation ownership |
 | Isolation | Run only in a fresh disposable copy with a clean committed baseline |
 
 The strict Bash classifier treats uncertainty as a failure. A correct final diff does not prove worker ownership when the main session had any unclassified write-capable command.
@@ -200,7 +201,7 @@ Closed PR #45 reported zero topology passes in twenty mechanical attempts. Its e
 | Full v1.3.1 reproduction with release roles | 1/2 pass |
 | Remaining configurations | 0/12 pass |
 
-The corrected total is **4/20**, with all twenty attempts still at 12/12 correctness. One additional attempt kept the main session read-only but failed because its worker ran asynchronously and was not collected. Git commands whose repository or global configuration may execute an external helper now fail closed; only `git rev-parse` remains allowlisted. This is a retrospective classification correction, not a dispatch rate. Client 2.1.218 also ran at default effort while 2.1.220 ran at high effort, so the comparison does not isolate the client.
+The corrected total is **4/20**, with all twenty attempts still at 12/12 correctness. One additional attempt had no observed main-session write-capable tool call but failed because its worker ran asynchronously and was not collected. Git commands whose repository or global configuration may execute an external helper now fail closed; only `git rev-parse` remains allowlisted. The historical runs did not bind effective hooks, so this is an assistant tool-call topology correction, not proof of sole filesystem mutation ownership or a dispatch rate. Client 2.1.218 also ran at default effort while 2.1.220 ran at high effort, so the comparison does not isolate the client.
 
 Historical Candidate 3 is evidence for the wording direction, not a release candidate: its mechanical topology passed 0/2 under the stricter classifier, and it exceeded the prompt-density budget and skipped the approval gate in both schema attempts. A compressed candidate must pass fresh mechanical, bug, routine, and schema gates before its snapshot hashes move.
 
@@ -216,18 +217,18 @@ Use pilotfish. Follow its dispatch brake: keep direct work in the main session a
 |---|---|---|
 | Routine docs | Direct main-session edit; zero Agent calls | 2/2 pass |
 | Single unknown bug | Main session owns diagnosis and first minimal fix; zero Agent calls | 2/2 pass |
-| Stable 12-file repetition | One foreground, collected `mech-executor`; no main source write | 2/2 pass, 12/12 tests each |
+| Stable 12-file repetition | One foreground, collected `mech-executor`; no observed main-session source-write tool call | 2/2 pass, 12/12 tests each |
 | Schema lifecycle | `plan-verifier` → approval stop → implementation → primary tests → `verifier`; implementation owner follows the brake | 2/2 pass; both direct implementations ended `CONFIRMED` |
 
 Schema review and implementation routing are separate decisions. Serialization makes Plan and outcome review mandatory; it does not make a two-file implementation delegation mandatory. Mechanical delegation has its own positive cell. Treating an execution-agent hop as a schema blocker would contradict the policy's net-benefit brake and previously caused a one-line docs task to over-delegate.
 
-[`issue-29-recovery.json`](./issue-29-recovery.json) binds the repository policy, injection method, generated agents payload, prompts, costs, and raw-stream hashes. The historical transcript observes the fixture `CLAUDE.md` at the expected 17,996 bytes but does not expose a digest of the bytes incorporated into the runtime system prompt, so this is not an exact-loaded-policy claim. Qualifying completed cells reported `$3.91628855`; one otherwise-correct mechanical invocation exhausted its `$0.60` cap before child-result collection and is disclosed but excluded. Including it, the campaign reported `$4.53105325`.
+[`issue-29-recovery.json`](./issue-29-recovery.json) binds the repository policy, injection method, generated agents payload, prompts, costs, and raw-stream hashes. The historical transcript observes the fixture `CLAUDE.md` at the expected 17,996 bytes but does not expose a digest of the bytes incorporated into the runtime system prompt, so this is not an exact-loaded-policy claim. Effective hooks were also not bound; a fresh release replay must disable them or record a sanitized digest before claiming sole mutation ownership. Qualifying completed cells reported `$3.91628855`; one otherwise-correct mechanical invocation exhausted its `$0.60` cap before child-result collection and is disclosed but excluded. Including it, the campaign reported `$4.53105325`.
 
 ## Claim limits
 
 | Limit | Consequence |
 |---|---|
-| One observation per recorded cell, for the baseline, candidate and release-payload cells above | Outcomes are behavioral examples, not rates |
+| One observation per recorded cell in the baseline, candidate, and release-payload sections; two attempts per cell in the Issue #29 recovery matrix | Outcomes are behavioral examples, not rates |
 | Three observed cells in the v1.3.7 matrix, not a full matrix — Pro has both arms, Max has the cue-free arm only, two schema attempts and one routine attempt in each | Still not a rate. The one dispatching Max attempt out of two is a reachability example; two attempts cannot separate a plan effect from run-to-run variance or from the tree difference that changed with the plan |
 | Client-reported cost field | It is not a provider invoice |
 | Fable usage-credit gate | No Fable behavior, correctness, or efficiency comparison is available |

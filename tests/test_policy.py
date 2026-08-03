@@ -253,6 +253,20 @@ class PolicyContractTests(unittest.TestCase):
                             "type": "tool_use",
                             "name": "Bash",
                             "input": {
+                                "command": "sort --out=src/out.js input.txt"
+                            },
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {
+                                "command": "sort -rosrc/out.js input.txt"
+                            },
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {
                                 "command": "git diff --output=change.patch"
                             },
                         },
@@ -402,7 +416,7 @@ class PolicyContractTests(unittest.TestCase):
         self.assertTrue(uncollected["main_session_mutated"])
         self.assertEqual(
             uncollected["top_level_source_write_tools"],
-            ["Bash"] * 27 + ["NotebookEdit"],
+            ["Bash"] * 29 + ["NotebookEdit"],
         )
         self.assertNotIn("super-secret", json.dumps(uncollected))
 

@@ -3,15 +3,16 @@
   "purpose": "Supersedes the 0/20 topology claim from closed PR #45 by separating parentless main-session events from child-agent events.",
   "classifier": {
     "path": "./classify_stream.py",
-    "sha256": "012be789e7c46783d9c9208901e179c586111523f7c422f5bc70e8433679a5fb",
+    "sha256": "5b47d925ad07feb4cf528829bbe349071dcc7062b7dbf8f7a701da2183488b4f",
     "main_event": "assistant event with absent or null parent_tool_use_id",
     "child_event": "assistant event with non-null parent_tool_use_id",
-    "rule": "Only main events contribute to top-level tools and main-session mutation. Model identity does not determine scope."
+    "rule": "Only main events contribute to top-level tools and observed main-session mutation. Model identity does not determine scope."
   },
   "environment_boundary": {
     "account_plan": "max",
     "client_effort_caveat": "Client 2.1.220 ran at high effort. Client 2.1.218 rejected that flag and ran at default effort, so the pair does not isolate client version.",
-    "raw_streams": "Not committed because initialization events contain local paths, identifiers, hooks, and plugin inventory; exact SHA-256 digests are retained per attempt.",
+    "raw_streams": "Not committed because initialization events contain local paths, identifiers, and plugin inventory; exact SHA-256 digests are retained per attempt.",
+    "hook_attribution": "Historical attempts did not bind or disable effective hooks. The recorded main_mutated field classifies assistant tool-call events only and cannot exclude hook-induced filesystem writes; future release replay must disable hooks or record a sanitized digest of the effective hook configuration.",
     "modified_paths_source": "retained disposable worktree git status --porcelain with core.fsmonitor disabled",
     "modified_paths_digest_method": "SHA-256 of sorted repo-relative paths, each followed by newline"
   },
@@ -33,7 +34,7 @@
       "both_policies_opus_4_8_client_2_1_218_current_roles": "3/4",
       "full_reproduction_v1_3_1_release_roles": "1/2"
     },
-    "bounded_claim": "Four of these twenty recorded mechanical attempts satisfy the topology after parent and child events are classified correctly and Git commands with unbound external-helper configuration fail closed. This is a retrospective correction, not a dispatch rate or a causal attribution."
+    "bounded_claim": "Four of these twenty recorded mechanical attempts satisfy the assistant tool-call topology after parent and child events are classified correctly and Git commands with unbound external-helper configuration fail closed. Effective hooks were not bound, so this does not prove that the worker was the sole filesystem mutation path. This is a retrospective correction, not a dispatch rate or a causal attribution."
   },
   "topology_contract": {
     "agent_calls": 1,
