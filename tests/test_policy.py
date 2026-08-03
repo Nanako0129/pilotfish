@@ -334,6 +334,16 @@ class PolicyContractTests(unittest.TestCase):
                         {
                             "type": "tool_use",
                             "name": "Bash",
+                            "input": {"command": "printf x >&1out"},
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {"command": "printf x >/dev/nullx"},
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
                             "input": {
                                 "command": (
                                     "node --test --test-reporter=tap "
@@ -392,7 +402,7 @@ class PolicyContractTests(unittest.TestCase):
         self.assertTrue(uncollected["main_session_mutated"])
         self.assertEqual(
             uncollected["top_level_source_write_tools"],
-            ["Bash"] * 25 + ["NotebookEdit"],
+            ["Bash"] * 27 + ["NotebookEdit"],
         )
         self.assertNotIn("super-secret", json.dumps(uncollected))
 

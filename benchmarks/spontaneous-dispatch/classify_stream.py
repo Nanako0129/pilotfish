@@ -12,7 +12,8 @@ from pathlib import Path
 
 
 SAFE_REDIRECT = re.compile(
-    r"(?:\d*|&)>>?\|?\s*/dev/null|(?:\d*)?>\s*&\d+"
+    r"(?:\d*|&)>>?\|?\s*/dev/null(?=$|[\s;&|()<>])|"
+    r"(?:\d*)?>\s*&\d+(?=$|[\s;&|()<>])"
 )
 REDIRECT = re.compile(r"(?:\d*|&)>>?\|?\s*[^&|\s>]")
 WRITE_COMMAND = re.compile(
