@@ -189,6 +189,33 @@ Mechanical 是目前最銳利的比較：同一份 prompt、同一個 fixture，
 
 這是第一組同時修掉 review 找出的兩個污染源的 run：`agents.json` 只經 `--agents` 傳入、絕不複製進去，每一份 capture 都寫在拋棄式 repo 之外。五個新建目錄的 `git ls-files --others --exclude-standard` 都是空的。從配對 matrix 沿用的那三次 attempt——schema a 與 b、routine a——早於 capture 修正，各自都已載明。
 
+## v1.3.7 dispatch prompt investigation
+
+記錄在 [`results.json`](./results.json) 的 `v1_3_7_dispatch_prompt_investigation`。它回答一個問題：[#29](https://github.com/Nanako0129/pilotfish/issues/29) 上 mechanical 格的退化，能不能靠加強政策文字修好。答案是不能，這份記錄的存在就是為了不讓人重做一次。
+
+八種組合、二十次 mechanical 嘗試，**零次通過 topology**。每一次的測試都通過 —— 這從來不是正確性問題。
+
+| 組合 | 委派 | Topology |
+|---|---|---|
+| Baseline，v1.3.7，Opus 5，2.1.220 | 0/2 | 0/2 |
+| 候選 1 —— 祈使化規則 | 2/2，背景，從未回收 | 0/2 |
+| 候選 2 —— 放回對沖並加所有權子句 | 0/2 | 0/2 |
+| 候選 3 —— 祈使 ＋ 所有權 ＋ 等待 | 2/2，前景，有回收 | 0/2 |
+| v1.3.1 政策，Opus 5，2.1.220 | 0/2 | 0/2 |
+| 兩份政策，Opus 4.8，2.1.220 | 1/4 | 0/4 |
+| 兩份政策，Opus 4.8，2.1.218 | 4/4，前景 | 0/4 |
+| 完整複刻已記錄的通過配置 | 1/2 | 0/2 |
+
+候選 3 就是整個發現的縮影。它的文字寫著 `don't edit them, don't redo its work`。兩次嘗試都派出前景工人、都回收了結果，然後照樣把十二個 adapter 全部重寫。
+
+**這個 repo 能控制的兩個輸入都不是成因。** 五份政策文字，12,714 到 18,071 bytes、兩種書寫語域，含已記錄通過的那份原始位元組，全部失敗；已記錄通過的角色酬載也失敗，該酬載是重新產生並與 `0b42c137…` 逐位元組對上的。client 版本會影響「要不要叫工人」—— 2.1.218 是 4/4，每條 stream 都有 Sonnet 5 計費 —— 但不影響「主 session 要不要放手」。
+
+有一個輸入無法還原：已記錄的通過是在 Pro 帳號上跑的，現在是 Max。#29 記載的兩個壓制都在 runtime 依帳號與 flag 狀態解析，所以方案改變本來就會改變注入組合。這也是上面那兩筆歷史 mechanical 紀錄現在帶 `reproducibility` 註記的原因。它們仍是當時的真實觀察，但不再是本 benchmark 預期能達到的目標。
+
+prompt-size budget **沒有**放寬。候選 3 超出 `max_bytes_per_rule` 2 bytes，ceiling 維持 500：既然文字不是變數，把餘裕花在它上面只會讓政策白長。
+
+未來任何候選同樣必須維持釘住的 36 條規則、負向兩格維持 2/2，並且不得移除 v1.3.3 之後新增的任何規則 —— v1.3.1 是唯一有通過紀錄的版本，而它早於 verification-recovery 那段、AUTO/ASK、五次 recovery 預算、candidate fingerprinting 與整個 `Parallel agents`。
+
 ## 結論邊界
 
 | 限制 | 影響 |

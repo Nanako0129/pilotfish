@@ -57,6 +57,103 @@
     "v1.3.7-max-baseline-mechanical-b": [],
     "v1.3.7-max-baseline-bug-a": [],
     "v1.3.7-max-baseline-bug-b": [],
-    "v1.3.7-max-baseline-routine-b": []
+    "v1.3.7-max-baseline-routine-b": [],
+    "v1.3.7-cand1-mechanical-a": [
+      {
+        "subagent_type": "mech-executor",
+        "run_in_background": true,
+        "invocation_model_present": false
+      }
+    ],
+    "v1.3.7-cand1-mechanical-b": [
+      {
+        "subagent_type": "mech-executor",
+        "run_in_background": true,
+        "invocation_model_present": false
+      }
+    ],
+    "v1.3.7-cand1-bug-a": [],
+    "v1.3.7-cand1-bug-b": [],
+    "v1.3.7-cand1-routine-b": [],
+    "v1.3.7-cand2-mechanical-a": [],
+    "v1.3.7-cand2-mechanical-b": [],
+    "v1.3.7-cand2-bug-a": [],
+    "v1.3.7-cand2-bug-b": [],
+    "v1.3.7-cand2-routine-a": [],
+    "v1.3.7-cand2-routine-b": [],
+    "v1.3.7-cand2-schema-a-turn-1": [],
+    "v1.3.7-cand2-schema-a-turn-2": [],
+    "v1.3.7-cand2-schema-b-turn-1": [],
+    "v1.3.7-cand2-schema-b-turn-2": [],
+    "v1.3.7-cand3-mechanical-a": [
+      {
+        "subagent_type": "mech-executor",
+        "run_in_background": false,
+        "invocation_model_present": false
+      }
+    ],
+    "v1.3.7-cand3-mechanical-b": [
+      {
+        "subagent_type": "mech-executor",
+        "run_in_background": false,
+        "invocation_model_present": false
+      }
+    ],
+    "v1.3.7-cand3-bug-a": [],
+    "v1.3.7-cand3-bug-b": [],
+    "v1.3.7-cand3-routine-a": [],
+    "v1.3.7-cand3-routine-b": [],
+    "v1.3.7-cand3-schema-a-turn-1": [],
+    "v1.3.7-cand3-schema-a-turn-2": [],
+    "v1.3.7-cand3-schema-b-turn-1": [],
+    "v1.3.7-cand3-schema-b-turn-2": [],
+    "elim-v131policy-opus5-2.1.220-mechanical-a": [],
+    "elim-v131policy-opus5-2.1.220-mechanical-b": [],
+    "elim-v131policy-opus48-2.1.220-mechanical-a": [
+      {
+        "subagent_type": "mech-executor",
+        "run_in_background": null,
+        "invocation_model_present": false
+      }
+    ],
+    "elim-v131policy-opus48-2.1.220-mechanical-b": [],
+    "elim-v137policy-opus48-2.1.220-mechanical-a": [],
+    "elim-v137policy-opus48-2.1.220-mechanical-b": [],
+    "elim-v131policy-opus48-2.1.218-mechanical-a": [
+      {
+        "subagent_type": "mech-executor",
+        "run_in_background": false,
+        "invocation_model_present": false
+      }
+    ],
+    "elim-v131policy-opus48-2.1.218-mechanical-b": [
+      {
+        "subagent_type": "mech-executor",
+        "run_in_background": false,
+        "invocation_model_present": false
+      }
+    ],
+    "elim-v137policy-opus48-2.1.218-mechanical-a": [
+      {
+        "subagent_type": "mech-executor",
+        "run_in_background": false,
+        "invocation_model_present": false
+      }
+    ],
+    "elim-v137policy-opus48-2.1.218-mechanical-b": [
+      {
+        "subagent_type": "mech-executor",
+        "run_in_background": false,
+        "invocation_model_present": false
+      }
+    ],
+    "elim-full-reproduction-2.1.218-mechanical-a": [
+      {
+        "subagent_type": "mech-executor",
+        "run_in_background": false,
+        "invocation_model_present": false
+      }
+    ],
+    "elim-full-reproduction-2.1.218-mechanical-b": []
   }
 }

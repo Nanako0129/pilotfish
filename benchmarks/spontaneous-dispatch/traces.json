@@ -572,6 +572,1268 @@
         ],
         "final_readme_sha256": "1bafe869338e9833d19a14cf90b13e5c51f68e2ab458295cfbcf65fcbb98ed30"
       }
+    },
+    "v1.3.7-cand1-mechanical-a": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Agent",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [
+        "mech-executor"
+      ],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "after Bash for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > src/adapters/$f.js <<'EOF' e",
+        "after Bash for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat >| src/adapters/$f.js <<'EOF' "
+      ],
+      "top_level_bash_actions": [
+        "List project and adapters directory",
+        "Show adapter sources, package.json, tests",
+        "Check node version and head commit",
+        "for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > src/adapters/$f.js <<'EOF' e",
+        "for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat >| src/adapters/$f.js <<'EOF' ",
+        "npm test 2>&1 | tail -30",
+        "Verify diff scope, file uniformity, and run tests"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "68a5fb449755583a6ab44473f53b12540f78e7fc2b9f569f6d46556b48debc37",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand1-mechanical-b": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Agent",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [
+        "mech-executor"
+      ],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "after Bash cd \"<run-root>\" && for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > \"src/adap",
+        "after Bash cd \"<run-root>\" && for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat >| \"src/ada"
+      ],
+      "top_level_bash_actions": [
+        "List adapters and project root",
+        "Read adapter modules and tests",
+        "cd \"<run-root>\" && for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > \"src/adap",
+        "cd \"<run-root>\" && for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat >| \"src/ada",
+        "cd \"<run-root>\" && npm test 2>&1 | tail -40",
+        "Verify scope, uniformity, and run tests"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "c2298a0d2e427d2a6b16f42bcdb56c58deefb65742cc49a79dd368deefe802bb",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand1-bug-a": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Edit",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Edit"
+      ],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Edit reducer.js"
+      ],
+      "top_level_bash_actions": [
+        "List repo root and read package.json",
+        "List source and test files",
+        "Run test suite",
+        "Show top of test output",
+        "Re-run test suite"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "5a0049852684ce99e712f5d983df954bf76c42d67ea540e30f8d77742a8dc2e9",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand1-bug-b": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Edit",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Edit"
+      ],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Edit reducer.js",
+        "before Bash node -e ' import(\"./src/session.js\").then(({Session}) => { const s = new Session(); s.startAssistant(\"r1\"); s.finishAssi"
+      ],
+      "top_level_bash_actions": [
+        "ls && cat package.json 2>/dev/null | head -50",
+        "grep -ril \"status-line\\|statusline\\|status_line\" --include=*.ts --include=*.tsx --include=*.js --include=*.py --include=",
+        "wc -l src/*.js test/*.js && npm test 2>&1 | tail -60",
+        "npm test 2>&1 | tail -20",
+        "node -e ' import(\"./src/session.js\").then(({Session}) => { const s = new Session(); s.startAssistant(\"r1\"); s.finishAssi"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "f8b7d5054551fb645bd42f5609d389929cd43e2701a60a4884ad0d527a0a5140",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand1-routine-b": {
+      "top_level_tools": [
+        "Bash",
+        "Read",
+        "Edit",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Edit"
+      ],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Edit README.md"
+      ],
+      "top_level_bash_actions": [
+        "List repo files and show README",
+        "Run repository test command"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "736ce48731cd38c510c5fef7eb71cac7325f2c34852eec9c98521212cc2a7a4f",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand2-mechanical-a": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Read",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Bash for f in src/adapters/*.js; do cat > \"$f\" <<'EOF' export function normalize(record) { const normalized = { ...record }; ",
+        "before Bash for f in src/adapters/*.js; do cat >| \"$f\" <<'EOF' export function normalize(record) { const normalized = { ...record };"
+      ],
+      "top_level_bash_actions": [
+        "List project files",
+        "Show all adapter sources and package.json",
+        "Write normalize implementation to all adapters",
+        "Write normalize implementation to all adapters",
+        "Run the test suite"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "a41e3497606027ec0a8ea82cea54e763840c59b09a1f91ecc07e26fde0fac920",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand2-mechanical-b": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write"
+      ],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Bash for f in src/adapters/*.js; do cat > \"$f\" <<'EOF' export function normalize(record) { return { ...record, label: typeof ",
+        "before Write alpha.js",
+        "before Write bravo.js",
+        "before Write charlie.js",
+        "before Write delta.js",
+        "before Write echo.js",
+        "before Write foxtrot.js",
+        "before Write golf.js",
+        "before Write hotel.js",
+        "before Write india.js",
+        "before Write juliet.js",
+        "before Write kilo.js",
+        "before Write lima.js",
+        "before Bash for f in src/adapters/*.js; do cat >| \"$f\" <<'EOF' export function normalize(record) { return { ...record, label: typeof"
+      ],
+      "top_level_bash_actions": [
+        "List project files",
+        "Show all adapter sources and test",
+        "Rewrite normalize in all adapters",
+        "Rewrite normalize in all 12 adapters",
+        "Run test suite"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "675a924566c7ae8dd43b9ff43f038e0db42de53145909d8ff79140d7d0535b52",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand2-bug-a": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Edit",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Edit"
+      ],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Edit reducer.js",
+        "before Bash node -e ' import(\"./src/session.js\").then(({Session}) => { const s = new Session(); s.startAssistant(\"r1\"); s.finishAssi"
+      ],
+      "top_level_bash_actions": [
+        "ls && cat package.json 2>/dev/null | head -40",
+        "git log --oneline -3 && find . -path ./node_modules -prune -o -name '*status*' -print 2>/dev/null | head -50",
+        "ls -R src test && echo ---- && node --test 2>&1 | tail -60",
+        "node --test 2>&1 | tail -15",
+        "node -e ' import(\"./src/session.js\").then(({Session}) => { const s = new Session(); s.startAssistant(\"r1\"); s.finishAssi"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "d46502026421ed8992688890793d3bbaf56fce98f9f0ba6dd56de7fba4744bc7",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand2-bug-b": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Read",
+        "Bash",
+        "Edit",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Edit"
+      ],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Edit reducer.js",
+        "before Bash node -e ' import(\"./src/session.js\").then(({Session}) => { const s = new Session(); s.startAssistant(\"r1\"); s.finishAssi"
+      ],
+      "top_level_bash_actions": [
+        "List repo root",
+        "Inspect package.json and file tree",
+        "Run test suite",
+        "Read all source files",
+        "Re-run test suite",
+        "Verify clone boundary holds"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "cab0d3ffe1640ce9e949d0c6bdcbd9a45e08c1fe3d1255d6ba1e57f5f8baf3cd",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand2-routine-a": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Edit",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Edit"
+      ],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Edit README.md"
+      ],
+      "top_level_bash_actions": [
+        "List files and read README",
+        "Read package.json",
+        "Run repository test command"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "52ca569c1d00e3ea005ed68cbfeab6b7bdc799d9f4fecc39ae15997aec1bf6ce",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand2-routine-b": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Edit",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Edit"
+      ],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Edit README.md"
+      ],
+      "top_level_bash_actions": [
+        "List files and read README",
+        "Read package.json",
+        "Run repository test command"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "62b7ba13456749bc141f244157e4b6d36bb302aaeed0e954a4f9d87751569c65",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand2-schema-a-turn-1": {
+      "top_level_tools": [
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Write",
+        "Write",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Write",
+        "Write"
+      ],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Write store.mjs",
+        "before Write store.test.mjs"
+      ],
+      "top_level_bash_actions": [
+        "List repo root and read package.json",
+        "Run repository test command"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "1276c33d9823091a4129084c48ccc3f4e475935baa8fa32da5e6dc87e7d36c94",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand2-schema-a-turn-2": {
+      "top_level_tools": [
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [],
+      "main_session_mutated": false,
+      "main_session_mutation_paths": [],
+      "top_level_bash_actions": [
+        "Check working tree state and re-run tests"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "0e53f67ff471be04e8c89f90a830a2f5defa3d44ff6a81c3519dcc64c68947ec",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand2-schema-b-turn-1": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Read",
+        "Write",
+        "Write",
+        "Read",
+        "Write",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Write",
+        "Write",
+        "Write"
+      ],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Write store.mjs",
+        "before Write store.test.mjs",
+        "before Write store.test.mjs"
+      ],
+      "top_level_bash_actions": [
+        "List repo contents",
+        "Read source files",
+        "Run repository test command"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "a75778a4d8dc66fe9c7e89c75c8681d73d025504848d7e6170324421f39fcf21",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand2-schema-b-turn-2": {
+      "top_level_tools": [
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [],
+      "main_session_mutated": false,
+      "main_session_mutation_paths": [],
+      "top_level_bash_actions": [
+        "Show working diff and rerun tests"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "3874c274c6e934c03330f6cd9de3b2a975568a1c9e7639df52eb939d2cfed0bc",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand3-mechanical-a": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Agent",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [
+        "mech-executor"
+      ],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "after Bash cd <run-root> NEW='export function normalize(record) { const label = typeof record.label === \"string\" ? record.label.tri",
+        "after Bash cd <run-root> NEW='export function normalize(record) { const label = typeof record.label === \"string\" ? record.label.tri"
+      ],
+      "top_level_bash_actions": [
+        "Inspect repo layout",
+        "Read adapter modules and tests",
+        "cd <run-root> NEW='export function normalize(record) { const label = typeof record.label === \"string\" ? record.label.tri",
+        "cd <run-root> NEW='export function normalize(record) { const label = typeof record.label === \"string\" ? record.label.tri",
+        "Verify diff and run test suite"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "44e553f909d0abf5d50285f069eeb4f5f97aa9d8ae9a4d24b297a8f0c20bbfcf",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand3-mechanical-b": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Agent",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Write",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Write",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit",
+        "Edit"
+      ],
+      "agent_calls": [
+        "mech-executor"
+      ],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "after Bash cd <run-root> CONTENT='export function normalize(record) { return { ...record, label: typeof record.label === \"string\" ?",
+        "after Bash cd <run-root> for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > \"src/adapters/",
+        "after Write alpha.js",
+        "after Edit alpha.js",
+        "after Edit bravo.js",
+        "after Edit charlie.js",
+        "after Edit delta.js",
+        "after Edit echo.js",
+        "after Edit foxtrot.js",
+        "after Edit golf.js",
+        "after Edit hotel.js",
+        "after Edit india.js",
+        "after Edit juliet.js",
+        "after Edit kilo.js",
+        "after Edit lima.js"
+      ],
+      "top_level_bash_actions": [
+        "ls -la <run-root> && echo \"---\" && ls <run-root>",
+        "cat package.json && echo \"=== TEST ===\" && ls test && for f in test/*; do echo \"--- $f\"; cat \"$f\"; done",
+        "for f in src/adapters/*.js; do echo \"=== $f\"; cat \"$f\"; done",
+        "for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do echo \"--- $f ---\"; cat \"src/adapte",
+        "cd <run-root> CONTENT='export function normalize(record) { return { ...record, label: typeof record.label === \"string\" ?",
+        "cd <run-root> for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > \"src/adapters/",
+        "git status --short && echo --- && for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do ",
+        "git status --short && echo \"=== alpha.js ===\" && cat src/adapters/alpha.js && echo \"=== npm test ===\" && npm test 2>&1 |"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "d722807f45c5dd732789a2637452537608dcf9af3447cac4ca05bd9f600a4ddc",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand3-bug-a": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Edit",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Edit"
+      ],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Edit reducer.js",
+        "before Bash node -e ' import(\"./src/session.js\").then(({Session}) => { const s = new Session(); s.startAssistant(\"r1\"); s.finishAssi"
+      ],
+      "top_level_bash_actions": [
+        "List repo root and package.json",
+        "Find status-line related files",
+        "List source and test files",
+        "node --test 2>&1 | tail -60",
+        "Run test suite",
+        "Verify state does not alias canonical message"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "f49110d41230dedda2b1af805a33079bb7ccfa72e1949fa21e20a1db954348a3",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand3-bug-b": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Bash",
+        "Edit",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Edit"
+      ],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Edit reducer.js",
+        "before Bash node -e ' import(\"./src/session.js\").then(({Session}) => { const s = new Session(); s.startAssistant(\"r1\"); s.finishAssi"
+      ],
+      "top_level_bash_actions": [
+        "List repo root",
+        "Find status line tests",
+        "Show package.json and tree",
+        "Run test suite",
+        "Re-run test suite",
+        "Check clone boundary is preserved"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "eff75d68960b4c09afe79cc3b95a86ab954679223751bc5f704377837706b831",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand3-routine-a": {
+      "top_level_tools": [
+        "Bash",
+        "Edit",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Edit"
+      ],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Edit README.md"
+      ],
+      "top_level_bash_actions": [
+        "List files and show README",
+        "Show package.json scripts",
+        "Run repository test command"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "114ef501f855edfadf4824c8200083c8933e33e425e965b9b13a77bf6fe9c2d7",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand3-routine-b": {
+      "top_level_tools": [
+        "Bash",
+        "Edit",
+        "Read",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Edit"
+      ],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Edit README.md"
+      ],
+      "top_level_bash_actions": [
+        "List files and show README",
+        "Run repository test command"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "0850e8ba1b003b67974a35db54a118fe54639828762a6aff31d713828a1c2031",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand3-schema-a-turn-1": {
+      "top_level_tools": [
+        "Bash",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Write",
+        "Write",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Write",
+        "Write"
+      ],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Write store.mjs",
+        "before Write store.test.mjs"
+      ],
+      "top_level_bash_actions": [
+        "List repository root",
+        "Run repository test command"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "75010ec2eb136738048e9837493d6f2950f8378041c4efea2cb6f56d498eec84",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand3-schema-a-turn-2": {
+      "top_level_tools": [],
+      "top_level_source_write_tools": [],
+      "agent_calls": [],
+      "main_session_mutated": false,
+      "main_session_mutation_paths": [],
+      "top_level_bash_actions": [],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "a04993f2c2ea07ac1f1a0243cd63a7fdb2a3126126449f4b52d56e59c6d01fcf",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand3-schema-b-turn-1": {
+      "top_level_tools": [
+        "Bash",
+        "Read",
+        "Read",
+        "Edit",
+        "Write",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Edit",
+        "Write"
+      ],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Edit store.mjs",
+        "before Write store.test.mjs"
+      ],
+      "top_level_bash_actions": [
+        "List repo root and read package.json",
+        "Run repository test command"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "05ba489aecd46e53a2466e36e318cae97f0a438e915f02d020a9108ad5527f69",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "v1.3.7-cand3-schema-b-turn-2": {
+      "top_level_tools": [
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [],
+      "main_session_mutated": false,
+      "main_session_mutation_paths": [],
+      "top_level_bash_actions": [
+        "Confirm working tree state and rerun tests"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "caed8c3e5e67f1ae510cb5e260e832ceba9b666d29cd66101ca63b0d8ba74698",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "elim-v131policy-opus5-2.1.220-mechanical-a": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Read",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Bash for f in src/adapters/*.js; do cat > \"$f\" <<'EOF' export function normalize(record) { const normalized = { ...record }; ",
+        "before Bash for f in src/adapters/*.js; do cat >| \"$f\" <<'EOF' export function normalize(record) { const normalized = { ...record };"
+      ],
+      "top_level_bash_actions": [
+        "List project files",
+        "Print all adapter sources",
+        "Write normalize implementation to all adapters",
+        "Write normalize implementation with noclobber override",
+        "Run the test suite"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "5075874b6a7476839abd04c40b8f43417017eb74e32250e55b4fb3de3788308b",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "elim-v131policy-opus5-2.1.220-mechanical-b": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Read",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Bash for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > \"src/adapters/$f.js\" <<'EOF'",
+        "before Bash for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat >| \"src/adapters/$f.js\" <<'EOF"
+      ],
+      "top_level_bash_actions": [
+        "List project and src tree",
+        "Read package.json and all adapter modules",
+        "Rewrite all 12 adapter modules",
+        "Rewrite all 12 adapter modules",
+        "Run the test suite"
+      ],
+      "observed_main_model": "claude-opus-5",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "db5a747ee8c6c072149d14e0a52c0c4253968da652948861b31e2a6a3b181e5d",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "elim-v131policy-opus48-2.1.220-mechanical-a": {
+      "top_level_tools": [
+        "Bash",
+        "Read",
+        "Read",
+        "Agent",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [
+        "mech-executor"
+      ],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "after Bash cd <run-root> && for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > \"$f.js\" << ",
+        "after Bash cd <run-root> && for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > \"$f.js\" << ",
+        "after Bash cd <run-root> && setopt localoptions clobber; for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet ki"
+      ],
+      "top_level_bash_actions": [
+        "List adapters and package config",
+        "cd <run-root> && for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > \"$f.js\" << ",
+        "cd <run-root> && for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > \"$f.js\" << ",
+        "cd <run-root> && setopt localoptions clobber; for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet ki",
+        "cd <run-root> && for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do echo \"--$f--\"; di",
+        "npm test 2>&1"
+      ],
+      "observed_main_model": "claude-opus-4-8",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "e5c0ad4abc4a626f77200b49bd00881ee6d83e5193a0db70927c069c22e044d6",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "elim-v131policy-opus48-2.1.220-mechanical-b": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Read",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write"
+      ],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Write alpha.js",
+        "before Write bravo.js",
+        "before Write charlie.js",
+        "before Write delta.js",
+        "before Write echo.js",
+        "before Write foxtrot.js",
+        "before Write golf.js",
+        "before Write hotel.js",
+        "before Write india.js",
+        "before Write juliet.js",
+        "before Write kilo.js",
+        "before Write lima.js",
+        "before Write alpha.js",
+        "before Write bravo.js",
+        "before Write charlie.js",
+        "before Write delta.js",
+        "before Write echo.js",
+        "before Write foxtrot.js",
+        "before Write golf.js",
+        "before Write hotel.js",
+        "before Write india.js",
+        "before Write juliet.js",
+        "before Write kilo.js",
+        "before Write lima.js"
+      ],
+      "top_level_bash_actions": [
+        "List adapters dir and show package.json",
+        "Show all adapter modules and locate tests",
+        "Run the test suite"
+      ],
+      "observed_main_model": "claude-opus-4-8",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "b36831c30be48590880879a7a150ac79a8cfdf8cf0028aec2786179e78f6137c",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "elim-v137policy-opus48-2.1.220-mechanical-a": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Read",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Bash cd <run-root> for f in src/adapters/*.js; do cat > \"$f\" <<'EOF' export function normalize(record) { return { ...record, ",
+        "before Bash cd <run-root> unsetopt noclobber 2>/dev/null || true for f in src/adapters/*.js; do cat >| \"$f\" <<'EOF' export function "
+      ],
+      "top_level_bash_actions": [
+        "List adapters and read package.json",
+        "Read all adapter modules",
+        "Find test files",
+        "Rewrite normalize in all adapters",
+        "Rewrite adapters overriding noclobber",
+        "Verify all updated and run tests"
+      ],
+      "observed_main_model": "claude-opus-4-8",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "e7b35ac2e426a7a722159f3f6450f93a795592faabd530b431c8e27a7a48b3c6",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "elim-v137policy-opus48-2.1.220-mechanical-b": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Bash cd <run-root> for f in src/adapters/*.js; do cat > \"$f\" <<'EOF' export function normalize(record) { return { ...record, ",
+        "before Bash cd <run-root> for f in src/adapters/*.js; do cat >| \"$f\" <<'EOF' export function normalize(record) { return { ...record,"
+      ],
+      "top_level_bash_actions": [
+        "List adapter modules",
+        "Inspect package and tests",
+        "Show all adapter modules",
+        "Show test file",
+        "Rewrite all adapter normalize functions",
+        "Rewrite adapters overriding noclobber",
+        "Run test suite"
+      ],
+      "observed_main_model": "claude-opus-4-8",
+      "client_version": "2.1.220",
+      "raw_stream_sha256": "4902a5b163dfb5c185d266f7195178467f2c7c28822ba948fdcedf02d3ca145b",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "elim-v131policy-opus48-2.1.218-mechanical-a": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Agent",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [
+        "mech-executor"
+      ],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "after Bash cd src/adapters for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > \"$f.js\" << '",
+        "after Bash cd <run-root> set +o noclobber for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat"
+      ],
+      "top_level_bash_actions": [
+        "List adapters and read package.json",
+        "Inspect sample adapters and tests",
+        "Read tests and confirm all adapters identical",
+        "cat src/adapters/alpha.js",
+        "cd src/adapters for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > \"$f.js\" << '",
+        "cd src/adapters && cat alpha.js && echo --- && cat lima.js",
+        "cd <run-root> set +o noclobber for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat",
+        "npm test 2>&1 | tail -40",
+        "Run test suite to confirm"
+      ],
+      "observed_main_model": "claude-opus-4-8",
+      "client_version": "2.1.218",
+      "raw_stream_sha256": "2e5339751d6f4cc4dcff97a027d56969a8c67fc3f74cf4e247e6c83429be58bc",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "elim-v131policy-opus48-2.1.218-mechanical-b": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Read",
+        "Agent",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [
+        "mech-executor"
+      ],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "after Bash cd <run-root> for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > \"$f.js\" <<'EOF",
+        "after Bash cd <run-root> for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat >| \"$f.js\" <<'EO"
+      ],
+      "top_level_bash_actions": [
+        "List adapters and package config",
+        "Inspect adapter and tests",
+        "cd <run-root> for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > \"$f.js\" <<'EOF",
+        "cd <run-root> for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat >| \"$f.js\" <<'EO",
+        "npm test",
+        "Verify edits and rerun tests"
+      ],
+      "observed_main_model": "claude-opus-4-8",
+      "client_version": "2.1.218",
+      "raw_stream_sha256": "8a9db8e1d2e2e6cc81e7cf3bac5ed22eea80f842db006457377857e212ea4752",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "elim-v137policy-opus48-2.1.218-mechanical-a": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Agent",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [
+        "mech-executor"
+      ],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "after Bash cd <run-root> for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > $f.js <<'EOF' ",
+        "after Bash cd <run-root> for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat >| $f.js <<'EOF'"
+      ],
+      "top_level_bash_actions": [
+        "List adapters and inspect package.json",
+        "Show all adapter module contents",
+        "Find test files",
+        "Show the test file",
+        "cd <run-root> for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > $f.js <<'EOF' ",
+        "cd <run-root> for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat >| $f.js <<'EOF'",
+        "npm test 2>&1 | tail -40",
+        "Verify edits and rerun tests"
+      ],
+      "observed_main_model": "claude-opus-4-8",
+      "client_version": "2.1.218",
+      "raw_stream_sha256": "453c8897800daaf1c0718f08e5fc739f18219541612d64f4ed5c640361af372d",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "elim-v137policy-opus48-2.1.218-mechanical-b": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Read",
+        "Agent",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [
+        "mech-executor"
+      ],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "after Bash cd <run-root> for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > \"$f.js\" <<'EOF",
+        "after Bash cd <run-root> for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat >| \"$f.js\" <<'EO"
+      ],
+      "top_level_bash_actions": [
+        "List adapters and read package.json",
+        "Read all adapter modules and locate tests",
+        "ls <run-root>",
+        "cd <run-root> for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > \"$f.js\" <<'EOF",
+        "cd <run-root> for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat >| \"$f.js\" <<'EO",
+        "npm test 2>&1",
+        "Verify one adapter and diff scope"
+      ],
+      "observed_main_model": "claude-opus-4-8",
+      "client_version": "2.1.218",
+      "raw_stream_sha256": "72c302987e776a67e8d306023012b99ce88b6475ce9d4ae90fae62963dc7a46c",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "elim-full-reproduction-2.1.218-mechanical-a": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Agent",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [],
+      "agent_calls": [
+        "mech-executor"
+      ],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "after Bash cd <run-root> && for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > \"$f.js\" <<'",
+        "after Bash cd <run-root> && for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat >| \"$f.js\" <<"
+      ],
+      "top_level_bash_actions": [
+        "List adapters and read package.json",
+        "Cat all adapter modules",
+        "Locate tests",
+        "Read the test file",
+        "cd <run-root> && for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > \"$f.js\" <<'",
+        "cd <run-root> && for f in alpha bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat >| \"$f.js\" <<",
+        "Run the test suite"
+      ],
+      "observed_main_model": "claude-opus-4-8",
+      "client_version": "2.1.218",
+      "raw_stream_sha256": "933b4e7d28ac095172a52202ae0aae6d7c90ff4a70fe8aad5dad0d8ee1d9f23a",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
+    },
+    "elim-full-reproduction-2.1.218-mechanical-b": {
+      "top_level_tools": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Read",
+        "Write",
+        "Write",
+        "Bash",
+        "Bash"
+      ],
+      "top_level_source_write_tools": [
+        "Write",
+        "Write"
+      ],
+      "agent_calls": [],
+      "main_session_mutated": true,
+      "main_session_mutation_paths": [
+        "before Bash cd <run-root> for f in src/adapters/*.js; do cat > \"$f\" <<'EOF' export function normalize(record) { return { ...record, ",
+        "before Write alpha.js",
+        "before Write bravo.js",
+        "before Bash cd <run-root> setopt clobber for f in bravo charlie delta echo foxtrot golf hotel india juliet kilo lima; do cat > \"src/"
+      ],
+      "top_level_bash_actions": [
+        "List adapters and read package.json",
+        "Read all adapter modules and find tests",
+        "Read the test file",
+        "Write normalize implementation to all adapters",
+        "Overwrite remaining adapters and verify",
+        "Run the test suite"
+      ],
+      "observed_main_model": "claude-opus-4-8",
+      "client_version": "2.1.218",
+      "raw_stream_sha256": "9861393a16a128470651d8f2f64fe6a207eec4451d315c320693e4a6545e0d20",
+      "note": "#29 dispatch investigation. Absolute paths are normalized to <run-root>. `main_session_mutation_paths` lists every top-level write path the conservative Bash classifier flagged, so the topology verdict can be rechecked from this entry."
     }
   }
 }

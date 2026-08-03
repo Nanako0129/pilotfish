@@ -142,7 +142,8 @@
           "cost_usd": 0.13853925
         }
       },
-      "claim": "The mechanical positive cell passed: exactly one named mech-executor owned every source mutation, the main session performed read-only triage and acceptance, and the expected 12-file diff passed 12/12 tests."
+      "claim": "The mechanical positive cell passed: exactly one named mech-executor owned every source mutation, the main session performed read-only triage and acceptance, and the expected 12-file diff passed 12/12 tests.",
+      "reproducibility": "Not currently reproducible. `v1_3_7_dispatch_prompt_investigation` re-ran this cell against the exact policy bytes and role payload recorded here, on client 2.1.218 and Opus 4.8, and got 1 of 2 dispatch with 0 of 2 topology. The account has since moved from Pro to Max and client 2.1.217 is no longer retained, so the configuration cannot be fully restored. This row remains a true observation of its time; it is no longer a target this benchmark expects to hit."
     },
     {
       "name": "opus-v1.3.1-candidate-1-bug",
@@ -236,7 +237,8 @@
           "cost_usd": 0.10963245
         }
       },
-      "claim": "The exact release payload passed the mechanical cell: one foreground mech-executor resolved to Sonnet 5, owned all 12 source mutations, and produced a 12/12 passing result while the Opus main session remained read-only."
+      "claim": "The exact release payload passed the mechanical cell: one foreground mech-executor resolved to Sonnet 5, owned all 12 source mutations, and produced a 12/12 passing result while the Opus main session remained read-only.",
+      "reproducibility": "Not currently reproducible. `v1_3_7_dispatch_prompt_investigation` re-ran this cell against the exact policy bytes and role payload recorded here, on client 2.1.218 and Opus 4.8, and got 1 of 2 dispatch with 0 of 2 topology. The account has since moved from Pro to Max and client 2.1.217 is no longer retained, so the configuration cannot be fully restored. This row remains a true observation of its time; it is no longer a target this benchmark expects to hit."
     },
     {
       "name": "opus-v1.3.1-release-payload-bug",
@@ -546,7 +548,8 @@
             "client_reported_cost_usd": 0.3240865,
             "raw_stream_sha256": "806c11e6564b1f5799a869de6be587603f68e6b91df231b6079da29e71d22171"
           }
-        ]
+        ],
+        "topology_followup": "Both attempts are topology failures under the conservative classifier, and so is every later attempt: see `v1_3_7_dispatch_prompt_investigation`, which took this cell through three policy candidates and five further configurations for twenty attempts and zero passes. Do not read this baseline as a gap that policy text can close."
       },
       "tightly_coupled_bug": {
         "expected_topology": "Negative cell. Main session owns diagnosis and the first minimal fix; no discovery or implementation agent before the fix and the focused pass.",
@@ -647,6 +650,391 @@
         "v1.3.7-max-baseline-routine-b"
       ],
       "note": "Sanitized tool sequences and Agent-call records are committed for the five newly run streams, as for every other run in this file. The three reused attempts are keyed under `v1.3.7-max-cue-free-*`."
+    }
+  },
+  "v1_3_7_dispatch_prompt_investigation": {
+    "purpose": "Records the attempt to fix the mechanical-cell regression on #29 by strengthening the policy text, and the elimination chain that followed. It exists so the next person does not repeat it: the answer is that no input this repository controls accounts for the regression.",
+    "question": "Can the shipped policy text be changed so the cue-free mechanical cell reaches its expected topology again — exactly one foreground `mech-executor` with no main-session source mutation?",
+    "verdict": "No. Three candidates and five further configurations produced twenty mechanical attempts with zero topology passes.",
+    "method": "Every attempt ran the committed `prompts/mechanical.txt` against a fresh disposable copy of `../dispatch-brake/positive-controls/mechanical/fixture`, with the policy under test as `CLAUDE.md` and the role payload passed to `--agents`. Topology is judged as the benchmark's input contract requires: exactly one foreground `mech-executor`, and the main session performing no source mutation, with every top-level Bash command classified conservatively so that any redirection into a file counts as a main-session write. `traces.json` publishes the flagged mutation paths per attempt so each verdict can be rechecked without the raw stream.",
+    "classifier_note": "An earlier pass of this analysis under-detected main-session writes because it looked for redirects into `src/...`; several attempts had already `cd`-ed into the adapter directory and wrote to `\"$f.js\"`. The published verdicts come from the conservative classifier, which flags any redirect to a target plus `tee`, `sed -i`, `mv`, `cp` and clobber-option changes. Every flagged path was then read by hand and is a real source write; there are no false positives among the twenty attempts.",
+    "candidates": {
+      "shared_constraints": "Each candidate had to keep the prompt-size budget in `../prompt-compression/budget.json`, keep the pinned rule count at 36, hold the two negative cells at 2 of 2, and remove no rule added after v1.3.3. The last constraint matters because v1.3.1 — the version with the only recorded pass — predates `Verification recovery and long autonomous runs`, the AUTO/ASK modes, the five-pass recovery budget, candidate fingerprinting and the whole `Parallel agents` section. Recovering dispatch by reverting to it would trade one regression for a larger one.",
+      "candidate_1": {
+        "policy_sha256": "b5d4471dd8168b12ea320fee27e64c46b956fbc1124064d8bda3463ee1c571a0",
+        "bytes": 17949,
+        "bytes_per_rule": 498.6,
+        "changes": [
+          "Appended `Same-shape repetition across files is never small.` to the first actionable line, which otherwise reads `Small/local/stable work: direct, no ceremony.` and is reached before the mechanical default.",
+          "Replaced `dispatch one `mech-executor` before main-session edits, by default.` with `dispatch one `mech-executor` before any main-session edit.`"
+        ],
+        "mechanical": [
+          {
+            "id": "a",
+            "agent_calls": 1,
+            "agent_roles": [
+              "mech-executor"
+            ],
+            "run_in_background": [
+              true
+            ],
+            "main_session_mutated": true,
+            "topology": "FAIL",
+            "subagent_result_collected": false,
+            "client_reported_cost_usd": 0.48885535000000013,
+            "raw_stream_sha256": "68a5fb449755583a6ab44473f53b12540f78e7fc2b9f569f6d46556b48debc37",
+            "evidence_key": "v1.3.7-cand1-mechanical-a"
+          },
+          {
+            "id": "b",
+            "agent_calls": 1,
+            "agent_roles": [
+              "mech-executor"
+            ],
+            "run_in_background": [
+              true
+            ],
+            "main_session_mutated": true,
+            "topology": "FAIL",
+            "subagent_result_collected": false,
+            "client_reported_cost_usd": 0.45682365,
+            "raw_stream_sha256": "c2298a0d2e427d2a6b16f42bcdb56c58deefb65742cc49a79dd368deefe802bb",
+            "evidence_key": "v1.3.7-cand1-mechanical-b"
+          }
+        ],
+        "negative_cells": "bug 2 of 2 correct, routine 1 attempt correct; no dispatch in any of them.",
+        "observed": "Both mechanical attempts dispatched — the first candidate to do so — but with `run_in_background: true`, and then rewrote all twelve adapters themselves without ever collecting the worker. `Async agent launched` appears once per stream and `subagent_tokens` never appears. This is the `uncollected-background-verification` shape already recorded in the root `failed_attempts` array of `../verifier-boundary/results.json`.",
+        "verdict": "FAIL. Counting Agent calls would have scored this a win; the topology gate is what it fails.",
+        "cost_usd": 1.8719715
+      },
+      "candidate_2": {
+        "policy_sha256": "f460bb86da03eff766125359cab54171179b6c3e9809a41f605fb2dfe72d4ad3",
+        "bytes": 17993,
+        "bytes_per_rule": 499.8,
+        "changes": [
+          "Kept the line-11 carve-out but shortened it to `Cross-file same-shape repetition is not.`",
+          "Restored `, by default` on the mechanical rule.",
+          "Appended `Wait for it: those files are its, not yours.`"
+        ],
+        "mechanical": [
+          {
+            "id": "a",
+            "agent_calls": 0,
+            "agent_roles": [],
+            "run_in_background": [],
+            "main_session_mutated": true,
+            "topology": "FAIL",
+            "subagent_result_collected": false,
+            "client_reported_cost_usd": 0.328599,
+            "raw_stream_sha256": "a41e3497606027ec0a8ea82cea54e763840c59b09a1f91ecc07e26fde0fac920",
+            "evidence_key": "v1.3.7-cand2-mechanical-a"
+          },
+          {
+            "id": "b",
+            "agent_calls": 0,
+            "agent_roles": [],
+            "run_in_background": [],
+            "main_session_mutated": true,
+            "topology": "FAIL",
+            "subagent_result_collected": false,
+            "client_reported_cost_usd": 0.5959534999999999,
+            "raw_stream_sha256": "675a924566c7ae8dd43b9ff43f038e0db42de53145909d8ff79140d7d0535b52",
+            "evidence_key": "v1.3.7-cand2-mechanical-b"
+          }
+        ],
+        "negative_cells": "bug 2 of 2 correct, routine 2 of 2 correct.",
+        "schema": "0 of 2 dispatched; both attempts wrote in turn 1, skipping the approval gate.",
+        "observed": "Zero Agent calls across all eight attempts — worse than the baseline, which had one schema attempt pass.",
+        "method_error": "Three variables moved at once against candidate 1, so this result cannot attribute the loss to any one of them. Recorded as a method fault rather than a finding.",
+        "verdict": "FAIL, and a regression against the baseline.",
+        "cost_usd": 3.2653845
+      },
+      "candidate_3": {
+        "bytes": 18071,
+        "bytes_per_rule": 501.97,
+        "budget_status": "Exceeded `max_bytes_per_rule` of 500 by 2. The filler-word half of the density test passed, so the new text is written at the same density as the rest; the policy simply grew. The ceiling was not raised, because no candidate earned it.",
+        "changes": [
+          "Kept candidate 1's line-11 wording and imperative.",
+          "Rewrote the mechanical rule as `dispatch one foreground `mech-executor` before any main-session edit, then wait for its result. Those files are the worker's until it returns: don't edit them, don't redo its work.`"
+        ],
+        "mechanical": [
+          {
+            "id": "a",
+            "agent_calls": 1,
+            "agent_roles": [
+              "mech-executor"
+            ],
+            "run_in_background": [
+              false
+            ],
+            "main_session_mutated": true,
+            "topology": "FAIL",
+            "subagent_result_collected": true,
+            "client_reported_cost_usd": 0.4550031,
+            "raw_stream_sha256": "44e553f909d0abf5d50285f069eeb4f5f97aa9d8ae9a4d24b297a8f0c20bbfcf",
+            "evidence_key": "v1.3.7-cand3-mechanical-a"
+          },
+          {
+            "id": "b",
+            "agent_calls": 1,
+            "agent_roles": [
+              "mech-executor"
+            ],
+            "run_in_background": [
+              false
+            ],
+            "main_session_mutated": true,
+            "topology": "FAIL",
+            "subagent_result_collected": true,
+            "client_reported_cost_usd": 0.6315706999999998,
+            "raw_stream_sha256": "d722807f45c5dd732789a2637452537608dcf9af3447cac4ca05bd9f600a4ddc",
+            "evidence_key": "v1.3.7-cand3-mechanical-b"
+          }
+        ],
+        "negative_cells": "bug 2 of 2 correct, routine 2 of 2 correct.",
+        "schema": "0 of 2 dispatched; both attempts skipped the approval gate.",
+        "observed": "Both mechanical attempts dispatched a foreground `mech-executor` and collected its result — the best dispatch behaviour of any configuration tested — and then rewrote all twelve adapters anyway. The text says `don't edit them, don't redo its work`; the first half was followed and the second was not.",
+        "verdict": "FAIL. Dispatch improved; ownership did not move at all.",
+        "cost_usd": 3.3621523,
+        "policy_sha256": "fce06059fae3e67e3dd3e4281b161975a17b434e0a9af28aa50fdac76864b153"
+      }
+    },
+    "elimination_chain": {
+      "why": "After three candidates the text hypothesis was still untested at its root: nobody had run the policy that recorded the pass against the current environment. These runs vary one input at a time instead.",
+      "configurations": [
+        {
+          "id": "v1.3.1 policy, Opus 5, client 2.1.220",
+          "isolates": "Policy text, against the current environment. Role payload held at the current `e6257911…` so only the policy moves.",
+          "policy_sha256": "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf",
+          "attempts": [
+            {
+              "id": "a",
+              "agent_calls": 0,
+              "agent_roles": [],
+              "run_in_background": [],
+              "main_session_mutated": true,
+              "topology": "FAIL",
+              "subagent_result_collected": false,
+              "client_reported_cost_usd": 0.341369,
+              "raw_stream_sha256": "5075874b6a7476839abd04c40b8f43417017eb74e32250e55b4fb3de3788308b",
+              "evidence_key": "elim-v131policy-opus5-2.1.220-mechanical-a"
+            },
+            {
+              "id": "b",
+              "agent_calls": 0,
+              "agent_roles": [],
+              "run_in_background": [],
+              "main_session_mutated": true,
+              "topology": "FAIL",
+              "subagent_result_collected": false,
+              "client_reported_cost_usd": 0.3312315,
+              "raw_stream_sha256": "db5a747ee8c6c072149d14e0a52c0c4253968da652948861b31e2a6a3b181e5d",
+              "evidence_key": "elim-v131policy-opus5-2.1.220-mechanical-b"
+            }
+          ],
+          "result": "0 of 2 dispatched, 0 of 2 topology. The exact bytes that recorded the pass produce no dispatch on the current client and model.",
+          "cost_usd": 0.6726005
+        },
+        {
+          "id": "both policies, Opus 4.8, client 2.1.220",
+          "isolates": "Main model. Opus 4.8 is the model from the recorded pass.",
+          "attempts": [
+            {
+              "id": "v1.3.1 a",
+              "agent_calls": 1,
+              "agent_roles": [
+                "mech-executor"
+              ],
+              "run_in_background": [
+                null
+              ],
+              "main_session_mutated": true,
+              "topology": "FAIL",
+              "subagent_result_collected": false,
+              "client_reported_cost_usd": 0.41031619999999996,
+              "raw_stream_sha256": "e5c0ad4abc4a626f77200b49bd00881ee6d83e5193a0db70927c069c22e044d6",
+              "evidence_key": "elim-v131policy-opus48-2.1.220-mechanical-a"
+            },
+            {
+              "id": "v1.3.1 b",
+              "agent_calls": 0,
+              "agent_roles": [],
+              "run_in_background": [],
+              "main_session_mutated": true,
+              "topology": "FAIL",
+              "subagent_result_collected": false,
+              "client_reported_cost_usd": 0.9816725,
+              "raw_stream_sha256": "b36831c30be48590880879a7a150ac79a8cfdf8cf0028aec2786179e78f6137c",
+              "evidence_key": "elim-v131policy-opus48-2.1.220-mechanical-b"
+            },
+            {
+              "id": "v1.3.7 a",
+              "agent_calls": 0,
+              "agent_roles": [],
+              "run_in_background": [],
+              "main_session_mutated": true,
+              "topology": "FAIL",
+              "subagent_result_collected": false,
+              "client_reported_cost_usd": 0.33018050000000004,
+              "raw_stream_sha256": "e7b35ac2e426a7a722159f3f6450f93a795592faabd530b431c8e27a7a48b3c6",
+              "evidence_key": "elim-v137policy-opus48-2.1.220-mechanical-a"
+            },
+            {
+              "id": "v1.3.7 b",
+              "agent_calls": 0,
+              "agent_roles": [],
+              "run_in_background": [],
+              "main_session_mutated": true,
+              "topology": "FAIL",
+              "subagent_result_collected": false,
+              "client_reported_cost_usd": 0.3149035,
+              "raw_stream_sha256": "4902a5b163dfb5c185d266f7195178467f2c7c28822ba948fdcedf02d3ca145b",
+              "evidence_key": "elim-v137policy-opus48-2.1.220-mechanical-b"
+            }
+          ],
+          "result": "1 of 4 dispatched, 0 of 4 topology. The one dispatch was background and uncollected.",
+          "cost_usd": 2.0370727
+        },
+        {
+          "id": "both policies, Opus 4.8, client 2.1.218",
+          "isolates": "Client version, with the model held at Opus 4.8. `--model opus` resolves to Opus 4.8 on 2.1.218, which predates Opus 5, so this pair is comparable to the row above rather than to the Opus 5 rows.",
+          "attempts": [
+            {
+              "id": "v1.3.1 a",
+              "agent_calls": 1,
+              "agent_roles": [
+                "mech-executor"
+              ],
+              "run_in_background": [
+                false
+              ],
+              "main_session_mutated": true,
+              "topology": "FAIL",
+              "subagent_result_collected": true,
+              "client_reported_cost_usd": 0.41715149999999995,
+              "raw_stream_sha256": "2e5339751d6f4cc4dcff97a027d56969a8c67fc3f74cf4e247e6c83429be58bc",
+              "evidence_key": "elim-v131policy-opus48-2.1.218-mechanical-a"
+            },
+            {
+              "id": "v1.3.1 b",
+              "agent_calls": 1,
+              "agent_roles": [
+                "mech-executor"
+              ],
+              "run_in_background": [
+                false
+              ],
+              "main_session_mutated": true,
+              "topology": "FAIL",
+              "subagent_result_collected": true,
+              "client_reported_cost_usd": 0.3502459,
+              "raw_stream_sha256": "8a9db8e1d2e2e6cc81e7cf3bac5ed22eea80f842db006457377857e212ea4752",
+              "evidence_key": "elim-v131policy-opus48-2.1.218-mechanical-b"
+            },
+            {
+              "id": "v1.3.7 a",
+              "agent_calls": 1,
+              "agent_roles": [
+                "mech-executor"
+              ],
+              "run_in_background": [
+                false
+              ],
+              "main_session_mutated": true,
+              "topology": "FAIL",
+              "subagent_result_collected": true,
+              "client_reported_cost_usd": 0.43980445,
+              "raw_stream_sha256": "453c8897800daaf1c0718f08e5fc739f18219541612d64f4ed5c640361af372d",
+              "evidence_key": "elim-v137policy-opus48-2.1.218-mechanical-a"
+            },
+            {
+              "id": "v1.3.7 b",
+              "agent_calls": 1,
+              "agent_roles": [
+                "mech-executor"
+              ],
+              "run_in_background": [
+                false
+              ],
+              "main_session_mutated": true,
+              "topology": "FAIL",
+              "subagent_result_collected": true,
+              "client_reported_cost_usd": 0.39428959999999996,
+              "raw_stream_sha256": "72c302987e776a67e8d306023012b99ce88b6475ce9d4ae90fae62963dc7a46c",
+              "evidence_key": "elim-v137policy-opus48-2.1.218-mechanical-b"
+            }
+          ],
+          "result": "4 of 4 dispatched a foreground `mech-executor` with Sonnet 5 billed in every stream, and 0 of 4 topology: every attempt then rewrote all twelve adapters itself. The client moves whether a worker is summoned; it does not move whether the main session yields the files.",
+          "effort_caveat": "These runs omit `--effort high`, which 2.1.218 does not accept, so they ran at default effort while the 2.1.220 comparisons used high. The difference does not weaken the dispatch observation — the older client dispatched more at lower effort — and no topology conclusion rests on it.",
+          "cost_usd": 1.60149145
+        },
+        {
+          "id": "full reproduction: v1.3.1 policy, v1.3.1 role payload, Opus 4.8, client 2.1.218",
+          "isolates": "Nothing. This matches all four controlled inputs of the recorded pass.",
+          "policy_sha256": "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf",
+          "agents_json_runtime_sha256": "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
+          "agents_json_provenance": "Rebuilt from `templates/agents` at tag v1.3.1 with that tag's `benchmarks/baton-compatibility/build-agents-json.py`; the runtime digest matches `policy_inputs['v1.3.1-release-payload'].agents_json_sha256` exactly.",
+          "attempts": [
+            {
+              "id": "a",
+              "agent_calls": 1,
+              "agent_roles": [
+                "mech-executor"
+              ],
+              "run_in_background": [
+                false
+              ],
+              "main_session_mutated": true,
+              "topology": "FAIL",
+              "subagent_result_collected": true,
+              "client_reported_cost_usd": 0.39043305000000006,
+              "raw_stream_sha256": "933b4e7d28ac095172a52202ae0aae6d7c90ff4a70fe8aad5dad0d8ee1d9f23a",
+              "evidence_key": "elim-full-reproduction-2.1.218-mechanical-a"
+            },
+            {
+              "id": "b",
+              "agent_calls": 0,
+              "agent_roles": [],
+              "run_in_background": [],
+              "main_session_mutated": true,
+              "topology": "FAIL",
+              "subagent_result_collected": false,
+              "client_reported_cost_usd": 0.3970560000000001,
+              "raw_stream_sha256": "9861393a16a128470651d8f2f64fe6a207eec4451d315c320693e4a6545e0d20",
+              "evidence_key": "elim-full-reproduction-2.1.218-mechanical-b"
+            }
+          ],
+          "result": "1 of 2 dispatched, 0 of 2 topology. The recorded pass does not reproduce.",
+          "cost_usd": 0.78748905
+        }
+      ],
+      "uncontrolled_input": "One input of the recorded pass cannot be restored: it ran on a Pro account, and this account has since been upgraded to Max. Client 2.1.217, the other client in the recorded pass, is also no longer retained locally — though 2.1.218 is, and it was equally a passing client at the time. Both suppressions #29 documents are resolved at runtime and are account- and flag-dependent: one behind a subscription-type comparison, the other behind a resolver reading client data, then a flag lookup, then a built-in default. A plan change is therefore expected to change the injection set, which is why the plan is named here as the difference that remains rather than dismissed."
+    },
+    "conclusion": [
+      "The regression is real and is recorded: the same prompt and fixture passed the cell 2 of 2 on Opus 4.8 with clients 2.1.217 and 2.1.218, and no configuration tested here passes it.",
+      "Neither input this repository controls accounts for it. Five policy texts spanning 12,714 to 18,071 bytes and two writing registers, including the exact bytes from the recorded pass, all fail. The role payload from the recorded pass also fails.",
+      "The client version moves one half of the behaviour and not the other: on 2.1.218 all four attempts summoned a foreground worker that really ran, and all four then redid its work. Whatever holds the main session's ownership open is not reachable from a user-level `CLAUDE.md`, which is the claim #29 has made from the start.",
+      "Twenty mechanical attempts, zero topology passes, and every attempt correct on its tests. This was never a correctness problem.",
+      "The prompt-size budget was not raised. Since the text is not the variable, spending budget headroom on it would grow the policy without buying anything."
+    ],
+    "claim_boundary": "Two attempts per configuration on one machine and one account. This establishes that the listed configurations did not reach the topology under these exact conditions; it is not a dispatch rate and does not prove that no policy text could ever work. It does establish that the recorded pass is not currently reproducible, which is the part that matters for how this benchmark's historical rows should be read.",
+    "cost": {
+      "total_usd": 13.598162,
+      "breakdown": {
+        "candidate_1": 1.8719715,
+        "candidate_2": 3.2653845,
+        "candidate_3": 3.3621523,
+        "elim_v131_opus5_2_1_220": 0.6726005,
+        "elim_opus48_2_1_220": 2.0370727,
+        "elim_client_2_1_218": 1.60149145,
+        "elim_full_reproduction": 0.78748905
+      },
+      "note": "Excludes the 2.219164 Max baseline, costed in `v1_3_7_max_prompt_baseline`. Derived by summing the per-campaign values above."
+    },
+    "evidence": {
+      "traces": "./traces.json",
+      "agent_calls": "./agent-calls.json",
+      "note": "Every attempt above carries an `evidence_key` into both files. Those entries publish the tool sequence, the flagged main-session mutation paths, the observed model and the client version, so each topology verdict is recheckable without the raw stream."
     }
   }
 }

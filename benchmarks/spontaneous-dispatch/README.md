@@ -189,6 +189,33 @@ The mechanical cell is the sharpest comparison available: the same prompt and fi
 
 This baseline is the first set of runs to fix both contamination sources found in review: `agents.json` is passed to `--agents` and never copied in, and every capture is written outside the disposable repository. `git ls-files --others --exclude-standard` is empty in all five newly run directories. The three attempts reused from the paired matrix — schema a and b, routine a — predate the capture fix and each says so.
 
+## v1.3.7 dispatch prompt investigation
+
+Recorded under `v1_3_7_dispatch_prompt_investigation` in [`results.json`](./results.json). It answers whether the mechanical-cell regression on [#29](https://github.com/Nanako0129/pilotfish/issues/29) can be fixed by strengthening the policy text. It cannot, and the record exists so nobody repeats it.
+
+Twenty mechanical attempts across eight configurations. **Zero topology passes.** Every attempt passed its tests — this was never a correctness problem.
+
+| Configuration | Dispatch | Topology |
+|---|---|---|
+| Baseline, v1.3.7, Opus 5, 2.1.220 | 0 of 2 | 0 of 2 |
+| Candidate 1 — imperative rule | 2 of 2, background, never collected | 0 of 2 |
+| Candidate 2 — hedge restored plus ownership clause | 0 of 2 | 0 of 2 |
+| Candidate 3 — imperative plus ownership plus wait | 2 of 2, foreground, collected | 0 of 2 |
+| v1.3.1 policy, Opus 5, 2.1.220 | 0 of 2 | 0 of 2 |
+| both policies, Opus 4.8, 2.1.220 | 1 of 4 | 0 of 4 |
+| both policies, Opus 4.8, 2.1.218 | 4 of 4, foreground | 0 of 4 |
+| full reproduction of the recorded pass | 1 of 2 | 0 of 2 |
+
+Candidate 3 is the shape of the whole finding. Its text says `don't edit them, don't redo its work`. Both attempts dispatched a foreground worker, collected its result, and then rewrote all twelve adapters anyway.
+
+**Neither input this repository controls accounts for the regression.** Five policy texts from 12,714 to 18,071 bytes in two writing registers, including the exact bytes from the recorded pass, all fail; so does the role payload from the recorded pass, rebuilt and digest-matched to `0b42c137…`. The client version moves whether a worker is summoned — 2.1.218 dispatched 4 of 4 with Sonnet 5 billed in every stream — and does not move whether the main session yields the files.
+
+One input cannot be restored: the recorded pass ran on a Pro account and this one is now Max. Both suppressions #29 documents resolve at runtime against account and flag state, so a plan change is expected to change the injection set. That is why the two historical mechanical rows above now carry a `reproducibility` note. They remain true observations of their time; they are no longer a target this benchmark expects to hit.
+
+The prompt-size budget was **not** raised. Candidate 3 exceeded `max_bytes_per_rule` by 2 bytes and the ceiling stayed at 500: since the text is not the variable, spending headroom on it would grow the policy without buying anything.
+
+Any future candidate also has to keep the pinned rule count at 36, hold the two negative cells at 2 of 2, and remove no rule added after v1.3.3 — v1.3.1, the only version with a recorded pass, predates the verification-recovery section, AUTO/ASK, the five-pass recovery budget, candidate fingerprinting and all of `Parallel agents`.
+
 ## Claim limits
 
 | Limit | Consequence |
