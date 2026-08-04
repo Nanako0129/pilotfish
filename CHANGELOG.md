@@ -2,6 +2,14 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
+## v1.3.8 — 2026-08-04
+
+Calibrate issue #29 dispatch recovery without making delegation universal. Risk triggers are checked before the small-work shortcut; stable mechanical repetition uses one collected `mech-executor`, while routine docs and a single unknown bug stay in the main session. Schema work keeps mandatory Plan and outcome review separate from the dispatch-brake decision about who implements it.
+
+The recommended explicit opt-in now tells Claude to follow Pilotfish's dispatch brake instead of delegating every eligible task. On the recorded Gate candidate, routine docs and the single-bug control stayed direct `2/2`, mechanical repetition delegated and passed `2/2`, and the schema lifecycle preserved Plan review, approval, primary tests, and outcome review `2/2`. Post-review policy corrections still require a fresh replay before release. The qualifying cells reported `$3.91628855`; including one disclosed budget-incomplete mechanical run, the narrow campaign reported `$4.53105325`.
+
+Correct the issue #29 retrospective classifier by separating child-agent tools from the main session and matching completed Agent results. The corrected historical result is 7/20 dispatch-reachability passes rather than 0/20; all twenty attempts still ended with the same twelve modified paths and 12/12 fixture tests. These are separate reachability and final-state observations, not causal filesystem ownership, a dispatch rate, or client-version attribution.
+
 ## v1.3.7 — 2026-08-02
 
 Give the prompt surface a standing size budget and bring it back under one. #27 closed on v1.3.4 cutting the always-loaded policy 24.653%, but nothing in the tree could fail a release on size, so by v1.3.6 the policy had grown past its pre-compression size. `benchmarks/prompt-compression/budget.json` now records two normalized metrics and `tests/test_policy.py` enforces them: UTF-8 bytes per rule capped at 500 with the rule count pinned at 36, and contraction-normalized filler share capped at 10.5% for the policy and 12.0% for the eight agent files. Both metrics are normalized so the policy may still grow by adding rules; only verbosity is penalized. Two metrics rather than one because each closes the other's gaming vector, and the pinned denominator stops a Markdown refactor from manufacturing headroom.

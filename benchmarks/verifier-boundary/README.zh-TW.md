@@ -14,6 +14,8 @@
 | Routine docs | Main session 直接修改；沒有 Agent call | 1/1 test；只修指定的 README typo | $0.25360000 |
 | Post-cap Plan control | `plan-verifier` × 3 | `REVISE` → `REVISE` → ownership fix／new epoch → closing `READY`；零寫入 | $1.16110000 |
 
+上表的 `mech-executor` hop 是歷史觀察路徑，不是 schema Gate 的必要條件。目前的 [issue #29 recovery Gate](../spontaneous-dispatch/README.zh-TW.md#issue-29-opt-in-recovery) 強制 Plan review、approval、primary tests 與 outcome review；implementation ownership 由 dispatch brake 決定並記錄，不強迫委派。
+
 因此，exact candidate 在明確 agent opt-in 下到達 independent-review boundary
 兩側：serialization change 有 Plan 與 outcome review，routine docs 維持直接
 處理，user-directed 三回合 Plan control 則在兩次 `REVISE` 後停止，接著只做

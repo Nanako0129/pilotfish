@@ -4,10 +4,10 @@
 
 | 測試格 | 預期拓撲 | 行為驗收條件 |
 |---|---|---|
-| 穩定的 12 檔機械式修改 | 恰好一個前景 `mech-executor` | 主 session 全程不得修改 source；worker 是唯一修改路徑；diff 恰好 12 個 adapter；12/12 測試通過 |
+| 穩定的 12 檔機械式修改 | 恰好一個前景 `mech-executor` | Stream 包含一筆相符且已完成的 Agent result；diff 恰好 12 個 adapter；12/12 測試通過 |
 | 單一未知且緊耦合的 bug | 主 session 負責診斷與第一個最小修正 | 主 session 完成修正並觀察 focused 2/2 通過之前，不得呼叫 discovery 或 implementation agent；結尾可呼叫 `verifier` |
 
-精確 Prompt 位於 [`prompts/`](./prompts/)。執行結果、正規化工具序列與可觀測 Agent 呼叫分別位於 [`results.json`](./results.json)、[`traces.json`](./traces.json) 與 [`agent-calls.json`](./agent-calls.json)。Raw stream 的初始化事件會包含本機路徑、session ID、hook 與 plugin inventory，因此不提交原文，只保留 SHA-256。
+精確 Prompt 位於 [`prompts/`](./prompts/)。執行結果、正規化工具序列與可觀測 Agent 呼叫分別位於 [`results.json`](./results.json)、[`traces.json`](./traces.json) 與 [`agent-calls.json`](./agent-calls.json)。Issue #29 的修正回溯記錄在 [`issue-29-topology.json`](./issue-29-topology.json)，由 [`classify_stream.py`](./classify_stream.py) 產生。Raw stream 的初始化事件會包含本機路徑、session ID 與 plugin inventory，因此不提交原文，只保留 SHA-256。
 
 ## 輸入契約
 
@@ -17,10 +17,10 @@
 | Fixture 詞彙 | 對 mechanical 與 tightly coupled bug fixtures 使用同一掃描 |
 | 模型歸因 | 以 stream initialization event 為準；請求 alias 不能證明實際模型 |
 | 角色歸因 | 必須觀察到 `subagent_type: mech-executor` 的 `Agent` 呼叫；不得在 invocation 指定 model |
-| 修改歸因 | 拒絕 top-level `Edit` 或 `Write`；保守分類每個 top-level Bash，任何 redirection 或可修改 source 的命令都判定失敗 |
+| 證據邊界 | 以 `parent_tool_use_id` 分開 main 與 child tools，並要求相符的 completed Agent result。Modified paths 與 tests 是另外的 final-state observations；不推論 filesystem mutation 的因果歸屬 |
 | 隔離 | 只在全新 disposable copy 與乾淨的 committed baseline 執行 |
 
-嚴格 Bash classifier 遇到不確定就判定失敗。即使最終 diff 正確，只要主 session 曾執行未分類或可寫入的命令，就不能證明修改由 worker 獨佔。
+Classifier 記錄 dispatch reachability，不判讀 shell side effects。Final diff 正確且 worker result 已收回，也不能證明每一筆修改由哪個 process 造成。
 
 ## Baseline 結果
 
@@ -33,12 +33,12 @@ Opus 只在一個 disposable fixture 執行一次，不能推論委派頻率或�
 
 ## Candidate 結果
 
-| 執行 | Main 拓撲 | Source owner | 正確性 | Gate |
+| 執行 | Main 拓撲 | 已觀察到的 source-tool scope | 正確性 | Gate |
 |---|---|---|---|---|
-| Opus 4.8、v1.3.1 candidate 1 mechanical | 唯讀 triage → 一個前景 `mech-executor` → main acceptance | 僅 `mech-executor` | 12/12 | 通過 |
+| Opus 4.8、v1.3.1 candidate 1 mechanical | Main triage → 一個前景 `mech-executor` → main acceptance | Source-targeted tools 出現在 worker trace | 12/12 | 通過 |
 | Opus 4.8、v1.3.1 candidate 1 bug | Main 診斷 → main 最小修正 → main 測試與 identity probe | Main session | 2/2 | 通過 |
 
-Mechanical Agent invocation 沒有傳入 `model`，模型 routing 由 named role definition 負責。所有 source-writing tools 都在 worker nested trace；main trace 沒有 `Edit`、`Write`、redirection 或可寫入 source 的 Bash。Bug trace 在主 session 自行修正並看到 2/2 通過的前後都沒有 Agent 呼叫。
+Mechanical Agent invocation 沒有傳入 `model`，模型 routing 由 named role definition 負責。Source-targeted tool calls 出現在 worker nested trace，main trace 中沒有；這是 stream evidence，不是 filesystem ownership 的因果證明。Bug trace 在主 session 自行修正並看到 2/2 通過的前後都沒有 Agent 呼叫。
 
 ## Exact release-payload replay
 
@@ -46,7 +46,7 @@ PR #19 與 PR #20 合併進 release branch 後，兩格都以 Claude Code 2.1.21
 
 | Run | 可觀察 topology | Correctness | Gate |
 |---|---|---|---|
-| Mechanical | Opus main → 一個前景 `mech-executor`；invocation 省略 `model`；nested model 實際解析為 `claude-sonnet-5`；worker 是唯一 source-mutation path | In-session 12/12；獨立 post-run 12/12 | 通過 |
+| Mechanical | Opus main → 一個前景 `mech-executor`；invocation 省略 `model`；nested model 實際解析為 `claude-sonnet-5`；source-targeted tools 出現在 worker trace | In-session 12/12；獨立 post-run 12/12 | 通過 |
 | Bug | Opus main 擁有診斷、first minimal fix 與 post-fix test；零 Agent call | In-session 2/2；獨立 post-run 2/2 | 通過 |
 
 這兩筆 additive replay 在 JSON evidence 中分別命名為 `opus-v1.3.1-release-payload-mechanical` 與 `opus-v1.3.1-release-payload-bug`。它們證明這兩個精確 input 仍守住 routing 邊界，也證明 Claude Code 接受 post-[#18](https://github.com/Nanako0129/pilotfish/issues/18) generated payload。Mechanical role 是 `mech-executor`，不是 #18 修改的另一個 `executor` definition；這次 replay 沒有 live-exercise 該 role，也不代表 dispatch 發生率。
@@ -189,16 +189,51 @@ Mechanical 是目前最銳利的比較：同一份 prompt、同一個 fixture，
 
 這是第一組同時修掉 review 找出的兩個污染源的 run：`agents.json` 只經 `--agents` 傳入、絕不複製進去，每一份 capture 都寫在拋棄式 repo 之外。五個新建目錄的 `git ls-files --others --exclude-standard` 都是空的。從配對 matrix 沿用的那三次 attempt——schema a 與 b、routine a——早於 capture 修正，各自都已載明。
 
+## Issue #29 reachability 修正
+
+已關閉的 PR #45 曾把二十次 mechanical attempt 報成零次 dispatch pass。它的 extractor 把 child-agent event 也放進 `top_level_tools`；修正後的 classifier 只分開 scope 並比對 completed Agent result，不再解析 shell side effects。
+
+| 修正後設定 | Dispatch reachability |
+|---|---|
+| Candidate 3、Opus 5、client 2.1.220 | 二取二通過 |
+| v1.3.1 與 v1.3.7 policy、Opus 4.8、client 2.1.218、current roles | 四取四通過 |
+| 使用 release roles 的完整 v1.3.1 reproduction | 二取一通過 |
+| 其餘設定 | 十二取零通過 |
+
+修正後總數是 **7/20**，二十次的正確性仍全為 12/12，final modified paths 也都是相同十二檔。通過代表恰好一個 foreground、已收回的 `mech-executor`，而且 invocation 沒有指定 model。Tool stream、final diff 與 test result 是分開的觀察：不能證明 filesystem mutation 的因果歸屬，也不是 dispatch rate。Client 2.1.218 使用 default effort，2.1.220 使用 high effort，因此這組比較也不能單獨歸因於 client。
+
+歷史 Candidate 3 只證明 wording 方向，不是 release candidate：它的 mechanical dispatch reachability 二取二通過，但超出 prompt density 預算，兩次 schema attempt 也都跳過 approval gate。壓縮後候選必須重新通過 mechanical、bug、routine 與 schema gate，才能更新 snapshot hash。
+
+## Issue #29 opt-in recovery
+
+記錄中的 Gate candidate 使用以下明確 opt-in 後通過修正 matrix。v1.3.8 release candidate 之後又恢復 independent-review qualifier，並補上 mechanical worker 可能需要長指令時的 background 例外；這些 post-Gate policy bytes 發版前必須重新 replay：
+
+```text
+Use pilotfish. Follow its dispatch brake: keep direct work in the main session and call the named agents only when the policy selects delegation.
+```
+
+| 測試格 | Blocking contract | 結果 |
+|---|---|---|
+| Routine docs | 主 session 直接修改；零 Agent call | 二取二通過 |
+| 單一未知 bug | 主 session 負責診斷與首次最小修正；零 Agent call | 二取二通過 |
+| 穩定 12 檔重複工作 | 一個 foreground、已收回的 `mech-executor`；final modified paths 恰好十二檔 | 二取二通過，每次 12/12 tests |
+| Schema lifecycle | `plan-verifier` → approval stop → 實作 → primary tests → `verifier`；實作 owner 由 brake 決定 | 二取二通過；兩次直接實作最後皆為 `CONFIRMED` |
+
+Schema review 與 implementation routing 是兩個不同決策。Serialization 會強制 Plan 與 outcome review，但不會強制兩檔實作一定委派。Mechanical delegation 已有獨立正向格。若把 execution-agent hop 當成 schema blocker，就會違反 policy 的 net-benefit brake；先前實測也曾讓一行 docs 工作過度委派。
+
+[`issue-29-recovery.json`](./issue-29-recovery.json) 綁定 repository policy、注入方法、generated agents payload、prompts、成本與 raw-stream hashes。歷史 transcript 觀察到 fixture `CLAUDE.md` 為預期的 17,996 bytes，但沒有提供實際併入 runtime system prompt 的位元組 digest，因此這不是 exact-loaded-policy claim。Stream 與 final-state evidence 不用來宣稱 causal mutation ownership。合格完成 cells reported `$3.91628855`；另有一次 routing 正確的 mechanical invocation 在收回 child result 前用完 `$0.60` cap，已揭露但不算通過。連同該次，campaign reported `$4.53105325`。
+
 ## 結論邊界
 
 | 限制 | 影響 |
 |---|---|
-| 上面 baseline、candidate 與 release-payload 各格只有一筆已記錄觀察 | 結果是行為案例，不是發生率 |
+| Baseline、candidate 與 release-payload sections 各格一筆觀察；Issue #29 recovery matrix 各格兩次 attempt | 結果是行為案例，不是發生率 |
 | v1.3.7 matrix 只有三個已觀察的 cell，不是完整 matrix——Pro 兩臂皆有，Max 只有 cue-free 臂，每個 cell 為 schema ×2、routine ×1 | 同樣不是發生率。Max 二取一那次委派是可達性案例；兩次 attempt 無法把方案效應、run-to-run 變異，以及隨方案一起變動的樹差異分開 |
 | Client 回報的 cost 欄位 | 不是 provider invoice |
 | Fable usage-credit gate | 沒有可用的 Fable 行為、正確性或效率比較 |
 | Candidate 只以 Opus 評估 | Opus 通過不能證明其他模型有相同 routing |
 | Policy iteration 數量 | Candidate 1 已通過兩格；之後 executor frontmatter 變更後，又以 exact release payload 重測相同兩格 |
 | 正規化證據 | Raw-stream hash 可比對身分；公開 trace 刻意排除敏感本機資訊 |
+| Stream 加 final state | 收回 worker call、modified paths 與 passing tests 不能證明 filesystem mutation 的因果歸屬 |
 
 這個閘門是 additive evidence，不會覆寫先前的 [`dispatch-brake`](../dispatch-brake/README.zh-TW.md) 或 [`baton-compatibility`](../baton-compatibility/README.zh-TW.md) 證據。

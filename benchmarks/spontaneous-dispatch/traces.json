@@ -417,7 +417,7 @@
         "Write"
       ],
       "agent_calls": [],
-      "note": "v1.3.7 Max prompt baseline; no Agent call was made. Topology FAIL: the main session was the sole mutation path, first through a heredoc loop and then through twelve individual writes.",
+      "note": "v1.3.7 Max prompt baseline; no Agent call was made. Topology FAIL: source-targeted main-session tools were observed, first through a heredoc loop and then through twelve individual writes.",
       "top_level_bash_actions": [
         "list project files",
         "show adapter sources and package.json",

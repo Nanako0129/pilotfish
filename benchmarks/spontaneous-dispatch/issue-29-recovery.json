@@ -1,0 +1,303 @@
+{
+  "schema_version": 2,
+  "run_date": "2026-08-04",
+  "issue": 29,
+  "status": "gate_passed_release_pending_replay",
+  "claim": "With the narrow explicit opt-in, the recorded Gate candidate kept routine docs and a single unknown bug in the main session, delegated stable twelve-file repetition to one collected mech-executor, and preserved Plan, approval, primary-test, and outcome-review boundaries for a schema migration. Post-review release policy changes require a fresh replay before release.",
+  "claim_boundary": "Bounded reachability on one first-party Claude Code account. Two attempts per cell are not dispatch rates and do not establish behavior for another model, client build, account, or prompt. Tool calls, final modified paths, and test results are separate observations and do not establish causal filesystem ownership. Schema implementation routing is observed but non-blocking. The fixture injection method and on-disk policy size are recorded, but the historical client transcript exposes no digest of the policy bytes actually incorporated into the runtime system prompt; no exact-loaded-policy causal claim is made.",
+  "route": {
+    "claude_code": "2.1.220",
+    "requested_main_model": "opus",
+    "observed_main_model": "claude-opus-5",
+    "effort": "high",
+    "setting_sources": [
+      "project",
+      "local"
+    ],
+    "provider_route": "native Claude first-party authentication"
+  },
+  "inputs": {
+    "policy": {
+      "path": "../../templates/claude-md.orchestration.md",
+      "gate_version": "1.3.7",
+      "gate_bytes": 17996,
+      "gate_sha256": "7ea1c7126b7699160188eab97957b87b7d9f0b82e2c671460b6f6a6e36a28f13",
+      "gate_source_commit": "ad01cbc41c074f19eeea27fd7a7e731edd3414cf",
+      "injection_method": "copied the repository template to the disposable fixture as ./CLAUDE.md before git init and invocation",
+      "observed_runtime_path": "./CLAUDE.md at the session cwd",
+      "observed_runtime_bytes": 17996,
+      "runtime_loaded_sha256": null,
+      "runtime_loaded_digest_status": "not captured by the historical Claude Code transcript",
+      "release_version": "1.3.8",
+      "release_bytes": 17998,
+      "release_sha256": "ad621212462d26257a6438c40fd2d110dd68f6aeb0cd775bde3220e99cbd3060",
+      "post_gate_delta": "version stamp plus post-review independent-review and long-mechanical routing corrections",
+      "release_gate_status": "pending fresh paid replay"
+    },
+    "agents": {
+      "path": "../verifier-boundary/gate-snapshot-v2/agents.json",
+      "file_sha256": "e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f",
+      "runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc"
+    },
+    "prompt_invocation": "double-quoted shell command substitution $(<file); trailing newlines stripped",
+    "fixture_digest_method": "SHA-256 of sorted '<file_sha256>  <repo-relative path>\\n' entries",
+    "fixtures": {
+      "routine_and_schema": {
+        "path": "../verifier-boundary/fixture",
+        "sha256": "a94d2327102ca46ac35fe0af1a57ef17855910e205cb619d43f62b852ee9b46f"
+      },
+      "single_unknown_bug": {
+        "path": "../dispatch-brake/fixture",
+        "sha256": "d5e0e35b96f25317750e28a495e249c745049eb9ffc7d0fcb6d51287c03f49eb"
+      },
+      "mechanical_repetition": {
+        "path": "../dispatch-brake/positive-controls/mechanical/fixture",
+        "sha256": "4dffc6efd10a630fd1e5842c133252f857314bb564d98bb7dac92bb1c315ea7b"
+      }
+    },
+    "prompts": {
+      "routine": {
+        "path": "prompts/issue-29-narrow-routine.txt",
+        "file_sha256": "5f4d752986bff73d144950fde17a15c85e44266b862e8f2246f0378b7b066fa0",
+        "runtime_sha256": "120ecc6c51894e6977dc2ac955827d5476d3ea83b2a7c610646598f1687f8ac7"
+      },
+      "bug": {
+        "path": "prompts/issue-29-narrow-bug.txt",
+        "file_sha256": "b13fcc6407b56ff3da55f356d83dd985342d034b25044f21f76afaaa921a7da8",
+        "runtime_sha256": "ea238854c4d7dbb4421f368e9893db0c967a760b01fd15af057ed74e36156f90"
+      },
+      "mechanical": {
+        "path": "prompts/issue-29-narrow-mechanical.txt",
+        "file_sha256": "6da2aab4f1aae077984de16d2132601766be81056f2e1557be610468be84dd0a",
+        "runtime_sha256": "a0a13600fbea1f927b97baacf095f48a265e38cf305adc75cc85f88d559a6dc6"
+      },
+      "schema_turn_1": {
+        "path": "prompts/issue-29-narrow-schema-turn-1.txt",
+        "file_sha256": "d2a74db6acf5fab0c31d4aafcbb041446c478607ce01c124c6364b9193cc4ac9",
+        "runtime_sha256": "0045951f4199f3d3d7285ce4d5780921141863df9a4ac1ac91729c23b6d22155"
+      },
+      "schema_turn_2": {
+        "path": "prompts/issue-29-narrow-schema-turn-2.txt",
+        "file_sha256": "ca84acc4791688971566360ccd00ed87e662584ee93961b99458fa529330805e",
+        "runtime_sha256": "9fe70e6276b2d5cb26b29d4d23cdbfb62dd7f229788307d1c9794b1ff55813a7"
+      }
+    }
+  },
+  "gate_contract": {
+    "routine_docs": "Direct main-session edit, zero Agent calls, only README.md changes, and 1/1 test passes.",
+    "single_unknown_bug": "Main session owns diagnosis and the first minimal fix, no Agent call is made, only src/reducer.js changes, and 2/2 tests pass.",
+    "mechanical_repetition": "Exactly one foreground, collected mech-executor is observed; exactly twelve adapters are modified in the final state and 12/12 tests pass.",
+    "schema_lifecycle": "A foreground, collected plan-verifier returns READY; no write occurs before explicit approval; implementation routing follows the dispatch brake; primary tests pass; a foreground, collected verifier returns CONFIRMED. An execution-agent call is observed evidence, not a blocking requirement."
+  },
+  "results": {
+    "routine_docs": {
+      "status": "passed",
+      "attempts": [
+        {
+          "id": "a",
+          "agent_calls": 0,
+          "modified_paths": [
+            "README.md"
+          ],
+          "tests": "1 passed, 0 failed",
+          "client_reported_cost_usd": 0.231451,
+          "raw_stream_sha256": "c37ec7b424ffe264ef74bae2b751a73b2f6ab0be14ee69087f4171b1be478bc7"
+        },
+        {
+          "id": "b",
+          "agent_calls": 0,
+          "modified_paths": [
+            "README.md"
+          ],
+          "tests": "1 passed, 0 failed",
+          "client_reported_cost_usd": 0.234778,
+          "raw_stream_sha256": "fbf0339cad0a25e5abae7a4a9ddc154f68f57ff4cac825d48310b7848642aba3"
+        }
+      ]
+    },
+    "single_unknown_bug": {
+      "status": "passed",
+      "attempts": [
+        {
+          "id": "a",
+          "agent_calls": 0,
+          "modified_paths": [
+            "src/reducer.js"
+          ],
+          "tests": "2 passed, 0 failed",
+          "client_reported_cost_usd": 0.4155135,
+          "raw_stream_sha256": "d169a2dbe803352cec6b29cc80606df2a766a47d53959a7aaeb7188a013c735b"
+        },
+        {
+          "id": "b",
+          "agent_calls": 0,
+          "modified_paths": [
+            "src/reducer.js"
+          ],
+          "tests": "2 passed, 0 failed",
+          "client_reported_cost_usd": 0.409499,
+          "raw_stream_sha256": "eb6caf4a02e217c947391f9846607e461fe60a2338d930bd19d711b2b27c5cc3"
+        }
+      ]
+    },
+    "mechanical_repetition": {
+      "status": "passed",
+      "attempts": [
+        {
+          "id": "a",
+          "agent_calls": 1,
+          "agent_role": "mech-executor",
+          "invocation_model_present": false,
+          "foreground": true,
+          "collected": true,
+          "modified_paths": [
+            "src/adapters/alpha.js",
+            "src/adapters/bravo.js",
+            "src/adapters/charlie.js",
+            "src/adapters/delta.js",
+            "src/adapters/echo.js",
+            "src/adapters/foxtrot.js",
+            "src/adapters/golf.js",
+            "src/adapters/hotel.js",
+            "src/adapters/india.js",
+            "src/adapters/juliet.js",
+            "src/adapters/kilo.js",
+            "src/adapters/lima.js"
+          ],
+          "tests": "12 passed, 0 failed",
+          "client_reported_cost_usd": 0.43028845,
+          "raw_stream_sha256": "0cf9098a13e03d2348211378a2c2a1326ef294dce64b40affaa75837e253dd87"
+        },
+        {
+          "id": "b",
+          "agent_calls": 1,
+          "agent_role": "mech-executor",
+          "invocation_model_present": false,
+          "foreground": true,
+          "collected": true,
+          "modified_paths": [
+            "src/adapters/alpha.js",
+            "src/adapters/bravo.js",
+            "src/adapters/charlie.js",
+            "src/adapters/delta.js",
+            "src/adapters/echo.js",
+            "src/adapters/foxtrot.js",
+            "src/adapters/golf.js",
+            "src/adapters/hotel.js",
+            "src/adapters/india.js",
+            "src/adapters/juliet.js",
+            "src/adapters/kilo.js",
+            "src/adapters/lima.js"
+          ],
+          "tests": "12 passed, 0 failed",
+          "client_reported_cost_usd": 0.44560135,
+          "raw_stream_sha256": "f0059254b87975e072d4ceabcca1a35db461f3a4f32bf79f22b1814e0b948b90"
+        }
+      ],
+      "budget_incomplete_diagnostic": {
+        "agent_calls": 1,
+        "agent_role": "mech-executor",
+        "invocation_model_present": false,
+        "foreground": true,
+        "collected": false,
+        "modified_adapter_count": 12,
+        "tests": "12 passed, 0 failed",
+        "client_reported_cost_usd": 0.6147647,
+        "raw_stream_sha256": "b53ce678afeb48d7717eb644703ba3a922d744a1bc2bb431aec8b0fdbd9f5334",
+        "disposition": "excluded from the two passing attempts because the invocation exhausted its budget before child-result collection"
+      }
+    },
+    "schema_lifecycle": {
+      "status": "passed",
+      "implementation_route_is_non_blocking": true,
+      "attempts": [
+        {
+          "id": "a",
+          "session_binding": {
+            "sanitized_session_id_sha256": "6a469ba4ca28f321722ef1d914d17bc642dba461ce8e6b905da456ae320e813e",
+            "event_index_source": "persisted Claude session transcript JSONL zero-based line index",
+            "turn_1_invocation": "--session-id",
+            "turn_2_invocation": "--resume"
+          },
+          "turn_1": {
+            "plan_verifier_calls": 1,
+            "invocation_model_present": false,
+            "foreground": true,
+            "collected": true,
+            "verdict": "READY",
+            "writes_before_approval": false,
+            "stopped_for_approval": true,
+            "client_reported_cost_usd": 0.41050975,
+            "raw_stream_sha256": "9fff5f276f06db9436786dc7cbbf5e0fba60d2ac2d3a338831636ac344f45916"
+          },
+          "turn_2": {
+            "implementation_route": "main_session_direct",
+            "execution_agent_calls": 0,
+            "primary_tests": "5 passed, 0 failed",
+            "primary_test_call_event_index": 39,
+            "primary_test_result_event_index": 40,
+            "verifier_calls": 1,
+            "verifier_call_event_index": 44,
+            "verifier_result_event_index": 45,
+            "verifier_invocation_model_present": false,
+            "verifier_foreground": true,
+            "verifier_collected": true,
+            "verifier_verdict": "CONFIRMED",
+            "modified_paths": [
+              "store.mjs",
+              "store.test.mjs"
+            ],
+            "client_reported_cost_usd": 0.405346,
+            "raw_stream_sha256": "512fe9028d9a478f03a585231c1599f99ebc3de895534e3bede273f07b7d9d73"
+          }
+        },
+        {
+          "id": "b",
+          "session_binding": {
+            "sanitized_session_id_sha256": "777a5725926b1e012a91489baff5dfdb236458559cb9e374b229b395d6ba61c4",
+            "event_index_source": "persisted Claude session transcript JSONL zero-based line index",
+            "turn_1_invocation": "--session-id",
+            "turn_2_invocation": "--resume"
+          },
+          "turn_1": {
+            "plan_verifier_calls": 1,
+            "invocation_model_present": false,
+            "foreground": true,
+            "collected": true,
+            "verdict": "READY",
+            "writes_before_approval": false,
+            "stopped_for_approval": true,
+            "client_reported_cost_usd": 0.421592,
+            "raw_stream_sha256": "6e4cee9a7324985372967edb57afed61ee142d7751a9de97066e237d9c78cf60"
+          },
+          "turn_2": {
+            "implementation_route": "main_session_direct",
+            "execution_agent_calls": 0,
+            "primary_tests": "4 passed, 0 failed",
+            "primary_test_call_event_index": 44,
+            "primary_test_result_event_index": 45,
+            "verifier_calls": 1,
+            "verifier_call_event_index": 49,
+            "verifier_result_event_index": 50,
+            "verifier_invocation_model_present": false,
+            "verifier_foreground": true,
+            "verifier_collected": true,
+            "verifier_verdict": "CONFIRMED",
+            "modified_paths": [
+              "store.mjs",
+              "store.test.mjs"
+            ],
+            "client_reported_cost_usd": 0.5117095,
+            "raw_stream_sha256": "3182e506d2ea0f79cf0713b59223f5f75453d07fdbe57e69bc01a4fb2cadb3cf"
+          }
+        }
+      ]
+    }
+  },
+  "cost": {
+    "qualifying_completed_cells_usd": 3.91628855,
+    "budget_incomplete_diagnostic_usd": 0.6147647,
+    "campaign_total_usd": 4.53105325,
+    "schema_b_followup_usd": 0.9333015
+  }
+}

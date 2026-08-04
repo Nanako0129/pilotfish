@@ -15,6 +15,8 @@ Both passing controls used the README-documented opt-in:
 | Routine docs | Direct main-session edit; no Agent call | 1/1 test; only the requested README typo changed | $0.25360000 |
 | Post-cap Plan control | `plan-verifier` × 3 | `REVISE` → `REVISE` → material ownership fix/new epoch → closing `READY`; zero writes | $1.16110000 |
 
+The `mech-executor` hop above is a recorded historical route, not a schema Gate requirement. The current [issue #29 recovery Gate](../spontaneous-dispatch/README.md#issue-29-opt-in-recovery) requires Plan review, approval, primary tests, and outcome review; implementation ownership follows the dispatch brake and is recorded rather than forced.
+
 The exact candidate therefore reached both sides of the independent-review
 boundary under explicit agent opt-in: the serialization change received Plan
 and outcome review, routine docs stayed direct, and a user-directed three-turn

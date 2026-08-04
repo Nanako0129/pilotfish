@@ -184,8 +184,8 @@ An existing hook rejected the worker's direct `Write` and instructed it to retur
 |---|---|
 | Policy and snapshot SHA-256 | `7ff86564cd4cd8469cf3d24646fd395c57be09dc1fc7e1efa9d0d77c61ecfb21` |
 | Shell-stripped historical `agents.json` SHA-256 | `e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61` |
-| Current v1.3.7 policy SHA-256 | `b26ef4a6a0e02575a39ecc8d3303a8cd7f9e9180548311de399fff527efb3b75` (current template bytes; exercised by the [verifier-boundary Gate](../verifier-boundary/README.md)) |
-| Current generated v1.3.7 release payload SHA-256 | `b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc` (shell-stripped builder output; exercised by the [verifier-boundary Gate](../verifier-boundary/README.md)) |
+| Current v1.3.8 policy SHA-256 | `ad621212462d26257a6438c40fd2d110dd68f6aeb0cd775bde3220e99cbd3060` ([issue #29 recovery](../spontaneous-dispatch/README.md#issue-29-opt-in-recovery) records the earlier Gate candidate; these post-review policy bytes await replay) |
+| Current generated v1.3.8 release payload SHA-256 | `b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc` (shell-stripped builder output exercised by the issue #29 recovery Gate) |
 | Turn 1 prompt file SHA-256 | `45dbe7b6b24cb5838ebf4219011797b61f172fcc18f0ca5039144017e93fcca7` |
 | Turn 1 runtime-input SHA-256 | `d2ad46b7ecfb503f8f7185d6d68f404d326f1a4a480b9141d1a80318a746bb73` |
 | Turn 2 prompt file SHA-256 | `82d833090ba91982651de9ac4beed8fc96311119c6eb9c6f0304c292821918e7` |

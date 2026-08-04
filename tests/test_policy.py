@@ -6,6 +6,7 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -24,6 +25,149 @@ ROLES = (
 
 
 class PolicyContractTests(unittest.TestCase):
+    def test_spontaneous_dispatch_classifier_separates_child_tools(self) -> None:
+        events = [
+            {
+                "type": "system",
+                "subtype": "init",
+                "model": "claude-opus-5",
+                "claude_code_version": "2.1.220",
+            },
+            {
+                "type": "assistant",
+                "parent_tool_use_id": None,
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "name": "Agent",
+                            "id": "toolu_agent",
+                            "input": {
+                                "subagent_type": "mech-executor",
+                                "run_in_background": False,
+                            },
+                        }
+                    ]
+                },
+            },
+            {
+                "type": "assistant",
+                "parent_tool_use_id": "toolu_agent",
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "name": "Bash",
+                            "input": {"command": "npm test"},
+                        },
+                        {
+                            "type": "tool_use",
+                            "name": "Write",
+                            "input": {"file_path": "src/out.js"},
+                        },
+                    ]
+                },
+            },
+            {
+                "type": "user",
+                "parent_tool_use_id": None,
+                "tool_use_result": {"status": "completed"},
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": "toolu_agent",
+                            "content": [{"type": "text", "text": "done"}],
+                        }
+                    ]
+                },
+            },
+            {
+                "type": "result",
+                "total_cost_usd": 0.25,
+                "modelUsage": {"claude-opus-5": {"costUSD": 0.25}},
+            },
+        ]
+        uncollected_events = [
+            {
+                "type": "assistant",
+                "parent_tool_use_id": None,
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "name": "Agent",
+                            "id": "toolu_uncollected",
+                            "input": {
+                                "subagent_type": "mech-executor",
+                                "run_in_background": True,
+                            },
+                        },
+                        {"type": "text", "text": "Async agent launched"},
+                    ]
+                },
+            },
+            {
+                "type": "user",
+                "parent_tool_use_id": None,
+                "tool_use_result": {"status": "async_launched", "isAsync": True},
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": "toolu_uncollected",
+                        }
+                    ]
+                },
+            },
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            stream = Path(directory) / "stream.jsonl"
+            stream.write_text(
+                "".join(json.dumps(event) + "\n" for event in events),
+                encoding="utf-8",
+            )
+            uncollected_stream = Path(directory) / "uncollected.jsonl"
+            uncollected_stream.write_text(
+                "".join(json.dumps(event) + "\n" for event in uncollected_events),
+                encoding="utf-8",
+            )
+            output = subprocess.run(
+                [
+                    sys.executable,
+                    str(
+                        ROOT
+                        / "benchmarks"
+                        / "spontaneous-dispatch"
+                        / "classify_stream.py"
+                    ),
+                    str(stream),
+                    str(uncollected_stream),
+                ],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+
+        trace, uncollected = json.loads(output.stdout)
+        self.assertEqual(trace["top_level_tools"], ["Agent"])
+        self.assertEqual(trace["worker_tools"], ["Bash", "Write"])
+        self.assertEqual(
+            trace["agent_calls"],
+            [
+                {
+                    "subagent_type": "mech-executor",
+                    "run_in_background": False,
+                    "invocation_model_present": False,
+                }
+            ],
+        )
+        self.assertTrue(trace["subagent_result_collected"])
+        self.assertEqual(trace["observed_main_model"], "claude-opus-5")
+        self.assertEqual(trace["client_reported_cost_usd"], 0.25)
+        self.assertTrue(uncollected["async_launch_observed"])
+        self.assertFalse(uncollected["subagent_result_collected"])
+
     def test_baton_dispatch_matrix_prompts_are_neutral_and_recorded(self) -> None:
         benchmark = ROOT / "benchmarks" / "baton-dispatch-effect"
         results = json.loads(
@@ -358,6 +502,274 @@ class PolicyContractTests(unittest.TestCase):
             (benchmark / "README.md").read_text(encoding="utf-8"),
         )
 
+    def test_issue_29_reachability_correction_is_self_consistent(self) -> None:
+        path = ROOT / "benchmarks" / "spontaneous-dispatch"
+        evidence = json.loads(
+            (path / "issue-29-topology.json").read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        attempts = evidence["attempts"]
+        contract = evidence["reachability_contract"]
+        modified_paths_digest = hashlib.sha256(
+            "".join(f"{item}\n" for item in contract["modified_paths"]).encode()
+        ).hexdigest()
+        self.assertEqual(modified_paths_digest, contract["modified_paths_sha256"])
+
+        def passes(attempt: dict[str, object]) -> bool:
+            return (
+                attempt["agent_calls"] == contract["agent_calls"]
+                and attempt["agent_role"] == contract["subagent_type"]
+                and attempt["invocation_model_present"]
+                is contract["invocation_model_present"]
+                and attempt["mode"] == contract["mode"]
+                and attempt["collected"] is contract["result_collected"]
+                and attempt["modified_paths_sha256"]
+                == contract["modified_paths_sha256"]
+            )
+
+        self.assertEqual(len(attempts), 20)
+        self.assertTrue(
+            all(
+                attempt["modified_paths_sha256"]
+                == contract["modified_paths_sha256"]
+                for attempt in attempts
+            )
+        )
+        self.assertTrue(
+            all(
+                attempt["tests_passed"] == 12
+                and attempt["tests_failed"] == 0
+                for attempt in attempts
+            )
+        )
+        self.assertEqual(sum(passes(attempt) for attempt in attempts), 7)
+        self.assertEqual(
+            sum(attempt["cost_usd"] for attempt in attempts).quantize(
+                Decimal("0.0000001")
+            ),
+            evidence["summary"]["client_reported_mechanical_cost_usd"],
+        )
+        self.assertEqual(
+            {attempt["reachability"] for attempt in attempts if passes(attempt)},
+            {"PASS"},
+        )
+        self.assertEqual(
+            {attempt["reachability"] for attempt in attempts if not passes(attempt)},
+            {"FAIL"},
+        )
+        self.assertEqual(
+            len({attempt["raw_stream_sha256"] for attempt in attempts}), 20
+        )
+        self.assertEqual(
+            hashlib.sha256((path / "classify_stream.py").read_bytes()).hexdigest(),
+            evidence["classifier"]["sha256"],
+        )
+
+    def test_issue_29_recovery_gate_is_bounded_and_brake_calibrated(self) -> None:
+        path = ROOT / "benchmarks" / "spontaneous-dispatch"
+        evidence = json.loads(
+            (path / "issue-29-recovery.json").read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        self.assertEqual(evidence["schema_version"], 2)
+        self.assertEqual(evidence["status"], "gate_passed_release_pending_replay")
+
+        inputs = evidence["inputs"]
+        self.assertEqual(
+            inputs["prompt_invocation"],
+            "double-quoted shell command substitution $(<file); trailing newlines stripped",
+        )
+        self.assertEqual(
+            inputs["fixture_digest_method"],
+            "SHA-256 of sorted '<file_sha256>  <repo-relative path>\\n' entries",
+        )
+        for fixture in inputs["fixtures"].values():
+            fixture_path = (path / fixture["path"]).resolve()
+            digest_lines = []
+            for file_path in sorted(
+                item for item in fixture_path.rglob("*") if item.is_file()
+            ):
+                digest_lines.append(
+                    f"{hashlib.sha256(file_path.read_bytes()).hexdigest()}  "
+                    f"{file_path.relative_to(ROOT)}\n"
+                )
+            self.assertEqual(
+                hashlib.sha256("".join(digest_lines).encode()).hexdigest(),
+                fixture["sha256"],
+            )
+        policy = (path / inputs["policy"]["path"]).read_bytes()
+        self.assertEqual(len(policy), inputs["policy"]["release_bytes"])
+        self.assertEqual(
+            hashlib.sha256(policy).hexdigest(), inputs["policy"]["release_sha256"]
+        )
+        self.assertRegex(inputs["policy"]["gate_source_commit"], r"^[0-9a-f]{40}$")
+        self.assertRegex(inputs["policy"]["gate_sha256"], r"^[0-9a-f]{64}$")
+        self.assertEqual(inputs["policy"]["gate_bytes"], 17996)
+        self.assertIsNone(inputs["policy"]["runtime_loaded_sha256"])
+        self.assertEqual(inputs["policy"]["observed_runtime_bytes"], 17996)
+        self.assertEqual(
+            inputs["policy"]["release_gate_status"], "pending fresh paid replay"
+        )
+        agents = (path / inputs["agents"]["path"]).read_bytes()
+        self.assertEqual(
+            hashlib.sha256(agents).hexdigest(), inputs["agents"]["file_sha256"]
+        )
+        self.assertEqual(
+            hashlib.sha256(agents.rstrip(b"\n")).hexdigest(),
+            inputs["agents"]["runtime_sha256"],
+        )
+        for prompt in inputs["prompts"].values():
+            payload = (path / prompt["path"]).read_bytes()
+            self.assertEqual(
+                hashlib.sha256(payload).hexdigest(), prompt["file_sha256"]
+            )
+            self.assertEqual(
+                hashlib.sha256(payload.rstrip(b"\n")).hexdigest(),
+                prompt["runtime_sha256"],
+            )
+
+        results = evidence["results"]
+        routine = results["routine_docs"]["attempts"]
+        bug = results["single_unknown_bug"]["attempts"]
+        mechanical = results["mechanical_repetition"]
+        schema = results["schema_lifecycle"]
+        self.assertEqual(len(routine), 2)
+        self.assertTrue(all(attempt["agent_calls"] == 0 for attempt in routine))
+        self.assertTrue(
+            all(attempt["modified_paths"] == ["README.md"] for attempt in routine)
+        )
+        self.assertTrue(
+            all(attempt["tests"] == "1 passed, 0 failed" for attempt in routine)
+        )
+        self.assertEqual(len(bug), 2)
+        self.assertTrue(all(attempt["agent_calls"] == 0 for attempt in bug))
+        self.assertTrue(
+            all(
+                attempt["modified_paths"] == ["src/reducer.js"] for attempt in bug
+            )
+        )
+        self.assertTrue(
+            all(attempt["tests"] == "2 passed, 0 failed" for attempt in bug)
+        )
+        self.assertEqual(len(mechanical["attempts"]), 2)
+        expected_adapters = [
+            f"src/adapters/{name}.js"
+            for name in (
+                "alpha",
+                "bravo",
+                "charlie",
+                "delta",
+                "echo",
+                "foxtrot",
+                "golf",
+                "hotel",
+                "india",
+                "juliet",
+                "kilo",
+                "lima",
+            )
+        ]
+        for attempt in mechanical["attempts"]:
+            self.assertEqual(attempt["agent_calls"], 1)
+            self.assertEqual(attempt["agent_role"], "mech-executor")
+            self.assertFalse(attempt["invocation_model_present"])
+            self.assertTrue(attempt["foreground"])
+            self.assertTrue(attempt["collected"])
+            self.assertEqual(attempt["modified_paths"], expected_adapters)
+            self.assertEqual(attempt["tests"], "12 passed, 0 failed")
+        self.assertFalse(mechanical["budget_incomplete_diagnostic"]["collected"])
+        self.assertFalse(
+            mechanical["budget_incomplete_diagnostic"]["invocation_model_present"]
+        )
+
+        self.assertTrue(schema["implementation_route_is_non_blocking"])
+        self.assertEqual(len(schema["attempts"]), 2)
+        self.assertEqual(
+            len(
+                {
+                    attempt["session_binding"]["sanitized_session_id_sha256"]
+                    for attempt in schema["attempts"]
+                }
+            ),
+            2,
+        )
+        schema_tests = {"a": "5 passed, 0 failed", "b": "4 passed, 0 failed"}
+        for attempt in schema["attempts"]:
+            binding = attempt["session_binding"]
+            self.assertRegex(binding["sanitized_session_id_sha256"], r"^[0-9a-f]{64}$")
+            self.assertEqual(
+                binding["event_index_source"],
+                "persisted Claude session transcript JSONL zero-based line index",
+            )
+            self.assertEqual(binding["turn_1_invocation"], "--session-id")
+            self.assertEqual(binding["turn_2_invocation"], "--resume")
+            self.assertEqual(attempt["turn_1"]["plan_verifier_calls"], 1)
+            self.assertFalse(attempt["turn_1"]["invocation_model_present"])
+            self.assertTrue(attempt["turn_1"]["foreground"])
+            self.assertTrue(attempt["turn_1"]["collected"])
+            self.assertEqual(attempt["turn_1"]["verdict"], "READY")
+            self.assertFalse(attempt["turn_1"]["writes_before_approval"])
+            self.assertTrue(attempt["turn_1"]["stopped_for_approval"])
+            self.assertEqual(
+                attempt["turn_2"]["implementation_route"],
+                "main_session_direct",
+            )
+            self.assertEqual(attempt["turn_2"]["execution_agent_calls"], 0)
+            self.assertEqual(
+                attempt["turn_2"]["primary_tests"], schema_tests[attempt["id"]]
+            )
+            self.assertLess(
+                attempt["turn_2"]["primary_test_call_event_index"],
+                attempt["turn_2"]["primary_test_result_event_index"],
+            )
+            self.assertLess(
+                attempt["turn_2"]["primary_test_result_event_index"],
+                attempt["turn_2"]["verifier_call_event_index"],
+            )
+            self.assertLess(
+                attempt["turn_2"]["verifier_call_event_index"],
+                attempt["turn_2"]["verifier_result_event_index"],
+            )
+            self.assertEqual(attempt["turn_2"]["verifier_calls"], 1)
+            self.assertFalse(
+                attempt["turn_2"]["verifier_invocation_model_present"]
+            )
+            self.assertTrue(attempt["turn_2"]["verifier_foreground"])
+            self.assertTrue(attempt["turn_2"]["verifier_collected"])
+            self.assertEqual(attempt["turn_2"]["verifier_verdict"], "CONFIRMED")
+            self.assertEqual(
+                attempt["turn_2"]["modified_paths"],
+                ["store.mjs", "store.test.mjs"],
+            )
+
+        completed = routine + bug + mechanical["attempts"]
+        completed_cost = sum(
+            attempt["client_reported_cost_usd"] for attempt in completed
+        ) + sum(
+            attempt[turn]["client_reported_cost_usd"]
+            for attempt in schema["attempts"]
+            for turn in ("turn_1", "turn_2")
+        )
+        costs = evidence["cost"]
+        self.assertEqual(completed_cost, costs["qualifying_completed_cells_usd"])
+        self.assertEqual(
+            costs["qualifying_completed_cells_usd"]
+            + costs["budget_incomplete_diagnostic_usd"],
+            costs["campaign_total_usd"],
+        )
+
+        raw_hashes = {
+            attempt["raw_stream_sha256"] for attempt in completed
+        } | {
+            attempt[turn]["raw_stream_sha256"]
+            for attempt in schema["attempts"]
+            for turn in ("turn_1", "turn_2")
+        }
+        raw_hashes.add(
+            mechanical["budget_incomplete_diagnostic"]["raw_stream_sha256"]
+        )
+        self.assertEqual(len(raw_hashes), 11)
+
     def test_spontaneous_dispatch_baseline_is_additive_and_evidence_bound(self) -> None:
         benchmark = ROOT / "benchmarks" / "spontaneous-dispatch"
         results = json.loads((benchmark / "results.json").read_text(encoding="utf-8"))
@@ -618,23 +1030,24 @@ class PolicyContractTests(unittest.TestCase):
             )
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
-        self.assertEqual(runtime["release_candidate_version"], version)
+        self.assertEqual(runtime["release_candidate_version"], "1.3.8")
         self.assertEqual(version, "1.3.7")
         self.assertEqual(
             runtime["release_candidate_generated_by"],
             "benchmarks/baton-compatibility/build-agents-json.py templates/agents",
         )
-        self.assertEqual(
-            runtime["release_candidate_behavioral_gate_status"],
-            "passed; exact compressed policy and shell-normalized generated payload; explicit agent opt-in; schema Plan/outcome review, routine-docs control, and post-cap closing readiness control re-run on 2026-08-02",
+        self.assertTrue(
+            runtime["release_candidate_behavioral_gate_status"].startswith(
+                "pending replay;"
+            )
         )
         self.assertEqual(
             runtime["release_candidate_runtime_evidence"],
-            "../verifier-boundary/results.json#passing_gate",
+            "../spontaneous-dispatch/issue-29-recovery.json",
         )
         self.assertEqual(
             runtime["release_candidate_offline_evidence"],
-            "tests/test_policy.py::PolicyContractTests.test_baton_gate_snapshot_matches_recorded_hashes",
+            "tests/test_policy.py::PolicyContractTests.test_issue_29_recovery_gate_is_bounded_and_brake_calibrated",
         )
         self.assertTrue(
             runtime["release_candidate_policy_delta_from_final_gate"].startswith(
@@ -643,7 +1056,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["release_candidate_agents_json_delta_from_final_gate"],
-            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow fallback, and bounded-recheck contracts; verifier-boundary gate-snapshot-v2 exercised these current exact bytes",
+            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow fallback, and bounded-recheck contracts; the issue #29 recovery Gate exercised this exact generated payload",
         )
         final_policy = (gate / runtime["final_gate_snapshot_policy"]).read_bytes()
         self.assertEqual(
@@ -761,7 +1174,9 @@ class PolicyContractTests(unittest.TestCase):
         )
         inputs = evidence["inputs"]
         policy = (gate / inputs["policy"]["path"]).read_bytes()
-        self.assertEqual(
+        # v1.3.7 evidence remains immutable historical input. Current exact-byte
+        # qualification is bound by issue-29-recovery.json instead.
+        self.assertNotEqual(
             policy,
             (ROOT / "templates/claude-md.orchestration.md").read_bytes(),
         )
@@ -836,15 +1251,16 @@ class PolicyContractTests(unittest.TestCase):
             passing["client_reported_cost_usd"],
         )
 
-    def test_version_stamps_move_together(self) -> None:
+    def test_release_pin_and_candidate_stamp_are_explicit(self) -> None:
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn(f"<!-- pilotfish v{version} -->", policy)
+        self.assertIn("<!-- pilotfish v1.3.8 -->", policy)
 
         changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
         self.assertRegex(changelog, rf"(?m)^## v{re.escape(version)} ")
+        self.assertRegex(changelog, r"(?m)^## v1\.3\.8 ")
 
         for readme in ("README.md", "README.zh-TW.md"):
             content = (ROOT / readme).read_text(encoding="utf-8")
@@ -1241,10 +1657,16 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("exclusive ownership", policy)
         self.assertIn("per-item acceptance", policy)
         self.assertIn(
-            "dispatch one `mech-executor` before main-session edits, by default",
+            "Dispatch a `mech-executor`",
             policy,
         )
-        self.assertIn("before editing", policy)
+        self.assertIn("possible long command requires background", policy)
+        self.assertIn("Collect before main edits", policy)
+        self.assertIn("files stay worker-only until done", policy)
+        self.assertIn("don't redo", policy)
+        self.assertIn("prior blocker", policy)
+        self.assertIn("Triggers: user asks for independent review", policy)
+        self.assertNotIn("Triggers: requested review", policy)
         for blocker in (
             "evolving/coupled evidence",
             "ownership/integration conflict",
@@ -1336,8 +1758,11 @@ class PolicyContractTests(unittest.TestCase):
             "smallest coherent integration boundary",
             "Independent falsification",
             "Independent review is risk-triggered",
+            "Risk triggers override size; check first",
             "A listed trigger makes the unit risky for this lifecycle",
             "pre-approval `plan-verifier` readiness and post-implementation `verifier` outcome review are mandatory",
+            "This policy explicitly directs mandatory Agent calls",
+            "pause before edits—no direct fallback",
             "The bounded fail-soft exception applies only when none of the listed risks is crossed",
             "The initial request is not approval of an unseen risk-triggered Plan",
             "implementation starts only after explicit approval in a later user turn",
