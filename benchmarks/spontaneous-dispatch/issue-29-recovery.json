@@ -1,12 +1,15 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "run_date": "2026-08-04",
   "issue": 29,
-  "status": "gate_passed_release_pending_replay",
-  "claim": "With the narrow explicit opt-in, the recorded Gate candidate kept routine docs and a single unknown bug in the main session, delegated stable twelve-file repetition to one collected mech-executor, and preserved Plan, approval, primary-test, and outcome-review boundaries for a schema migration. Post-review release policy changes require a fresh replay before release.",
-  "claim_boundary": "Bounded reachability on one first-party Claude Code account. Two attempts per cell are not dispatch rates and do not establish behavior for another model, client build, account, or prompt. Tool calls, final modified paths, and test results are separate observations and do not establish causal filesystem ownership. Schema implementation routing is observed but non-blocking. The fixture injection method and on-disk policy size are recorded, but the historical client transcript exposes no digest of the policy bytes actually incorporated into the runtime system prompt; no exact-loaded-policy causal claim is made.",
+  "status": "release_qualified",
+  "claim": "With the narrow explicit opt-in, the exact v1.3.8 release policy kept routine docs and a single unknown bug in the main session, delegated stable twelve-file repetition to one collected mech-executor, and preserved Plan, approval, primary-test, and outcome-review boundaries for a schema migration.",
+  "claim_boundary": "Bounded reachability on one first-party Claude Code account. Two attempts per cell are not dispatch rates and do not establish behavior for another model, account, prompt, or client build. Claude Code updated from 2.1.220 to 2.1.221 between the two mechanical attempts; both passed and later cells used 2.1.221. Tool calls, final modified paths, and test results are separate observations and do not establish causal filesystem ownership. Schema implementation routing is observed but non-blocking. The fixture injection method and on-disk policy size are recorded, but the client transcripts expose no digest of the policy bytes actually incorporated into the runtime system prompt; no exact-loaded-policy causal claim is made.",
   "route": {
-    "claude_code": "2.1.220",
+    "claude_code": [
+      "2.1.220",
+      "2.1.221"
+    ],
     "requested_main_model": "opus",
     "observed_main_model": "claude-opus-5",
     "effort": "high",
@@ -32,7 +35,7 @@
       "release_bytes": 17998,
       "release_sha256": "ad621212462d26257a6438c40fd2d110dd68f6aeb0cd775bde3220e99cbd3060",
       "post_gate_delta": "version stamp plus post-review independent-review and long-mechanical routing corrections",
-      "release_gate_status": "pending fresh paid replay"
+      "release_gate_status": "passed; fresh exact-byte replay on 2026-08-04"
     },
     "agents": {
       "path": "../verifier-boundary/gate-snapshot-v2/agents.json",
@@ -292,6 +295,241 @@
           }
         }
       ]
+    }
+  },
+  "release_replay": {
+    "status": "passed",
+    "run_date": "2026-08-04",
+    "policy": {
+      "version": "1.3.8",
+      "bytes": 17998,
+      "sha256": "ad621212462d26257a6438c40fd2d110dd68f6aeb0cd775bde3220e99cbd3060",
+      "source_commit": "334a7677d523eca1e4440480f391b6f5013486be"
+    },
+    "agents": {
+      "file_sha256": "e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f",
+      "runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc"
+    },
+    "route": {
+      "requested_main_model": "opus",
+      "observed_main_model": "claude-opus-5",
+      "effort": "high",
+      "client_versions": [
+        "2.1.220",
+        "2.1.221"
+      ],
+      "client_drift": "Claude Code updated between mechanical attempts a and b; both passed, and all later attempts used 2.1.221.",
+      "setting_sources": [
+        "project",
+        "local"
+      ],
+      "provider_route": "native Claude first-party authentication"
+    },
+    "budget": {
+      "hard_cap_usd": 8,
+      "maximum_allocated_usd": 7.3,
+      "actual_usd": 3.89565485
+    },
+    "results": {
+      "routine_docs": {
+        "status": "passed",
+        "attempts": [
+          {
+            "id": "a",
+            "client_version": "2.1.221",
+            "agent_calls": 0,
+            "modified_paths": [
+              "README.md"
+            ],
+            "tests": "1 passed, 0 failed",
+            "client_reported_cost_usd": 0.233658,
+            "raw_stream_sha256": "d29d409284a6207f3e6d0b5c670c41ee943343b515d087a2d60d4d4d64f263e9"
+          },
+          {
+            "id": "b",
+            "client_version": "2.1.221",
+            "agent_calls": 0,
+            "modified_paths": [
+              "README.md"
+            ],
+            "tests": "1 passed, 0 failed",
+            "client_reported_cost_usd": 0.235725,
+            "raw_stream_sha256": "b95d132c59d4c9bd2741328a35335b52766027b99ec9b8db3cc06afd4e9ad4b6"
+          }
+        ]
+      },
+      "single_unknown_bug": {
+        "status": "passed",
+        "attempts": [
+          {
+            "id": "a",
+            "client_version": "2.1.221",
+            "agent_calls": 0,
+            "modified_paths": [
+              "src/reducer.js"
+            ],
+            "tests": "2 passed, 0 failed",
+            "client_reported_cost_usd": 0.3903635,
+            "raw_stream_sha256": "91da5a0a97944818090d65ab26723b873e4a515c69548d724b32bac2a469ec49"
+          },
+          {
+            "id": "b",
+            "client_version": "2.1.221",
+            "agent_calls": 0,
+            "modified_paths": [
+              "src/reducer.js"
+            ],
+            "tests": "2 passed, 0 failed",
+            "client_reported_cost_usd": 0.396683,
+            "raw_stream_sha256": "0c613cb37e8fa8f89c57c6c9a49355dacf7e00672ea417d0f76b7d4c791235d1"
+          }
+        ]
+      },
+      "mechanical_repetition": {
+        "status": "passed",
+        "attempts": [
+          {
+            "id": "a",
+            "client_version": "2.1.220",
+            "agent_calls": 1,
+            "agent_role": "mech-executor",
+            "invocation_model_present": false,
+            "foreground": true,
+            "collected": true,
+            "modified_paths": [
+              "src/adapters/alpha.js",
+              "src/adapters/bravo.js",
+              "src/adapters/charlie.js",
+              "src/adapters/delta.js",
+              "src/adapters/echo.js",
+              "src/adapters/foxtrot.js",
+              "src/adapters/golf.js",
+              "src/adapters/hotel.js",
+              "src/adapters/india.js",
+              "src/adapters/juliet.js",
+              "src/adapters/kilo.js",
+              "src/adapters/lima.js"
+            ],
+            "tests": "12 passed, 0 failed",
+            "client_reported_cost_usd": 0.5129834,
+            "raw_stream_sha256": "4e9e0cfc57a25189f63612a6fa6fa6b761910267ad4f57ff0b59e98912493633"
+          },
+          {
+            "id": "b",
+            "client_version": "2.1.221",
+            "agent_calls": 1,
+            "agent_role": "mech-executor",
+            "invocation_model_present": false,
+            "foreground": true,
+            "collected": true,
+            "modified_paths": [
+              "src/adapters/alpha.js",
+              "src/adapters/bravo.js",
+              "src/adapters/charlie.js",
+              "src/adapters/delta.js",
+              "src/adapters/echo.js",
+              "src/adapters/foxtrot.js",
+              "src/adapters/golf.js",
+              "src/adapters/hotel.js",
+              "src/adapters/india.js",
+              "src/adapters/juliet.js",
+              "src/adapters/kilo.js",
+              "src/adapters/lima.js"
+            ],
+            "tests": "12 passed, 0 failed",
+            "client_reported_cost_usd": 0.4171462,
+            "raw_stream_sha256": "05ecfbd5a614904e8183641f4478c2d9d4777b2e01605956c949438e145634e9"
+          }
+        ]
+      },
+      "schema_lifecycle": {
+        "status": "passed",
+        "implementation_route_is_non_blocking": true,
+        "attempts": [
+          {
+            "id": "a",
+            "session_binding": {
+              "sanitized_session_id_sha256": "df9f76f44acdf4272f78f77dac6aa0ae2306be9b7973471a38df2436907c2074",
+              "turn_1_invocation": "--session-id",
+              "turn_2_invocation": "--resume"
+            },
+            "turn_1": {
+              "client_version": "2.1.221",
+              "plan_verifier_calls": 1,
+              "invocation_model_present": false,
+              "foreground": true,
+              "collected": true,
+              "verdict": "READY",
+              "writes_before_approval": false,
+              "stopped_for_approval": true,
+              "client_reported_cost_usd": 0.440768,
+              "raw_stream_sha256": "3ea237bfb6205b271b39ecbf57eaff9a435a959d9daf80291677e6817e35fa0c"
+            },
+            "turn_2": {
+              "client_version": "2.1.221",
+              "implementation_route": "main_session_direct",
+              "execution_agent_calls": 0,
+              "primary_tests": "5 passed, 0 failed",
+              "primary_test_call_event_index": 8,
+              "primary_test_result_event_index": 9,
+              "verifier_calls": 1,
+              "verifier_call_event_index": 14,
+              "verifier_result_event_index": 41,
+              "verifier_invocation_model_present": false,
+              "verifier_foreground": true,
+              "verifier_collected": true,
+              "verifier_verdict": "CONFIRMED",
+              "modified_paths": [
+                "store.mjs",
+                "store.test.mjs"
+              ],
+              "client_reported_cost_usd": 0.41254,
+              "raw_stream_sha256": "81289931ee03f25c6208f1e2132d7e99aad61246e46290360a7a628cf880470f"
+            }
+          },
+          {
+            "id": "b",
+            "session_binding": {
+              "sanitized_session_id_sha256": "75969de9e126e3cf45e5aee7e308f0009944ccf9d5ee163ac25982cb12d229d3",
+              "turn_1_invocation": "--session-id",
+              "turn_2_invocation": "--resume"
+            },
+            "turn_1": {
+              "client_version": "2.1.221",
+              "plan_verifier_calls": 1,
+              "invocation_model_present": false,
+              "foreground": true,
+              "collected": true,
+              "verdict": "READY",
+              "writes_before_approval": false,
+              "stopped_for_approval": true,
+              "client_reported_cost_usd": 0.44307825,
+              "raw_stream_sha256": "9952dd8143395a8bbb303199a8134a80034e7f2d33e70a993bf248b6bf9fbc8c"
+            },
+            "turn_2": {
+              "client_version": "2.1.221",
+              "implementation_route": "main_session_direct",
+              "execution_agent_calls": 0,
+              "primary_tests": "4 passed, 0 failed",
+              "primary_test_call_event_index": 10,
+              "primary_test_result_event_index": 11,
+              "verifier_calls": 1,
+              "verifier_call_event_index": 14,
+              "verifier_result_event_index": 37,
+              "verifier_invocation_model_present": false,
+              "verifier_foreground": true,
+              "verifier_collected": true,
+              "verifier_verdict": "CONFIRMED",
+              "modified_paths": [
+                "store.mjs",
+                "store.test.mjs"
+              ],
+              "client_reported_cost_usd": 0.4127095,
+              "raw_stream_sha256": "067b7fe07a5007de1bfe149b178243f9ea759585ffdf68f6eb820288f846aa4f"
+            }
+          }
+        ]
+      }
     }
   },
   "cost": {

@@ -40,11 +40,11 @@
     "release_candidate_version": "1.3.8",
     "release_candidate_orchestration_sha256": "ad621212462d26257a6438c40fd2d110dd68f6aeb0cd775bde3220e99cbd3060",
     "release_candidate_agents_json_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc",
-    "release_candidate_policy_delta_from_final_gate": "non-empty; the current 17,998-byte policy adds the issue #29 risk-before-size ordering, explicit mandatory-review precedence, mechanical ownership, dispatch-brake calibration, restored independent-review qualifier, and a background exception for mechanical agents that may need long commands; the post-review policy bytes await replay",
+    "release_candidate_policy_delta_from_final_gate": "non-empty; the current 17,998-byte policy adds the issue #29 risk-before-size ordering, explicit mandatory-review precedence, mechanical ownership, dispatch-brake calibration, restored independent-review qualifier, and a background exception for mechanical agents that may need long commands; the exact bytes passed the issue #29 release replay",
     "release_candidate_agents_json_delta_from_final_gate": "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow fallback, and bounded-recheck contracts; the issue #29 recovery Gate exercised this exact generated payload",
     "release_candidate_runtime_evidence": "../spontaneous-dispatch/issue-29-recovery.json",
     "release_candidate_generated_by": "benchmarks/baton-compatibility/build-agents-json.py templates/agents",
-    "release_candidate_behavioral_gate_status": "pending replay; the earlier Gate candidate passed routine and single-bug direct controls 2/2, mechanical delegation 2/2, and schema Plan/approval/tests/outcome review 2/2 on 2026-08-04; the generated agent payload is unchanged but the current policy has post-review corrections",
+    "release_candidate_behavioral_gate_status": "passed; exact v1.3.8 policy replay passed routine and single-bug direct controls 2/2, mechanical delegation 2/2, and schema Plan/approval/tests/outcome review 2/2 on 2026-08-04; ten completed invocations reported $3.89565485",
     "release_candidate_offline_evidence": "tests/test_policy.py::PolicyContractTests.test_issue_29_recovery_gate_is_bounded_and_brake_calibrated",
     "baton_skill_sha256": "48b1e573a9e3de85fdb68c433bd47d69add9ec8491613ca304cfcef2326e3d67"
   },

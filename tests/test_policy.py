@@ -571,8 +571,8 @@ class PolicyContractTests(unittest.TestCase):
             (path / "issue-29-recovery.json").read_text(encoding="utf-8"),
             parse_float=Decimal,
         )
-        self.assertEqual(evidence["schema_version"], 2)
-        self.assertEqual(evidence["status"], "gate_passed_release_pending_replay")
+        self.assertEqual(evidence["schema_version"], 3)
+        self.assertEqual(evidence["status"], "release_qualified")
 
         inputs = evidence["inputs"]
         self.assertEqual(
@@ -607,9 +607,7 @@ class PolicyContractTests(unittest.TestCase):
         self.assertEqual(inputs["policy"]["gate_bytes"], 17996)
         self.assertIsNone(inputs["policy"]["runtime_loaded_sha256"])
         self.assertEqual(inputs["policy"]["observed_runtime_bytes"], 17996)
-        self.assertEqual(
-            inputs["policy"]["release_gate_status"], "pending fresh paid replay"
-        )
+        self.assertTrue(inputs["policy"]["release_gate_status"].startswith("passed;"))
         agents = (path / inputs["agents"]["path"]).read_bytes()
         self.assertEqual(
             hashlib.sha256(agents).hexdigest(), inputs["agents"]["file_sha256"]
@@ -769,6 +767,126 @@ class PolicyContractTests(unittest.TestCase):
             mechanical["budget_incomplete_diagnostic"]["raw_stream_sha256"]
         )
         self.assertEqual(len(raw_hashes), 11)
+
+        replay = evidence["release_replay"]
+        self.assertEqual(replay["status"], "passed")
+        self.assertEqual(replay["policy"]["version"], "1.3.8")
+        self.assertEqual(replay["policy"]["bytes"], inputs["policy"]["release_bytes"])
+        self.assertEqual(
+            replay["policy"]["sha256"], inputs["policy"]["release_sha256"]
+        )
+        self.assertRegex(replay["policy"]["source_commit"], r"^[0-9a-f]{40}$")
+        self.assertEqual(
+            replay["agents"]["file_sha256"], inputs["agents"]["file_sha256"]
+        )
+        self.assertEqual(
+            replay["agents"]["runtime_sha256"], inputs["agents"]["runtime_sha256"]
+        )
+        self.assertEqual(
+            set(replay["route"]["client_versions"]), {"2.1.220", "2.1.221"}
+        )
+        self.assertIn("updated between mechanical attempts", replay["route"]["client_drift"])
+
+        replay_results = replay["results"]
+        replay_routine = replay_results["routine_docs"]["attempts"]
+        replay_bug = replay_results["single_unknown_bug"]["attempts"]
+        replay_mechanical = replay_results["mechanical_repetition"]["attempts"]
+        replay_schema = replay_results["schema_lifecycle"]["attempts"]
+        self.assertEqual(len(replay_routine), 2)
+        self.assertTrue(all(item["agent_calls"] == 0 for item in replay_routine))
+        self.assertTrue(
+            all(item["modified_paths"] == ["README.md"] for item in replay_routine)
+        )
+        self.assertTrue(
+            all(item["tests"] == "1 passed, 0 failed" for item in replay_routine)
+        )
+        self.assertEqual(len(replay_bug), 2)
+        self.assertTrue(all(item["agent_calls"] == 0 for item in replay_bug))
+        self.assertTrue(
+            all(
+                item["modified_paths"] == ["src/reducer.js"]
+                and item["tests"] == "2 passed, 0 failed"
+                for item in replay_bug
+            )
+        )
+        self.assertEqual(len(replay_mechanical), 2)
+        for item in replay_mechanical:
+            self.assertEqual(item["agent_calls"], 1)
+            self.assertEqual(item["agent_role"], "mech-executor")
+            self.assertFalse(item["invocation_model_present"])
+            self.assertTrue(item["foreground"])
+            self.assertTrue(item["collected"])
+            self.assertEqual(item["modified_paths"], expected_adapters)
+            self.assertEqual(item["tests"], "12 passed, 0 failed")
+        self.assertEqual(
+            {item["client_version"] for item in replay_mechanical},
+            {"2.1.220", "2.1.221"},
+        )
+
+        self.assertTrue(replay_results["schema_lifecycle"]["implementation_route_is_non_blocking"])
+        self.assertEqual(len(replay_schema), 2)
+        for item in replay_schema:
+            self.assertRegex(
+                item["session_binding"]["sanitized_session_id_sha256"],
+                r"^[0-9a-f]{64}$",
+            )
+            turn_1 = item["turn_1"]
+            turn_2 = item["turn_2"]
+            self.assertEqual(turn_1["plan_verifier_calls"], 1)
+            self.assertFalse(turn_1["invocation_model_present"])
+            self.assertTrue(turn_1["foreground"])
+            self.assertTrue(turn_1["collected"])
+            self.assertEqual(turn_1["verdict"], "READY")
+            self.assertFalse(turn_1["writes_before_approval"])
+            self.assertTrue(turn_1["stopped_for_approval"])
+            self.assertEqual(turn_2["implementation_route"], "main_session_direct")
+            self.assertEqual(turn_2["execution_agent_calls"], 0)
+            self.assertEqual(turn_2["primary_tests"], schema_tests[item["id"]])
+            self.assertLess(
+                turn_2["primary_test_call_event_index"],
+                turn_2["primary_test_result_event_index"],
+            )
+            self.assertLess(
+                turn_2["primary_test_result_event_index"],
+                turn_2["verifier_call_event_index"],
+            )
+            self.assertLess(
+                turn_2["verifier_call_event_index"],
+                turn_2["verifier_result_event_index"],
+            )
+            self.assertEqual(turn_2["verifier_calls"], 1)
+            self.assertFalse(turn_2["verifier_invocation_model_present"])
+            self.assertTrue(turn_2["verifier_foreground"])
+            self.assertTrue(turn_2["verifier_collected"])
+            self.assertEqual(turn_2["verifier_verdict"], "CONFIRMED")
+            self.assertEqual(
+                turn_2["modified_paths"], ["store.mjs", "store.test.mjs"]
+            )
+
+        replay_completed = replay_routine + replay_bug + replay_mechanical
+        replay_cost = sum(
+            item["client_reported_cost_usd"] for item in replay_completed
+        ) + sum(
+            item[turn]["client_reported_cost_usd"]
+            for item in replay_schema
+            for turn in ("turn_1", "turn_2")
+        )
+        self.assertEqual(
+            replay_cost.quantize(Decimal("0.00000001")),
+            replay["budget"]["actual_usd"],
+        )
+        self.assertLessEqual(
+            replay["budget"]["maximum_allocated_usd"],
+            replay["budget"]["hard_cap_usd"],
+        )
+        replay_hashes = {
+            item["raw_stream_sha256"] for item in replay_completed
+        } | {
+            item[turn]["raw_stream_sha256"]
+            for item in replay_schema
+            for turn in ("turn_1", "turn_2")
+        }
+        self.assertEqual(len(replay_hashes), 10)
 
     def test_spontaneous_dispatch_baseline_is_additive_and_evidence_bound(self) -> None:
         benchmark = ROOT / "benchmarks" / "spontaneous-dispatch"
@@ -1030,16 +1148,14 @@ class PolicyContractTests(unittest.TestCase):
             )
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
-        self.assertEqual(runtime["release_candidate_version"], "1.3.8")
-        self.assertEqual(version, "1.3.7")
+        self.assertEqual(runtime["release_candidate_version"], version)
+        self.assertEqual(version, "1.3.8")
         self.assertEqual(
             runtime["release_candidate_generated_by"],
             "benchmarks/baton-compatibility/build-agents-json.py templates/agents",
         )
         self.assertTrue(
-            runtime["release_candidate_behavioral_gate_status"].startswith(
-                "pending replay;"
-            )
+            runtime["release_candidate_behavioral_gate_status"].startswith("passed;")
         )
         self.assertEqual(
             runtime["release_candidate_runtime_evidence"],
