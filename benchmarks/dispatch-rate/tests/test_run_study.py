@@ -1837,6 +1837,321 @@ def test_47_report_pools_normally_when_conditions_uniform():
     shutil.rmtree(evidence, ignore_errors=True)
 
 
+def test_48_target_n_must_be_positive_integer():
+    # F7: zero/negative target_n must be rejected before any schedule is
+    # built. Pre-fix, target_n<=0 produced an empty schedule and the
+    # shortfall check considered every arm complete, publishing 0/0 vs 0/0
+    # Fisher comparisons at p=1.0 -- defeating the pre-registration guard.
+    evidence = new_evidence_dir("targetnzero")
+    study_path = make_study(
+        evidence, target_n=0, arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+    )
+    result = run_cli(["plan", str(study_path)], stub_env())
+    assert result.returncode != 0, result.stdout + result.stderr
+    assert "target_n" in (result.stdout + result.stderr), result.stdout + result.stderr
+    assert not evidence.exists(), "a rejected study must never create the evidence dir"
+
+    study_path2 = make_study(
+        evidence, target_n=-3, arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+    )
+    result2 = run_cli(["plan", str(study_path2)], stub_env())
+    assert result2.returncode != 0, result2.stdout + result2.stderr
+
+    study_path3 = make_study(
+        evidence, target_n=1.5, arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+    )
+    result3 = run_cli(["plan", str(study_path3)], stub_env())
+    assert result3.returncode != 0, "target_n must be an integer, not a float"
+
+
+def test_49_non_finite_budget_caps_rejected():
+    # F2: json.loads accepts NaN and Infinity; every finite comparison
+    # against NaN is false and nothing exceeds infinity, so a malformed or
+    # generated study could bypass the advertised hard ceiling completely.
+    evidence = new_evidence_dir("nonfinitecap")
+    for bad in (float("nan"), float("inf")):
+        study_path = make_study(
+            evidence, total_cap_usd=bad,
+            arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+        )
+        # json.dumps writes NaN/Infinity as bare tokens json.loads accepts
+        # back -- this is the real acceptance-path bytes make_study()
+        # produces, not a hand-written literal working around the parser.
+        assert "NaN" in study_path.read_text() or "Infinity" in study_path.read_text()
+        result = run_cli(["plan", str(study_path)], stub_env())
+        assert result.returncode != 0, result.stdout + result.stderr
+        assert "total_cap_usd" in (result.stdout + result.stderr)
+
+    study_path2 = make_study(
+        evidence, per_run_cap_usd=-1.0,
+        arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+    )
+    result2 = run_cli(["plan", str(study_path2)], stub_env())
+    assert result2.returncode != 0, result2.stdout + result2.stderr
+    assert "per_run_cap_usd" in (result2.stdout + result2.stderr)
+
+    study_path3 = make_study(
+        evidence, per_run_cap_usd=0.0,
+        arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+    )
+    result3 = run_cli(["plan", str(study_path3)], stub_env())
+    assert result3.returncode != 0, "a zero per_run_cap_usd must be refused too"
+
+
+def test_50_arm_name_delimiter_rejected():
+    # F6: '#' collides with the cell-id separator (candidate#v2 resolves as
+    # "candidate" on split, raising only after the attempt and its budget
+    # reservation are already persisted); path separators produce
+    # nonexistent parent directories for stream filenames.
+    evidence = new_evidence_dir("armdelim")
+    for bad_name in ("candidate#v2", "candidate/v2", "candidate\\v2"):
+        study_path = make_study(
+            evidence,
+            arms={
+                "control": {"policy": "templates/claude-md.orchestration.md"},
+                bad_name: {"policy": "benchmarks/dispatch-rate/policies/candidate.md"},
+            },
+        )
+        result = run_cli(["plan", str(study_path)], stub_env())
+        assert result.returncode != 0, (bad_name, result.stdout + result.stderr)
+        assert "invalid" in (result.stdout + result.stderr).lower(), result.stdout + result.stderr
+    assert not evidence.exists(), "a rejected study must never create the evidence dir"
+
+
+def test_51_ratchet_persists_lowered_cap_as_new_ceiling():
+    # F1: a fresh defect in the ratchet fix shipped last round -- an allowed
+    # lowering was never persisted, so a study that starts at 25, resumes at
+    # 5, stops at the tightened ceiling, and is later edited back to 20
+    # still compared against the ORIGINAL stored 25 and permitted the raise.
+    evidence = new_evidence_dir("ratchetpersist")
+    study_path = make_study(
+        evidence, target_n=3, per_run_cap_usd=2.0, total_cap_usd=25.0,
+        max_retries_per_cell=0, seed=51,
+        arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+    )
+    env = stub_env(CLAUDE_STUB_MODE="hang")
+    state_path = evidence / "state.json"
+    kill_after_reservation(["run", str(study_path)], env, state_path)
+
+    state = json.loads(state_path.read_text())
+    assert len(state["reservations"]) == 1
+    assert state["reservations"][0]["charged_usd"] == 2.0
+
+    # a much tighter cap on resume: allowed (a lowering), and now too small
+    # to admit the next reservation -- the study stops here.
+    study2_path = make_study(
+        evidence, target_n=3, per_run_cap_usd=2.0, total_cap_usd=3.0,
+        max_retries_per_cell=0, seed=51,
+        arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+    )
+    result2 = run_cli(["run", str(study2_path)], stub_env(CLAUDE_STUB_MODE="success"))
+    assert result2.returncode == 1, result2.stdout + result2.stderr
+    assert "refusing" in result2.stdout
+
+    # editing the study back up to 20 must still be refused: the ceiling
+    # this study actually stopped at was the tightened 3, not the original
+    # 25, and raising above whatever is currently stored is never allowed.
+    study3_path = make_study(
+        evidence, target_n=3, per_run_cap_usd=2.0, total_cap_usd=20.0,
+        max_retries_per_cell=0, seed=51,
+        arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+    )
+    result3 = run_cli(["run", str(study3_path)], stub_env(CLAUDE_STUB_MODE="success"))
+    assert result3.returncode != 0, (
+        "raising total_cap_usd to 20 must be refused: the stored ceiling was "
+        f"tightened to 3 by the previous resume, not the original 25 -- got "
+        f"rc={result3.returncode}: {result3.stdout + result3.stderr}"
+    )
+    out3 = result3.stdout + result3.stderr
+    assert "total_cap_usd" in out3 and "increase refused" in out3, out3
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
+def test_52_exact_cap_boundary_not_refused_by_float_drift():
+    # F3: after two $0.10 reservations, binary float evaluates the next
+    # charge as 0.30000000000000004 > 0.3 and refuses a third spawn the
+    # study's own numbers exactly permit.
+    evidence = new_evidence_dir("exactcap")
+    study_path = make_study(
+        evidence, target_n=3, per_run_cap_usd=0.1, total_cap_usd=0.3,
+        max_retries_per_cell=0, seed=52,
+        arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+    )
+    study = run_study.load_study(str(study_path))
+    schedule = run_study.build_schedule(study)
+    cell1, cell2, cell3 = schedule[0], schedule[1], schedule[2]
+
+    evidence.mkdir(parents=True, exist_ok=True)
+    (evidence / ".pilotfish-created").touch()
+    (evidence / "streams").mkdir(exist_ok=True)
+
+    fresh_header = run_study.build_header(study)
+
+    def done_attempt():
+        return {
+            "attempt": 1, "valid": True, "dispatched": False, "cost_usd": 0.1,
+            "client_version": "0.0.0-stub", "observed_main_model": "claude-stub-5",
+        }
+
+    state = {
+        "study_name": study.get("name"), "seed": study["seed"], "schedule": schedule,
+        "header": fresh_header,
+        "reservations": [
+            {"cell": cell1, "attempt": 1, "charged_usd": 0.1, "status": "done"},
+            {"cell": cell2, "attempt": 1, "charged_usd": 0.1, "status": "done"},
+        ],
+        "cells": {
+            cell1: {"status": "complete", "attempts": [done_attempt()]},
+            cell2: {"status": "complete", "attempts": [done_attempt()]},
+        },
+        "backoff_seconds_used": 0.0, "stopped_reason": None,
+    }
+    (evidence / "state.json").write_text(json.dumps(state))
+
+    result = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="success"))
+    assert result.returncode == 0, (
+        "0.1 + 0.1 + 0.1 == 0.3 exactly must not be refused by binary float "
+        f"drift (0.1+0.1+0.1 > 0.3 in IEEE754): {result.stdout + result.stderr}"
+    )
+    state_after = json.loads((evidence / "state.json").read_text())
+    assert state_after["cells"][cell3]["status"] == "complete", state_after["cells"].get(cell3)
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
+def test_53_noisy_ordinary_text_does_not_trigger_rate_limit():
+    # F4: an unparseable stream (stray non-JSON line, so classify() aborts)
+    # whose rest is ordinary output mentioning "quota" and "#429" as plain
+    # text must not be misclassified as a rate-limit rejection. Pre-fix, the
+    # entire raw capture was searched for these substrings.
+    evidence = new_evidence_dir("noiseordinary")
+    study_path = make_study(
+        evidence, target_n=1, max_retries_per_cell=1, seed=53,
+        arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+    )
+    result = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="noise_ordinary_429_quota"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    state = json.loads((evidence / "state.json").read_text())
+    cell = next(iter(state["cells"]))
+    info = state["cells"][cell]
+    assert info["attempts"], "the stub must have been invoked at least once"
+    for a in info["attempts"]:
+        assert a["reason"] == "unparseable_stream"
+        assert a["rate_limited"] is False, (
+            f"ordinary text mentioning quota/429 must not trigger rate-limit detection: {a}"
+        )
+    assert info["status"] == "exhausted"
+    assert state.get("stopped_reason") is None, "an ordinary invalid run must never halt the study"
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
+def test_54_pending_backoff_persisted_and_honoured_on_resume():
+    # F5: a kill during the backoff sleep, followed by an immediate resume,
+    # must not spawn the next retry with no remaining delay -- that bypasses
+    # the throttle resumable runs are supposed to keep. Simulated (rather
+    # than actually killing mid-sleep, which is timing-flaky) by
+    # constructing state exactly as a process that persisted a pending
+    # backoff and then died would leave it.
+    evidence = new_evidence_dir("pendingbackoff")
+    study_path = make_study(
+        evidence, target_n=1, per_run_cap_usd=1.0, total_cap_usd=100.0,
+        max_retries_per_cell=1, max_backoff_seconds=10, seed=54,
+        arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+    )
+    study = run_study.load_study(str(study_path))
+    schedule = run_study.build_schedule(study)
+    cell = schedule[0]
+
+    evidence.mkdir(parents=True, exist_ok=True)
+    (evidence / ".pilotfish-created").touch()
+    (evidence / "streams").mkdir(exist_ok=True)
+    stream_path = evidence / "streams" / f"{cell.replace('#', '-')}-attempt1.jsonl"
+    stream_path.write_text(
+        json.dumps({"type": "system", "subtype": "init", "model": "claude-stub-5",
+                    "claude_code_version": "0.0.0-stub"}) + "\n"
+        + json.dumps({"type": "result", "subtype": "error_rate_limit",
+                      "result": "Claude AI usage limit reached",
+                      "total_cost_usd": 0, "modelUsage": {}}) + "\n"
+    )
+    (evidence / "streams" / f"{cell.replace('#', '-')}-attempt1.err").write_text(
+        "stub: rate_limit rejection\n"
+    )
+
+    fresh_header = run_study.build_header(study)
+    pending_seconds = 1.5
+    state = {
+        "study_name": study.get("name"), "seed": study["seed"], "schedule": schedule,
+        "header": fresh_header,
+        "reservations": [
+            {"cell": cell, "attempt": 1, "charged_usd": study["per_run_cap_usd"], "status": "done"},
+        ],
+        "cells": {cell: {
+            "status": "in_progress",
+            "attempts": [{
+                "attempt": 1, "valid": False, "rate_limited": True,
+                "reason": "error_rate_limit", "cost_usd": None,
+            }],
+            "pending_backoff_until": time.time() + pending_seconds,
+            "pending_backoff_seconds": pending_seconds,
+        }},
+        "backoff_seconds_used": 0.0, "stopped_reason": None,
+    }
+    (evidence / "state.json").write_text(json.dumps(state))
+
+    started = time.monotonic()
+    result = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="success"))
+    elapsed = time.monotonic() - started
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert elapsed >= pending_seconds - 0.3, (
+        f"resume must honour the remaining pending backoff ({pending_seconds}s), "
+        f"only waited {elapsed:.2f}s"
+    )
+
+    state_after = json.loads((evidence / "state.json").read_text())
+    info = state_after["cells"][cell]
+    assert "pending_backoff_until" not in info
+    assert "pending_backoff_seconds" not in info
+    assert state_after["backoff_seconds_used"] >= pending_seconds - 0.01
+    assert info["status"] == "complete"
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
+def test_55_streams_symlink_rejected():
+    # F8: same class as D7, one level down. evidence_dir itself is resolved
+    # before the Git-ignore check, but its "streams" child was not: a
+    # pre-existing symlink to a Git-visible directory let mkdir(exist_ok=
+    # True) succeed silently, and every subsequent .jsonl/.err write follow
+    # the link.
+    evidence = new_evidence_dir("streamssymlink")
+    evidence.mkdir(parents=True, exist_ok=True)
+    (evidence / ".pilotfish-created").touch()
+    visible_target = DISPATCH_RATE_DIR / "tests" / f"streams-target-{uuid.uuid4().hex[:8]}"
+    visible_target.mkdir()
+    try:
+        check = subprocess.run(
+            ["git", "-C", str(REPO_ROOT), "check-ignore", "-q", "--", str(visible_target)]
+        )
+        assert check.returncode != 0, "test setup bug: visible target is unexpectedly git-ignored"
+        os.symlink(visible_target, evidence / "streams")
+
+        study_path = make_study(
+            evidence, target_n=1, arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+        )
+        result = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="success"))
+        assert result.returncode != 0, result.stdout + result.stderr
+        assert "symlink" in (result.stdout + result.stderr).lower(), result.stdout + result.stderr
+        assert not any(visible_target.iterdir()), (
+            "refused run must not have written anything into the symlink target"
+        )
+    finally:
+        shutil.rmtree(visible_target, ignore_errors=True)
+        shutil.rmtree(evidence, ignore_errors=True)
+
+
 TESTS = [
     test_1_plan_stable_and_resolves,
     test_2_reservation_survives_kill_and_blocks,
@@ -1887,6 +2202,14 @@ TESTS = [
     test_45_report_refuses_pooled_comparisons_on_mixed_client_version,
     test_46_report_refuses_pooled_comparisons_on_mixed_observed_main_model,
     test_47_report_pools_normally_when_conditions_uniform,
+    test_48_target_n_must_be_positive_integer,
+    test_49_non_finite_budget_caps_rejected,
+    test_50_arm_name_delimiter_rejected,
+    test_51_ratchet_persists_lowered_cap_as_new_ceiling,
+    test_52_exact_cap_boundary_not_refused_by_float_drift,
+    test_53_noisy_ordinary_text_does_not_trigger_rate_limit,
+    test_54_pending_backoff_persisted_and_honoured_on_resume,
+    test_55_streams_symlink_rejected,
 ]
 
 

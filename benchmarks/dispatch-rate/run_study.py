@@ -15,12 +15,14 @@ import json
 import math
 import os
 import random
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
 import time
 from datetime import datetime, timezone
+from decimal import Decimal
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -88,6 +90,48 @@ DISPATCH_PREDICATE_TEXT = (
 )
 
 RATE_LIMIT_KEYWORDS = ("rate_limit", "rate limit", "quota", "usage_limit", "429")
+# F4: "429" alone as a substring matches inside ordinary numbers/ids (e.g. an
+# assistant message referencing "ticket #42900"); require it as a standalone
+# token. The other keywords are already specific enough as substrings.
+_RATE_LIMIT_PATTERN = re.compile(
+    "|".join(re.escape(k) for k in RATE_LIMIT_KEYWORDS if k != "429") + r"|\b429\b"
+)
+
+
+def _is_rate_limited_text(text: str) -> bool:
+    return bool(_RATE_LIMIT_PATTERN.search(text.lower()))
+
+
+def _rejection_diagnostics_text(stream_path: Path, err_text: str) -> str:
+    """F4: the haystack for rate-limit detection must be restricted to where
+    a rejection actually reports itself -- the terminal `result` event's own
+    text, stderr, and any top-level `error` field -- never the whole raw
+    capture. Searching everything (assistant text, tool inputs, ordinary
+    usage fields) turns any incidental mention of "quota" or "429" into a
+    false rate-limit, which then drives the study into bounded backoff and
+    eventual halt on otherwise healthy output.
+
+    Parses each line independently (skipping ones that fail to decode) so
+    this also covers the unparseable-stream case: classify() aborts on the
+    FIRST bad line, but a rejection's own terminal event may still be
+    present, and later, in the same capture."""
+    parts = [err_text]
+    if stream_path.exists():
+        for line in stream_path.read_bytes().splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                event = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if event.get("type") == "result":
+                parts.append(str(event.get("subtype") or ""))
+                parts.append(str(event.get("result") or ""))
+            error_field = event.get("error")
+            if error_field:
+                parts.append(str(error_field))
+    return " ".join(parts)
 
 
 # --------------------------------------------------------------------------
@@ -128,6 +172,56 @@ def resolve(p: str) -> Path:
 # study file
 # --------------------------------------------------------------------------
 
+_ARM_NAME_BAD_CHARS = ("#", "/", "\\")
+
+
+def validate_study(study: dict) -> None:
+    """Structural review finding: three separate rounds each patched one
+    more instance of "the study file is trusted" (target_n<=0, non-finite
+    caps, a delimiter-colliding arm name). This is the one place new
+    constraints on study-file *values* go, called from load_study before
+    anything -- schedule, reservation, filesystem object -- is created."""
+
+    def require_int(key: str, *, positive: bool = False, min_value: int | None = None) -> None:
+        v = study[key]
+        if isinstance(v, bool) or not isinstance(v, int):
+            raise SystemExit(f"study file field '{key}' must be an integer, got {v!r}")
+        if positive and v <= 0:
+            raise SystemExit(f"study file field '{key}' must be a positive integer, got {v!r}")
+        if min_value is not None and v < min_value:
+            raise SystemExit(f"study file field '{key}' must be >= {min_value}, got {v!r}")
+
+    def require_finite_number(key: str, *, positive: bool = False, min_value: float | None = None) -> None:
+        v = study[key]
+        if isinstance(v, bool) or not isinstance(v, (int, float)):
+            raise SystemExit(f"study file field '{key}' must be a number, got {v!r}")
+        if not math.isfinite(v):
+            raise SystemExit(f"study file field '{key}' must be a finite number, got {v!r}")
+        if positive and v <= 0:
+            raise SystemExit(f"study file field '{key}' must be positive, got {v!r}")
+        if min_value is not None and v < min_value:
+            raise SystemExit(f"study file field '{key}' must be >= {min_value}, got {v!r}")
+
+    require_int("target_n", positive=True)  # F7: zero/negative defeats the pre-registration guard
+    require_finite_number("total_cap_usd", positive=True)  # F2: NaN/Infinity bypass the hard ceiling
+    require_finite_number("per_run_cap_usd", positive=True)  # F2
+    require_int("max_retries_per_cell", min_value=0)
+    require_finite_number("max_backoff_seconds", min_value=0)
+    require_int("seed")
+
+    for arm in study["arms"]:
+        if any(c in arm for c in _ARM_NAME_BAD_CHARS):
+            # F6: '#' collides with the cell-id separator (candidate#v2 ->
+            # split resolves to "candidate", raising only after the attempt
+            # and its budget reservation are already persisted); a path
+            # separator produces a nonexistent parent directory for stream
+            # filenames. Reject both before anything is created or reserved.
+            raise SystemExit(
+                f"study file arm name {arm!r} is invalid: must not contain "
+                "'#' (the cell-id separator) or a path separator"
+            )
+
+
 def load_study(path: str) -> dict:
     study = json.loads(Path(path).read_text())
     missing = [f for f in REQUIRED_FIELDS if f not in study]
@@ -139,6 +233,7 @@ def load_study(path: str) -> dict:
         scope = spec.get("scope", "project")
         if scope not in ("project", "user"):
             raise SystemExit(f"arm '{arm}': scope must be 'project' or 'user', got {scope!r}")
+    validate_study(study)
     return study
 
 
@@ -409,6 +504,25 @@ def ensure_evidence_dir(evidence_dir: Path) -> None:
     sentinel.touch()
 
 
+def ensure_streams_dir(streams_dir: Path) -> None:
+    """F8: same class as D7, one level down. evidence_dir itself is already
+    resolved before the Git-ignore check (see resolve_evidence_dir), but its
+    "streams" child -- the directory every .jsonl/.err write actually opens
+    into -- was not: if it already exists as a symlink to a Git-visible
+    directory, mkdir(exist_ok=True) succeeds silently and every subsequent
+    write follows the link, landing raw stream captures outside the ignored
+    evidence tree despite the safety check having passed. There is no
+    legitimate reason for this tool's own streams directory to be a
+    symlink, so refuse outright rather than resolving and re-validating."""
+    if streams_dir.is_symlink():
+        raise SystemExit(
+            f"refusing to use {streams_dir}: it is a symlink, not a plain "
+            "directory this tool created -- raw stream writes must not "
+            "follow a symlink out of the evidence directory"
+        )
+    streams_dir.mkdir(exist_ok=True)
+
+
 def save_state(state: dict, evidence_dir: Path) -> None:
     # unique per-process tmp name: two `run`s racing on a hardcoded name could
     # collide on os.replace (observed as a stray FileNotFoundError) even
@@ -505,6 +619,19 @@ def load_or_init_state(study: dict, evidence_dir: Path, fresh_header: dict) -> d
                 "new evidence_dir if you want to study the new bytes; there is "
                 "no override.\n  " + "\n  ".join(diffs)
             )
+        # F1: an accepted lowering must become the new stored ceiling, or a
+        # LATER resume compares against the ORIGINAL (higher) stored value
+        # and permits raising back toward it -- the ratchet must only ever
+        # tighten. cap_ratchet_diffs() above already refused any increase;
+        # anything reaching here is either unchanged or a real decrease.
+        persisted_lowering = False
+        for key in RATCHET_FIELDS:
+            old, new = state["header"].get(key), fresh_header.get(key)
+            if old is not None and new is not None and new < old:
+                state["header"][key] = new
+                persisted_lowering = True
+        if persisted_lowering:
+            save_state(state, evidence_dir)
         return state
     state = {
         "study_name": study.get("name"),
@@ -705,9 +832,7 @@ def evaluate_stream(stream_path: Path, err_path: Path) -> dict:
         # detect rate limiting from the raw stdout/stderr text directly,
         # independently of whether the stream as a whole could be parsed.
         raw_bytes = stream_path.read_bytes() if stream_path.exists() else b""
-        raw_text = raw_bytes.decode(errors="replace")
-        haystack = f"{raw_text} {err_text}".lower()
-        rate_limited = any(k in haystack for k in RATE_LIMIT_KEYWORDS)
+        rate_limited = _is_rate_limited_text(_rejection_diagnostics_text(stream_path, err_text))
         # D4: the stream file was still written and the attempt was charged
         # and retried even though it couldn't be parsed -- compute the
         # digest directly from those bytes (same hashlib.sha256(raw).hexdigest()
@@ -722,7 +847,6 @@ def evaluate_stream(stream_path: Path, err_path: Path) -> dict:
             "terminal_subtype": None, "reason": "unparseable_stream",
         }
     terminal_subtype = None
-    terminal_result_text = None
     for line in stream_path.read_bytes().splitlines():
         line = line.strip()
         if not line:
@@ -733,7 +857,6 @@ def evaluate_stream(stream_path: Path, err_path: Path) -> dict:
             continue
         if event.get("type") == "result":
             terminal_subtype = event.get("subtype")
-            terminal_result_text = event.get("result")
 
     valid = bool(verdict["model_costs_usd"]) and terminal_subtype == "success"
     rate_limited = False
@@ -743,8 +866,11 @@ def evaluate_stream(stream_path: Path, err_path: Path) -> dict:
         # `result` text is the actual quota/usage-limit message (empty
         # stderr) -- checking subtype+stderr alone missed exactly that case,
         # so the terminal event's own text is part of the haystack too.
-        haystack = f"{terminal_subtype or ''} {terminal_result_text or ''} {err_text}".lower()
-        rate_limited = any(k in haystack for k in RATE_LIMIT_KEYWORDS)
+        # F4: and ONLY the terminal event's own text / stderr / a top-level
+        # error field -- never the whole raw capture, which would misfire on
+        # an ordinary field or assistant text that happens to mention "429"
+        # or "quota".
+        rate_limited = _is_rate_limited_text(_rejection_diagnostics_text(stream_path, err_text))
         # name the actual defect: a "success" terminal subtype with empty
         # model_costs_usd (the source study's contamination shape) is not a
         # success -- reporting reason="success" would be forensically
@@ -799,7 +925,7 @@ def cmd_run(args: argparse.Namespace) -> int:
 def _cmd_run_locked(study: dict, evidence_dir: Path, git_ignore_status: str,
                      keep_run_roots: bool = False) -> int:
     streams_dir = evidence_dir / "streams"
-    streams_dir.mkdir(exist_ok=True)
+    ensure_streams_dir(streams_dir)
     # C8/D2: snapshot every live input exactly once, BEFORE anything is
     # derived from it -- prompt, fixture tree, AND (D2) the agents payload.
     # The header (FIX1: recomputed every run, never read back from state),
@@ -836,6 +962,23 @@ def _run_cells(study: dict, evidence_dir: Path, state: dict, fresh_header: dict,
         arm = cell.split("#", 1)[0]
 
         while True:
+            # F5: a kill during the sleep() below, followed by an immediate
+            # resume, must not spawn the next retry with no remaining delay
+            # -- that would bypass the throttle resumable runs are supposed
+            # to keep. A pending backoff is persisted (as an absolute
+            # deadline, so "remaining" is correct no matter how long the
+            # process was down) before the sleep starts; honour whatever is
+            # left of it here, first thing, before any spawn decision.
+            pending_until = info.get("pending_backoff_until")
+            if pending_until is not None:
+                remaining_backoff = pending_until - time.time()
+                if remaining_backoff > 0:
+                    time.sleep(remaining_backoff)
+                state["backoff_seconds_used"] += info.pop("pending_backoff_seconds", 0.0)
+                info.pop("pending_backoff_until", None)
+                save_state(state, evidence_dir)
+                continue
+
             # E5: the runner can be killed after `claude` finished writing a
             # COMPLETE stream but before this attempt's evidence was
             # persisted -- the pre-spawn placeholder is still "interrupted"
@@ -890,8 +1033,23 @@ def _run_cells(study: dict, evidence_dir: Path, state: dict, fresh_header: dict,
                     save_state(state, evidence_dir)
                     break
 
-                cumulative = sum(r["charged_usd"] for r in state["reservations"])
-                if cumulative + study["per_run_cap_usd"] > study["total_cap_usd"]:
+                # F3: binary float error can stop a study one run early --
+                # e.g. after two $0.10 reservations, float 0.1+0.1 == 0.2 but
+                # a THIRD 0.1 evaluates cumulative+per_run as
+                # 0.30000000000000004 > 0.3 for a study whose total_cap_usd
+                # is exactly 0.3. Decimal(str(x)) reconstructs the exact
+                # digits the study file's JSON originally spelled (Python's
+                # float repr round-trips), so an exact-multiple boundary
+                # compares exactly instead of drifting in binary. Only the
+                # arithmetic/comparison uses Decimal; charged_usd is still
+                # stored and displayed as the plain float/JSON number.
+                cumulative = sum(
+                    (Decimal(str(r["charged_usd"])) for r in state["reservations"]),
+                    Decimal(0),
+                )
+                per_run_cap = Decimal(str(study["per_run_cap_usd"]))
+                total_cap = Decimal(str(study["total_cap_usd"]))
+                if cumulative + per_run_cap > total_cap:
                     blocking = state["reservations"][-1] if state["reservations"] else None
                     msg = (
                         f"refusing {cell} attempt {attempt_no}: cumulative charged "
@@ -1019,8 +1177,16 @@ def _run_cells(study: dict, evidence_dir: Path, state: dict, fresh_header: dict,
                     save_state(state, evidence_dir)
                     print(state["stopped_reason"])
                     return 2
+                # F5: persist the pending backoff as an absolute deadline
+                # BEFORE sleeping -- a kill during this sleep must leave
+                # behind something the next resume can honour the remainder
+                # of, not just an unrecorded intention to wait.
+                info["pending_backoff_until"] = time.time() + backoff
+                info["pending_backoff_seconds"] = backoff
+                save_state(state, evidence_dir)
                 time.sleep(backoff)
-                state["backoff_seconds_used"] += backoff
+                state["backoff_seconds_used"] += info.pop("pending_backoff_seconds", backoff)
+                info.pop("pending_backoff_until", None)
                 save_state(state, evidence_dir)
                 continue  # retry same cell
 

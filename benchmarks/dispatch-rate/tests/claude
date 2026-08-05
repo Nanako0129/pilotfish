@@ -7,7 +7,7 @@ every branch of run_study.py without a live account:
 
   CLAUDE_STUB_MODE          success (default) | rate_limit | hang | noise |
                             noise_rate_limit | empty_costs |
-                            rate_limit_result_text
+                            rate_limit_result_text | noise_ordinary_429_quota
   CLAUDE_STUB_DISPATCH      "1" to emit a matching Agent call (default "0")
   CLAUDE_STUB_COUNTER_FILE  path to a call counter this stub increments
   CLAUDE_STUB_HANG_ON_CALL  call number (1-based) that hangs regardless of MODE
@@ -81,6 +81,32 @@ def main() -> int:
         sys.stdout.flush()
         sys.stderr.write("stub: rate_limit rejection (noisy)\n")
         return 1
+
+    if mode == "noise_ordinary_429_quota":
+        # F4: a stray non-JSON line still makes classify() abort (so this
+        # still hits the unparseable-stream path), but the REST of the
+        # capture is an ordinary success -- an assistant message that
+        # happens to mention "quota" and "#429" as normal text, and a
+        # terminal event with no rejection language anywhere. None of that
+        # is a rejection; the rate-limit detector must not fire on it.
+        sys.stdout.write("Warning: something non-JSON on stdout\n")
+        emit({
+            "type": "system", "subtype": "init",
+            "model": "claude-stub-5", "claude_code_version": "0.0.0-stub",
+        })
+        emit({
+            "type": "assistant", "parent_tool_use_id": None,
+            "message": {"content": [{
+                "type": "text",
+                "text": "Implemented the daily quota widget; ticket #429 closed.",
+            }]},
+        })
+        emit({
+            "type": "result", "subtype": "success",
+            "total_cost_usd": 0.05,
+            "modelUsage": {"claude-stub-5": {"costUSD": 0.05}},
+        })
+        return 0
 
     emit({
         "type": "system", "subtype": "init",
