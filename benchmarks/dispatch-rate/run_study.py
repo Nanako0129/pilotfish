@@ -133,7 +133,16 @@ def validate_paths(study: dict) -> None:
 
 
 def resolve_evidence_dir(study: dict) -> Path:
-    return resolve(study["evidence_dir"])
+    # D7: .resolve() follows any symlink in the path (including evidence_dir
+    # itself, or an ignored ancestor) to its real target BEFORE either the
+    # Git-ignore check or any creation/write happens -- otherwise a symlink
+    # living under an ignored path but pointing at a Git-visible directory
+    # lets check_evidence_dir_git_ignored probe the ignored spelling while
+    # ensure_evidence_dir and every stream write follow the link to the
+    # visible target, passing the safety check while writing raw JSONL into
+    # a visible directory. resolve() is safe on a path that doesn't exist yet
+    # (Path.resolve() is non-strict by default).
+    return resolve(study["evidence_dir"]).resolve()
 
 
 def _nearest_existing_ancestor(path: Path) -> Path:
@@ -248,7 +257,21 @@ def build_schedule(study: dict) -> list[str]:
     return cells
 
 
+def _agents_payload_bytes(agents_from: Path) -> bytes:
+    """The canonical byte form of a built `--agents` payload -- sort_keys so
+    the digest doesn't depend on directory-listing order, used both to hash
+    and to write the payload every place it's produced."""
+    payload = get_agents_builder().build_agents(agents_from)
+    return json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+
+
 def build_header(study: dict) -> dict:
+    """Restructure (D1/D2/D3): the run header is the COMPLETE set of
+    run-affecting inputs -- seed, target_n, model, the arm set, and the
+    digests of prompt/fixture/agents/every arm's policy -- enumerated in this
+    one place. Adding a new run-affecting input means adding one key here;
+    digest_drift() below then protects it automatically, with no second edit
+    anywhere else."""
     prompt_bytes = resolve(study["prompt"]).read_bytes()
     policies = {}
     for arm in study["arms"]:
@@ -257,22 +280,26 @@ def build_header(study: dict) -> dict:
             "bytes": len(b), "sha256": hashlib.sha256(b).hexdigest(),
             "scope": arm_scope(study, arm),
         }
+    agents_bytes = _agents_payload_bytes(resolve(study["agents_from"]))
     return {
         "seed": study["seed"],
         "target_n": study.get("target_n"),
+        "model": study.get("model"),
+        "arms": sorted(study["arms"]),
         "prompt_sha256": hashlib.sha256(prompt_bytes).hexdigest(),
         "fixture_tree_sha256": fixture_tree_sha256(resolve(study["fixture"])),
+        "agents_sha256": hashlib.sha256(agents_bytes).hexdigest(),
         "policies": policies,
     }
 
 
 def build_header_from_snapshot(study: dict, prompt_text: str, fixture_snapshot: Path,
-                                policy_bytes: dict) -> dict:
-    """C8: same shape as build_header(), but every digest is derived from
-    already-frozen bytes (prompt_text, fixture_snapshot, policy_bytes) instead
-    of re-reading live source paths. Used by `run`, which must call this only
-    after snapshot_run_inputs() and the policy_bytes read have both already
-    happened -- see _cmd_run_locked."""
+                                policy_bytes: dict, agents_bytes: bytes) -> dict:
+    """C8/D2: same shape as build_header(), but every digest is derived from
+    already-frozen bytes (prompt_text, fixture_snapshot, policy_bytes,
+    agents_bytes) instead of re-reading live source paths. Used by `run`,
+    which must call this only after snapshot_run_inputs() and the
+    policy_bytes read have both already happened -- see _cmd_run_locked."""
     policies = {}
     for arm, b in policy_bytes.items():
         policies[arm] = {
@@ -282,8 +309,11 @@ def build_header_from_snapshot(study: dict, prompt_text: str, fixture_snapshot: 
     return {
         "seed": study["seed"],
         "target_n": study.get("target_n"),
+        "model": study.get("model"),
+        "arms": sorted(policy_bytes),
         "prompt_sha256": hashlib.sha256(prompt_text.encode()).hexdigest(),
         "fixture_tree_sha256": fixture_tree_sha256(fixture_snapshot),
+        "agents_sha256": hashlib.sha256(agents_bytes).hexdigest(),
         "policies": policies,
     }
 
@@ -356,51 +386,24 @@ def acquire_run_lock(evidence_dir: Path):
     # (including at process exit via signal) releases the OS-level flock
 
 
-def digest_drift(stored_header: dict, fresh_header: dict) -> list[str]:
-    """R8/FIX1: name every policy/prompt/fixture input whose bytes differ
-    between the header recorded when this study began and what's on disk
-    right now. Empty list means every input is still the same bytes."""
+def digest_drift(stored_header: dict, fresh_header: dict, _path: str = "") -> list[str]:
+    """Restructure (requirement 2): a generic structural diff over the WHOLE
+    header, not a hand-picked subset of fields -- every key present in either
+    header (seed, target_n, model, arms, every digest, every arm's policy
+    sub-dict...) is compared. A field added to build_header()/
+    build_header_from_snapshot() is drift-protected the moment it exists
+    here; nothing in this function names an individual field. Nested dicts
+    (e.g. "policies") recurse so a single changed leaf (one arm's sha256, or
+    its scope) is still named precisely. Empty list means every recorded
+    input is still the same bytes."""
     diffs = []
-    # C2: target_n is pre-registered (safety contract 7) -- lowering it after
-    # the fact must not be able to slip past a resume any more than a policy
-    # digest could.
-    if stored_header.get("target_n") != fresh_header.get("target_n"):
-        diffs.append(
-            f"target_n: stored {stored_header.get('target_n')} vs "
-            f"current {fresh_header.get('target_n')}"
-        )
-    if stored_header.get("prompt_sha256") != fresh_header.get("prompt_sha256"):
-        diffs.append(
-            f"prompt: stored {stored_header.get('prompt_sha256')} vs "
-            f"current {fresh_header.get('prompt_sha256')}"
-        )
-    if stored_header.get("fixture_tree_sha256") != fresh_header.get("fixture_tree_sha256"):
-        diffs.append(
-            f"fixture tree: stored {stored_header.get('fixture_tree_sha256')} vs "
-            f"current {fresh_header.get('fixture_tree_sha256')}"
-        )
-    stored_policies = stored_header.get("policies", {})
-    for arm, fresh_p in fresh_header.get("policies", {}).items():
-        stored_p = stored_policies.get(arm)
-        if stored_p is None:
-            continue
-        if stored_p.get("sha256") != fresh_p.get("sha256"):
-            diffs.append(
-                f"policy '{arm}': stored {stored_p.get('sha256')} "
-                f"({stored_p.get('bytes')} bytes) vs current {fresh_p.get('sha256')} "
-                f"({fresh_p.get('bytes')} bytes)"
-            )
-        # FIX B: scope is "the single variable across arms" per the spec --
-        # changing it between runs (e.g. project -> user) silently mixes
-        # setting-sources within one arm's attempts while the header still
-        # claims a single scope. Bytes-only comparison above can't catch
-        # this, so it's checked separately, same message shape as a digest
-        # change.
-        if stored_p.get("scope") != fresh_p.get("scope"):
-            diffs.append(
-                f"policy '{arm}' scope: stored {stored_p.get('scope')} vs "
-                f"current {fresh_p.get('scope')}"
-            )
+    for key in sorted(set(stored_header) | set(fresh_header)):
+        label = f"{_path}{key}"
+        stored_v, fresh_v = stored_header.get(key), fresh_header.get(key)
+        if isinstance(stored_v, dict) and isinstance(fresh_v, dict):
+            diffs.extend(digest_drift(stored_v, fresh_v, _path=f"{label}."))
+        elif stored_v != fresh_v:
+            diffs.append(f"{label}: stored {stored_v!r} vs current {fresh_v!r}")
     return diffs
 
 
@@ -433,16 +436,19 @@ def load_or_init_state(study: dict, evidence_dir: Path, fresh_header: dict) -> d
     return state
 
 
-def snapshot_run_inputs(study: dict) -> tuple[str, Path]:
-    """FIX A: snapshot the prompt bytes and the fixture tree exactly once per
-    `run` invocation, mirroring how policy bytes are already snapshotted at
-    the top of _cmd_run_locked. Every spawn (spawn_cell) and every per-cell
-    fixture copy (make_run_root) in this invocation must read from this
-    snapshot rather than re-touching the source paths -- otherwise an edit to
-    the prompt file or the fixture tree mid-run is picked up by later cells
-    while the header (and every attempt's recorded digest) still names the
-    original bytes, corrupting provenance undetectably. The caller owns
-    cleanup via cleanup_run_root() once the run is done."""
+def snapshot_run_inputs(study: dict) -> tuple[str, Path, bytes]:
+    """FIX A / D2: snapshot the prompt bytes, the fixture tree, AND the
+    agents payload exactly once per `run` invocation, mirroring how policy
+    bytes are already snapshotted at the top of _cmd_run_locked. Every spawn
+    (spawn_cell) and every per-cell fixture copy (make_run_root) in this
+    invocation must read from this snapshot rather than re-touching the
+    source paths -- otherwise an edit to the prompt file, the fixture tree,
+    or agents_from mid-run is picked up by later cells while the header (and
+    every attempt's recorded digest) still names the original bytes,
+    corrupting provenance undetectably -- and for agents_from specifically,
+    letting one arm's cells mix mech-executor definitions within a single
+    run/denominator. The caller owns cleanup via cleanup_run_root() once the
+    run is done."""
     # Same TMPDIR-inside-real-config-root guard make_run_root applies, before
     # any filesystem creation.
     guard_config_dir(Path(tempfile.gettempdir()).resolve())
@@ -455,11 +461,12 @@ def snapshot_run_inputs(study: dict) -> tuple[str, Path]:
     (snapshot_root / ".pilotfish-created").touch()
     fixture_snapshot = snapshot_root / "fixture"
     shutil.copytree(resolve(study["fixture"]), fixture_snapshot, ignore=FIXTURE_COPY_IGNORE)
-    return prompt_text, fixture_snapshot
+    agents_bytes = _agents_payload_bytes(resolve(study["agents_from"]))
+    return prompt_text, fixture_snapshot, agents_bytes
 
 
 def make_run_root(study: dict, arm: str, policy_bytes: bytes,
-                   fixture_source: Path) -> tuple[Path, Path, Path | None, str]:
+                   fixture_source: Path, agents_bytes: bytes) -> tuple[Path, Path, Path | None, str]:
     scope = arm_scope(study, arm)
     # Guard BOTH scopes, before any filesystem creation (A1): the demonstrated
     # harm is not the scope-inherited config var, it's that run_root itself
@@ -513,8 +520,11 @@ def make_run_root(study: dict, arm: str, policy_bytes: bytes,
          "commit", "-q", "-m", "baseline"],
         cwd=fixture_copy, check=True,
     )
-    agents = get_agents_builder().build_agents(resolve(study["agents_from"]))
-    (run_root / "agents.json").write_text(json.dumps(agents, separators=(",", ":")))
+    # D2: write the run's frozen agents snapshot -- never rebuild from the
+    # live agents_from directory here. Every cell of every arm in this `run`
+    # invocation gets exactly these bytes, the same bytes hashed into the
+    # header's agents_sha256.
+    (run_root / "agents.json").write_bytes(agents_bytes)
     return run_root, fixture_copy, config_dir, setting_sources
 
 
@@ -578,17 +588,25 @@ def evaluate_stream(stream_path: Path, err_path: Path) -> dict:
         # rejection) still needs to trigger the bounded-backoff path, so
         # detect rate limiting from the raw stdout/stderr text directly,
         # independently of whether the stream as a whole could be parsed.
-        raw_text = stream_path.read_text(errors="replace") if stream_path.exists() else ""
+        raw_bytes = stream_path.read_bytes() if stream_path.exists() else b""
+        raw_text = raw_bytes.decode(errors="replace")
         haystack = f"{raw_text} {err_text}".lower()
         rate_limited = any(k in haystack for k in RATE_LIMIT_KEYWORDS)
+        # D4: the stream file was still written and the attempt was charged
+        # and retried even though it couldn't be parsed -- compute the
+        # digest directly from those bytes (same hashlib.sha256(raw).hexdigest()
+        # classify_stream.py itself would have produced) so these are exactly
+        # the failures a human can still bind back to their captured JSONL.
+        raw_sha256 = hashlib.sha256(raw_bytes).hexdigest() if raw_bytes else None
         return {
             "valid": False, "rate_limited": rate_limited, "dispatched": False,
             "subagent_type": None, "foreground": None, "collected": False,
-            "cost_usd": None, "raw_stream_sha256": None,
+            "cost_usd": None, "raw_stream_sha256": raw_sha256,
             "observed_main_model": None, "client_version": None,
             "terminal_subtype": None, "reason": "unparseable_stream",
         }
     terminal_subtype = None
+    terminal_result_text = None
     for line in stream_path.read_bytes().splitlines():
         line = line.strip()
         if not line:
@@ -599,12 +617,17 @@ def evaluate_stream(stream_path: Path, err_path: Path) -> dict:
             continue
         if event.get("type") == "result":
             terminal_subtype = event.get("subtype")
+            terminal_result_text = event.get("result")
 
     valid = bool(verdict["model_costs_usd"]) and terminal_subtype == "success"
     rate_limited = False
     reason = None
     if not valid:
-        haystack = f"{terminal_subtype or ''} {err_text}".lower()
+        # D5: a rejection can carry a generic terminal subtype while its own
+        # `result` text is the actual quota/usage-limit message (empty
+        # stderr) -- checking subtype+stderr alone missed exactly that case,
+        # so the terminal event's own text is part of the haystack too.
+        haystack = f"{terminal_subtype or ''} {terminal_result_text or ''} {err_text}".lower()
         rate_limited = any(k in haystack for k in RATE_LIMIT_KEYWORDS)
         # name the actual defect: a "success" terminal subtype with empty
         # model_costs_usd (the source study's contamination shape) is not a
@@ -661,28 +684,34 @@ def _cmd_run_locked(study: dict, evidence_dir: Path, git_ignore_status: str,
                      keep_run_roots: bool = False) -> int:
     streams_dir = evidence_dir / "streams"
     streams_dir.mkdir(exist_ok=True)
-    # C8: snapshot every live input exactly once, BEFORE anything is derived
-    # from it. The header (FIX1: recomputed every run, never read back from
-    # state), the drift check, and every spawn all read this one frozen
-    # snapshot -- never the source paths again -- so an edit landing in this
-    # startup window can no longer make later cells run bytes the header
-    # never recorded.
+    # C8/D2: snapshot every live input exactly once, BEFORE anything is
+    # derived from it -- prompt, fixture tree, AND (D2) the agents payload.
+    # The header (FIX1: recomputed every run, never read back from state),
+    # the drift check, and every spawn all read this one frozen snapshot --
+    # never the source paths again -- so an edit landing in this startup
+    # window, or later mid-run, can no longer make later cells run bytes the
+    # header never recorded.
     policy_bytes = {arm: composed_policy_bytes(study, arm) for arm in study["arms"]}
-    prompt_text, fixture_snapshot = snapshot_run_inputs(study)
-    fresh_header = build_header_from_snapshot(study, prompt_text, fixture_snapshot, policy_bytes)
-    state = load_or_init_state(study, evidence_dir, fresh_header)
-    state["header"]["evidence_dir_git_ignore_check"] = git_ignore_status
-
+    prompt_text, fixture_snapshot, agents_bytes = snapshot_run_inputs(study)
+    # D6: everything from here on can raise (load_or_init_state refuses on
+    # drift) -- the snapshot created just above must be cleaned up on EVERY
+    # exit path, not only the one _run_cells reaches, or a refused resume
+    # leaves a full fixture copy under the temp directory forever.
     try:
+        fresh_header = build_header_from_snapshot(
+            study, prompt_text, fixture_snapshot, policy_bytes, agents_bytes
+        )
+        state = load_or_init_state(study, evidence_dir, fresh_header)
+        state["evidence_dir_git_ignore_check"] = git_ignore_status
         return _run_cells(study, evidence_dir, state, fresh_header, policy_bytes,
-                           prompt_text, fixture_snapshot, keep_run_roots)
+                           prompt_text, fixture_snapshot, agents_bytes, keep_run_roots)
     finally:
         cleanup_run_root(fixture_snapshot.parent)
 
 
 def _run_cells(study: dict, evidence_dir: Path, state: dict, fresh_header: dict,
                policy_bytes: dict, prompt_text: str, fixture_snapshot: Path,
-               keep_run_roots: bool) -> int:
+               agents_bytes: bytes, keep_run_roots: bool) -> int:
     streams_dir = evidence_dir / "streams"
     for cell in state["schedule"]:
         info = state["cells"].setdefault(cell, {"status": "pending", "attempts": []})
@@ -737,7 +766,7 @@ def _run_cells(study: dict, evidence_dir: Path, state: dict, fresh_header: dict,
 
             try:
                 run_root, fixture_copy, config_dir, setting_sources = make_run_root(
-                    study, arm, policy_bytes[arm], fixture_snapshot
+                    study, arm, policy_bytes[arm], fixture_snapshot, agents_bytes
                 )
             except SystemExit:
                 # Refused before any spawn happened (F4 guard) -- A2: don't
@@ -943,20 +972,6 @@ def cmd_report(args: argparse.Namespace) -> int:
         return 0
     state = json.loads(state_path.read_text())
 
-    arms = sorted(study["arms"])
-    tally: dict[str, tuple[int, int]] = {}
-    client_version = None
-    for arm in arms:
-        valid = [
-            a for cell, info in state["cells"].items()
-            if cell.split("#", 1)[0] == arm
-            for a in info["attempts"] if a["valid"]
-        ]
-        dispatched = sum(1 for a in valid if a["dispatched"])
-        tally[arm] = (dispatched, len(valid) - dispatched)
-        if client_version is None:
-            client_version = next((a["client_version"] for a in valid if a.get("client_version")), None)
-
     # FIX D: carry the header and a per-arm policy digest block, same shape
     # as the preserved source study, so this file can itself be fed through
     # `report --legacy` (R8 -- provenance must travel with the numbers).
@@ -980,12 +995,48 @@ def cmd_report(args: argparse.Namespace) -> int:
         )
     target_n = recorded_target_n if recorded_target_n is not None else study["target_n"]
 
+    # D3: model is a run-affecting input like any other -- a study that
+    # finished remaining cells on a different model than it started must not
+    # get pooled into one report as if nothing changed. Same shape as the
+    # target_n check above.
+    recorded_model = header.get("model")
+    live_model = study.get("model")
+    if recorded_model is not None and recorded_model != live_model:
+        raise SystemExit(
+            f"refusing report: model drifted since this study began "
+            f"(recorded {recorded_model!r}, study file now says {live_model!r}) "
+            f"-- no override"
+        )
+    model = recorded_model if recorded_model is not None else live_model
+
+    # D1: the arm set to report over is the one actually run (recorded in
+    # the header), never the live study file's `arms` dict -- editing
+    # study.json after the run (removing an arm, adding one) must not drop
+    # real evidence from results.json or invent a zero-attempt shortfall.
+    recorded_arms = header.get("arms")
+    arms = recorded_arms if recorded_arms is not None else sorted(study["arms"])
+
+    tally: dict[str, tuple[int, int]] = {}
+    client_version = None
+    for arm in arms:
+        valid = [
+            a for cell, info in state["cells"].items()
+            if cell.split("#", 1)[0] == arm
+            for a in info["attempts"] if a["valid"]
+        ]
+        dispatched = sum(1 for a in valid if a["dispatched"])
+        tally[arm] = (dispatched, len(valid) - dispatched)
+        if client_version is None:
+            client_version = next((a["client_version"] for a in valid if a.get("client_version")), None)
+
     result = {
         "dispatch_predicate": DISPATCH_PREDICATE_TEXT,
         "seed": header.get("seed"),
         "target_n": target_n,
+        "model": model,
         "prompt_sha256": header.get("prompt_sha256"),
         "fixture_tree_sha256": header.get("fixture_tree_sha256"),
+        "agents_sha256": header.get("agents_sha256"),
         "client": client_version,
         "arms": {
             # C5: scope is provenance too -- use the value recorded in the

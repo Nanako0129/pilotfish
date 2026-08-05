@@ -6,7 +6,8 @@ entirely by environment variables so the free acceptance tests can drive
 every branch of run_study.py without a live account:
 
   CLAUDE_STUB_MODE          success (default) | rate_limit | hang | noise |
-                            noise_rate_limit | empty_costs
+                            noise_rate_limit | empty_costs |
+                            rate_limit_result_text
   CLAUDE_STUB_DISPATCH      "1" to emit a matching Agent call (default "0")
   CLAUDE_STUB_COUNTER_FILE  path to a call counter this stub increments
   CLAUDE_STUB_HANG_ON_CALL  call number (1-based) that hangs regardless of MODE
@@ -103,6 +104,18 @@ def main() -> int:
         })
         sys.stderr.write("stub: rate_limit rejection\n")
         return 1
+
+    if mode == "rate_limit_result_text":
+        # D5: a GENERIC terminal subtype (not one of the rate-limit-named
+        # ones) whose own `result` text is the quota/usage-limit message,
+        # with empty stderr -- the detector must still find "quota" in the
+        # terminal event's own text, not just subtype+stderr.
+        emit({
+            "type": "result", "subtype": "error_during_execution",
+            "result": "Your organization has reached its quota for this billing period.",
+            "total_cost_usd": 0, "modelUsage": {},
+        })
+        return 0
 
     dispatch = os.environ.get("CLAUDE_STUB_DISPATCH", "0") == "1"
     if dispatch:

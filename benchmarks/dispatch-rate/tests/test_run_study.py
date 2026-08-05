@@ -643,7 +643,7 @@ def test_17_digest_drift_refuses_resume():
     assert result2.returncode != 0, "resume must refuse once inputs have drifted"
     out = result2.stdout + result2.stderr
     assert "no longer a single study" in out, out
-    assert "policy 'control'" in out, out
+    assert "policies.control" in out and "control" in out, out
     assert stored_sha in out, "must name the stored digest"
     assert str(orig_bytes) in out and str(new_bytes) in out, "must name both byte counts"
     assert "no override" in out, "must state that no override flag is offered"
@@ -767,7 +767,7 @@ def test_20_fix_a_snapshot_immune_to_mid_run_edit():
         "arms": {"control": {"policy": "templates/claude-md.orchestration.md", "scope": "project"}},
     }
 
-    prompt_text, fixture_snapshot = run_study.snapshot_run_inputs(study)
+    prompt_text, fixture_snapshot, agents_bytes = run_study.snapshot_run_inputs(study)
     assert prompt_text == "original prompt text\n"
     assert (fixture_snapshot / "marker.txt").read_text() == "original fixture content\n"
 
@@ -777,7 +777,7 @@ def test_20_fix_a_snapshot_immune_to_mid_run_edit():
     (fixture_dir / "marker.txt").write_text("EDITED fixture content -- must not reach a later spawn\n")
 
     run_root, fixture_copy, config_dir, setting_sources = run_study.make_run_root(
-        study, "control", b"policy bytes", fixture_snapshot
+        study, "control", b"policy bytes", fixture_snapshot, agents_bytes
     )
     old_environ = dict(os.environ)
     try:
@@ -930,11 +930,13 @@ def test_24_prompt_digest_matches_delivered_bytes_for_crlf():
         study = {
             "prompt": str(prompt),
             "fixture": str(fixture),
+            "agents_from": "templates/agents",
+            "model": "opus",
             "arms": {"control": {"policy": str(prompt), "scope": "project"}},
             "seed": 1,
         }
         header = run_study.build_header(study)
-        prompt_text, fixture_snapshot = run_study.snapshot_run_inputs(study)
+        prompt_text, fixture_snapshot, _agents_bytes = run_study.snapshot_run_inputs(study)
         try:
             delivered = hashlib.sha256(prompt_text.encode()).hexdigest()
             assert delivered == header["prompt_sha256"], (
@@ -1191,6 +1193,287 @@ def test_31_interrupted_attempt_does_not_consume_retry_budget():
     shutil.rmtree(evidence, ignore_errors=True)
 
 
+def test_32_evidence_dir_symlink_resolved_before_ignore_check():
+    # D7: evidence_dir is a symlink living under a Git-ignored path (e.g.
+    # .agent-local/) but pointing at a Git-visible directory in the
+    # worktree. Pre-fix, check_evidence_dir_git_ignored probed the ignored
+    # symlink spelling and passed, while ensure_evidence_dir and every
+    # stream write followed the symlink to the visible target -- raw JSONL
+    # landed in a visible directory with the safety check green.
+    # resolve_evidence_dir must resolve the symlink before either the check
+    # or creation, so the refusal fires against the real (visible) target.
+    visible_target = DISPATCH_RATE_DIR / "tests" / f"symlink-target-{uuid.uuid4().hex[:8]}"
+    visible_target.mkdir()
+    try:
+        check = subprocess.run(
+            ["git", "-C", str(REPO_ROOT), "check-ignore", "-q", "--", str(visible_target)]
+        )
+        assert check.returncode != 0, "test setup bug: visible target is unexpectedly git-ignored"
+
+        ignored_parent = REPO_ROOT / ".agent-local" / "dispatch-rate"
+        ignored_parent.mkdir(parents=True, exist_ok=True)
+        symlink_path = ignored_parent / f"test-symlink-{uuid.uuid4().hex[:8]}"
+        os.symlink(visible_target, symlink_path)
+        try:
+            assert subprocess.run(
+                ["git", "-C", str(REPO_ROOT), "check-ignore", "-q", "--", str(symlink_path)]
+            ).returncode == 0, "test setup bug: symlink spelling must itself be git-ignored"
+
+            study_path = make_study(
+                symlink_path, target_n=1,
+                arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+            )
+            result = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="success"))
+            assert result.returncode != 0, result.stdout + result.stderr
+            assert "not Git-ignored" in result.stdout + result.stderr, result.stdout + result.stderr
+            assert not any(visible_target.iterdir()), (
+                "refused run must not have written anything into the symlink target"
+            )
+        finally:
+            symlink_path.unlink(missing_ok=True)
+    finally:
+        shutil.rmtree(visible_target, ignore_errors=True)
+
+
+def test_33_digest_drift_is_generic_over_header_shape():
+    # Requirement 2: digest_drift must compare the WHOLE header generically,
+    # not a hand-picked subset of named fields. Proven with a key
+    # digest_drift has never heard of -- if it were hand-picking fields
+    # (the pre-restructure shape), an unknown key would be silently ignored
+    # no matter how much it drifted.
+    stored = {
+        "seed": 1, "target_n": 1,
+        "totally_new_future_field": "original-value",
+        "policies": {"control": {"bytes": 10, "sha256": "aaa", "scope": "project"}},
+    }
+    fresh = {
+        "seed": 1, "target_n": 1,
+        "totally_new_future_field": "DRIFTED-value",
+        "policies": {"control": {"bytes": 10, "sha256": "aaa", "scope": "project"}},
+    }
+    diffs = run_study.digest_drift(stored, fresh)
+    assert any("totally_new_future_field" in d for d in diffs), diffs
+    assert any("original-value" in d and "DRIFTED-value" in d for d in diffs), diffs
+    # unrelated, unchanged fields (including nested ones) must not appear
+    assert not any("seed" in d for d in diffs), diffs
+    assert not any("policies" in d for d in diffs), diffs
+
+
+def test_34_report_uses_recorded_arms_not_live_study_arms():
+    # D1: removing (or adding) an arm in study.json after a run must not
+    # change which arms `report` computes over -- it must use the arm set
+    # recorded in state["header"], not the live study file's arms dict, or
+    # real evidence silently drops out of results.json / a shortfall gets
+    # invented for an arm that was never run.
+    evidence = new_evidence_dir("armsdrift")
+    study_path = make_study(
+        evidence, target_n=1, seed=24,
+        arms={
+            "control": {"policy": "templates/claude-md.orchestration.md"},
+            "candidate": {"policy": "benchmarks/dispatch-rate/policies/candidate.md"},
+        },
+    )
+    result = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="success"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    # remove 'candidate' from the live study file after the run completed
+    study = json.loads(study_path.read_text())
+    del study["arms"]["candidate"]
+    study_path.write_text(json.dumps(study))
+
+    report = run_cli(["report", str(study_path)], stub_env())
+    assert report.returncode == 0, report.stdout + report.stderr
+    parsed = json.loads(report.stdout)
+    assert "candidate" in parsed["arms"], (
+        "report must still show the candidate arm's real evidence even "
+        "though the study file no longer lists it"
+    )
+    assert parsed["arms"]["candidate"]["attempts"] == 1
+    assert "refused" not in parsed, (
+        "no shortfall should be invented for an arm the study file no "
+        f"longer lists but that was actually run at target_n: {parsed}"
+    )
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
+def test_35_agents_payload_frozen_within_single_run():
+    # D2: snapshot_run_inputs must freeze the agents payload once (like
+    # prompt/fixture), and every cell's make_run_root in that run must use
+    # those frozen bytes -- an edit to agents_from mid-run must not reach a
+    # later spawn, or one arm's denominator could mix mech-executor
+    # definitions.
+    import tempfile
+    tmp = Path(tempfile.mkdtemp(prefix="pilotfish-test35-"))
+    try:
+        agents_dir = tmp / "agents"
+        agents_dir.mkdir()
+        (agents_dir / "mech-executor.md").write_text(
+            "---\nname: mech-executor\ndescription: original\nmodel: sonnet\neffort: low\n---\n\noriginal\n"
+        )
+        fixture_dir = tmp / "fixture"
+        fixture_dir.mkdir()
+        (fixture_dir / "marker.txt").write_text("x")
+        prompt_path = tmp / "prompt.txt"
+        prompt_path.write_text("prompt\n")
+
+        study = {
+            "prompt": str(prompt_path), "fixture": str(fixture_dir),
+            "agents_from": str(agents_dir), "model": "opus",
+            "per_run_cap_usd": 1.0, "seed": 1,
+            "arms": {"control": {"policy": "templates/claude-md.orchestration.md", "scope": "project"}},
+        }
+
+        prompt_text, fixture_snapshot, agents_bytes = run_study.snapshot_run_inputs(study)
+        original_bytes = agents_bytes
+
+        # simulate a mid-run edit of agents_from, on the same path the study references
+        (agents_dir / "mech-executor.md").write_text(
+            "---\nname: mech-executor\ndescription: DRIFTED\nmodel: sonnet\neffort: low\n---\n\nDRIFTED\n"
+        )
+
+        run_root, fixture_copy, config_dir, setting_sources = run_study.make_run_root(
+            study, "control", b"policy bytes", fixture_snapshot, agents_bytes
+        )
+        try:
+            delivered = (run_root / "agents.json").read_bytes()
+            assert delivered == original_bytes, (
+                "make_run_root must write the run's frozen agents snapshot, "
+                "not re-read the (now-edited) agents_from directory"
+            )
+            assert b"DRIFTED" not in delivered
+        finally:
+            run_study.cleanup_run_root(run_root)
+            run_study.cleanup_run_root(fixture_snapshot.parent)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def test_36_model_drift_refuses_resume_and_report():
+    # D3: editing the study's `model` after some cells have completed must
+    # be refused by the resume drift gate (it's now part of the header, and
+    # digest_drift compares the whole header), and `report` must refuse to
+    # publish pooled rates against a study whose model changed underneath it.
+    evidence = new_evidence_dir("modeldrift")
+    study_path = make_study(
+        evidence, target_n=1, seed=26, model="opus",
+        arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+    )
+    result = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="success"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    study = json.loads(study_path.read_text())
+    study["model"] = "sonnet"
+    study_path.write_text(json.dumps(study))
+
+    result2 = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="success"))
+    assert result2.returncode != 0, "resume must refuse once model has drifted"
+    out2 = result2.stdout + result2.stderr
+    assert "model" in out2 and "opus" in out2 and "sonnet" in out2, out2
+
+    result3 = run_cli(["report", str(study_path)], stub_env())
+    assert result3.returncode != 0, "report must refuse once model has drifted"
+    out3 = result3.stdout + result3.stderr
+    assert "model" in out3 and "drifted" in out3, out3
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
+def test_37_unparseable_stream_records_digest():
+    # D4: an unparseable stream must still have raw_stream_sha256 computed
+    # from the bytes actually written and charged/retried -- not None -- so
+    # a human can bind the recorded evidence back to its capture.
+    import hashlib
+    evidence = new_evidence_dir("noisehash")
+    study_path = make_study(
+        evidence, target_n=1, max_retries_per_cell=0, seed=27,
+        arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+    )
+    result = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="noise"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    state = json.loads((evidence / "state.json").read_text())
+    cell = next(iter(state["cells"]))
+    attempt = state["cells"][cell]["attempts"][0]
+    assert attempt["reason"] == "unparseable_stream"
+    assert attempt["raw_stream_sha256"] is not None
+
+    stream_path = evidence / "streams" / f"{cell.replace('#', '-')}-attempt1.jsonl"
+    expected = hashlib.sha256(stream_path.read_bytes()).hexdigest()
+    assert attempt["raw_stream_sha256"] == expected
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
+def test_38_rate_limit_detected_from_terminal_result_text():
+    # D5: a terminal event with a generic subtype but a result message that
+    # says "quota" (and empty stderr) must still be classified rate_limited,
+    # triggering the bounded-backoff global stop -- checking subtype+stderr
+    # alone missed exactly this case.
+    evidence = new_evidence_dir("resulttextratelimit")
+    study_path = make_study(
+        evidence, target_n=1, per_run_cap_usd=0.5, total_cap_usd=100.0,
+        max_retries_per_cell=2, max_backoff_seconds=10, seed=28,
+    )
+    result = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="rate_limit_result_text"))
+    assert result.returncode == 2, (
+        "a rate-limit message carried only in the terminal event's own "
+        f"result text must still hit the bounded-backoff global stop, got "
+        f"rc={result.returncode}: {result.stdout + result.stderr}"
+    )
+
+    state = json.loads((evidence / "state.json").read_text())
+    attempted_cells = [c for c, info in state["cells"].items() if info["attempts"]]
+    assert len(attempted_cells) == 1, "must stop without spinning through further cells"
+    cell = attempted_cells[0]
+    info = state["cells"][cell]
+    for a in info["attempts"]:
+        assert a["terminal_subtype"] == "error_during_execution"
+        assert a["rate_limited"] is True, (
+            "must detect rate limiting from the terminal event's own result text"
+        )
+        assert a["valid"] is False
+    assert info["status"] == "exhausted"
+    assert 0 < state["backoff_seconds_used"] <= 10
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
+def test_39_snapshot_cleaned_up_on_refused_resume():
+    # D6: a resume refused by the drift gate in load_or_init_state must not
+    # leave the fixture snapshot behind under the temp directory -- the
+    # cleanup try/finally must cover snapshot creation through state
+    # loading, not only the cells loop that runs after it.
+    import tempfile
+    evidence = new_evidence_dir("snapcleanup")
+    policy_path = evidence.parent / f"{evidence.name}.policy.md"
+    policy_path.parent.mkdir(parents=True, exist_ok=True)
+    policy_path.write_text("original policy bytes\n")
+    study_path = make_study(
+        evidence, target_n=1, seed=29,
+        arms={"control": {"policy": str(policy_path)}},
+    )
+    result = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="success"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    policy_path.write_text("DRIFTED policy bytes\n")
+
+    tmp_root = Path(tempfile.gettempdir())
+    before = {p for p in tmp_root.glob("pilotfish-dispatch-rate-snapshot-*")}
+
+    result2 = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="success"))
+    assert result2.returncode != 0, "resume must refuse once the policy has drifted"
+
+    after = {p for p in tmp_root.glob("pilotfish-dispatch-rate-snapshot-*")}
+    leftover = after - before
+    assert leftover == set(), (
+        f"a refused resume must not leave a fixture snapshot behind: {leftover}"
+    )
+
+    shutil.rmtree(evidence, ignore_errors=True)
+    policy_path.unlink(missing_ok=True)
+
+
 TESTS = [
     test_1_plan_stable_and_resolves,
     test_2_reservation_survives_kill_and_blocks,
@@ -1223,6 +1506,14 @@ TESTS = [
     test_29_user_scope_refuses_fixture_with_existing_claude_md,
     test_30_noisy_rate_limit_still_triggers_backoff,
     test_31_interrupted_attempt_does_not_consume_retry_budget,
+    test_32_evidence_dir_symlink_resolved_before_ignore_check,
+    test_33_digest_drift_is_generic_over_header_shape,
+    test_34_report_uses_recorded_arms_not_live_study_arms,
+    test_35_agents_payload_frozen_within_single_run,
+    test_36_model_drift_refuses_resume_and_report,
+    test_37_unparseable_stream_records_digest,
+    test_38_rate_limit_detected_from_terminal_result_text,
+    test_39_snapshot_cleaned_up_on_refused_resume,
 ]
 
 
