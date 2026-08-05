@@ -1,0 +1,9 @@
+{
+  "study": "synthetic legacy fixture for the free acceptance suite (C3)",
+  "note": "Not real experiment data. Ships tracked so `python3 benchmarks/dispatch-rate/tests/test_run_study.py` can round-trip `report --legacy` on a clean clone, without depending on the Git-ignored real study evidence under .agent-local/dispatch-rate-study/. The real reproduction (control 3/10, placebo 1/10, candidate 8/8) is a separate, conditional check in test_run_study.py that only runs when that local evidence file is present.",
+  "arms": {
+    "control": {"dispatched": 2, "attempts": 5},
+    "placebo": {"dispatched": 1, "attempts": 5},
+    "candidate": {"dispatched": 4, "attempts": 5}
+  }
+}

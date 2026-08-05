@@ -84,6 +84,14 @@ refuses to start a user-scope cell if the resolved `CLAUDE_CONFIG_DIR` is, or
 is inside, the real configuration root (`$CLAUDE_CONFIG_DIR` if set in the
 environment, otherwise `~/.claude`); this check runs before any spawn.
 
+A fixture whose copy already contains a `CLAUDE.md` is **refused** for a
+user-scope arm, rather than having that file silently removed: leaving it in
+place would make both the per-cell user policy and the fixture's own project
+policy visible to the run at once, violating the table above (fixture
+`CLAUDE.md` must be absent in user scope) and the single-variable-across-arms
+contract. Remove the file from the fixture, or run that arm at project scope
+instead.
+
 Agents are delivered identically in both scopes: built from `agents_from` and
 passed via `--agents`, never written into the disposable config directory.
 That keeps policy scope the single variable across arms. A full-install
@@ -130,7 +138,11 @@ and is deliberately not mixed into this one.
    there's no repository to leave streams visible in.
 7. **Pre-registration.** `report` prints per-arm counts at any time but
    refuses pooled comparisons or p-values until every arm reaches `target_n`,
-   naming the shortfall.
+   naming the shortfall. `target_n` itself is recorded in the run's header the
+   moment `run` first starts a study, and `report` uses that recorded value —
+   not whatever the study file currently says. Editing `target_n` down after
+   the fact does not relax the guard; `report` refuses outright, naming both
+   values, instead of silently comparing against the edited number.
 
 ## Known limitations
 
@@ -215,4 +227,11 @@ That suite drives every branch — reservation accounting across a hard kill,
 bounded retry and backoff on a simulated rate limit, resume-without-rerun,
 pre-registration refusal, the legacy-report reproduction, the git-cleanliness
 invariants, and both policy scopes — entirely against the shipped
-[`tests/claude`](./tests/claude) stub. It never invokes a real model.
+[`tests/claude`](./tests/claude) stub. It never invokes a real model. The
+legacy-report check round-trips against a small synthetic fixture tracked at
+[`tests/fixtures/legacy-results.sample.json`](./tests/fixtures/legacy-results.sample.json),
+so this passes on any clean clone; the real 2026-08-06 study's reproduction
+(control 3/10, placebo 1/10, candidate 8/8) is a separate check that only
+runs, and only asserts, when the Git-ignored
+`.agent-local/dispatch-rate-study/results.json` is present locally — it
+prints and skips otherwise.

@@ -255,8 +255,39 @@ def test_5_report_refuses_before_target_n():
     shutil.rmtree(evidence, ignore_errors=True)
 
 
-def test_6_legacy_report_reproduces_source_study():
+def test_6_legacy_report_reproduces_tracked_synthetic_fixture():
+    # C3: this must pass on a clean clone with zero local state. The real
+    # study's results.json lives under the Git-ignored
+    # .agent-local/dispatch-rate-study/ and is exercised separately, only
+    # when present, by test_6b below -- this test instead round-trips a
+    # small tracked fixture shipped alongside the suite so the free
+    # acceptance suite the README advertises actually is runnable by anyone.
+    legacy = DISPATCH_RATE_DIR / "tests" / "fixtures" / "legacy-results.sample.json"
+    assert legacy.exists(), "tracked legacy fixture is missing"
+    result = subprocess.run(
+        [sys.executable, str(RUN_STUDY), "report", "--legacy", str(legacy)],
+        capture_output=True, text=True, check=True,
+    )
+    parsed = json.loads(result.stdout)
+    assert parsed["arms"]["control"] == {"dispatched": 2, "attempts": 5}
+    assert parsed["arms"]["placebo"] == {"dispatched": 1, "attempts": 5}
+    assert parsed["arms"]["candidate"]["dispatched"] == 4
+    assert parsed["arms"]["candidate"]["attempts"] == 5
+    c = parsed["comparisons"]
+    assert c["candidate_vs_control"]["fisher_two_sided_p"] == 0.52381
+    assert c["candidate_vs_placebo"]["fisher_two_sided_p"] == 0.20635
+    assert c["placebo_vs_control"]["fisher_two_sided_p"] == 1.0
+    assert "dispatch_predicate" in parsed
+
+
+def test_6b_legacy_report_reproduces_source_study():
+    # Real-study reproduction. Skipped (not failed) when the Git-ignored
+    # local evidence file isn't present -- e.g. any clone other than the one
+    # that ran the original 2026-08-06 study.
     legacy = REPO_ROOT / ".agent-local" / "dispatch-rate-study" / "results.json"
+    if not legacy.exists():
+        print(f"SKIP test_6b_legacy_report_reproduces_source_study: {legacy} not present locally")
+        return
     result = subprocess.run(
         [sys.executable, str(RUN_STUDY), "report", "--legacy", str(legacy)],
         capture_output=True, text=True, check=True,
@@ -507,15 +538,20 @@ def test_14_reservation_released_on_guard_refusal():
     result = run_cli(["run", str(study_path)], env)
     assert result.returncode != 0, result.stdout + result.stderr
 
-    state = json.loads((evidence / "state.json").read_text())
-    assert state["reservations"] == [], "guard-refused cell must not leave a charged reservation"
-    # FIX A: snapshot_run_inputs applies the same TMPDIR-inside-real-config-root
-    # guard before the cell loop even starts (its own tempfile.mkdtemp() needs
-    # it too), so with the whole run refused this early, state["cells"] may
-    # legitimately be empty rather than containing a cell with empty attempts.
-    assert all(
-        not info["attempts"] for info in state["cells"].values()
-    ), "guard-refused run must not leave a phantom attempt on any cell"
+    # FIX A / C8: snapshot_run_inputs applies the same TMPDIR-inside-real-
+    # config-root guard, and (as of C8) runs before state.json is ever
+    # written at all -- the frozen snapshot the header is derived from must
+    # be taken before anything else happens, including state creation. So a
+    # refusal this early may legitimately leave no state.json on disk;
+    # if one exists regardless (e.g. a resumed evidence_dir), it must show
+    # no charged reservation and no phantom attempt on any cell.
+    state_path = evidence / "state.json"
+    if state_path.exists():
+        state = json.loads(state_path.read_text())
+        assert state["reservations"] == [], "guard-refused cell must not leave a charged reservation"
+        assert all(
+            not info["attempts"] for info in state["cells"].values()
+        ), "guard-refused run must not leave a phantom attempt on any cell"
 
     shutil.rmtree(evidence, ignore_errors=True)
     shutil.rmtree(fake_config_root.parent, ignore_errors=True)
@@ -942,13 +978,227 @@ def test_25_fixture_digest_covers_symlinked_directories():
     shutil.rmtree(base, ignore_errors=True)
 
 
+def test_26_fixture_digest_matches_delivered_copy_with_empty_dir_and_git():
+    # C1: reproduces the drift the review flagged -- a rglob/file-only digest
+    # stays unchanged when an empty directory is added/removed even though
+    # copytree delivers it, and previously didn't ignore .git even though the
+    # digest did. The copy and the digest must now agree exactly.
+    import tempfile
+    base = Path(tempfile.mkdtemp(prefix="pilotfish-test26-"))
+    try:
+        fx = base / "fixture"
+        fx.mkdir()
+        (fx / "a.txt").write_text("hello")
+        (fx / "empty-dir").mkdir()
+        git_dir = fx / ".git"
+        git_dir.mkdir()
+        (git_dir / "HEAD").write_text("ref: refs/heads/main\n")
+
+        src_digest = run_study.fixture_tree_sha256(fx)
+
+        copy = base / "copy"
+        shutil.copytree(fx, copy, ignore=run_study.FIXTURE_COPY_IGNORE)
+        assert not (copy / ".git").exists(), "copy must not deliver .git (matches the digest's ignore)"
+        assert (copy / "empty-dir").is_dir(), "copy must still deliver the empty directory"
+        copy_digest = run_study.fixture_tree_sha256(copy)
+        assert copy_digest == src_digest, (
+            "digest of source must equal digest of the delivered copy"
+        )
+
+        # reproduction: removing the empty directory must move the digest --
+        # a file-only digest would miss this entirely.
+        shutil.rmtree(fx / "empty-dir")
+        assert run_study.fixture_tree_sha256(fx) != src_digest, (
+            "removing an empty directory must change the digest"
+        )
+    finally:
+        shutil.rmtree(base, ignore_errors=True)
+
+
+def test_27_report_refuses_target_n_drift():
+    # C2: safety contract 7's pre-registration guard must not be editable
+    # after the fact by lowering target_n in the study file. Reproduces the
+    # review's exact scenario: a study whose header recorded target_n=10 (one
+    # valid run per arm so far, an original shortfall) must still refuse a
+    # pooled comparison after the study file's target_n is edited down to 1
+    # -- not silently emit Fisher comparisons against the edited value.
+    evidence = new_evidence_dir("targetndrift")
+    study_path = make_study(evidence, target_n=10, seed=19)
+    evidence.mkdir(parents=True, exist_ok=True)
+    fake_state = {
+        "study_name": "test", "seed": 19, "schedule": ["control#1"],
+        "header": {"target_n": 10}, "reservations": [],
+        "backoff_seconds_used": 0.0, "stopped_reason": None,
+        "cells": {
+            "control#1": {"status": "complete", "attempts": [{"valid": True, "dispatched": True}]},
+        },
+    }
+    (evidence / "state.json").write_text(json.dumps(fake_state))
+
+    # reproduction, pre-fix shape: the true shortfall (1 of 10) is refused...
+    report_before = run_cli(["report", str(study_path)], stub_env())
+    parsed_before = json.loads(report_before.stdout)
+    assert parsed_before.get("comparisons") is None
+    assert "refused" in parsed_before and "target_n=10" in parsed_before["refused"]
+
+    # ...lower target_n in the study file after the fact...
+    study = json.loads(study_path.read_text())
+    study["target_n"] = 1
+    study_path.write_text(json.dumps(study))
+
+    # ...must now be refused outright, not quietly emit comparisons at n=1.
+    report_after = run_cli(["report", str(study_path)], stub_env())
+    assert report_after.returncode != 0, report_after.stdout + report_after.stderr
+    out = report_after.stdout + report_after.stderr
+    assert "target_n drifted" in out, out
+    assert "recorded 10" in out and "now says 1" in out, out
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
+def test_28_report_uses_recorded_scope_not_live_study_scope():
+    # C5: report must publish the scope actually run (recorded in the
+    # header), not whatever the study file currently says -- editing the
+    # study file's scope after a run must not corrupt the published record.
+    evidence = new_evidence_dir("scopereport")
+    study_path = make_study(
+        evidence, target_n=1, seed=20,
+        arms={"control": {"policy": "templates/claude-md.orchestration.md", "scope": "project"}},
+    )
+    result = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="success"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    # reproduction: edit the study file's scope after the run completed
+    study = json.loads(study_path.read_text())
+    study["arms"]["control"]["scope"] = "user"
+    study_path.write_text(json.dumps(study))
+
+    report = run_cli(["report", str(study_path)], stub_env())
+    assert report.returncode == 0, report.stdout + report.stderr
+    parsed = json.loads(report.stdout)
+    assert parsed["arms"]["control"]["scope"] == "project", (
+        "report must publish the scope that was actually run (recorded in "
+        "the header), not the study file's edited-after-the-fact value"
+    )
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
+def test_29_user_scope_refuses_fixture_with_existing_claude_md():
+    # C6: single-variable violation guard. A user-scope arm whose fixture
+    # already ships a CLAUDE.md must be refused rather than silently running
+    # with both the per-cell user policy AND the fixture's project policy
+    # visible at once.
+    import tempfile
+    fixture_dir = Path(tempfile.mkdtemp(prefix="pilotfish-test29-fixture-"))
+    try:
+        (fixture_dir / "CLAUDE.md").write_text("pre-existing fixture policy\n")
+        evidence = new_evidence_dir("userscopeclaudemd")
+        study_path = make_study(
+            evidence, target_n=1, seed=21,
+            fixture=str(fixture_dir),
+            arms={"control": {"policy": "templates/claude-md.orchestration.md", "scope": "user"}},
+        )
+        fake_home = evidence.parent / f"{evidence.name}.fakehome"
+        fake_home.mkdir(parents=True, exist_ok=True)
+        env = stub_env(CLAUDE_STUB_MODE="success")
+        env["HOME"] = str(fake_home)
+        env.pop("CLAUDE_CONFIG_DIR", None)
+
+        result = run_cli(["run", str(study_path)], env)
+        assert result.returncode != 0, result.stdout + result.stderr
+        out = result.stdout + result.stderr
+        assert "already contains" in out and "CLAUDE.md" in out, out
+
+        state = json.loads((evidence / "state.json").read_text())
+        assert state["reservations"] == [], "refused cell must not leave a charged reservation"
+
+        shutil.rmtree(evidence, ignore_errors=True)
+        shutil.rmtree(fake_home, ignore_errors=True)
+    finally:
+        shutil.rmtree(fixture_dir, ignore_errors=True)
+
+
+def test_30_noisy_rate_limit_still_triggers_backoff():
+    # C4: reproduces the review's exact scenario -- a rejection that is both
+    # a rate limit AND emits a stray non-JSON line, so classify() raises and
+    # the old code took the unparseable-stream early return with
+    # rate_limited hardcoded False. That must no longer treat the run as an
+    # ordinary invalid attempt with no global stop.
+    evidence = new_evidence_dir("noisyratelimit")
+    study_path = make_study(
+        evidence, target_n=1, per_run_cap_usd=0.5, total_cap_usd=100.0,
+        max_retries_per_cell=2, max_backoff_seconds=10, seed=22,
+    )
+    result = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="noise_rate_limit"))
+    assert result.returncode == 2, (
+        "a noisy rate-limit rejection must still hit the bounded-backoff "
+        f"global-stop path (rc=2), got {result.returncode}: {result.stdout + result.stderr}"
+    )
+
+    state = json.loads((evidence / "state.json").read_text())
+    attempted_cells = [c for c, info in state["cells"].items() if info["attempts"]]
+    assert len(attempted_cells) == 1, "must stop without spinning through further cells"
+    cell = attempted_cells[0]
+    info = state["cells"][cell]
+    for a in info["attempts"]:
+        assert a["reason"] == "unparseable_stream"
+        assert a["rate_limited"] is True, "rate_limited must not be hardcoded False for a noisy rejection"
+        assert a["valid"] is False
+    assert info["status"] == "exhausted"
+    assert 0 < state["backoff_seconds_used"] <= 10
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
+def test_31_interrupted_attempt_does_not_consume_retry_budget():
+    # C7: an interrupted (hard-killed) attempt must not count against
+    # max_retries_per_cell -- only evaluated attempts may. Reproduces the
+    # review's scenario: one interrupted placeholder followed by rate-limit
+    # rejections must exhaust only after the initial attempt plus
+    # max_retries_per_cell EVALUATED rejections, not after attempt_no
+    # (which includes the interrupted placeholder) reaches that count.
+    evidence = new_evidence_dir("interruptretry")
+    study_path = make_study(
+        evidence, target_n=1, per_run_cap_usd=1.0, total_cap_usd=100.0,
+        max_retries_per_cell=2, max_backoff_seconds=30, seed=23,
+        arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+    )
+    env = stub_env(CLAUDE_STUB_MODE="hang")
+    state_path = evidence / "state.json"
+    kill_after_reservation(["run", str(study_path)], env, state_path)
+
+    state = json.loads(state_path.read_text())
+    cell = next(iter(state["cells"]))
+    assert state["cells"][cell]["attempts"][0]["status"] == "interrupted"
+
+    # resume with rate-limit rejections: 1 interrupted + up to (1 + 2)
+    # evaluated attempts must all still be spent before exhaustion --
+    # a pre-fix implementation keying off attempt_no would exhaust after
+    # only 2 more (since attempt_no already counts the interrupted one).
+    result = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="rate_limit"))
+    assert result.returncode == 2, result.stdout + result.stderr
+
+    state = json.loads(state_path.read_text())
+    info = state["cells"][cell]
+    evaluated = [a for a in info["attempts"] if a.get("status") != "interrupted"]
+    assert len(evaluated) == 3, (
+        "1 initial + max_retries_per_cell(2) retries must all be evaluated "
+        f"despite the earlier interrupted attempt, got {len(evaluated)}"
+    )
+    assert info["status"] == "exhausted"
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
 TESTS = [
     test_1_plan_stable_and_resolves,
     test_2_reservation_survives_kill_and_blocks,
     test_3_rate_limit_retries_then_stops_without_spinning,
     test_4_resume_completes_only_missing_cells,
     test_5_report_refuses_before_target_n,
-    test_6_legacy_report_reproduces_source_study,
+    test_6_legacy_report_reproduces_tracked_synthetic_fixture,
+    test_6b_legacy_report_reproduces_source_study,
     test_7_no_committed_jsonl_no_agents_json_in_fixture,
     test_9_scope_handling,
     test_10_concurrent_run_refuses,
@@ -967,6 +1217,12 @@ TESTS = [
     test_23_report_round_trips_through_legacy,
     test_24_prompt_digest_matches_delivered_bytes_for_crlf,
     test_25_fixture_digest_covers_symlinked_directories,
+    test_26_fixture_digest_matches_delivered_copy_with_empty_dir_and_git,
+    test_27_report_refuses_target_n_drift,
+    test_28_report_uses_recorded_scope_not_live_study_scope,
+    test_29_user_scope_refuses_fixture_with_existing_claude_md,
+    test_30_noisy_rate_limit_still_triggers_backoff,
+    test_31_interrupted_attempt_does_not_consume_retry_budget,
 ]
 
 

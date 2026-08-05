@@ -5,7 +5,8 @@ Never talks to a real model and never spends anything. Behaviour is chosen
 entirely by environment variables so the free acceptance tests can drive
 every branch of run_study.py without a live account:
 
-  CLAUDE_STUB_MODE          success (default) | rate_limit | hang | noise | empty_costs
+  CLAUDE_STUB_MODE          success (default) | rate_limit | hang | noise |
+                            noise_rate_limit | empty_costs
   CLAUDE_STUB_DISPATCH      "1" to emit a matching Agent call (default "0")
   CLAUDE_STUB_COUNTER_FILE  path to a call counter this stub increments
   CLAUDE_STUB_HANG_ON_CALL  call number (1-based) that hangs regardless of MODE
@@ -68,6 +69,17 @@ def main() -> int:
         # e.g. a client warning banner.
         sys.stdout.write("Warning: something non-JSON on stdout\n")
         sys.stdout.flush()
+
+    if mode == "noise_rate_limit":
+        # C4: a rejection that is BOTH a rate limit AND noisy -- the stray
+        # non-JSON line makes the stream unparseable, so evaluate_stream()
+        # must still detect rate_limited from the raw text rather than
+        # defaulting to False just because classify() couldn't parse it.
+        sys.stdout.write("Warning: something non-JSON on stdout\n")
+        sys.stdout.write("rate_limit: usage limit reached, retry later\n")
+        sys.stdout.flush()
+        sys.stderr.write("stub: rate_limit rejection (noisy)\n")
+        return 1
 
     emit({
         "type": "system", "subtype": "init",

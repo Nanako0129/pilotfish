@@ -201,18 +201,33 @@ def composed_policy_bytes(study: dict, arm: str) -> bytes:
     return base + b"\n" + section
 
 
+# C1: the digest must ignore exactly what the fixture copy ignores, so the
+# two can never drift apart. Every `shutil.copytree` of a fixture in this
+# file passes this same ignore pattern.
+FIXTURE_COPY_IGNORE = shutil.ignore_patterns(".git")
+
+
 def fixture_tree_sha256(fixture_dir: Path) -> str:
-    """Digest exactly the bytes `shutil.copytree(symlinks=False)` will deliver.
+    """Digest exactly the tree `shutil.copytree(fixture_dir, ..., symlinks=False,
+    ignore=FIXTURE_COPY_IGNORE)` will deliver.
 
     `Path.rglob` does not descend into symlinked directories, but `copytree`
     materializes them, so a rglob-based digest silently excludes files that the
     fixture copy actually contains — content under such a link could then change
     between runs without tripping the drift gate. `os.walk(followlinks=True)`
     matches what is delivered, which is the only tree the digest may describe.
+
+    Directory entries are included (as `"<rel>/\\0<dir>"` markers) so that
+    adding or removing an empty directory moves the digest even though it
+    contributes no file hash of its own -- `copytree` still delivers that
+    directory.
     """
     entries = []
     for dirpath, dirnames, filenames in os.walk(fixture_dir, followlinks=True):
         dirnames[:] = sorted(d for d in dirnames if d != ".git")
+        rel_dir = Path(dirpath).relative_to(fixture_dir).as_posix()
+        if rel_dir != ".":
+            entries.append(f"{rel_dir}/\0<dir>")
         for name in sorted(filenames):
             p = Path(dirpath) / name
             rel = p.relative_to(fixture_dir).as_posix()
@@ -244,8 +259,31 @@ def build_header(study: dict) -> dict:
         }
     return {
         "seed": study["seed"],
+        "target_n": study.get("target_n"),
         "prompt_sha256": hashlib.sha256(prompt_bytes).hexdigest(),
         "fixture_tree_sha256": fixture_tree_sha256(resolve(study["fixture"])),
+        "policies": policies,
+    }
+
+
+def build_header_from_snapshot(study: dict, prompt_text: str, fixture_snapshot: Path,
+                                policy_bytes: dict) -> dict:
+    """C8: same shape as build_header(), but every digest is derived from
+    already-frozen bytes (prompt_text, fixture_snapshot, policy_bytes) instead
+    of re-reading live source paths. Used by `run`, which must call this only
+    after snapshot_run_inputs() and the policy_bytes read have both already
+    happened -- see _cmd_run_locked."""
+    policies = {}
+    for arm, b in policy_bytes.items():
+        policies[arm] = {
+            "bytes": len(b), "sha256": hashlib.sha256(b).hexdigest(),
+            "scope": arm_scope(study, arm),
+        }
+    return {
+        "seed": study["seed"],
+        "target_n": study.get("target_n"),
+        "prompt_sha256": hashlib.sha256(prompt_text.encode()).hexdigest(),
+        "fixture_tree_sha256": fixture_tree_sha256(fixture_snapshot),
         "policies": policies,
     }
 
@@ -323,6 +361,14 @@ def digest_drift(stored_header: dict, fresh_header: dict) -> list[str]:
     between the header recorded when this study began and what's on disk
     right now. Empty list means every input is still the same bytes."""
     diffs = []
+    # C2: target_n is pre-registered (safety contract 7) -- lowering it after
+    # the fact must not be able to slip past a resume any more than a policy
+    # digest could.
+    if stored_header.get("target_n") != fresh_header.get("target_n"):
+        diffs.append(
+            f"target_n: stored {stored_header.get('target_n')} vs "
+            f"current {fresh_header.get('target_n')}"
+        )
     if stored_header.get("prompt_sha256") != fresh_header.get("prompt_sha256"):
         diffs.append(
             f"prompt: stored {stored_header.get('prompt_sha256')} vs "
@@ -408,7 +454,7 @@ def snapshot_run_inputs(study: dict) -> tuple[str, Path]:
     snapshot_root = Path(tempfile.mkdtemp(prefix="pilotfish-dispatch-rate-snapshot-"))
     (snapshot_root / ".pilotfish-created").touch()
     fixture_snapshot = snapshot_root / "fixture"
-    shutil.copytree(resolve(study["fixture"]), fixture_snapshot)
+    shutil.copytree(resolve(study["fixture"]), fixture_snapshot, ignore=FIXTURE_COPY_IGNORE)
     return prompt_text, fixture_snapshot
 
 
@@ -429,13 +475,30 @@ def make_run_root(study: dict, arm: str, policy_bytes: bytes,
     # FIX A: copy from the run's frozen snapshot, never from the source path
     # on disk again -- the source could have been edited since the snapshot
     # was taken at the top of _cmd_run_locked.
-    shutil.copytree(fixture_source, fixture_copy)
+    shutil.copytree(fixture_source, fixture_copy, ignore=FIXTURE_COPY_IGNORE)
 
     config_dir: Path | None = None
     if scope == "project":
         (fixture_copy / "CLAUDE.md").write_bytes(policy_bytes)
         setting_sources = "project,local"
     else:  # "user" -- validated by load_study
+        # C6: single-variable violation guard. A fixture that already ships a
+        # CLAUDE.md is fine at project scope (the arm's policy simply
+        # overwrites it), but at user scope the policy instead lands outside
+        # the fixture entirely -- leaving the fixture's own CLAUDE.md in place
+        # would make both the per-cell user policy AND the fixture's project
+        # policy visible to the run, violating the spec's scope table ("fixture
+        # CLAUDE.md absent" for user scope) and the single-variable-across-arms
+        # contract. Refused rather than silently deleted (see README).
+        existing = fixture_copy / "CLAUDE.md"
+        if existing.exists():
+            cleanup_run_root(run_root)  # nothing was spawned yet; don't leak the temp copy
+            raise SystemExit(
+                f"refusing user-scope arm '{arm}': fixture already contains "
+                f"CLAUDE.md ({existing}); user scope requires the fixture to "
+                f"carry no project-level policy -- remove it from the fixture "
+                f"or run this arm at project scope"
+            )
         config_dir = run_root / "user-config"
         guard_config_dir(config_dir)  # belt-and-braces on top of the base-dir guard above
         config_dir.mkdir()
@@ -501,6 +564,7 @@ def git_changed_files(fixture_copy: Path) -> list[str]:
 
 
 def evaluate_stream(stream_path: Path, err_path: Path) -> dict:
+    err_text = err_path.read_text(errors="replace") if err_path.exists() else ""
     try:
         verdict = get_classify().classify(stream_path)
     except Exception:
@@ -508,8 +572,17 @@ def evaluate_stream(stream_path: Path, err_path: Path) -> dict:
         # abort the study -- record it as an invalid, retryable run instead
         # of crashing (which would leave the cell in_progress forever and
         # burn per_run_cap_usd on every resume with zero observations).
+        #
+        # C4: this early return must not hardcode rate_limited: false. A
+        # rejection that ALSO emits a stray non-JSON line (a noisy quota
+        # rejection) still needs to trigger the bounded-backoff path, so
+        # detect rate limiting from the raw stdout/stderr text directly,
+        # independently of whether the stream as a whole could be parsed.
+        raw_text = stream_path.read_text(errors="replace") if stream_path.exists() else ""
+        haystack = f"{raw_text} {err_text}".lower()
+        rate_limited = any(k in haystack for k in RATE_LIMIT_KEYWORDS)
         return {
-            "valid": False, "rate_limited": False, "dispatched": False,
+            "valid": False, "rate_limited": rate_limited, "dispatched": False,
             "subagent_type": None, "foreground": None, "collected": False,
             "cost_usd": None, "raw_stream_sha256": None,
             "observed_main_model": None, "client_version": None,
@@ -526,7 +599,6 @@ def evaluate_stream(stream_path: Path, err_path: Path) -> dict:
             continue
         if event.get("type") == "result":
             terminal_subtype = event.get("subtype")
-    err_text = err_path.read_text(errors="replace") if err_path.exists() else ""
 
     valid = bool(verdict["model_costs_usd"]) and terminal_subtype == "success"
     rate_limited = False
@@ -589,16 +661,17 @@ def _cmd_run_locked(study: dict, evidence_dir: Path, git_ignore_status: str,
                      keep_run_roots: bool = False) -> int:
     streams_dir = evidence_dir / "streams"
     streams_dir.mkdir(exist_ok=True)
-    fresh_header = build_header(study)  # FIX1: recomputed every run, never read back from state
+    # C8: snapshot every live input exactly once, BEFORE anything is derived
+    # from it. The header (FIX1: recomputed every run, never read back from
+    # state), the drift check, and every spawn all read this one frozen
+    # snapshot -- never the source paths again -- so an edit landing in this
+    # startup window can no longer make later cells run bytes the header
+    # never recorded.
+    policy_bytes = {arm: composed_policy_bytes(study, arm) for arm in study["arms"]}
+    prompt_text, fixture_snapshot = snapshot_run_inputs(study)
+    fresh_header = build_header_from_snapshot(study, prompt_text, fixture_snapshot, policy_bytes)
     state = load_or_init_state(study, evidence_dir, fresh_header)
     state["header"]["evidence_dir_git_ignore_check"] = git_ignore_status
-    policy_bytes = {arm: composed_policy_bytes(study, arm) for arm in study["arms"]}
-    # FIX A: freeze the prompt and fixture tree once, right after the
-    # drift-checked header above is computed, exactly like policy_bytes.
-    # Every cell below reads from this snapshot, never from the source paths
-    # again, so a mid-run edit to either can't reach a later spawn while the
-    # header still names the original bytes.
-    prompt_text, fixture_snapshot = snapshot_run_inputs(study)
 
     try:
         return _run_cells(study, evidence_dir, state, fresh_header, policy_bytes,
@@ -707,6 +780,16 @@ def _run_cells(study: dict, evidence_dir: Path, state: dict, fresh_header: dict,
             reservation["status"] = "done"
             evidence["reservation_charged_usd"] = reservation["charged_usd"]
             info["attempts"][-1] = evidence  # replace the pre-spawn placeholder (A3)
+            # C7: an interrupted (hard-killed) attempt was never observed and
+            # must not consume retry budget -- the pre-spawn check above
+            # already excludes it via evaluated_attempts. The cutoffs and
+            # backoff index below must use the same count, recomputed now
+            # that this attempt's placeholder has been replaced with real
+            # evidence, or a prior interrupted placeholder still inflates
+            # attempt_no and exhausts the budget early.
+            evaluated_attempts = sum(
+                1 for a in info["attempts"] if a.get("status") != "interrupted"
+            )
 
             # FIX3: clean up the disposable run root once its evidence is
             # written out. Only for valid attempts -- an invalid one is
@@ -724,17 +807,17 @@ def _run_cells(study: dict, evidence_dir: Path, state: dict, fresh_header: dict,
             save_state(state, evidence_dir)
 
             if evidence["rate_limited"]:
-                if attempt_no >= 1 + study["max_retries_per_cell"]:
+                if evaluated_attempts >= 1 + study["max_retries_per_cell"]:
                     info["status"] = "exhausted"
                     state["stopped_reason"] = (
                         f"{cell}: retries exhausted after rate-limit rejection "
-                        f"({attempt_no} attempts)"
+                        f"({evaluated_attempts} evaluated attempts)"
                     )
                     save_state(state, evidence_dir)
                     print(state["stopped_reason"])
                     return 2
                 remaining = study["max_backoff_seconds"] - state["backoff_seconds_used"]
-                backoff = min(2 ** (attempt_no - 1), remaining)
+                backoff = min(2 ** (evaluated_attempts - 1), remaining)
                 if backoff <= 0:
                     info["status"] = "exhausted"
                     state["stopped_reason"] = (
@@ -751,7 +834,7 @@ def _run_cells(study: dict, evidence_dir: Path, state: dict, fresh_header: dict,
                 continue  # retry same cell
 
             # non-rate-limit invalid run: bounded retry, no backoff, no global stop
-            if attempt_no >= 1 + study["max_retries_per_cell"]:
+            if evaluated_attempts >= 1 + study["max_retries_per_cell"]:
                 info["status"] = "exhausted"
                 save_state(state, evidence_dir)
                 break
@@ -879,16 +962,39 @@ def cmd_report(args: argparse.Namespace) -> int:
     # `report --legacy` (R8 -- provenance must travel with the numbers).
     header = state.get("header", {})
     policies = header.get("policies", {})
+
+    # C2: target_n is pre-registered (safety contract 7). Editing the study
+    # file after the fact must not change what `report` refuses against --
+    # use the value recorded in the header when the study began, and refuse
+    # outright if the study file has since drifted from it (the same way a
+    # policy digest drift is refused, just surfaced here instead of at
+    # `run` since `report` never calls load_or_init_state). A state written
+    # before target_n was recorded in the header has no recorded value; fall
+    # back to the study file's value rather than refusing against nothing.
+    recorded_target_n = header.get("target_n")
+    if recorded_target_n is not None and recorded_target_n != study["target_n"]:
+        raise SystemExit(
+            f"refusing report: target_n drifted since this study began "
+            f"(recorded {recorded_target_n}, study file now says "
+            f"{study['target_n']}) -- no override"
+        )
+    target_n = recorded_target_n if recorded_target_n is not None else study["target_n"]
+
     result = {
         "dispatch_predicate": DISPATCH_PREDICATE_TEXT,
         "seed": header.get("seed"),
+        "target_n": target_n,
         "prompt_sha256": header.get("prompt_sha256"),
         "fixture_tree_sha256": header.get("fixture_tree_sha256"),
         "client": client_version,
         "arms": {
+            # C5: scope is provenance too -- use the value recorded in the
+            # header when the run happened, not the study file's current
+            # value, or an edit to the study file after the fact could make
+            # this report claim a scope that was never actually run.
             a: {
                 "dispatched": d, "attempts": d + f,
-                "scope": arm_scope(study, a),
+                "scope": policies.get(a, {}).get("scope") or arm_scope(study, a),
                 "policy": {
                     "bytes": policies.get(a, {}).get("bytes"),
                     "sha256": policies.get(a, {}).get("sha256"),
@@ -899,13 +1005,13 @@ def cmd_report(args: argparse.Namespace) -> int:
     }
 
     shortfall = {
-        a: study["target_n"] - (d + f) for a, (d, f) in tally.items()
-        if (d + f) < study["target_n"]
+        a: target_n - (d + f) for a, (d, f) in tally.items()
+        if (d + f) < target_n
     }
     if shortfall:
         result["comparisons"] = None
         result["refused"] = (
-            f"pooled comparisons refused: target_n={study['target_n']} not yet reached "
+            f"pooled comparisons refused: target_n={target_n} not yet reached "
             f"for {shortfall}"
         )
     elif {"control", "placebo", "candidate"} <= tally.keys():
