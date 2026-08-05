@@ -33,6 +33,53 @@ REQUIRED_FIELDS = (
     "max_retries_per_cell", "max_backoff_seconds", "seed",
 )
 
+# Structural issue 1 (third review round): a hand-written list of "all the
+# run-affecting inputs" has drifted twice before (total_cap_usd and
+# per_run_cap_usd were both missing from the header). Instead of a second
+# hand-written list, every REQUIRED_FIELDS entry is run-affecting UNLESS it
+# is named here, with a reason -- and RUN_AFFECTING_HEADER_KEYS below (the
+# single declared source build_header()/build_header_from_snapshot() must
+# satisfy) is checked against this set at import time, so a future field
+# added to REQUIRED_FIELDS without a decision either way fails the test
+# suite immediately instead of waiting for a reviewer to notice.
+NON_RUN_AFFECTING_FIELDS = frozenset({
+    "name",          # a human label; never reaches the classifier or a spend decision
+    "evidence_dir",  # where evidence is written, not an input to what gets run
+})
+RUN_AFFECTING_FIELDS = tuple(f for f in REQUIRED_FIELDS if f not in NON_RUN_AFFECTING_FIELDS)
+
+# Declares, for every run-affecting field, the header key(s) that represent
+# it. build_header() / build_header_from_snapshot() must emit every key
+# listed here -- test_header_covers_every_run_affecting_field() in the test
+# suite checks their actual output against this mapping.
+RUN_AFFECTING_HEADER_KEYS = {
+    "prompt": ("prompt_sha256",),
+    "fixture": ("fixture_tree_sha256",),
+    "agents_from": ("agents_sha256",),
+    "model": ("model",),
+    "arms": ("arms", "policies"),
+    "target_n": ("target_n",),
+    "per_run_cap_usd": ("per_run_cap_usd",),
+    "total_cap_usd": ("total_cap_usd",),
+    "max_retries_per_cell": ("max_retries_per_cell",),
+    "max_backoff_seconds": ("max_backoff_seconds",),
+    "seed": ("seed",),
+}
+assert set(RUN_AFFECTING_HEADER_KEYS) == set(RUN_AFFECTING_FIELDS), (
+    "RUN_AFFECTING_HEADER_KEYS has drifted from REQUIRED_FIELDS -- add the "
+    "new field's header key(s) here, or add the field to "
+    "NON_RUN_AFFECTING_FIELDS with a reason, before shipping"
+)
+
+# The two spend ceilings ratchet instead of drift-refusing on ANY change like
+# every other header field: LOWERING one only tightens an already-running
+# study (it can never let it spend more than originally agreed), so it's
+# allowed. RAISING one is refused outright on resume -- that is exactly the
+# budget-ceiling bypass this field's presence in the header exists to catch
+# (E2: resuming a study after editing total_cap_usd up must not restart a
+# run that had already stopped at its hard ceiling). See cap_ratchet_diffs().
+RATCHET_FIELDS = ("total_cap_usd", "per_run_cap_usd")
+
 DISPATCH_PREDICATE_TEXT = (
     "A run counts as dispatched when the classifier reports exactly one "
     "top-level Agent call with subagent_type: mech-executor, "
@@ -290,6 +337,13 @@ def build_header(study: dict) -> dict:
         "fixture_tree_sha256": fixture_tree_sha256(resolve(study["fixture"])),
         "agents_sha256": hashlib.sha256(agents_bytes).hexdigest(),
         "policies": policies,
+        # E2 / structural issue 1: these two were missing from the header,
+        # so raising either on a resumed `run` silently restarted a study
+        # that had already stopped at its hard ceiling. See RATCHET_FIELDS.
+        "total_cap_usd": study.get("total_cap_usd"),
+        "per_run_cap_usd": study.get("per_run_cap_usd"),
+        "max_retries_per_cell": study.get("max_retries_per_cell"),
+        "max_backoff_seconds": study.get("max_backoff_seconds"),
     }
 
 
@@ -315,6 +369,10 @@ def build_header_from_snapshot(study: dict, prompt_text: str, fixture_snapshot: 
         "fixture_tree_sha256": fixture_tree_sha256(fixture_snapshot),
         "agents_sha256": hashlib.sha256(agents_bytes).hexdigest(),
         "policies": policies,
+        "total_cap_usd": study.get("total_cap_usd"),
+        "per_run_cap_usd": study.get("per_run_cap_usd"),
+        "max_retries_per_cell": study.get("max_retries_per_cell"),
+        "max_backoff_seconds": study.get("max_backoff_seconds"),
     }
 
 
@@ -386,7 +444,8 @@ def acquire_run_lock(evidence_dir: Path):
     # (including at process exit via signal) releases the OS-level flock
 
 
-def digest_drift(stored_header: dict, fresh_header: dict, _path: str = "") -> list[str]:
+def digest_drift(stored_header: dict, fresh_header: dict, _path: str = "",
+                  skip: frozenset = frozenset()) -> list[str]:
     """Restructure (requirement 2): a generic structural diff over the WHOLE
     header, not a hand-picked subset of fields -- every key present in either
     header (seed, target_n, model, arms, every digest, every arm's policy
@@ -395,9 +454,16 @@ def digest_drift(stored_header: dict, fresh_header: dict, _path: str = "") -> li
     here; nothing in this function names an individual field. Nested dicts
     (e.g. "policies") recurse so a single changed leaf (one arm's sha256, or
     its scope) is still named precisely. Empty list means every recorded
-    input is still the same bytes."""
+    input is still the same bytes.
+
+    `skip` names top-level keys (only meaningful at the top level, hence
+    `not _path`) excluded from this plain-equality comparison -- used for
+    RATCHET_FIELDS, which have their own asymmetric (increase-refused,
+    decrease-allowed) comparison in cap_ratchet_diffs() instead."""
     diffs = []
     for key in sorted(set(stored_header) | set(fresh_header)):
+        if not _path and key in skip:
+            continue
         label = f"{_path}{key}"
         stored_v, fresh_v = stored_header.get(key), fresh_header.get(key)
         if isinstance(stored_v, dict) and isinstance(fresh_v, dict):
@@ -407,13 +473,31 @@ def digest_drift(stored_header: dict, fresh_header: dict, _path: str = "") -> li
     return diffs
 
 
+def cap_ratchet_diffs(stored_header: dict, fresh_header: dict) -> list[str]:
+    """E2: total_cap_usd / per_run_cap_usd may only shrink across a resume.
+    Raising either is refused with the same "no override" shape digest_drift
+    uses for every other input, naming both values."""
+    diffs = []
+    for key in RATCHET_FIELDS:
+        old, new = stored_header.get(key), fresh_header.get(key)
+        if old is None or new is None or new <= old:
+            continue
+        diffs.append(
+            f"{key}: stored {old!r} vs current {new!r} (increase refused -- "
+            "raising a spend ceiling on resume would restart a study that "
+            "already stopped at its ceiling; lowering it is allowed)"
+        )
+    return diffs
+
+
 def load_or_init_state(study: dict, evidence_dir: Path, fresh_header: dict) -> dict:
     state_path = evidence_dir / "state.json"
     if state_path.exists():
         state = json.loads(state_path.read_text())
         if state.get("seed") != study["seed"]:
             raise SystemExit("resume refused: study seed changed since state was created")
-        diffs = digest_drift(state["header"], fresh_header)
+        diffs = digest_drift(state["header"], fresh_header, skip=frozenset(RATCHET_FIELDS))
+        diffs += cap_ratchet_diffs(state["header"], fresh_header)
         if diffs:
             raise SystemExit(
                 "resume refused: policy, prompt or fixture bytes changed since "
@@ -515,9 +599,17 @@ def make_run_root(study: dict, arm: str, policy_bytes: bytes,
     subprocess.run(["git", "init", "-q"], cwd=fixture_copy, check=True)
     subprocess.run(["git", "add", "."], cwd=fixture_copy, check=True)
     subprocess.run(
+        # E3: --allow-empty -- a user-scope arm writes no CLAUDE.md into the
+        # fixture copy (the policy lands in the per-cell CLAUDE_CONFIG_DIR
+        # instead), so a fixture that is itself empty or contains only empty
+        # directories leaves nothing staged; without this flag the baseline
+        # commit fails with "nothing to commit" after budget was already
+        # reserved and before any spawn. Harmless when there IS something
+        # staged -- it only lifts the "nothing to commit" refusal, it never
+        # forces an empty commit over real staged content.
         ["git", "-c", "user.name=pilotfish-benchmark",
          "-c", "user.email=pilotfish-benchmark@example.invalid",
-         "commit", "-q", "-m", "baseline"],
+         "commit", "-q", "--allow-empty", "-m", "baseline"],
         cwd=fixture_copy, check=True,
     )
     # D2: write the run's frozen agents snapshot -- never rebuild from the
@@ -571,6 +663,30 @@ def git_changed_files(fixture_copy: Path) -> list[str]:
         capture_output=True, text=True,
     )
     return sorted({line[3:].strip() for line in out.stdout.splitlines() if line.strip()})
+
+
+def _stream_looks_complete(stream_path: Path) -> bool:
+    """E5: an interrupted attempt is recoverable only if the stream file the
+    spawned `claude` process wrote is itself complete -- carries a terminal
+    `type: "result"` event -- meaning the process had already finished
+    (successfully or not) before this runner was killed, and only the local
+    persistence step (evaluate_stream + save_state) never ran. A stream
+    truncated mid-write (the far more common kill shape: the process itself
+    was still running) has no terminal event and is NOT recoverable -- it
+    must still be retried."""
+    if not stream_path.exists():
+        return False
+    for line in stream_path.read_bytes().splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if event.get("type") == "result":
+            return True
+    return False
 
 
 def evaluate_stream(stream_path: Path, err_path: Path) -> dict:
@@ -720,69 +836,117 @@ def _run_cells(study: dict, evidence_dir: Path, state: dict, fresh_header: dict,
         arm = cell.split("#", 1)[0]
 
         while True:
-            # attempt_no (for numbering/filenames) counts every recorded
-            # attempt including interrupted placeholders, so a resume never
-            # reuses a filename (A3). The retry budget only counts attempts
-            # that actually got evaluated -- an interrupted (hard-killed)
-            # attempt was never observed, so it shouldn't burn retry budget.
-            attempt_no = len(info["attempts"]) + 1
-            evaluated_attempts = sum(
-                1 for a in info["attempts"] if a.get("status") != "interrupted"
-            )
-            if evaluated_attempts >= 1 + study["max_retries_per_cell"]:
-                info["status"] = "exhausted"
-                save_state(state, evidence_dir)
-                break
+            # E5: the runner can be killed after `claude` finished writing a
+            # COMPLETE stream but before this attempt's evidence was
+            # persisted -- the pre-spawn placeholder is still "interrupted"
+            # even though a valid (possibly paid) run actually happened. A
+            # naive resume treats that as unevaluated, spawns attempt N+1,
+            # and drops the completed run from the denominator while
+            # spending again. Recover it in place instead of respawning
+            # whenever the last recorded attempt is "interrupted" AND its
+            # stream file actually reached a terminal event.
+            last = info["attempts"][-1] if info["attempts"] else None
+            recovered_stream_path = None
+            if last is not None and last.get("status") == "interrupted":
+                candidate_path = streams_dir / f"{cell.replace('#', '-')}-attempt{last['attempt']}.jsonl"
+                if _stream_looks_complete(candidate_path):
+                    recovered_stream_path = candidate_path
 
-            cumulative = sum(r["charged_usd"] for r in state["reservations"])
-            if cumulative + study["per_run_cap_usd"] > study["total_cap_usd"]:
-                blocking = state["reservations"][-1] if state["reservations"] else None
-                msg = (
-                    f"refusing {cell} attempt {attempt_no}: cumulative charged "
-                    f"${cumulative:.4f} + reservation ${study['per_run_cap_usd']:.4f} "
-                    f"would exceed total_cap_usd ${study['total_cap_usd']:.4f}"
+            if recovered_stream_path is not None:
+                attempt_no = last["attempt"]
+                stream_path = recovered_stream_path
+                err_path = streams_dir / f"{cell.replace('#', '-')}-attempt{attempt_no}.err"
+                reservation = next(
+                    r for r in state["reservations"]
+                    if r["cell"] == cell and r["attempt"] == attempt_no
                 )
-                if blocking is not None:
-                    msg += (
-                        f"; blocking reservation: cell={blocking['cell']} "
-                        f"attempt={blocking['attempt']} charged=${blocking['charged_usd']:.4f}"
+                scope = arm_scope(study, arm)
+                setting_sources = "project,local" if scope == "project" else "user,project,local"
+                run_root = None  # unknown: never persisted before the crash (see comment below)
+                extra_fields = {
+                    # The run root that produced this stream was created
+                    # (and possibly already cleaned up) by a process that
+                    # was killed before it ever saved that path to state --
+                    # it cannot be recovered here. Not needed for validity
+                    # or the tally, only for forensic inspection of an
+                    # attempt that has already been fully evaluated.
+                    "changed_files": None, "run_root": None, "config_dir": None,
+                    "scope": scope, "setting_sources": setting_sources,
+                    "recovered_from_interrupted": True,
+                }
+            else:
+                # attempt_no (for numbering/filenames) counts every recorded
+                # attempt including interrupted placeholders, so a resume
+                # never reuses a filename (A3). The retry budget only counts
+                # attempts that actually got evaluated -- an interrupted
+                # (hard-killed, unrecoverable) attempt was never observed, so
+                # it shouldn't burn retry budget.
+                attempt_no = len(info["attempts"]) + 1
+                evaluated_attempts = sum(
+                    1 for a in info["attempts"] if a.get("status") != "interrupted"
+                )
+                if evaluated_attempts >= 1 + study["max_retries_per_cell"]:
+                    info["status"] = "exhausted"
+                    save_state(state, evidence_dir)
+                    break
+
+                cumulative = sum(r["charged_usd"] for r in state["reservations"])
+                if cumulative + study["per_run_cap_usd"] > study["total_cap_usd"]:
+                    blocking = state["reservations"][-1] if state["reservations"] else None
+                    msg = (
+                        f"refusing {cell} attempt {attempt_no}: cumulative charged "
+                        f"${cumulative:.4f} + reservation ${study['per_run_cap_usd']:.4f} "
+                        f"would exceed total_cap_usd ${study['total_cap_usd']:.4f}"
                     )
-                print(msg)
-                save_state(state, evidence_dir)
-                return 1
+                    if blocking is not None:
+                        msg += (
+                            f"; blocking reservation: cell={blocking['cell']} "
+                            f"attempt={blocking['attempt']} charged=${blocking['charged_usd']:.4f}"
+                        )
+                    print(msg)
+                    save_state(state, evidence_dir)
+                    return 1
 
-            reservation = {
-                "cell": cell, "attempt": attempt_no,
-                "charged_usd": study["per_run_cap_usd"], "status": "reserved",
-            }
-            state["reservations"].append(reservation)
-            info["status"] = "in_progress"
-            # Record the attempt itself before spawn too (A3): if the process
-            # is killed mid-spawn, len(info["attempts"]) must already reflect
-            # this attempt, or a resume recomputes the same attempt_no and
-            # overwrites this attempt's raw stream file with the retry's.
-            info["attempts"].append({"attempt": attempt_no, "valid": False, "status": "interrupted"})
-            save_state(state, evidence_dir)  # persisted before spawn: survives a hard kill
+                reservation = {
+                    "cell": cell, "attempt": attempt_no,
+                    "charged_usd": study["per_run_cap_usd"], "status": "reserved",
+                }
+                state["reservations"].append(reservation)
+                info["status"] = "in_progress"
+                # Record the attempt itself before spawn too (A3): if the process
+                # is killed mid-spawn, len(info["attempts"]) must already reflect
+                # this attempt, or a resume recomputes the same attempt_no and
+                # overwrites this attempt's raw stream file with the retry's.
+                info["attempts"].append({"attempt": attempt_no, "valid": False, "status": "interrupted"})
+                save_state(state, evidence_dir)  # persisted before spawn: survives a hard kill
 
-            try:
-                run_root, fixture_copy, config_dir, setting_sources = make_run_root(
-                    study, arm, policy_bytes[arm], fixture_snapshot, agents_bytes
-                )
-            except SystemExit:
-                # Refused before any spawn happened (F4 guard) -- A2: don't
-                # leave a charged reservation or a phantom attempt behind for
-                # zero spend, or repeated retries could exhaust
-                # total_cap_usd having spent nothing.
-                state["reservations"].pop()
-                info["attempts"].pop()
-                info["status"] = "in_progress" if info["attempts"] else "pending"
-                save_state(state, evidence_dir)
-                raise
+                try:
+                    run_root, fixture_copy, config_dir, setting_sources = make_run_root(
+                        study, arm, policy_bytes[arm], fixture_snapshot, agents_bytes
+                    )
+                except SystemExit:
+                    # Refused before any spawn happened (F4 guard) -- A2: don't
+                    # leave a charged reservation or a phantom attempt behind for
+                    # zero spend, or repeated retries could exhaust
+                    # total_cap_usd having spent nothing.
+                    state["reservations"].pop()
+                    info["attempts"].pop()
+                    info["status"] = "in_progress" if info["attempts"] else "pending"
+                    save_state(state, evidence_dir)
+                    raise
 
-            stream_path = streams_dir / f"{cell.replace('#', '-')}-attempt{attempt_no}.jsonl"
-            err_path = streams_dir / f"{cell.replace('#', '-')}-attempt{attempt_no}.err"
-            spawn_cell(study, fixture_copy, run_root, config_dir, setting_sources,
-                       stream_path, err_path, prompt_text)
+                stream_path = streams_dir / f"{cell.replace('#', '-')}-attempt{attempt_no}.jsonl"
+                err_path = streams_dir / f"{cell.replace('#', '-')}-attempt{attempt_no}.err"
+                spawn_cell(study, fixture_copy, run_root, config_dir, setting_sources,
+                           stream_path, err_path, prompt_text)
+
+                extra_fields = {
+                    "changed_files": git_changed_files(fixture_copy),
+                    "run_root": str(run_root),
+                    "scope": arm_scope(study, arm),
+                    "setting_sources": setting_sources,
+                    "config_dir": str(config_dir) if config_dir is not None else None,
+                }
 
             evidence = evaluate_stream(stream_path, err_path)
             evidence.update({
@@ -794,11 +958,7 @@ def _run_cells(study: dict, evidence_dir: Path, state: dict, fresh_header: dict,
                 "policy_sha256": fresh_header["policies"][arm]["sha256"],
                 "prompt_sha256": fresh_header["prompt_sha256"],
                 "fixture_tree_sha256": fresh_header["fixture_tree_sha256"],
-                "changed_files": git_changed_files(fixture_copy),
-                "run_root": str(run_root),
-                "scope": arm_scope(study, arm),
-                "setting_sources": setting_sources,
-                "config_dir": str(config_dir) if config_dir is not None else None,
+                **extra_fields,
             })
 
             if evidence["valid"]:
@@ -824,8 +984,10 @@ def _run_cells(study: dict, evidence_dir: Path, state: dict, fresh_header: dict,
             # written out. Only for valid attempts -- an invalid one is
             # exactly what a human will want to inspect, so it's left in
             # place (as is anything killed mid-flight: that path never
-            # reaches here at all).
-            if evidence["valid"] and not keep_run_roots:
+            # reaches here at all). run_root is None for a recovered
+            # attempt (E5) -- its path was never persisted, so there is
+            # nothing this process can clean up.
+            if evidence["valid"] and not keep_run_roots and run_root is not None:
                 cleanup_run_root(run_root)
 
             if evidence["valid"]:
@@ -901,6 +1063,34 @@ def fisher_exact_two_sided(table: list[list[int]]) -> float:
 # --------------------------------------------------------------------------
 # report
 # --------------------------------------------------------------------------
+
+# Structural issue 2: fields whose value is OBSERVED per attempt rather than
+# declared up front -- they can't be frozen into the header like a policy
+# digest, because they're outputs of running, not inputs to it (a Claude
+# Code upgrade or a model alias resolving differently mid-study are both
+# outside this tool's control). Pooling silently assumes every attempt saw
+# the same one; declared once, generically, so a future observed field is
+# covered by adding it here rather than writing a second special case.
+OBSERVED_CONDITION_FIELDS = ("client_version", "observed_main_model")
+
+
+def _observed_conditions(state: dict, arms) -> dict[str, list]:
+    """Distinct non-null values seen for each OBSERVED_CONDITION_FIELDS entry
+    across every valid attempt in the given arms. More than one distinct
+    value for a field means attempts were pooled from heterogeneous
+    conditions (E1 / E4) -- the caller must refuse pooled comparisons."""
+    arms = set(arms)
+    conditions: dict[str, list] = {}
+    for field in OBSERVED_CONDITION_FIELDS:
+        conditions[field] = sorted({
+            a[field]
+            for cell, info in state["cells"].items()
+            if cell.split("#", 1)[0] in arms
+            for a in info["attempts"]
+            if a.get("valid") and a.get(field)
+        })
+    return conditions
+
 
 def _comparisons(control: tuple[int, int], placebo: tuple[int, int],
                   candidate: tuple[int, int]) -> dict:
@@ -1017,7 +1207,6 @@ def cmd_report(args: argparse.Namespace) -> int:
     arms = recorded_arms if recorded_arms is not None else sorted(study["arms"])
 
     tally: dict[str, tuple[int, int]] = {}
-    client_version = None
     for arm in arms:
         valid = [
             a for cell, info in state["cells"].items()
@@ -1026,8 +1215,17 @@ def cmd_report(args: argparse.Namespace) -> int:
         ]
         dispatched = sum(1 for a in valid if a["dispatched"])
         tally[arm] = (dispatched, len(valid) - dispatched)
-        if client_version is None:
-            client_version = next((a["client_version"] for a in valid if a.get("client_version")), None)
+
+    # E1 / E4 (structural issue 2): aggregate the observed conditions across
+    # every valid attempt in the reported arms, BEFORE deciding whether to
+    # emit a pooled comparison -- see OBSERVED_CONDITION_FIELDS.
+    observed = _observed_conditions(state, tally.keys())
+    mixed_conditions = {field: values for field, values in observed.items() if len(values) > 1}
+    client_versions = observed["client_version"]
+    client_version = (
+        client_versions[0] if len(client_versions) == 1
+        else (client_versions if client_versions else None)
+    )
 
     result = {
         "dispatch_predicate": DISPATCH_PREDICATE_TEXT,
@@ -1038,6 +1236,7 @@ def cmd_report(args: argparse.Namespace) -> int:
         "fixture_tree_sha256": header.get("fixture_tree_sha256"),
         "agents_sha256": header.get("agents_sha256"),
         "client": client_version,
+        "observed_conditions": observed,
         "arms": {
             # C5: scope is provenance too -- use the value recorded in the
             # header when the run happened, not the study file's current
@@ -1064,6 +1263,18 @@ def cmd_report(args: argparse.Namespace) -> int:
         result["refused"] = (
             f"pooled comparisons refused: target_n={target_n} not yet reached "
             f"for {shortfall}"
+        )
+    elif mixed_conditions:
+        # E1 / E4: valid attempts disagree on an observed condition (e.g. a
+        # Claude Code upgrade or a model alias resolving differently
+        # mid-study) -- pooling them under one label would average over
+        # different implementations. Refuse the pooled p-values; the
+        # per-arm counts above (and observed_conditions) are still printed.
+        result["comparisons"] = None
+        result["refused"] = (
+            "pooled comparisons refused: mixed observed conditions across "
+            f"valid attempts (not run-affecting inputs, so not caught at "
+            f"resume): {mixed_conditions}"
         )
     elif {"control", "placebo", "candidate"} <= tally.keys():
         result["comparisons"] = _comparisons(tally["control"], tally["placebo"], tally["candidate"])

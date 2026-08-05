@@ -110,7 +110,13 @@ and is deliberately not mixed into this one.
    (`evidence_dir/.lock`) for its whole invocation; a second `run` against the
    same `evidence_dir` refuses to start and names the holding pid, because
    `state.json` is a whole-file rewrite and two concurrent writers could
-   otherwise silently erase each other's reservations.
+   otherwise silently erase each other's reservations. Both ceilings are
+   themselves recorded in the run header and checked on every resume:
+   **raising** `total_cap_usd` or `per_run_cap_usd` after the study began is
+   refused outright, naming the stored and current values — otherwise editing
+   the study file up would silently restart a study that had already stopped
+   at its hard ceiling. **Lowering** either is allowed without an override,
+   since a lower ceiling only tightens what a resumed run can still spend.
 2. **Rejected runs are not observations.** A run whose stream has empty
    `model_costs_usd`, or whose terminal event subtype is not `success`, is
    recorded `valid: false` with a reason and never enters a numerator or
@@ -143,6 +149,18 @@ and is deliberately not mixed into this one.
    not whatever the study file currently says. Editing `target_n` down after
    the fact does not relax the guard; `report` refuses outright, naming both
    values, instead of silently comparing against the edited number.
+8. **Observed conditions, not just declared inputs.** The header freezes
+   *inputs* the study declares up front (policy/prompt/fixture bytes, model,
+   both caps, ...). It cannot freeze conditions a run only *observes* —
+   `client_version` and `observed_main_model` per attempt — because a Claude
+   Code upgrade or a model alias resolving to a different concrete model
+   mid-study are outside this tool's control. Before emitting any pooled
+   comparison, `report` aggregates the distinct values of every such field
+   across all valid attempts in the reported arms; if more than one distinct
+   value shows up for any field, pooled comparisons are refused (naming the
+   field and the values seen) rather than averaging over heterogeneous
+   implementations. Per-arm counts and `observed_conditions` are still
+   printed either way.
 
 ## Known limitations
 

@@ -1474,6 +1474,369 @@ def test_39_snapshot_cleaned_up_on_refused_resume():
     policy_path.unlink(missing_ok=True)
 
 
+def test_40_header_covers_every_run_affecting_field():
+    # Structural issue 1 (third review round): the header's input set must
+    # be derived from a single declared source, not a hand-written list --
+    # that's exactly what let total_cap_usd and per_run_cap_usd both go
+    # missing twice before. RUN_AFFECTING_HEADER_KEYS.keys() ==
+    # RUN_AFFECTING_FIELDS is asserted at import time (module load); this
+    # test additionally checks build_header()'s ACTUAL output against the
+    # same declared mapping, so a bug in build_header itself (declared here
+    # but not actually emitted) is caught by the suite too.
+    study = run_study.load_study(str(DISPATCH_RATE_DIR / "study.example.json"))
+    header = run_study.build_header(study)
+    for field, header_keys in run_study.RUN_AFFECTING_HEADER_KEYS.items():
+        for key in header_keys:
+            assert key in header, (
+                f"required field {field!r} maps to header key {key!r}, "
+                f"which is missing from build_header()'s output"
+            )
+    # the two caps specifically, since that's the exact omission the review found
+    assert header["total_cap_usd"] == study["total_cap_usd"]
+    assert header["per_run_cap_usd"] == study["per_run_cap_usd"]
+    assert header["max_retries_per_cell"] == study["max_retries_per_cell"]
+    assert header["max_backoff_seconds"] == study["max_backoff_seconds"]
+
+
+def test_41_total_cap_increase_on_resume_refused():
+    # E2: raising total_cap_usd on resume must not restart a study that
+    # already stopped at its ceiling -- the budget-ceiling bypass.
+    evidence = new_evidence_dir("capraise")
+    study_path = make_study(
+        evidence, target_n=1, per_run_cap_usd=1.0, total_cap_usd=1.0,
+        max_retries_per_cell=0, seed=40,
+        arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+    )
+    result = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="success"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    study = json.loads(study_path.read_text())
+    study["total_cap_usd"] = 100.0
+    study_path.write_text(json.dumps(study))
+
+    result2 = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="success"))
+    assert result2.returncode != 0, "raising total_cap_usd on resume must be refused"
+    out2 = result2.stdout + result2.stderr
+    assert "total_cap_usd" in out2 and "increase refused" in out2, out2
+    assert "1.0" in out2 and "100.0" in out2, out2
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
+def test_41b_per_run_cap_increase_on_resume_refused():
+    # E2, same ratchet on the other cap.
+    evidence = new_evidence_dir("perruncapraise")
+    study_path = make_study(
+        evidence, target_n=1, per_run_cap_usd=1.0, total_cap_usd=100.0,
+        max_retries_per_cell=0, seed=41,
+        arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+    )
+    result = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="success"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    study = json.loads(study_path.read_text())
+    study["per_run_cap_usd"] = 50.0
+    study_path.write_text(json.dumps(study))
+
+    result2 = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="success"))
+    assert result2.returncode != 0, "raising per_run_cap_usd on resume must be refused"
+    out2 = result2.stdout + result2.stderr
+    assert "per_run_cap_usd" in out2 and "increase refused" in out2, out2
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
+def test_42_cap_decrease_on_resume_allowed():
+    # Lowering a cap only tightens an already-running study -- it must not
+    # be refused the way any other header drift is.
+    evidence = new_evidence_dir("capdecrease")
+    study_path = make_study(
+        evidence, target_n=1, per_run_cap_usd=1.0, total_cap_usd=100.0,
+        max_retries_per_cell=0, seed=42,
+        arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+    )
+    result = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="success"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    study = json.loads(study_path.read_text())
+    study["total_cap_usd"] = 0.5
+    study["per_run_cap_usd"] = 0.5
+    study_path.write_text(json.dumps(study))
+
+    result2 = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="success"))
+    assert result2.returncode == 0, (
+        f"lowering caps on resume must be allowed: {result2.stdout + result2.stderr}"
+    )
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
+def test_43_interrupted_attempt_with_complete_stream_recovered_not_respawned():
+    # E5: killed after `claude` finished writing a COMPLETE stream but
+    # before the runner persisted its evidence -- state still shows
+    # "interrupted". On resume this must be classified and persisted in
+    # place, not treated as unevaluated and retried (which would drop a
+    # completed, possibly paid, run from the denominator and spend again).
+    evidence = new_evidence_dir("recoverinterrupted")
+    study_path = make_study(
+        evidence, target_n=1, per_run_cap_usd=1.0, total_cap_usd=100.0,
+        max_retries_per_cell=1, seed=43,
+        arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+    )
+    study = run_study.load_study(str(study_path))
+    schedule = run_study.build_schedule(study)
+    cell = schedule[0]
+
+    evidence.mkdir(parents=True, exist_ok=True)
+    (evidence / ".pilotfish-created").touch()
+    (evidence / "streams").mkdir(exist_ok=True)
+    stream_path = evidence / "streams" / f"{cell.replace('#', '-')}-attempt1.jsonl"
+    stream_path.write_text(
+        json.dumps({"type": "system", "subtype": "init", "model": "claude-stub-5",
+                    "claude_code_version": "0.0.0-stub"}) + "\n"
+        + json.dumps({"type": "assistant", "parent_tool_use_id": None,
+                      "message": {"content": [{"type": "tool_use", "id": "t1",
+                                                "name": "Write", "input": {}}]}}) + "\n"
+        + json.dumps({"type": "result", "subtype": "success", "total_cost_usd": 0.07,
+                      "modelUsage": {"claude-stub-5": {"costUSD": 0.07}}}) + "\n"
+    )
+    (evidence / "streams" / f"{cell.replace('#', '-')}-attempt1.err").write_text("")
+
+    fresh_header = run_study.build_header(study)
+    state = {
+        "study_name": study.get("name"), "seed": study["seed"], "schedule": schedule,
+        "header": fresh_header,
+        "reservations": [
+            {"cell": cell, "attempt": 1, "charged_usd": study["per_run_cap_usd"], "status": "reserved"},
+        ],
+        "cells": {cell: {"status": "in_progress", "attempts": [
+            {"attempt": 1, "valid": False, "status": "interrupted"},
+        ]}},
+        "backoff_seconds_used": 0.0, "stopped_reason": None,
+    }
+    (evidence / "state.json").write_text(json.dumps(state))
+
+    counter_file = evidence.parent / f"{evidence.name}.counter"
+    result = run_cli(
+        ["run", str(study_path)],
+        stub_env(CLAUDE_STUB_MODE="success", CLAUDE_STUB_COUNTER_FILE=str(counter_file)),
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert not counter_file.exists(), (
+        "the stub must never have been invoked -- a recoverable attempt must not respawn"
+    )
+    stream2 = evidence / "streams" / f"{cell.replace('#', '-')}-attempt2.jsonl"
+    assert not stream2.exists(), "recovering attempt1 must not create a new attempt"
+
+    state_after = json.loads((evidence / "state.json").read_text())
+    info = state_after["cells"][cell]
+    assert info["status"] == "complete"
+    assert len(info["attempts"]) == 1
+    attempt = info["attempts"][0]
+    assert attempt["valid"] is True
+    assert attempt["cost_usd"] == 0.07
+    assert attempt.get("status") != "interrupted"
+    reservation = state_after["reservations"][0]
+    assert reservation["charged_usd"] == 0.07, "reservation must reconcile to the recovered cost"
+    assert reservation["status"] == "done"
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
+def test_43b_interrupted_attempt_with_truncated_stream_still_retried():
+    # E5's counterpart: an interrupted attempt whose stream never reached a
+    # terminal event (the far more common kill shape -- the process was
+    # still running) must NOT be treated as recoverable; it must still be
+    # retried as a new attempt, exactly like before this fix.
+    evidence = new_evidence_dir("truncatedinterrupt")
+    study_path = make_study(
+        evidence, target_n=1, per_run_cap_usd=1.0, total_cap_usd=100.0,
+        max_retries_per_cell=1, seed=44,
+        arms={"control": {"policy": "templates/claude-md.orchestration.md"}},
+    )
+    study = run_study.load_study(str(study_path))
+    schedule = run_study.build_schedule(study)
+    cell = schedule[0]
+
+    evidence.mkdir(parents=True, exist_ok=True)
+    (evidence / ".pilotfish-created").touch()
+    (evidence / "streams").mkdir(exist_ok=True)
+    stream_path = evidence / "streams" / f"{cell.replace('#', '-')}-attempt1.jsonl"
+    stream_path.write_text(
+        json.dumps({"type": "system", "subtype": "init", "model": "claude-stub-5",
+                    "claude_code_version": "0.0.0-stub"}) + "\n"
+        # no terminal "result" event -- truncated mid-run
+    )
+
+    fresh_header = run_study.build_header(study)
+    state = {
+        "study_name": study.get("name"), "seed": study["seed"], "schedule": schedule,
+        "header": fresh_header,
+        "reservations": [
+            {"cell": cell, "attempt": 1, "charged_usd": study["per_run_cap_usd"], "status": "reserved"},
+        ],
+        "cells": {cell: {"status": "in_progress", "attempts": [
+            {"attempt": 1, "valid": False, "status": "interrupted"},
+        ]}},
+        "backoff_seconds_used": 0.0, "stopped_reason": None,
+    }
+    (evidence / "state.json").write_text(json.dumps(state))
+
+    result = run_cli(["run", str(study_path)], stub_env(CLAUDE_STUB_MODE="success"))
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    stream2 = evidence / "streams" / f"{cell.replace('#', '-')}-attempt2.jsonl"
+    assert stream2.exists(), "a truncated interrupted stream must still be retried as a new attempt"
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
+def test_44_user_scope_empty_fixture_baseline_commit_succeeds():
+    # E3: an empty (or empty-dirs-only) fixture at user scope writes no
+    # CLAUDE.md into the fixture copy (the policy goes to the per-cell
+    # CLAUDE_CONFIG_DIR instead), so `git commit` had nothing to commit and
+    # failed after budget was already reserved and before any spawn.
+    import tempfile
+    fixture_dir = Path(tempfile.mkdtemp(prefix="pilotfish-test44-fixture-"))
+    try:
+        (fixture_dir / "empty-subdir").mkdir()
+        evidence = new_evidence_dir("emptyfixture")
+        fake_home = evidence.parent / f"{evidence.name}.fakehome"
+        fake_home.mkdir(parents=True, exist_ok=True)
+        study_path = make_study(
+            evidence, target_n=1, seed=45,
+            fixture=str(fixture_dir),
+            arms={"control": {"policy": "templates/claude-md.orchestration.md", "scope": "user"}},
+        )
+        env = stub_env(CLAUDE_STUB_MODE="success")
+        env["HOME"] = str(fake_home)
+        env.pop("CLAUDE_CONFIG_DIR", None)
+
+        result = run_cli(["run", str(study_path)], env)
+        assert result.returncode == 0, result.stdout + result.stderr
+        state = json.loads((evidence / "state.json").read_text())
+        assert state["cells"]["control#1"]["status"] == "complete"
+        assert state["reservations"][0]["status"] == "done"
+
+        shutil.rmtree(evidence, ignore_errors=True)
+        shutil.rmtree(fake_home, ignore_errors=True)
+    finally:
+        shutil.rmtree(fixture_dir, ignore_errors=True)
+
+
+def test_45_report_refuses_pooled_comparisons_on_mixed_client_version():
+    # E1: attempts observed under different client_version values must not
+    # be silently pooled into one label -- refuse pooled comparisons and
+    # name the distinct values, while still printing per-arm counts.
+    evidence = new_evidence_dir("mixedclient")
+    study_path = make_study(evidence, target_n=1, seed=46)
+    evidence.mkdir(parents=True, exist_ok=True)
+    study = run_study.load_study(str(study_path))
+    header = run_study.build_header(study)
+
+    def attempt(client_version, model):
+        return {
+            "valid": True, "dispatched": True, "cost_usd": 0.05,
+            "client_version": client_version, "observed_main_model": model,
+        }
+
+    fake_state = {
+        "study_name": "test", "seed": 46, "schedule": ["control#1", "candidate#1", "placebo#1"],
+        "header": header, "reservations": [], "backoff_seconds_used": 0.0, "stopped_reason": None,
+        "cells": {
+            "control#1": {"status": "complete", "attempts": [attempt("2.1.100", "claude-stub-5")]},
+            "candidate#1": {"status": "complete", "attempts": [attempt("2.1.220", "claude-stub-5")]},
+            "placebo#1": {"status": "complete", "attempts": [attempt("2.1.100", "claude-stub-5")]},
+        },
+    }
+    (evidence / "state.json").write_text(json.dumps(fake_state))
+
+    result = run_cli(["report", str(study_path)], stub_env())
+    assert result.returncode == 0, result.stdout + result.stderr
+    parsed = json.loads(result.stdout)
+    assert parsed["comparisons"] is None
+    assert "refused" in parsed and "mixed observed conditions" in parsed["refused"], parsed
+    assert "client_version" in parsed["refused"], parsed["refused"]
+    assert parsed["arms"]["control"]["attempts"] == 1, "per-arm counts must still be printed"
+    assert sorted(parsed["observed_conditions"]["client_version"]) == ["2.1.100", "2.1.220"]
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
+def test_46_report_refuses_pooled_comparisons_on_mixed_observed_main_model():
+    # E4: the report must not ignore observed_main_model in favor of the
+    # requested `model` -- a model alias resolving differently across
+    # attempts must refuse pooling too, even with a single client_version.
+    evidence = new_evidence_dir("mixedmodel")
+    study_path = make_study(evidence, target_n=1, seed=47)
+    evidence.mkdir(parents=True, exist_ok=True)
+    study = run_study.load_study(str(study_path))
+    header = run_study.build_header(study)
+
+    def attempt(model):
+        return {
+            "valid": True, "dispatched": True, "cost_usd": 0.05,
+            "client_version": "2.1.100", "observed_main_model": model,
+        }
+
+    fake_state = {
+        "study_name": "test", "seed": 47, "schedule": ["control#1", "candidate#1", "placebo#1"],
+        "header": header, "reservations": [], "backoff_seconds_used": 0.0, "stopped_reason": None,
+        "cells": {
+            "control#1": {"status": "complete", "attempts": [attempt("claude-opus-5")]},
+            "candidate#1": {"status": "complete", "attempts": [attempt("claude-opus-5-1")]},
+            "placebo#1": {"status": "complete", "attempts": [attempt("claude-opus-5")]},
+        },
+    }
+    (evidence / "state.json").write_text(json.dumps(fake_state))
+
+    result = run_cli(["report", str(study_path)], stub_env())
+    assert result.returncode == 0, result.stdout + result.stderr
+    parsed = json.loads(result.stdout)
+    assert parsed["comparisons"] is None
+    assert "refused" in parsed and "observed_main_model" in parsed["refused"], parsed
+    assert parsed["model"] == "opus", "the requested model field is unaffected"
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
+def test_47_report_pools_normally_when_conditions_uniform():
+    # Sanity check on the new gate: uniform observed conditions across all
+    # valid attempts must still pool and reproduce a Fisher p-value, exactly
+    # as before this change.
+    evidence = new_evidence_dir("uniformconditions")
+    study_path = make_study(evidence, target_n=1, seed=48)
+    evidence.mkdir(parents=True, exist_ok=True)
+    study = run_study.load_study(str(study_path))
+    header = run_study.build_header(study)
+
+    def attempt(dispatched):
+        return {
+            "valid": True, "dispatched": dispatched, "cost_usd": 0.05,
+            "client_version": "2.1.100", "observed_main_model": "claude-stub-5",
+        }
+
+    fake_state = {
+        "study_name": "test", "seed": 48, "schedule": ["control#1", "candidate#1", "placebo#1"],
+        "header": header, "reservations": [], "backoff_seconds_used": 0.0, "stopped_reason": None,
+        "cells": {
+            "control#1": {"status": "complete", "attempts": [attempt(False)]},
+            "candidate#1": {"status": "complete", "attempts": [attempt(True)]},
+            "placebo#1": {"status": "complete", "attempts": [attempt(False)]},
+        },
+    }
+    (evidence / "state.json").write_text(json.dumps(fake_state))
+
+    result = run_cli(["report", str(study_path)], stub_env())
+    assert result.returncode == 0, result.stdout + result.stderr
+    parsed = json.loads(result.stdout)
+    assert parsed["comparisons"] is not None, parsed
+    assert "refused" not in parsed, parsed
+    assert parsed["client"] == "2.1.100"
+
+    shutil.rmtree(evidence, ignore_errors=True)
+
+
 TESTS = [
     test_1_plan_stable_and_resolves,
     test_2_reservation_survives_kill_and_blocks,
@@ -1514,6 +1877,16 @@ TESTS = [
     test_37_unparseable_stream_records_digest,
     test_38_rate_limit_detected_from_terminal_result_text,
     test_39_snapshot_cleaned_up_on_refused_resume,
+    test_40_header_covers_every_run_affecting_field,
+    test_41_total_cap_increase_on_resume_refused,
+    test_41b_per_run_cap_increase_on_resume_refused,
+    test_42_cap_decrease_on_resume_allowed,
+    test_43_interrupted_attempt_with_complete_stream_recovered_not_respawned,
+    test_43b_interrupted_attempt_with_truncated_stream_still_retried,
+    test_44_user_scope_empty_fixture_baseline_commit_succeeds,
+    test_45_report_refuses_pooled_comparisons_on_mixed_client_version,
+    test_46_report_refuses_pooled_comparisons_on_mixed_observed_main_model,
+    test_47_report_pools_normally_when_conditions_uniform,
 ]
 
 
