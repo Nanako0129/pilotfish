@@ -502,6 +502,90 @@ class PolicyContractTests(unittest.TestCase):
             (benchmark / "README.md").read_text(encoding="utf-8"),
         )
 
+    def test_cue_free_tui_evidence_is_bound_and_claim_limited(self) -> None:
+        benchmark = ROOT / "benchmarks" / "spontaneous-dispatch"
+        evidence_text = (benchmark / "cue-free-tui.json").read_text(
+            encoding="utf-8"
+        )
+        evidence = json.loads(
+            evidence_text,
+            parse_float=Decimal,
+        )
+        self.assertEqual(evidence["schema_version"], 1)
+        self.assertEqual(evidence["status"], "stopped_after_failed_topology")
+
+        policy = evidence["inputs"]["policy"]
+        base = (benchmark / policy["base_path"]).read_bytes()
+        self.assertEqual(len(base), policy["base_bytes"])
+        self.assertEqual(hashlib.sha256(base).hexdigest(), policy["base_sha256"])
+        marker = policy["delta_insertion_before"].encode()
+        self.assertEqual(base.count(marker), 1)
+        addition = ("\n".join(policy["delta_lines"]) + "\n").encode()
+        candidate = base.replace(marker, addition + marker)
+        self.assertEqual(len(candidate), policy["candidate_bytes"])
+        self.assertEqual(
+            hashlib.sha256(candidate).hexdigest(), policy["candidate_sha256"]
+        )
+
+        prompt = evidence["inputs"]["prompt"]
+        prompt_bytes = (benchmark / prompt["path"]).read_bytes()
+        self.assertEqual(
+            hashlib.sha256(prompt_bytes).hexdigest(), prompt["file_sha256"]
+        )
+        self.assertEqual(
+            hashlib.sha256(prompt_bytes.rstrip(b"\n")).hexdigest(),
+            prompt["runtime_sha256"],
+        )
+        fixture = evidence["inputs"]["fixture"]
+        fixture_path = (benchmark / fixture["path"]).resolve()
+        digest_lines = []
+        for file_path in sorted(
+            item for item in fixture_path.rglob("*") if item.is_file()
+        ):
+            digest_lines.append(
+                f"{hashlib.sha256(file_path.read_bytes()).hexdigest()}  "
+                f"{file_path.relative_to(ROOT)}\n"
+            )
+        self.assertEqual(
+            hashlib.sha256("".join(digest_lines).encode()).hexdigest(),
+            fixture["manifest_sha256"],
+        )
+        agents = evidence["inputs"]["agents"]
+        agents_bytes = (benchmark / agents["path"]).read_bytes()
+        self.assertEqual(
+            hashlib.sha256(agents_bytes).hexdigest(),
+            agents["file_sha256"],
+        )
+        self.assertEqual(
+            hashlib.sha256(agents_bytes.rstrip(b"\n")).hexdigest(),
+            agents["runtime_sha256"],
+        )
+
+        observation = evidence["tui_observation"]
+        self.assertRegex(observation["transcript_sha256"], r"^[0-9a-f]{64}$")
+        self.assertEqual(observation["thinking_blocks"], 4)
+        self.assertEqual(observation["readable_thinking_blocks"], 4)
+        self.assertFalse(observation["reasoning_verbatim_published"])
+        self.assertEqual(observation["top_level_tools"], {"Bash": 6})
+        self.assertEqual(observation["agent_calls"], 0)
+        self.assertEqual(len(observation["modified_paths"]), 12)
+        self.assertEqual(observation["tests"], "12 passed, 0 failed")
+        self.assertFalse(observation["topology_pass"])
+
+        campaign = evidence["campaign"]
+        self.assertEqual(len(campaign["cells"]), 4)
+        self.assertTrue(all(cell["agent_calls"] == 0 for cell in campaign["cells"]))
+        self.assertTrue(
+            all(not cell["topology_pass"] for cell in campaign["cells"])
+        )
+        self.assertNotIn("/Users/", evidence_text)
+        self.assertNotIn("session_id", evidence_text)
+
+        for readme in ("README.md", "README.zh-TW.md"):
+            content = (benchmark / readme).read_text(encoding="utf-8")
+            self.assertIn("cue-free-tui.json", content)
+            self.assertIn("Calico TUI", content)
+
     def test_issue_29_reachability_correction_is_self_consistent(self) -> None:
         path = ROOT / "benchmarks" / "spontaneous-dispatch"
         evidence = json.loads(

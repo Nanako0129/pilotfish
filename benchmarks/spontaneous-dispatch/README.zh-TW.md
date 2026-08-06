@@ -223,6 +223,14 @@ Schema review 與 implementation routing 是兩個不同決策。Serialization �
 
 [`issue-29-recovery.json`](./issue-29-recovery.json) 綁定早期 Gate candidate 與 release replay 的 repository policy、注入方法、generated agents payload、prompts、成本與 raw-stream hashes。Release replay 在 `$8` hard cap 下完成十次 invocation，reported `$3.89565485`。Claude Code 在兩次 mechanical attempt 之間從 2.1.220 更新為 2.1.221；兩次都通過，其餘 cells 皆在 2.1.221 上執行。Client transcripts 觀察到 fixture `CLAUDE.md` 的預期大小，但沒有提供實際併入 runtime system prompt 的位元組 digest，因此這不是 exact-loaded-policy 因果宣稱。Stream 與 final-state evidence 不用來宣稱 causal mutation ownership。
 
+## Calico TUI 診斷
+
+後續 cue-free candidate 嘗試在 `CLAUDE.md` 裡把委派表達成使用者的常駐指示。Claude Code 或 Calico 2.1.223、Opus 5、high effort 的四次 mechanical cell 全部為零 Agent call，由主 session 改完十二個 adapter，且 12/12 tests 通過。實驗到此停止；結果正確不代表 ownership topology 通過。
+
+最後一格改用持久化的 Calico 互動式 TUI，並啟用既有完整 tool-output patch。四個 thinking block 全部可讀。限定後的摘要是：模型認為較高優先級的 system instruction 覆蓋 candidate 對 `AgentTool` 的允許；它另外明示 `dispatch: direct — 12 identical one-shot edits, mechanical but faster inline than briefing a worker.` TUI 顯示六次 Bash、沒有 `Agent` 或 `Task` call，指令與輸出皆完整顯示。
+
+[`cue-free-tui.json`](./cue-free-tui.json) 綁定可重建的 policy delta、prompt、fixture、generated agents payload、patched client binary、transcript hash、可觀察工具、final paths、tests，以及約 `$2.6381705` 的 campaign cost。Raw thinking 不提交。這是模型自述決策依據的證據，不是 active system-prompt 精確位元組；它結束的是這一版 `CLAUDE.md` candidate，不是 cue-free delegation 這個產品目標。
+
 ## 結論邊界
 
 | 限制 | 影響 |

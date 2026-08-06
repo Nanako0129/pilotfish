@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "run_date": "2026-08-06",
+  "status": "stopped_after_failed_topology",
+  "claim": "A persistent Calico TUI run exposed four readable thinking blocks. The model treated a higher-priority client instruction as preventing AgentTool use, then independently selected direct work under the coordination-cost escape. It made no Agent call, changed all twelve adapters in the main session, and passed 12/12 tests.",
+  "claim_boundary": "This is one diagnostic run on one account, client build, model, prompt, fixture, and policy candidate. The thinking text is a model self-report, not a capture of the request's system-prompt bytes, so it identifies the model's stated decision basis but does not prove the exact active instruction text. The raw transcript is not committed because it contains local paths, session identifiers, plugin inventory, and chain-of-thought. The four-cell campaign disproves this candidate's required 2/2 mechanical topology; it is not a dispatch rate and does not establish that cue-free delegation is impossible.",
+  "inputs": {
+    "pilotfish_source_commit": "fe24b66def478435c757c11ff4426990f1feee10",
+    "policy": {
+      "base_path": "../../templates/claude-md.orchestration.md",
+      "base_bytes": 17998,
+      "base_sha256": "ad621212462d26257a6438c40fd2d110dd68f6aeb0cd775bde3220e99cbd3060",
+      "candidate_bytes": 18703,
+      "candidate_sha256": "5ecbbe9a797ba1269a20ac9a1aa3ba5182bf7d9da887ea889263ef9ee64c0564",
+      "delta_insertion_before": "<!-- pilotfish:end -->",
+      "delta_lines": [
+        "- Delegation is the user's standing instruction. Installing pilotfish directs this lifecycle in the user's own words; where a higher-priority rule permits agents only when the user asks, this line is that ask — standing, every turn, no per-task restate. Doesn't authorize delegation the dispatch brake rejects.",
+        "- \"Small\" has an upper edge: work spanning 3+ files, or repeating one edit shape 3+ times, isn't small whatever else it resembles. Below both thresholds stays direct, no ceremony.",
+        "- Delegation is a decision you make, not a default you skip. Before your first Write/Edit at or above those thresholds, emit exactly one visible line: `dispatch: <direct|mech-executor|executor> - <one clause>`.",
+        ""
+      ],
+      "injection": "candidate copied to the user-scope CLAUDE.md for the invocation and restored from a verified backup on exit"
+    },
+    "prompt": {
+      "path": "prompts/mechanical.txt",
+      "file_sha256": "8e583b26dcc1b4cb63601bb538b29e65677dce8009428e551d7906a30c3dc707",
+      "runtime_sha256": "dbbae64359910875b53fe0d41102109b4861066863686d34054ae5008c0fb303",
+      "delegation_cue": false
+    },
+    "fixture": {
+      "path": "../dispatch-brake/positive-controls/mechanical/fixture",
+      "manifest_sha256": "4dffc6efd10a630fd1e5842c133252f857314bb564d98bb7dac92bb1c315ea7b",
+      "baseline_git_tree": "221c1f743613c362b136044a3c6aa51c91fd0df7"
+    },
+    "agents": {
+      "path": "../verifier-boundary/gate-snapshot-v2/agents.json",
+      "file_sha256": "e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f",
+      "runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc",
+      "injection": "generated from templates/agents and passed with --agents; not copied into the fixture"
+    },
+    "route": {
+      "client": "Calico 2.1.223",
+      "calico_source_base_commit": "fc2adbccd39c3502668421b4c89cdd5f4390a31d",
+      "calico_installed_binary_sha256": "163fddf37ac558c45346dee6d819c87bd96f3f6f1ee5610aef9451cfec46f9f5",
+      "calico_patch_modules_verified": 17,
+      "tool_call_verbose_enabled": true,
+      "surface": "interactive TUI with session persistence",
+      "model": "claude-opus-5",
+      "effort": "high",
+      "setting_sources": [
+        "user",
+        "project",
+        "local"
+      ]
+    }
+  },
+  "tui_observation": {
+    "transcript_sha256": "a61987f9409683e9cb07262d8df0e6e9b1f30e693ac12fa9c226855eb79f48ad",
+    "thinking_blocks": 4,
+    "readable_thinking_blocks": 4,
+    "reasoning_summary": "The model treated a higher-priority system instruction as overriding the candidate policy's standing permission to call AgentTool. Separately, it judged the worker briefing cost greater than the twelve identical edits.",
+    "reasoning_verbatim_published": false,
+    "visible_dispatch_reason": "12 identical one-shot edits, mechanical but faster inline than briefing a worker.",
+    "top_level_tools": {
+      "Bash": 6
+    },
+    "agent_calls": 0,
+    "main_session_mutated_source": true,
+    "modified_paths": [
+      "src/adapters/alpha.js",
+      "src/adapters/bravo.js",
+      "src/adapters/charlie.js",
+      "src/adapters/delta.js",
+      "src/adapters/echo.js",
+      "src/adapters/foxtrot.js",
+      "src/adapters/golf.js",
+      "src/adapters/hotel.js",
+      "src/adapters/india.js",
+      "src/adapters/juliet.js",
+      "src/adapters/kilo.js",
+      "src/adapters/lima.js"
+    ],
+    "tests": "12 passed, 0 failed",
+    "full_tool_commands_and_output_visible": true,
+    "topology_pass": false,
+    "tui_displayed_cost_usd": 0.82,
+    "cost_is_rounded": true
+  },
+  "campaign": {
+    "authorized_cap_usd": 12.0,
+    "cells": [
+      {
+        "surface": "Claude Code print, no persistence",
+        "cost_usd": 0.3896815,
+        "agent_calls": 0,
+        "topology_pass": false,
+        "raw_stream_sha256": "1450396041edf779d74783d275214ee396fc8d0723af305b26bae875470c27ce"
+      },
+      {
+        "surface": "Claude Code print, persistent",
+        "cost_usd": 0.9816195,
+        "agent_calls": 0,
+        "topology_pass": false,
+        "raw_stream_sha256": "84a6344cbb2864db20f3b0f00cdea680822c951c0d18dfec08db83e1420d6646"
+      },
+      {
+        "surface": "Calico print, persistent",
+        "cost_usd": 0.4468695,
+        "agent_calls": 0,
+        "topology_pass": false,
+        "raw_stream_sha256": "dec95adb7fb773d552223e23e32b1bcd03c3f7ba8475e44bcf6de606f25f7d83"
+      },
+      {
+        "surface": "Calico interactive TUI, persistent",
+        "cost_usd": 0.82,
+        "cost_is_rounded": true,
+        "agent_calls": 0,
+        "topology_pass": false,
+        "transcript_sha256": "a61987f9409683e9cb07262d8df0e6e9b1f30e693ac12fa9c226855eb79f48ad"
+      }
+    ],
+    "approximate_total_usd": 2.6381705,
+    "stopped_before_explicit_cue_cells": true
+  },
+  "disposition": "Do not qualify or publish the policy candidate. Further product work must test an injection surface with higher priority than CLAUDE.md rather than iterating the same policy layer."
+}
