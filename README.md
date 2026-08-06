@@ -79,6 +79,9 @@ Three layers, three files' worth of configuration, all under `~/.claude/`:
 > candidate. Per-cell evidence, including what "cue-free" does and does not mean
 > in those records, is in
 > [`benchmarks/spontaneous-dispatch`](./benchmarks/spontaneous-dispatch/README.md).
+> A later Calico 2.1.223 TUI attempt also stayed direct. Four readable thinking
+> blocks exposed the model's stated decision basis; the bounded evidence and its
+> claim limits are in [`cue-free-tui.json`](./benchmarks/spontaneous-dispatch/cue-free-tui.json).
 > Tracking: [#29](https://github.com/Nanako0129/pilotfish/issues/29).
 
 <details>
@@ -105,7 +108,7 @@ Three separate string searches across the official builds we retain:
 
 **Claim boundary.** A string present in a binary is not an instruction active in a session, and three builds cannot establish when anything was introduced upstream — [anthropics/claude-code#80988](https://github.com/anthropics/claude-code/issues/80988) is the source for that side of it. We found no documented user-facing setting that opts in persistently, and we do not claim none exists; that needs CLI and settings evidence we have not gathered. As corroboration only, from our own repackaging of Claude Code native builds, [Calico](https://github.com/Nanako0129/calico-claude): the tool-description paragraph is present in all ten retained builds between 2.1.207 and 2.1.220 — a non-contiguous set, not every release in that range.
 
-**Cheapest check available.** Ask a fresh session what its delegation policy is. In the session where we looked, the paragraph was present in the Agent tool description and the session could quote its own constraint — no patched build, no proxy, no transcript analysis needed.
+**Diagnostic, not proof.** Asking a fresh session to describe its delegation policy can reveal the model's own account of the constraint. The later Calico 2.1.223 TUI diagnostic persisted four readable thinking blocks and showed the model treating a higher-priority instruction as preventing AgentTool use. This is behavioral evidence, not the exact active system-prompt bytes; see [`cue-free-tui.json`](./benchmarks/spontaneous-dispatch/cue-free-tui.json).
 
 **If you also run [claude-router](https://github.com/Serhii-Leniv/claude-router):** do not enable `forceRoute` while pilotfish is installed. It overrides the model each agent sets in its own frontmatter, which is exactly how pilotfish gives `verifier` a fresh Opus context; an Opus-pinned role was observed running on `claude-sonnet-5`. That tool's `restoreDelegation` option strips the second injection above.
 

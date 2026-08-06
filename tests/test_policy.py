@@ -586,6 +586,10 @@ class PolicyContractTests(unittest.TestCase):
             self.assertIn("cue-free-tui.json", content)
             self.assertIn("Calico TUI", content)
 
+        for readme in ("README.md", "README.zh-TW.md"):
+            content = (ROOT / readme).read_text(encoding="utf-8")
+            self.assertIn("cue-free-tui.json", content)
+
     def test_issue_29_reachability_correction_is_self_consistent(self) -> None:
         path = ROOT / "benchmarks" / "spontaneous-dispatch"
         evidence = json.loads(
