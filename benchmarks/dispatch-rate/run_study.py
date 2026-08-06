@@ -1120,10 +1120,25 @@ def _run_cells(study: dict, evidence_dir: Path, state: dict, fresh_header: dict,
             })
 
             if evidence["valid"]:
-                reservation["charged_usd"] = (
-                    evidence["cost_usd"] if evidence["cost_usd"] is not None
-                    else study["per_run_cap_usd"]
+                # The reported cost comes from an external client, so it is
+                # untrusted input: a negative value would be read as budget
+                # credit on the next cumulative check and let spawns continue
+                # past total_cap_usd, and a non-finite one would defeat every
+                # comparison. Reconcile only finite, non-negative costs;
+                # anything else keeps the full reserved cap, which can only
+                # stop the study early.
+                reported = evidence["cost_usd"]
+                trustworthy = (
+                    isinstance(reported, (int, float))
+                    and not isinstance(reported, bool)
+                    and math.isfinite(reported)
+                    and reported >= 0
                 )
+                reservation["charged_usd"] = (
+                    reported if trustworthy else study["per_run_cap_usd"]
+                )
+                if reported is not None and not trustworthy:
+                    evidence["cost_reconciliation"] = f"untrusted reported cost {reported!r}; kept reserved cap"
             reservation["status"] = "done"
             evidence["reservation_charged_usd"] = reservation["charged_usd"]
             info["attempts"][-1] = evidence  # replace the pre-spawn placeholder (A3)
