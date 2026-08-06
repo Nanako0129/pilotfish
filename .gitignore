@@ -1,2 +1,7 @@
 __pycache__/
 *.py[cod]
+
+# Local working state and experiment evidence. Raw stream captures carry local
+# paths, session identifiers and plugin inventory, so they are never committed —
+# only hashes and normalized records are publishable.
+.agent-local/

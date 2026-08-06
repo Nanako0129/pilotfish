@@ -1,0 +1,175 @@
+#!/usr/bin/env python3
+"""Fixture `claude` stub for benchmarks/dispatch-rate tests.
+
+Never talks to a real model and never spends anything. Behaviour is chosen
+entirely by environment variables so the free acceptance tests can drive
+every branch of run_study.py without a live account:
+
+  CLAUDE_STUB_MODE          success (default) | rate_limit | hang | noise |
+                            noise_rate_limit | empty_costs |
+                            rate_limit_result_text | noise_ordinary_429_quota
+  CLAUDE_STUB_DISPATCH      "1" to emit a matching Agent call (default "0")
+  CLAUDE_STUB_COUNTER_FILE  path to a call counter this stub increments
+  CLAUDE_STUB_HANG_ON_CALL  call number (1-based) that hangs regardless of MODE
+
+Ignores its CLI arguments (`-p`, `--agents`, ...) exactly like the real
+`claude` binary would consume them; it only needs to look like it ran.
+"""
+from __future__ import annotations
+
+import fcntl
+import json
+import os
+import sys
+import time
+
+
+def next_call_number() -> int:
+    counter_file = os.environ.get("CLAUDE_STUB_COUNTER_FILE")
+    if not counter_file:
+        return 1
+    with open(counter_file, "a+") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        f.seek(0)
+        text = f.read().strip()
+        n = (int(text) if text else 0) + 1
+        f.seek(0)
+        f.truncate()
+        f.write(str(n))
+        fcntl.flock(f, fcntl.LOCK_UN)
+    return n
+
+
+def emit(event: dict) -> None:
+    sys.stdout.write(json.dumps(event) + "\n")
+    sys.stdout.flush()
+
+
+def main() -> int:
+    call_number = next_call_number()
+    mode = os.environ.get("CLAUDE_STUB_MODE", "success")
+    hang_on = os.environ.get("CLAUDE_STUB_HANG_ON_CALL")
+    if hang_on and call_number == int(hang_on):
+        mode = "hang"
+
+    argv_file = os.environ.get("CLAUDE_STUB_ARGV_FILE")
+    if argv_file:
+        with open(argv_file, "w") as f:
+            json.dump({
+                "argv": sys.argv,
+                "cwd": os.getcwd(),
+                "CLAUDE_CONFIG_DIR": os.environ.get("CLAUDE_CONFIG_DIR"),
+            }, f)
+
+    if mode == "hang":
+        time.sleep(3600)
+        return 0
+
+    if mode == "noise":
+        # F3: a stray non-JSON line on stdout before the real stream events,
+        # e.g. a client warning banner.
+        sys.stdout.write("Warning: something non-JSON on stdout\n")
+        sys.stdout.flush()
+
+    if mode == "noise_rate_limit":
+        # C4: a rejection that is BOTH a rate limit AND noisy -- the stray
+        # non-JSON line makes the stream unparseable, so evaluate_stream()
+        # must still detect rate_limited from the raw text rather than
+        # defaulting to False just because classify() couldn't parse it.
+        sys.stdout.write("Warning: something non-JSON on stdout\n")
+        sys.stdout.write("rate_limit: usage limit reached, retry later\n")
+        sys.stdout.flush()
+        sys.stderr.write("stub: rate_limit rejection (noisy)\n")
+        return 1
+
+    if mode == "noise_ordinary_429_quota":
+        # F4: a stray non-JSON line still makes classify() abort (so this
+        # still hits the unparseable-stream path), but the REST of the
+        # capture is an ordinary success -- an assistant message that
+        # happens to mention "quota" and "#429" as normal text, and a
+        # terminal event with no rejection language anywhere. None of that
+        # is a rejection; the rate-limit detector must not fire on it.
+        sys.stdout.write("Warning: something non-JSON on stdout\n")
+        emit({
+            "type": "system", "subtype": "init",
+            "model": "claude-stub-5", "claude_code_version": "0.0.0-stub",
+        })
+        emit({
+            "type": "assistant", "parent_tool_use_id": None,
+            "message": {"content": [{
+                "type": "text",
+                "text": "Implemented the daily quota widget; ticket #429 closed.",
+            }]},
+        })
+        emit({
+            "type": "result", "subtype": "success",
+            "total_cost_usd": 0.05,
+            "modelUsage": {"claude-stub-5": {"costUSD": 0.05}},
+        })
+        return 0
+
+    emit({
+        "type": "system", "subtype": "init",
+        "model": "claude-stub-5", "claude_code_version": "0.0.0-stub",
+    })
+
+    if mode == "empty_costs":
+        # A4: the source study's exact contamination shape -- terminal
+        # subtype "success" but empty modelUsage.
+        emit({
+            "type": "result", "subtype": "success",
+            "total_cost_usd": 0, "modelUsage": {},
+        })
+        return 0
+
+    if mode == "rate_limit":
+        emit({
+            "type": "result", "subtype": "error_rate_limit",
+            "result": "Claude AI usage limit reached",
+            "total_cost_usd": 0, "modelUsage": {},
+        })
+        sys.stderr.write("stub: rate_limit rejection\n")
+        return 1
+
+    if mode == "rate_limit_result_text":
+        # D5: a GENERIC terminal subtype (not one of the rate-limit-named
+        # ones) whose own `result` text is the quota/usage-limit message,
+        # with empty stderr -- the detector must still find "quota" in the
+        # terminal event's own text, not just subtype+stderr.
+        emit({
+            "type": "result", "subtype": "error_during_execution",
+            "result": "Your organization has reached its quota for this billing period.",
+            "total_cost_usd": 0, "modelUsage": {},
+        })
+        return 0
+
+    dispatch = os.environ.get("CLAUDE_STUB_DISPATCH", "0") == "1"
+    if dispatch:
+        emit({
+            "type": "assistant", "parent_tool_use_id": None,
+            "message": {"content": [{
+                "type": "tool_use", "id": "toolu_stub1", "name": "Agent",
+                "input": {"subagent_type": "mech-executor", "run_in_background": False},
+            }]},
+        })
+        emit({
+            "type": "user", "parent_tool_use_id": None,
+            "tool_use_result": {"status": "completed"},
+            "message": {"content": [{"type": "tool_result", "tool_use_id": "toolu_stub1"}]},
+        })
+    else:
+        emit({
+            "type": "assistant", "parent_tool_use_id": None,
+            "message": {"content": [{"type": "tool_use", "id": "toolu_stub0", "name": "Write", "input": {}}]},
+        })
+
+    emit({
+        "type": "result", "subtype": "success",
+        "total_cost_usd": 0.05,
+        "modelUsage": {"claude-stub-5": {"costUSD": 0.05}},
+    })
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
