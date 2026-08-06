@@ -74,6 +74,9 @@ Anthropic 在 2026-07-24 發布 [Opus 5](https://www.anthropic.com/news/claude-o
 > 與 v1.3.4 壓縮版同樣是 0 dispatch。逐格證據，以及那些記錄裡「cue-free」
 > 究竟指什麼、不指什麼，見
 > [`benchmarks/spontaneous-dispatch`](./benchmarks/spontaneous-dispatch/README.zh-TW.md)。
+> 後續的 Calico 2.1.223 TUI 嘗試也維持 direct。四個可讀的 thinking block
+> 顯示模型自己陳述的決策依據；有邊界的證據與主張限制記錄在
+> [`cue-free-tui.json`](./benchmarks/spontaneous-dispatch/cue-free-tui.json)。
 > 追蹤：[#29](https://github.com/Nanako0129/pilotfish/issues/29)。
 
 <details>
@@ -100,7 +103,7 @@ Anthropic 在 2026-07-24 發布 [Opus 5](https://www.anthropic.com/news/claude-o
 
 **主張邊界。** 字串存在於 binary 不等於該指令在 session 中生效；三個 build 也無法證明上游何時引入某項東西——那一側的來源是 [anthropics/claude-code#80988](https://github.com/anthropics/claude-code/issues/80988)。我們沒有找到任何有文件的使用者層設定可以持久 opt-in，但也不主張這種設定不存在；那需要我們尚未蒐集的 CLI 與 settings 證據。以下僅作為佐證，來自我們自己重新封裝的 Claude Code 原生 build [Calico](https://github.com/Nanako0129/calico-claude)：tool-description 段落存在於 2.1.207 與 2.1.220 之間所有十個留存的 build——那是一組不連續的版本，不是該區間的每一個 release。
 
-**最省力的檢查方式。** 開一個新 session，問它自己的委派政策。在我們檢查的那個 session 裡，該段落存在於 Agent tool description，而 session 被問到時能引用自己的限制——不需要 patch 過的 build、不需要 proxy、不需要分析 transcript。
+**這是診斷，不是證明。** 開一個新 session 詢問其委派政策，可以取得模型對限制的自述。後續的 Calico 2.1.223 TUI 診斷保存了四個可讀的 thinking block，並顯示模型把較高優先級的指令視為禁止使用 AgentTool。這是行為證據，不是實際生效的 system-prompt 原始 bytes；見 [`cue-free-tui.json`](./benchmarks/spontaneous-dispatch/cue-free-tui.json)。
 
 **如果你同時使用 [claude-router](https://github.com/Serhii-Leniv/claude-router)：** 裝了 pilotfish 就不要開 `forceRoute`。它會覆蓋每個 agent 在自己 frontmatter 設定的模型，而那正是 pilotfish 讓 `verifier` 拿到全新 Opus context 的方式；已有實測觀察到一個釘在 Opus 的角色跑在 `claude-sonnet-5` 上。該工具的 `restoreDelegation` 選項則會剝除上面第二個注入。
 
