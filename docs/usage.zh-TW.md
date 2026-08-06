@@ -37,6 +37,10 @@ Use pilotfish. Follow its dispatch brake: keep direct work in the main session
 and call the named agents only when the policy selects delegation.
 ```
 
+選用的[啟用指南](../install/ACTIVATION-INSTALL.md)提供 user-invocable
+`/pilotfish` skill 與一行 CLI wrapper，也包含先取得批准的 AI install contract。
+兩者仍是明確 opt-in，不是 cue-free dispatch；wrapper 可選擇提示已安裝的 Baton skill。
+
 | 工作形狀 | 預期 owner |
 |---|---|
 | 小型、局部、穩定工作，或單一緊密耦合的未知 bug | 主 session |
