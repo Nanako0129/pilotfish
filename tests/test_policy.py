@@ -575,9 +575,19 @@ class PolicyContractTests(unittest.TestCase):
         campaign = evidence["campaign"]
         self.assertEqual(len(campaign["cells"]), 4)
         self.assertTrue(all(cell["agent_calls"] == 0 for cell in campaign["cells"]))
+        for cell in campaign["cells"]:
+            self.assertEqual(cell["route"]["client_version"], "2.1.223")
+            self.assertEqual(
+                cell["route"]["observed_main_model"], "claude-opus-5"
+            )
+            self.assertEqual(cell["route"]["effort"], "high")
+            self.assertTrue(cell["main_session_mutated_source"])
+            self.assertEqual(cell["changed_adapter_files"], 12)
+            self.assertEqual(cell["tests"], "12 passed, 0 failed")
         self.assertTrue(
             all(not cell["topology_pass"] for cell in campaign["cells"])
         )
+        self.assertNotIn("route", evidence["inputs"])
         self.assertNotIn("/Users/", evidence_text)
         self.assertNotIn("session_id", evidence_text)
 
