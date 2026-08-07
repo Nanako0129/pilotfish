@@ -129,13 +129,13 @@ claude --append-system-prompt "<SESSION_INSTRUCTION>" %*
 ```
 
 Read every installed target back and compare its complete contents with the
-selected payload. Resolve `claude-pilotfish` with `command -v` on POSIX or
-`(Get-Command claude-pilotfish).Source` in PowerShell and compare the result
-with the selected target; stop if they differ. Then run
-`claude-pilotfish --version` to confirm argument forwarding and executable
-state without starting a paid Claude session. Report every backup path. Do not
-modify `settings.json`, the eight role agents, the pilotfish policy block,
-Baton, shell profiles, or `PATH`.
+selected payload. If the CLI wrapper was selected, resolve `claude-pilotfish`
+with `command -v` on POSIX or `(Get-Command claude-pilotfish).Source` in
+PowerShell and compare the result with the selected target; stop if they
+differ, otherwise run `claude-pilotfish --version` to confirm argument
+forwarding and executable state without starting a paid Claude session. Report
+every backup path. Do not modify `settings.json`, the eight role agents, the
+pilotfish policy block, Baton, shell profiles, or `PATH`.
 
 ## Use and verify
 
