@@ -2,6 +2,12 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
+## v1.3.10 — 2026-08-08
+
+Normalize the project name to lowercase across the live policy, documentation, and diagrams. A regression test now rejects title-case or uppercase variants on those surfaces, while the release checklist requires lowercase prose, unwrapped GitHub Release Markdown, and links that exist on the published tag.
+
+Requalify the compact policy with the complete explicit-opt-in behavioral matrix. The exact 15,841-byte lowercase snapshot kept routine docs and a single unknown bug direct `2/2`, delegated stable twelve-file repetition to one collected `mech-executor` `2/2`, and completed both schema lifecycles through `plan-verifier READY` → approval stop → 4/4 primary tests → `verifier CONFIRMED`. Ten Claude Code 2.1.224, Opus 5, high-effort invocations reported `$3.79160515` under an `$8` hard cap. The v1.3.10 release candidate differs from that snapshot only in its version marker; tests bind both forms after marker normalization. These are bounded reachability observations with the documented explicit opt-in, not cue-free behavior or dispatch rates.
+
 ## v1.3.9 — 2026-08-08
 
 Add adaptive interaction routing before Baton, lifecycle, and worker selection. The first matching shape is now explicit: `co_discover` for an unclear outcome, `explore_then_plan` for a broad or high-impact direction, and `execute` for a bounded outcome. A broad implementation request stays read-only on its first turn and returns one reversible slice. It reaches `user_approval` only after every applicable readiness Gate is `READY`; otherwise it reports the actual blocking or paused Gate. Mandatory risk review remains fail-closed when a higher-priority instruction prohibits agent calls. This design is adapted from [pilotfish-codex PR #14](https://github.com/miyago9267/pilotfish-codex/pull/14) by [@miyago9267](https://github.com/miyago9267).
@@ -14,7 +20,7 @@ Document the cue-free limitation observed in Calico TUI: a higher-priority clien
 
 Calibrate issue #29 dispatch recovery without making delegation universal. Risk triggers are checked before the small-work shortcut; stable mechanical repetition uses one collected `mech-executor`, while routine docs and a single unknown bug stay in the main session. Schema work keeps mandatory Plan and outcome review separate from the dispatch-brake decision about who implements it.
 
-The recommended explicit opt-in now tells Claude to follow Pilotfish's dispatch brake instead of delegating every eligible task. The exact v1.3.8 policy replay kept routine docs and the single-bug control direct `2/2`, delegated mechanical repetition `2/2`, and preserved Plan review, approval, primary tests, and outcome review for schema work `2/2`. Ten completed invocations reported `$3.89565485` under an `$8` hard cap. Claude Code updated from 2.1.220 to 2.1.221 between the two mechanical attempts; both passed, and every later cell ran on 2.1.221. These are bounded reachability observations, not deterministic behavior or dispatch rates.
+The recommended explicit opt-in now tells Claude to follow pilotfish's dispatch brake instead of delegating every eligible task. The exact v1.3.8 policy replay kept routine docs and the single-bug control direct `2/2`, delegated mechanical repetition `2/2`, and preserved Plan review, approval, primary tests, and outcome review for schema work `2/2`. Ten completed invocations reported `$3.89565485` under an `$8` hard cap. Claude Code updated from 2.1.220 to 2.1.221 between the two mechanical attempts; both passed, and every later cell ran on 2.1.221. These are bounded reachability observations, not deterministic behavior or dispatch rates.
 
 Correct the issue #29 retrospective classifier by separating child-agent tools from the main session and matching completed Agent results. The corrected historical result is 7/20 dispatch-reachability passes rather than 0/20; all twenty attempts still ended with the same twelve modified paths and 12/12 fixture tests. These are separate reachability and final-state observations, not causal filesystem ownership, a dispatch rate, or client-version attribution.
 

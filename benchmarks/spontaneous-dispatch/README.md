@@ -1,6 +1,6 @@
 # Spontaneous-dispatch behavior gate
 
-This gate asks whether Pilotfish chooses the intended execution topology from an ordinary task request. In the two cells below and in the cue-free arm of the [v1.3.7 paired opt-in matrix](#v137-paired-opt-in-matrix), the prompts contain no instruction to delegate, avoid delegation, or consult an orchestration policy. The one exception is that matrix's explicitly directed arm, whose prompts state the instruction on purpose — it is the intervention being compared against, and its observations are not evidence of spontaneous dispatch.
+This gate asks whether pilotfish chooses the intended execution topology from an ordinary task request. In the two cells below and in the cue-free arm of the [v1.3.7 paired opt-in matrix](#v137-paired-opt-in-matrix), the prompts contain no instruction to delegate, avoid delegation, or consult an orchestration policy. The one exception is that matrix's explicitly directed arm, whose prompts state the instruction on purpose — it is the intervention being compared against, and its observations are not evidence of spontaneous dispatch.
 
 | Cell | Expected topology | Behavioral acceptance |
 |---|---|---|
@@ -230,6 +230,8 @@ The first 18,500-byte candidate added `execute`, `explore_then_plan`, and `co_di
 After review clarified precedence and overlapping predicates, the exact 18,477-byte candidate chooses the first matching interaction shape before Baton and worker routing. A fresh matrix on Claude Code 2.1.224 kept routine and single-bug controls direct `2/2`, mechanical delegation passed `2/2`, and both schema lifecycles completed `plan-verifier READY` → approval stop → direct implementation and primary tests → `verifier CONFIRMED`. Ten completed invocations reported `$4.23888905` under an `$8` hard cap.
 
 The current machine-readable record is `adaptive_interaction_routing_post_review_gate` in [`issue-29-recovery.json`](./issue-29-recovery.json). The previous v1.3.8 policy is separately frozen in [`v1.3.8-policy-snapshot/CLAUDE.md`](./v1.3.8-policy-snapshot/CLAUDE.md), so later template changes cannot rewrite older release or TUI evidence. These Gates establish compatibility with the existing topology boundaries, not an A/B quality gain or a mode-selection rate.
+
+The compact 15,841-byte policy then repeated the complete matrix on Claude Code 2.1.224. Routine and single-bug controls stayed direct `2/2`, mechanical delegation passed `2/2`, and both schema lifecycles completed `plan-verifier READY` → approval stop → direct implementation and 4/4 primary tests → `verifier CONFIRMED`. The ten invocations reported `$3.79160515` under the same `$8` hard cap. The exact bytes and additive record are frozen in [`compact-policy-gate-snapshot/CLAUDE.md`](./compact-policy-gate-snapshot/CLAUDE.md) and [`compact-policy-full-matrix.json`](./compact-policy-full-matrix.json).
 
 ## Calico TUI diagnostic
 

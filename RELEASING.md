@@ -12,6 +12,8 @@ python3 -m unittest discover -s tests -v
 git diff --check
 ```
 
+Keep the project name lowercase (`pilotfish`) in repository and release prose. After publishing or editing a GitHub Release, read its body back and confirm that prose is not manually column-wrapped and every linked path exists on the tagged version.
+
 5. Commit, then tag and publish:
 
 ```bash

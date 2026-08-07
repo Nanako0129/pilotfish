@@ -83,10 +83,10 @@ P0 freezes the affected slice and dependents, while cross-cutting risk stops the
 
 > Source: this three-mode interaction design is adapted from
 > [pilotfish-codex's adaptive intent routing](https://github.com/miyago9267/pilotfish-codex/pull/14)
-> by [@miyago9267](https://github.com/miyago9267). Pilotfish retains its own
+> by [@miyago9267](https://github.com/miyago9267). pilotfish retains its own
 > approval, verification, and worker-routing contracts.
 
-Pilotfish chooses the first matching mode below, then applies the existing risk, lifecycle, and delegation rules:
+pilotfish chooses the first matching mode below, then applies the existing risk, lifecycle, and delegation rules:
 
 | Mode | Use when | Next move |
 |---|---|---|
