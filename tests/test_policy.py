@@ -1841,7 +1841,11 @@ class PolicyContractTests(unittest.TestCase):
             *sorted((ROOT / "templates/agents").glob("*.md")),
             *sorted((ROOT / "docs").glob("*.md")),
             *sorted((ROOT / "install").glob("*.md")),
-            *sorted((ROOT / "benchmarks").glob("*/README*.md")),
+            *sorted(
+                path
+                for path in (ROOT / "benchmarks").rglob("README*.md")
+                if not any("snapshot" in part for part in path.parts)
+            ),
         ]
         for path in surfaces:
             with self.subTest(path=path.relative_to(ROOT)):
