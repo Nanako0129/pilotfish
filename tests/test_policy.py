@@ -1363,10 +1363,19 @@ class PolicyContractTests(unittest.TestCase):
         release_candidate_policy = (
             gate / runtime["release_candidate_orchestration_path"]
         ).read_bytes()
+        self.assertEqual(release_candidate_policy, current_policy)
         self.assertEqual(
             runtime["release_candidate_orchestration_sha256"],
             hashlib.sha256(release_candidate_policy).hexdigest(),
         )
+        last_qualified_policy = (
+            gate / runtime["last_behaviorally_qualified_orchestration_path"]
+        ).read_bytes()
+        self.assertEqual(
+            runtime["last_behaviorally_qualified_orchestration_sha256"],
+            hashlib.sha256(last_qualified_policy).hexdigest(),
+        )
+        self.assertNotEqual(last_qualified_policy, current_policy)
         self.assertEqual(
             runtime["release_candidate_agents_json_sha256"],
             hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
@@ -1459,11 +1468,22 @@ class PolicyContractTests(unittest.TestCase):
             "benchmarks/baton-compatibility/build-agents-json.py templates/agents",
         )
         self.assertTrue(
-            runtime["release_candidate_behavioral_gate_status"].startswith("passed;")
+            runtime["release_candidate_behavioral_gate_status"].startswith(
+                "not run;"
+            )
+        )
+        self.assertIsNone(runtime["release_candidate_runtime_evidence"])
+        self.assertEqual(runtime["last_behaviorally_qualified_version"], version)
+        self.assertEqual(
+            runtime["last_behaviorally_qualified_runtime_evidence"],
+            "../spontaneous-dispatch/issue-29-recovery.json",
+        )
+        self.assertTrue(
+            runtime["last_behaviorally_qualified_status"].startswith("passed;")
         )
         self.assertEqual(
-            runtime["release_candidate_runtime_evidence"],
-            "../spontaneous-dispatch/issue-29-recovery.json",
+            runtime["last_behaviorally_qualified_agents_json_sha256"],
+            runtime["release_candidate_agents_json_sha256"],
         )
         self.assertEqual(
             runtime["release_candidate_offline_evidence"],
