@@ -47,8 +47,11 @@ acceptance boundary 使用 fresh-context reviewer。
 
 ```mermaid
 flowchart TD
-    U["你"] --> O
+    U["你"] --> I
     subgraph MAIN["主 session — opus family alias"]
+        I["互動形態
+execute / explore_then_plan / co_discover"]
+        I --> O
         O["Orchestrator
 規劃 / 決策 / 撰寫規格 / 審查"]
     end
@@ -83,6 +86,14 @@ opus · fresh context"]
 | `executor` | sonnet | medium | 已批准且需要局部判斷的實作 |
 | `verifier` | opus | medium | 實作後以 fresh context 反駁 outcome claim |
 | `security-executor` | opus | high | 已批准的資安敏感實作 |
+
+在 Baton 或 direct／delegated routing 前，pilotfish 依序採用第一個符合的互動形態：
+結果或驗收不清楚時用 `co_discover`；否則，方向清楚且範圍廣或影響高時用
+`explore_then_plan`；其餘結果清楚且有界的工作用 `execute`。這只改變 main session
+如何與你合作，不會繞過風險或批准 gate。
+三模式設計源自 [@miyago9267](https://github.com/miyago9267) 在
+[pilotfish-codex 的 adaptive intent routing](https://github.com/miyago9267/pilotfish-codex/pull/14)；
+詳見[設計說明](./docs/design.md#interaction-shape-before-worker-routing)。
 
 小而穩定的工作留在主 session。較大的工作只有在角色拿到穩定、有界 contract，且委派
 整體效益為正時才切分。Independent review 由風險觸發，不以檔案數量判定。精確 lifecycle

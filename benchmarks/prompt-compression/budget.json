@@ -12,7 +12,7 @@
       "note": "UTF-8 bytes. v1.3.5 is denser per rule than v1.3.4, so its byte growth was new rules rather than verbosity. The regression is v1.3.6's 474.3 -> 544.2."
     },
     "max_bytes_per_rule": 500,
-    "expected_rule_count": 36,
+    "expected_rule_count": 37,
     "rule_count_note": "Pinned. Reformatting one rule into two bullets would raise the denominator and manufacture headroom without writing less, so changing this number has to be a deliberate, reviewed edit rather than a side effect of a Markdown refactor."
   },
   "definition": {

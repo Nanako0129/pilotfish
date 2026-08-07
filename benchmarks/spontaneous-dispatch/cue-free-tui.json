@@ -7,7 +7,7 @@
   "inputs": {
     "pilotfish_source_commit": "fe24b66def478435c757c11ff4426990f1feee10",
     "policy": {
-      "base_path": "../../templates/claude-md.orchestration.md",
+      "base_path": "v1.3.8-policy-snapshot/CLAUDE.md",
       "base_bytes": 17998,
       "base_sha256": "ad621212462d26257a6438c40fd2d110dd68f6aeb0cd775bde3220e99cbd3060",
       "candidate_bytes": 18703,
