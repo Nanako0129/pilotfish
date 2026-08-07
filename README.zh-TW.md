@@ -139,6 +139,7 @@ verification、更新與移除都在 [install/AGENT-INSTALL.md](./install/AGENT-
 | 任務 | 文件或方法 |
 |---|---|
 | 調整模型、effort、委派或 managed settings | [使用指南](./docs/usage.zh-TW.md) |
+| 為單一任務或 session 啟用 pilotfish | [安裝 `/pilotfish` 或 CLI wrapper](./install/ACTIVATION-INSTALL.md) |
 | 更新既有安裝 | [Runbook：Updating an existing install](./install/AGENT-INSTALL.md#updating-an-existing-install) |
 | 查看版本變更 | [CHANGELOG.md](./CHANGELOG.md) |
 | 只對一個專案停用 | 使用另一個 `CLAUDE_CONFIG_DIR`；詳見 [使用指南](./docs/usage.zh-TW.md#停用更新或移除) |

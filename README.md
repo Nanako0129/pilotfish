@@ -152,6 +152,7 @@ in [install/AGENT-INSTALL.md](./install/AGENT-INSTALL.md).
 | Task | Where to go |
 |---|---|
 | Tune models, effort, delegation, or managed settings | [Usage guide](./docs/usage.md) |
+| Activate pilotfish for a task or session | [Install `/pilotfish` or the CLI wrapper](./install/ACTIVATION-INSTALL.md) |
 | Update an existing install | [Runbook: Updating an existing install](./install/AGENT-INSTALL.md#updating-an-existing-install) |
 | Review release changes | [CHANGELOG.md](./CHANGELOG.md) |
 | Disable pilotfish for one project | Use a separate `CLAUDE_CONFIG_DIR`; details are in the [usage guide](./docs/usage.md#disable-update-or-uninstall) |
