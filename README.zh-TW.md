@@ -87,9 +87,10 @@ opus · fresh context"]
 | `verifier` | opus | medium | 實作後以 fresh context 反駁 outcome claim |
 | `security-executor` | opus | high | 已批准的資安敏感實作 |
 
-在判斷 direct 或 delegated routing 前，pilotfish 先選互動形態：結果清楚且有界時使用
-`execute`；方向清楚但範圍廣或影響高時使用 `explore_then_plan`；結果或驗收仍不清楚時
-使用 `co_discover`。這只改變 main session 如何與你合作，不會繞過風險或批准 gate。
+在 Baton 或 direct／delegated routing 前，pilotfish 依序採用第一個符合的互動形態：
+結果或驗收不清楚時用 `co_discover`；否則，方向清楚且範圍廣或影響高時用
+`explore_then_plan`；其餘結果清楚且有界的工作用 `execute`。這只改變 main session
+如何與你合作，不會繞過風險或批准 gate。
 三模式設計源自 [@miyago9267](https://github.com/miyago9267) 在
 [pilotfish-codex 的 adaptive intent routing](https://github.com/miyago9267/pilotfish-codex/pull/14)；
 詳見[設計說明](./docs/design.md#interaction-shape-before-worker-routing)。

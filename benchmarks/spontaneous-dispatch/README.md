@@ -225,9 +225,11 @@ Schema review and implementation routing are separate decisions. Serialization m
 
 ## Adaptive interaction routing Gate
 
-The 18,500-byte candidate adds `execute`, `explore_then_plan`, and `co_discover` before the existing risk, lifecycle, and worker-routing decisions. It repeated the same explicit-opt-in matrix on 2026-08-07: routine and single-bug controls stayed direct `2/2`, mechanical delegation passed `2/2`, and both schema lifecycles completed `plan-verifier READY` → approval stop → direct implementation and primary tests → `verifier CONFIRMED`. Ten completed invocations reported `$4.101095` under an `$8` hard cap. Claude Code updated from 2.1.223 to 2.1.224 between Schema B turns; the resumed lifecycle still passed.
+The first 18,500-byte candidate added `execute`, `explore_then_plan`, and `co_discover` before the existing risk, lifecycle, and worker-routing decisions. Its ten-invocation explicit-opt-in matrix passed on 2026-08-07 and reported `$4.101095`. That exact candidate and result remain frozen in `adaptive_interaction_routing_gate` and [`adaptive-interaction-gate-snapshot/CLAUDE.md`](./adaptive-interaction-gate-snapshot/CLAUDE.md).
 
-The machine-readable record is `adaptive_interaction_routing_gate` in [`issue-29-recovery.json`](./issue-29-recovery.json). The previous v1.3.8 policy is frozen in [`v1.3.8-policy-snapshot/CLAUDE.md`](./v1.3.8-policy-snapshot/CLAUDE.md), so later template changes cannot rewrite the older release or TUI evidence. This Gate establishes compatibility with the existing topology boundaries, not an A/B quality gain or a mode-selection rate; Routine A explicitly reported `execute`, while the remaining cells were judged by their observable routing and approval contracts.
+After review clarified precedence and overlapping predicates, the exact 18,477-byte candidate chooses the first matching interaction shape before Baton and worker routing. A fresh matrix on Claude Code 2.1.224 kept routine and single-bug controls direct `2/2`, mechanical delegation passed `2/2`, and both schema lifecycles completed `plan-verifier READY` → approval stop → direct implementation and primary tests → `verifier CONFIRMED`. Ten completed invocations reported `$4.23888905` under an `$8` hard cap.
+
+The current machine-readable record is `adaptive_interaction_routing_post_review_gate` in [`issue-29-recovery.json`](./issue-29-recovery.json). The previous v1.3.8 policy is separately frozen in [`v1.3.8-policy-snapshot/CLAUDE.md`](./v1.3.8-policy-snapshot/CLAUDE.md), so later template changes cannot rewrite older release or TUI evidence. These Gates establish compatibility with the existing topology boundaries, not an A/B quality gain or a mode-selection rate.
 
 ## Calico TUI diagnostic
 

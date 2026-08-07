@@ -1086,6 +1086,109 @@ class PolicyContractTests(unittest.TestCase):
         }
         self.assertEqual(len(adaptive_hashes), 10)
 
+        post_review = evidence["adaptive_interaction_routing_post_review_gate"]
+        self.assertEqual(post_review["status"], "passed")
+        post_candidate = (path / post_review["candidate"]["path"]).read_bytes()
+        self.assertEqual(len(post_candidate), post_review["candidate"]["bytes"])
+        self.assertEqual(
+            hashlib.sha256(post_candidate).hexdigest(),
+            post_review["candidate"]["sha256"],
+        )
+        self.assertEqual(post_review["prompt_set"], "inputs.prompts")
+        self.assertEqual(post_review["fixture_set"], "inputs.fixtures")
+        self.assertIsNone(post_review["candidate"]["runtime_loaded_sha256"])
+        self.assertEqual(
+            post_review["agents"]["runtime_sha256"],
+            inputs["agents"]["runtime_sha256"],
+        )
+        self.assertEqual(post_review["route"]["client_versions"], ["2.1.224"])
+
+        post_results = post_review["results"]
+        post_routine = post_results["routine_docs"]["attempts"]
+        post_bug = post_results["single_unknown_bug"]["attempts"]
+        post_mechanical = post_results["mechanical_repetition"]["attempts"]
+        post_schema = post_results["schema_lifecycle"]["attempts"]
+        self.assertTrue(
+            all(
+                item["agent_calls"] == 0
+                and item["modified_paths"] == ["README.md"]
+                and item["tests"] == "1 passed, 0 failed"
+                for item in post_routine
+            )
+        )
+        self.assertTrue(
+            all(
+                item["agent_calls"] == 0
+                and item["modified_paths"] == ["src/reducer.js"]
+                and item["tests"] == "2 passed, 0 failed"
+                for item in post_bug
+            )
+        )
+        for item in post_mechanical:
+            self.assertEqual(item["agent_calls"], 1)
+            self.assertEqual(item["agent_role"], "mech-executor")
+            self.assertFalse(item["invocation_model_present"])
+            self.assertTrue(item["foreground"] and item["collected"])
+            self.assertFalse(item["main_session_source_mutation"])
+            self.assertEqual(item["modified_paths"], expected_adapters)
+            self.assertEqual(item["tests"], "12 passed, 0 failed")
+
+        post_schema_tests = {"a": "5 passed, 0 failed", "b": "4 passed, 0 failed"}
+        self.assertTrue(
+            post_results["schema_lifecycle"]["implementation_route_is_non_blocking"]
+        )
+        for item in post_schema:
+            self.assertRegex(
+                item["session_binding"]["sanitized_session_id_sha256"],
+                r"^[0-9a-f]{64}$",
+            )
+            turn_1 = item["turn_1"]
+            turn_2 = item["turn_2"]
+            self.assertEqual(turn_1["plan_verifier_calls"], 1)
+            self.assertFalse(turn_1["invocation_model_present"])
+            self.assertTrue(turn_1["foreground"] and turn_1["collected"])
+            self.assertEqual(turn_1["verdict"], "READY")
+            self.assertFalse(turn_1["writes_before_approval"])
+            self.assertTrue(turn_1["stopped_for_approval"])
+            self.assertEqual(turn_2["implementation_route"], "main_session_direct")
+            self.assertEqual(turn_2["execution_agent_calls"], 0)
+            self.assertEqual(turn_2["primary_tests"], post_schema_tests[item["id"]])
+            self.assertTrue(turn_2["primary_tests_before_verifier"])
+            self.assertEqual(turn_2["verifier_calls"], 1)
+            self.assertFalse(turn_2["verifier_invocation_model_present"])
+            self.assertTrue(
+                turn_2["verifier_foreground"] and turn_2["verifier_collected"]
+            )
+            self.assertEqual(turn_2["verifier_verdict"], "CONFIRMED")
+            self.assertEqual(
+                turn_2["modified_paths"], ["store.mjs", "store.test.mjs"]
+            )
+
+        post_completed = post_routine + post_bug + post_mechanical
+        post_cost = sum(
+            item["client_reported_cost_usd"] for item in post_completed
+        ) + sum(
+            item[turn]["client_reported_cost_usd"]
+            for item in post_schema
+            for turn in ("turn_1", "turn_2")
+        )
+        self.assertEqual(
+            post_cost.quantize(Decimal("0.00000001")),
+            post_review["budget"]["actual_usd"],
+        )
+        self.assertLessEqual(
+            post_review["budget"]["maximum_allocated_usd"],
+            post_review["budget"]["hard_cap_usd"],
+        )
+        post_hashes = {
+            item["raw_stream_sha256"] for item in post_completed
+        } | {
+            item[turn]["raw_stream_sha256"]
+            for item in post_schema
+            for turn in ("turn_1", "turn_2")
+        }
+        self.assertEqual(len(post_hashes), 10)
+
     def test_spontaneous_dispatch_baseline_is_additive_and_evidence_bound(self) -> None:
         benchmark = ROOT / "benchmarks" / "spontaneous-dispatch"
         results = json.loads((benchmark / "results.json").read_text(encoding="utf-8"))
@@ -1954,17 +2057,18 @@ class PolicyContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         for mapping in (
-            "`execute` = clear bounded outcome",
-            "`explore_then_plan` = direction clear but broad/high-impact",
-            "`co_discover` = outcome or acceptance unclear",
+            "`co_discover` = outcome/acceptance unclear",
+            "`explore_then_plan` = otherwise clear direction that is broad/high-impact",
+            "`execute` = otherwise clear, bounded outcome",
         ):
             self.assertIn(mapping, policy)
         self.assertLess(
-            policy.index("Interaction shape precedes direct/lifecycle + worker routing"),
-            policy.index("Risk triggers override size"),
+            policy.index("Interaction shape precedes Baton"),
+            policy.index("Before direct/lifecycle choice: inspect session's available skill names"),
         )
-        self.assertIn("Routing controls interaction shape; approval controls authority", policy)
-        self.assertIn("Stop discovery once more evidence can't change next gate", policy)
+        self.assertIn("Choose first match", policy)
+        self.assertIn("Routing controls interaction; approval controls authority", policy)
+        self.assertIn("Stop when more evidence cannot change next gate", policy)
 
     def test_policy_brakes_tightly_coupled_execution(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(

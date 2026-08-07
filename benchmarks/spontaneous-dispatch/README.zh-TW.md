@@ -225,9 +225,11 @@ Schema review 與 implementation routing 是兩個不同決策。Serialization �
 
 ## Adaptive interaction routing Gate
 
-18,500-byte candidate 在既有 risk、lifecycle 與 worker-routing 決策之前加入 `execute`、`explore_then_plan` 與 `co_discover`。它在 2026-08-07 重跑相同的明確 opt-in matrix：routine 與 single-bug controls 維持 direct `2/2`，mechanical delegation 通過 `2/2`，兩組 schema lifecycle 都完成 `plan-verifier READY` → approval stop → direct implementation 與 primary tests → `verifier CONFIRMED`。十次 completed invocation 在 `$8` hard cap 下 reported `$4.101095`。Claude Code 在 Schema B 兩個 turn 之間從 2.1.223 更新到 2.1.224；resume 後的 lifecycle 仍然通過。
+第一版 18,500-byte candidate 在既有 risk、lifecycle 與 worker-routing 決策之前加入 `execute`、`explore_then_plan` 與 `co_discover`。它在 2026-08-07 通過十次明確 opt-in matrix，reported `$4.101095`。該 exact candidate 與結果保留在 `adaptive_interaction_routing_gate` 及 [`adaptive-interaction-gate-snapshot/CLAUDE.md`](./adaptive-interaction-gate-snapshot/CLAUDE.md)。
 
-Machine-readable 紀錄位於 [`issue-29-recovery.json`](./issue-29-recovery.json) 的 `adaptive_interaction_routing_gate`。舊 v1.3.8 policy 已固定在 [`v1.3.8-policy-snapshot/CLAUDE.md`](./v1.3.8-policy-snapshot/CLAUDE.md)，後續 template 變更不會重寫舊 release 或 TUI 證據。這個 Gate 證明新規則與既有 topology boundary 相容，不是 A/B 品質提升或 mode-selection rate；Routine A 明確回報 `execute`，其他 cells 仍以可觀察的 routing 與 approval contract 判定。
+Review 釐清 precedence 與重疊 predicate 後，新的 18,477-byte candidate 會在 Baton 與 worker routing 前選擇第一個符合的互動形態。Claude Code 2.1.224 的 fresh matrix 中，routine 與 single-bug controls 維持 direct `2/2`，mechanical delegation 通過 `2/2`，兩組 schema lifecycle 都完成 `plan-verifier READY` → approval stop → direct implementation 與 primary tests → `verifier CONFIRMED`。十次 completed invocation 在 `$8` hard cap 下 reported `$4.23888905`。
+
+目前 machine-readable 紀錄位於 [`issue-29-recovery.json`](./issue-29-recovery.json) 的 `adaptive_interaction_routing_post_review_gate`。舊 v1.3.8 policy 另固定在 [`v1.3.8-policy-snapshot/CLAUDE.md`](./v1.3.8-policy-snapshot/CLAUDE.md)，後續 template 變更不會重寫較早的 release 或 TUI 證據。這些 Gates 證明新規則與既有 topology boundary 相容，不是 A/B 品質提升或 mode-selection rate。
 
 ## Calico TUI 診斷
 
