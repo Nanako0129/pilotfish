@@ -2138,7 +2138,7 @@ class PolicyContractTests(unittest.TestCase):
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("Stable same-shape multi-file repetition", policy)
+        self.assertIn("Stable same-shape multi-file mechanical repetition", policy)
         self.assertIn("complete one-shot brief", policy)
         self.assertIn("exclusive ownership", policy)
         self.assertIn("per-item acceptance", policy)
@@ -2205,7 +2205,7 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("genuinely independent substantial surfaces", policy)
         self.assertIn("overlapping latency", policy)
         self.assertIn("independently gathered evidence/perspectives", policy)
-        self.assertIn("Stable same-shape multi-file repetition", policy)
+        self.assertIn("Stable same-shape multi-file mechanical repetition", policy)
 
     def test_policy_uses_backend_neutral_recurrence_conditions(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
