@@ -126,7 +126,7 @@ findings 內容全是 parser 邊角條件（非 session 檔的略過、缺 actio
 | 4 | plan-verifier 的反覆 REVISE（71% 打回、24 次對 2 Plans）顯示 Plan convergence 會失控 | 不得重送 substantially unchanged Plan；再次送審必須有 material revision 或新證據。若仍不收斂，main session 應簡化 Plan、向使用者揭露 blocker，或 defer blocked scope，不得靜默覆寫分歧 | 同上 |
 | 5 | 外部 review 逐修逐推、單 PR 6 輪、阻塞 1h42m | findings 合批、輪詢背景化，並依嚴重度、可重現性與可逆性設定 stop condition；不把單次 remora／GPT-5.6 觀察硬化成通用輪次或效率門檻 | 使用者私有 review skill（已修） |
 
-> **注意：** pilotfish 的 policy 位元組由 `test_baton_gate_snapshot_matches_recorded_hashes` 分別鎖定 live candidate 與最近一次完成行為驗證的 snapshot，且 v1.2.1 起明確拒絕 version-only normalization。#1–#4 的政策文字已改為 backend-neutral guardrails；最近一次 native Baton gate 對應不可變的 18,477-byte snapshot，目前 15,581-byte live policy 經結構壓縮與 review 修正後尚未重跑 exact-final-byte Gate。`results.json` 分開記錄 current candidate、last-qualified evidence、失敗嘗試與舊 candidate history。既有 Gate 只證明對應 snapshot 的 compatibility／exact-byte provenance，不把 GPT-5.6 routing 觀察轉成 native-Claude 效率或數字門檻，細節見 [#15](https://github.com/Nanako0129/pilotfish/issues/15)。
+> **注意：** pilotfish 的 policy 位元組由 `test_baton_gate_snapshot_matches_recorded_hashes` 分別鎖定 live candidate 與最近一次完成行為驗證的 snapshot，且 v1.2.1 起明確拒絕 version-only normalization。#1–#4 的政策文字已改為 backend-neutral guardrails；最近一次 native Baton gate 對應不可變的 18,477-byte snapshot，目前 15,762-byte live policy 經結構壓縮與 review 修正後只重跑受影響的 blocked exit，尚無完整 exact-final-byte Gate。`results.json` 分開記錄 current candidate、last-qualified evidence、失敗嘗試與舊 candidate history。既有 Gate 只證明對應 snapshot 的 compatibility／exact-byte provenance，不把 GPT-5.6 routing 觀察轉成 native-Claude 效率或數字門檻，細節見 [#15](https://github.com/Nanako0129/pilotfish/issues/15)。
 
 ## 侷限
 
