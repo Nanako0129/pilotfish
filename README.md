@@ -53,8 +53,11 @@ configuration root.
 
 ```mermaid
 flowchart TD
-    U["You"] --> O
+    U["You"] --> I
     subgraph MAIN["main session — opus family alias"]
+        I["Interaction shape
+execute / explore_then_plan / co_discover"]
+        I --> O
         O["Orchestrator
 plan / decide / spec / review"]
     end
@@ -89,6 +92,15 @@ opus · fresh context"]
 | `executor` | sonnet | medium | Approved implementation requiring local judgment |
 | `verifier` | opus | medium | Fresh-context outcome falsification after implementation |
 | `security-executor` | opus | high | Approved security-sensitive implementation |
+
+Before direct or delegated routing, pilotfish selects an interaction shape:
+`execute` for a clear bounded outcome, `explore_then_plan` for a clear but broad
+or high-impact direction, and `co_discover` while the outcome or acceptance is
+unclear. This changes how the main session collaborates; it does not bypass risk
+or approval gates. The three-mode design is adapted from
+[pilotfish-codex's adaptive intent routing](https://github.com/miyago9267/pilotfish-codex/pull/14)
+by [@miyago9267](https://github.com/miyago9267). See the
+[design details](./docs/design.md#interaction-shape-before-worker-routing).
 
 Small, stable work stays in the main session. Larger work is split only when a
 bounded role has a stable contract and delegation has positive net benefit.
