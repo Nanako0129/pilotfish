@@ -126,6 +126,13 @@ Effort is the second big quota lever after model choice, and the Fable-5 generat
 | An `opusplan` default | It's a great quota-saver but changes interactive feel (model switches mid-conversation). Offered as an opt-in in the FAQ instead. |
 | Installer profiles or main-loop autodetection ([#18](https://github.com/Nanako0129/pilotfish/issues/18)) | The default main session is now explicitly Opus and the default implementation path is Sonnet. A second tier map would double the installer surface without improving that common path; users who opt into another main model can still edit one role alias if needed. |
 
+The "smart brain, cheap hands" split predates pilotfish: Anthropic documents the
+same architecture in [Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents),
+Claude Code already ships [`opusplan`](https://code.claude.com/docs/en/model-config),
+and [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator)
+offers a hook-enforced variant. pilotfish's scope is the compact role policy,
+review-before-write installer, and evidence-bounded compatibility claims.
+
 ## Prompting style inside the agents
 
 The agent system prompts follow the current-generation guidance from the research: goals and constraints instead of step-by-step scaffolding, an explicit statement of what *not* to do (no scope creep, verifier never fixes), evidence-audited progress claims, and "a precise *blocked because X* is a successful outcome" to prevent guessing. When editing the templates, keep that register — prescriptive checklists measurably degrade current-generation output.

@@ -1,313 +1,163 @@
 # pilotfish 🐟
 
-> Pilot fish swim alongside the ocean's largest predators — small, fast, and doing the routine work so the big one doesn't have to.
+> Small, fast role agents handle volume work while the frontier main session
+> keeps planning, approval, integration, and final judgment.
 
-**pilotfish** is a multi-model orchestration layer for [Claude Code](https://code.claude.com): the `opus` family plans and decides in your main session, Sonnet and Haiku execute the volume work through global subagents, and fresh Opus contexts challenge Plans and completed outcomes. Quality is protected by independent verification, not by using the biggest model everywhere. Everything installs globally — one setup, every project — and the whole stack degrades gracefully when the primary model becomes unavailable.
+**pilotfish** is a global multi-model orchestration policy for
+[Claude Code](https://code.claude.com). New installs use the `opus` family for
+the main session, Sonnet and Haiku for bounded execution and reconnaissance,
+and fresh Opus contexts for risk-triggered review. It installs configuration,
+not a runtime service, and writes nothing into your projects.
 
-> **Want OpenAI GPT-5.6 inside Claude Code without changing native Claude state?** [remora](https://github.com/Nanako0129/remora-cc) packages pilotfish's role-based orchestration pattern into a session-scoped launcher for an existing Anthropic-compatible gateway. Use pilotfish to study or customize the global policy; use remora for an approval-gated, verifiable install whose model and gateway overrides disappear with the child process.
-
-> **Want the same orchestration on Grok Build?** [pilotfish-grok](https://github.com/Nanako0129/pilotfish-grok) ports the role lifecycle and capability boundaries to `~/.grok/` (agents, roles, and a model-free policy). Use this repo for Claude Code; use pilotfish-grok when the host is Grok Build — separate install surface, does not write `~/.claude/`.
-
-**Where this came from:** my weekly quota reset one morning, and the first thing I did with a fresh Fable 5 allowance was ask it to figure out why the previous week's had evaporated. This repo is the setup that research produced, and it's what I now run daily on every project — three config files, no runtime code. The research notes (with sources) are in [docs/](./docs/).
-
-[繁體中文說明](./README.zh-TW.md)
+[繁體中文](./README.zh-TW.md)
 
 ## Contents
 
 - [Why](#why)
 - [How it works](#how-it-works)
 - [Install](#install)
-- [Trust & security](#trust--security)
-- [What gets installed](#what-gets-installed)
-- [Updating](#updating)
-- [The fallback story](#the-fallback-story)
-- [Tuning & FAQ](#tuning--faq)
-- [Research & design](#research--design)
-- [Contributing](#contributing)
-- [Uninstall](#uninstall)
-- [Support pilotfish](#support-pilotfish)
-- [License](#license)
+- [Operate](#operate)
+- [Documentation](#documentation)
+- [Project](#project)
 
 ## Why
 
-On 2026-07-24, Anthropic released [Opus 5](https://www.anthropic.com/news/claude-opus-5), describing it as close to Fable 5 intelligence at half the API price. Opus 5 leads many of Anthropic's published evaluations, but not every one. pilotfish therefore defaults **new installs** to the `opus` family alias and keeps Fable 5 as an explicit `/model fable` opt-in. This is a cost-aware default, not a claim that Opus 5 is universally better; the decision and rollback criteria are tracked in [#23](https://github.com/Nanako0129/pilotfish/issues/23).
+Most coding-session tokens are spent on search, repetitive edits, tests, and
+documentation rather than frontier judgment. pilotfish routes those bounded
+paths to cheaper roles while keeping the main session accountable and using
+fresh-context reviewers at material acceptance boundaries.
 
-The original July research still explains the architecture: frontier-model sessions are expensive, while most coding-session tokens are searching, mechanical edits, test runs, and doc updates rather than judgment. Those high-volume paths can use Sonnet or Haiku while acceptance-boundary reviews use a fresh Opus context.
+New installs default to the `opus` alias; Fable remains an explicit
+`/model fable` choice. This is a cost-aware default, not a claim that one model
+wins every task. The rationale and measurements live in
+[research](./docs/research.md), the [design notes](./docs/design.md), and
+[#23](https://github.com/Nanako0129/pilotfish/issues/23).
 
-Every piece of this now carries Anthropic backing. The [Fable 5 prompting guide](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5) recommends frequent subagent delegation and notes that **independent fresh-context verifier subagents outperform self-critique**. And as of 2026-07-08, the cheap-executor split is officially benchmarked: Anthropic's own tests put a **Fable 5 orchestrator with Sonnet 5 workers at 96% of all-Fable performance for 46% of the cost** (BrowseComp: 86.8% vs 90.8% accuracy, $18.53 vs $40.56 per problem), with the inverse advisor pattern (Sonnet executor consulting Fable) at ~92% for ~63% on SWE-bench Pro — the orchestrator split pilotfish uses won on both axes ([multi-agent docs](https://platform.claude.com/docs/en/managed-agents/multi-agent)). A community experiment points the same direction at hobby scale — a delegation-heavy 12-worker audit ([Developers Digest](https://www.developersdigest.tech/blog/fable-5-orchestrator-model-playbook)), best-case-shaped, in API dollars:
-
-| Setup (12-worker audit experiment, Developers Digest) | Cost | Savings |
-|---|---|---|
-| Everything on Fable 5 | $14.50 | — |
-| Fable 5 orchestrates + Sonnet workers | $6.10 | 58% |
-| Fable 5 orchestrates + Haiku workers | $3.70 | 74% |
-
-Two subscription-specific bonuses stack on top:
-
-> **Tip:** Claude subscriptions use a two-bucket weekly limit ([official article](https://support.claude.com/en/articles/14552983-models-usage-and-limits-in-claude-code)) — a shared "all models" bucket plus an **additional Sonnet-only bucket**. Routing execution to Sonnet subagents costs less per token *and* draws on that extra dedicated headroom. (Sonnet usage still counts against the all-models bucket too — it's additional allowance, not a fully separate pool.)
-
-> ⚠️ **Warning:** Since Claude Code v2.1.198 the built-in `Explore` subagent inherits your main-session model. If your main session runs Fable 5 or Opus, every background search burns Opus-tier tokens (the Claude API caps Explore's inherited model at Opus; third-party platforms have no cap). pilotfish overrides it back to Haiku. (Trade-off, stated openly: a custom Explore loads your user memory like any subagent, which the built-in skips — the policy block self-disables for subagent roles to keep that overhead small.)
-
-> **Note:** The two bullets above are subscription-plan mechanics. On the pay-per-token API the per-token savings still apply (there is no weekly bucket). Model aliases remain provider-, account-, and settings-dependent: the recorded clean first-party Gate resolved `opus` to Opus 5, while the same client with its user setting source loaded resolved it to Opus 4.8. Use a full model ID or the platform's `ANTHROPIC_DEFAULT_*_MODEL` environment variable when an exact deployment matters.
+| Host or use case | Project |
+|---|---|
+| Claude Code global policy | This repository |
+| Claude Code with session-scoped GPT routing | [remora](https://github.com/Nanako0129/remora-cc) |
+| Grok Build | [pilotfish-grok](https://github.com/Nanako0129/pilotfish-grok) |
+| Codex CLI | [pilotfish-codex](https://github.com/miyago9267/pilotfish-codex) |
 
 ## How it works
 
-Three layers, three files' worth of configuration, all under `~/.claude/`:
-
-> **Configuration root:** these paths assume the default. If you set [`CLAUDE_CONFIG_DIR`](https://code.claude.com/docs/en/env-vars), every `~/.claude/` path below lives under that directory instead, and the installer resolves it in Step 0 of the [runbook](./install/AGENT-INSTALL.md).
-
-> ⚠️ **A successful install does not guarantee automatic delegation. Add an explicit opt-in when you need the lifecycle.**
-> Higher-priority Claude Code instructions can suppress Agent dispatch, and a
-> user-level `CLAUDE.md` cannot override them. This is not confined to one plan.
-> On a first-party Pro account running Claude Code 2.1.220, two cue-free schema
-> attempts dispatched nothing. On the same machine and client after an upgrade to
-> Max, a four-cell baseline reached the expected topology on **one positive attempt
-> out of four** — the twelve-file mechanical cell failed both attempts with the main
-> session rewriting every file itself. Dispatch was observed on Max and not on Pro,
-> but the two are not a ranking: the cells differ, the repository tree changed
-> alongside the plan, and a handful of attempts is not a rate. There are two separate
-> injections with different gates; the subscription-gated one was observed absent on
-> Max while the session-guidance one remained. Neither plan reliably dispatches.
-> When you want the orchestration lifecycle, add
-> `Use pilotfish. Follow its dispatch brake: keep direct work in the main session and call the named agents only when the policy selects delegation.` to the request.
-> The historical Pro explicit arm reached `scout`, `plan-verifier`,
-> `mech-executor`, and `verifier`. The current Max recovery matrix reached
-> `plan-verifier`, `mech-executor`, and `verifier` while keeping routine docs and a
-> single unknown bug direct; it did not exercise the other roles. This is not
-> attributed to prompt compression: the unchanged v1.3.3
-> cue-free control recorded zero dispatch alongside the v1.3.4 compressed
-> candidate. Per-cell evidence, including what "cue-free" does and does not mean
-> in those records, is in
-> [`benchmarks/spontaneous-dispatch`](./benchmarks/spontaneous-dispatch/README.md).
-> A later Calico 2.1.223 TUI attempt also stayed direct. Four readable thinking
-> blocks exposed the model's stated decision basis; the bounded evidence and its
-> claim limits are in [`cue-free-tui.json`](./benchmarks/spontaneous-dispatch/cue-free-tui.json).
-> Tracking: [#29](https://github.com/Nanako0129/pilotfish/issues/29).
-
-<details>
-<summary><b>What the mechanism is</b> — two independent injections, and what we can and cannot claim about them</summary>
-
-Two different injections have been discussed as if they were one. Both were read out of official Claude Code builds under `~/.local/share/claude/versions/`, and every claim here is anchored to a string you can search for yourself rather than to a byte offset.
-
-| | this repo's report | the other one |
+| Layer | Installed target | Responsibility |
 |---|---|---|
-| site | Agent tool description | system prompt section, flag name `tengu_heron_brook` |
-| text | `Do not spawn agents unless the user asks.` … `it's the expensive path on this plan.` | `Do not call the AgentTool unless the user requested it` |
-| gate | a subscription-type comparison against `"pro"`, inline in the tool-description builder, with no override in that expression | resolver `dMy`, three ordered sources — see below |
-| tracked in | [#29](https://github.com/Nanako0129/pilotfish/issues/29) | [Serhii-Leniv/claude-router#55](https://github.com/Serhii-Leniv/claude-router/issues/55), [anthropics/claude-code#80988](https://github.com/anthropics/claude-code/issues/80988) |
+| Machine | `~/.claude/settings.json` | Main-model alias and fallback chain |
+| Roles | `~/.claude/agents/*.md` | Model, effort, and capability boundary for each role |
+| Policy | `~/.claude/CLAUDE.md` | Dispatch, approval, verification, and long-run behavior |
 
-The second one is a **string-valued** section, not a boolean one. In 2.1.220, `dMy` resolves its content from client data, then a flag lookup, then a built-in default; the first two sources can supply arbitrary text. The `opus_5_prompt_bundle` capability check and its killswitch live in `tXn`, which gates **only** the built-in-default branch.
-
-Three separate string searches across the official builds we retain:
-
-| official build | tool-description paragraph | `tengu_heron_brook` identifier | built-in default payload |
-|---|---|---|---|
-| 2.1.218 | present | present (7×) | absent |
-| 2.1.219 | present | present | present |
-| 2.1.220 | present | present | present |
-
-**Claim boundary.** A string present in a binary is not an instruction active in a session, and three builds cannot establish when anything was introduced upstream — [anthropics/claude-code#80988](https://github.com/anthropics/claude-code/issues/80988) is the source for that side of it. We found no documented user-facing setting that opts in persistently, and we do not claim none exists; that needs CLI and settings evidence we have not gathered. As corroboration only, from our own repackaging of Claude Code native builds, [Calico](https://github.com/Nanako0129/calico-claude): the tool-description paragraph is present in all ten retained builds between 2.1.207 and 2.1.220 — a non-contiguous set, not every release in that range.
-
-**Diagnostic, not proof.** Asking a fresh session to describe its delegation policy can reveal the model's own account of the constraint. The later Calico 2.1.223 TUI diagnostic persisted four readable thinking blocks and showed the model treating a higher-priority instruction as preventing AgentTool use. This is behavioral evidence, not the exact active system-prompt bytes; see [`cue-free-tui.json`](./benchmarks/spontaneous-dispatch/cue-free-tui.json).
-
-**If you also run [claude-router](https://github.com/Serhii-Leniv/claude-router):** do not enable `forceRoute` while pilotfish is installed. It overrides the model each agent sets in its own frontmatter, which is exactly how pilotfish gives `verifier` a fresh Opus context; an Opus-pinned role was observed running on `claude-sonnet-5`. That tool's `restoreDelegation` option strips the second injection above.
-
-</details>
-
-| Layer | File(s) | Job |
-|---|---|---|
-| Machine | `~/.claude/settings.json` | Who orchestrates (`opus`) + automatic `fallbackModel` chain |
-| Roles | `~/.claude/agents/*.md` | Eight role agents, each pinned to the right model tier and capability surface via frontmatter |
-| Policy | `~/.claude/CLAUDE.md` | *How* to delegate — written in terms of roles, never model names |
+If `CLAUDE_CONFIG_DIR` is set, all `~/.claude/` paths above move under that
+configuration root.
 
 ```mermaid
 flowchart TD
-    U[You] --> O
+    U["You"] --> O
     subgraph MAIN["main session — opus family alias"]
-        O["Orchestrator<br>plan / decide / spec / review"]
+        O["Orchestrator
+plan / decide / spec / review"]
     end
-    O -->|recon| S["scout / Explore<br>haiku · effort low"]
-    O -->|Plan challenge| PV["plan-verifier<br>opus · read-only"]
+    O -->|recon| S["scout / Explore
+haiku · effort low"]
+    O -->|Plan challenge| PV["plan-verifier
+opus · read-only"]
     PV -->|READY / REVISE| O
-    O -->|mechanical spec| M["mech-executor<br>sonnet · effort low"]
-    O -->|judgment work| E["executor<br>sonnet · effort medium"]
-    O -->|security evidence| SR["security-reviewer<br>opus · read-only"]
+    O -->|mechanical spec| M["mech-executor
+sonnet · effort low"]
+    O -->|judgment work| E["executor
+sonnet · effort medium"]
+    O -->|security evidence| SR["security-reviewer
+opus · read-only"]
     SR --> O
-    O -->|approved security work| SEC["security-executor<br>opus · effort high"]
-    M --> V["verifier<br>opus · fresh context"]
+    O -->|approved security work| SEC["security-executor
+opus · effort high"]
+    M --> V["verifier
+opus · fresh context"]
     E --> V
     SEC --> V
     V -->|CONFIRMED / REFUTED / INCONCLUSIVE| O
 ```
 
-The eight roles:
-
-| Role | Model | Effort | Used for |
+| Role | Model | Effort | Purpose |
 |---|---|---|---|
-| `scout` | haiku | low | Read-only lookups: "where/how is X", symbol usages, config values |
-| `Explore` | haiku | low | Overrides the built-in Explore agent (see warning above) |
-| `plan-verifier` | opus | medium | Read-only review of one Plan envelope or slice; returns bare `READY` or structured `REVISE` |
-| `security-reviewer` | opus | high | Tool-enforced read-only security evidence and threat review before approval |
-| `mech-executor` | sonnet | low | Fully-specified mechanical work: pattern refactors, convention tests, docs, bulk edits |
-| `executor` | sonnet | medium | Implementation needing judgment: features, bug fixes, design-sensitive refactors |
-| `verifier` | opus | medium | Fresh-context calibrated outcome verification; returns CONFIRMED/REFUTED/INCONCLUSIVE and never fixes |
-| `security-executor` | opus | high | Approved security implementation — deliberately kept off Fable 5, whose safety classifiers can refuse benign defensive-security work |
+| `scout` | haiku | low | Read-only repository reconnaissance |
+| `Explore` | haiku | low | Broad read-only search without inheriting the main model |
+| `plan-verifier` | opus | medium | Pre-approval Plan challenge: `READY` or structured `REVISE` |
+| `security-reviewer` | opus | high | Read-only security evidence before approval |
+| `mech-executor` | sonnet | low | Fully specified mechanical repetition |
+| `executor` | sonnet | medium | Approved implementation requiring local judgment |
+| `verifier` | opus | medium | Fresh-context outcome falsification after implementation |
+| `security-executor` | opus | high | Approved security-sensitive implementation |
 
-`executor` moved from Opus to Sonnet ([#18](https://github.com/Nanako0129/pilotfish/issues/18)) so the default delegated implementation path stays below the Opus main session. This is a targeted routing fix, not a rule that every role must differ from the main-session tier. The four Opus-only roles stay put: `verifier` and `plan-verifier` provide fresh-context challenge at acceptance boundaries, while `security-reviewer` and `security-executor` carry a correctness-over-cost mandate. Same-tier delegation provides no tier saving, but it can still provide independent context, capability isolation, or concurrency. An installer profile that swaps tiers by detected main-session model was considered and rejected — see [Deliberately left out](./docs/design.md#deliberately-left-out).
+Small, stable work stays in the main session. Larger work is split only when a
+bounded role has a stable contract and delegation has positive net benefit.
+Risk, not file count, triggers independent review. The exact lifecycle is
+defined in the [policy template](./templates/claude-md.orchestration.md) and
+explained in the [design rationale](./docs/design.md).
 
-The policy layer uses phase-specific dispatch brakes. Small, stable work stays direct. Large work keeps shared constraints in a program envelope and splits only genuinely independent execution slices. Independent review is triggered by concrete security, irreversible/external, data, release, or cross-component acceptance risk—not by file count or “non-trivial” alone. After two automatic `REVISE` verdicts, the main session stops automatic resubmission, dispositions each blocker as `FIX`, `DEFER`, or `REJECT`, and continues independently approvable slices. A material fix, narrowing/split, or evidence-backed disposition that changes the readiness claim gets one final fresh check; a further `REVISE` pauses or escalates instead of reopening the loop. It asks the user only for unresolved high-impact or product/authority decisions.
+> ⚠️ **Automatic delegation is not guaranteed.** Higher-priority Claude Code
+> instructions can suppress Agent dispatch, and user-level `CLAUDE.md` cannot
+> override them. When the lifecycle matters, include the following request.
 
-| Phase | pilotfish behavior |
-|---|---|
-| Discovery | `scout` / `Explore` collect bounded facts under a stable research contract; the implementation outcome may still be unknown |
-| Plan | Main session owns the envelope and slices; risk-triggered `plan-verifier` review covers one stable unit and returns bare `READY` or structured `REVISE` |
-| Approval | Large, architectural, risky, or explicitly plan-first work waits for explicit approval before source writes or implementation briefs |
-| Execution | `mech-executor`, `executor`, or `security-executor` receives one stable, exclusively owned contract |
-| Verification | For risk-triggered work, `verifier` independently tests the exact completed-work claim through read-and-run tools; main session keeps final judgment |
+```text
+Use pilotfish. Follow its dispatch brake: keep direct work in the main session
+and call the named agents only when the policy selects delegation.
+```
 
-Before likely long autonomous work, the main session announces `AUTO` or `ASK`; `/goal` preserves the objective but grants no authority. `AUTO` stays inside approved reversible scope, while `ASK` pauses through native input or `PAUSED_NEEDS_USER`. P0 freezes the affected slice; P1 must be fixed or paused. Normal verification is one complete pass plus one targeted recheck of a reproduced blocker; five materially changed passes remain only an emergency ceiling for high-risk P1/P2 recovery.
-
-Stable multi-file mechanical repetition with a complete one-shot brief, exclusive ownership, and per-item acceptance defaults to exactly one `mech-executor` before main-session edits; only a concrete blocker named before editing rebuts that default, while the main session owns per-item triage, exceptions, integration, and acceptance.
-
-Long-running processes remain main-session owned. Every Bash-capable leaf role (`mech-executor`, `executor`, `verifier`, `security-executor`) runs bounded commands in the foreground and never detaches with `nohup`, `setsid`, trailing `&`, or subagent-side background execution; if work cannot finish within 10 minutes, it returns the exact command, absolute worktree or working directory, required environment, and input paths to the orchestrator. The orchestrator runs it in that same context, never implicitly from the parent checkout. Any agent likely to run a long command must itself be spawned with `run_in_background: true`, preserving harness tracking and completion notification.
+The bounded results and claim limits are recorded in the
+[spontaneous-dispatch benchmark](./benchmarks/spontaneous-dispatch/README.md)
+and [`cue-free-tui.json`](./benchmarks/spontaneous-dispatch/cue-free-tui.json).
+They are behavioral observations, not a dispatch rate or proof of the active
+system-prompt bytes.
 
 ## Install
 
-The recommended path is to clone the pinned v1.3.8 release locally, then start Claude Code from that checkout so it can read the runbook as a local file:
+Clone the reviewed release, start Claude Code from that checkout, and ask it to
+follow the local runbook:
 
-```sh
+```bash
 git clone --branch v1.3.8 --depth 1 https://github.com/Nanako0129/pilotfish.git
 cd pilotfish
 claude
 ```
 
-In that Claude Code session, paste this prompt:
-
 ```text
-Read the local file install/AGENT-INSTALL.md in the current checkout and follow it to install pilotfish into my global Claude Code configuration.
-Show me the full plan of changes and get my approval before writing anything.
+Read the local file install/AGENT-INSTALL.md in the current checkout and follow
+it to install pilotfish into my global Claude Code configuration. Show me the
+full plan of changes and get my approval before writing anything.
 ```
 
-Claude reads the local install runbook, inspects your existing configuration, shows you a merge plan (nothing is overwritten blindly), and applies it after you approve. Installation is idempotent — running it again upgrades in place.
+> **Runtime requirement:** Claude Code **2.1.219 or newer**. Restart Claude Code
+> after installation so the agent directory and model setting are reloaded.
 
-> **Runtime requirement:** Claude Code **2.1.219 or newer**. This is pilotfish's tested floor for Opus 5-aware alias routing and is newer than its verified agent-`tools` enforcement baseline; it does not guarantee one exact backend for every provider, account, or settings stack. The installer stops before making changes on an older or unidentifiable build. On native Windows without WSL, the runbook's shell snippets assume a POSIX shell; the installing agent is instructed to fall back to its own file tools. Restart your session afterwards: the agents directory is scanned at session start, and the `model` setting applies on restart.
+> ⚠️ **Trust boundary:** the policy loads into every future session. Review the
+> pinned checkout, the [agent templates](./templates/agents/), the
+> [policy template](./templates/claude-md.orchestration.md), and the
+> [install runbook](./install/AGENT-INSTALL.md) before approving writes. Do not
+> bypass WebFetch prompt-injection protection to install from a mutable raw URL.
 
-For convenience, you can also paste the raw GitHub prompt below. This is a mutable, unpinned convenience path: it follows `main`, so the runbook and templates may change independently between review and installation, and Claude Code's WebFetch prompt-injection protection may intercept a remote document that directly instructs an AI to install software. If it is intercepted, use the local-checkout path above; do not disable or bypass the safety check.
-
-```text
-Read https://raw.githubusercontent.com/Nanako0129/pilotfish/main/install/AGENT-INSTALL.md
-and follow it to install pilotfish into my global Claude Code configuration.
-Show me the full plan of changes and get my approval before writing anything.
-```
-
-Prefer to do it by hand? The same steps are written for humans in [install/AGENT-INSTALL.md](./install/AGENT-INSTALL.md), and every file it installs lives under [templates/](./templates/).
-
-## Trust & security
-
-pilotfish installs by having Claude read a runbook and template files from this repo and merge them into your global `~/.claude/` config — including a policy block that then loads into **every future session**. Treat it like any `curl | sh`: trust flows from this repo and your GitHub connection, not from the paste. The local checkout path is recommended because you can inspect the pinned release before Claude reads the runbook. Before running it:
-
-- **Read the actual bytes that get installed**, not just the runbook: the eight files in [templates/agents/](./templates/agents/) and [templates/claude-md.orchestration.md](./templates/claude-md.orchestration.md). Nothing else is written to disk.
-- **Pin to a release tag or commit** so what you reviewed is what installs — `main` can change between the moment you read it and the moment Claude reads it. The recommended command above pins to the `v1.3.8` release tag; for the strictest guarantee, fetch and check out the full commit SHA you reviewed, then verify that checkout before launching Claude.
-- **Keep the approval gate:** Claude writes nothing until you approve the merge plan, but the plan is still a summary of the runbook. Review the local runbook and templates yourself, and do not weaken or bypass WebFetch's prompt-injection protection if the raw URL is intercepted.
-
-## What gets installed
-
-> **Configuration root:** these paths assume the default. If you set [`CLAUDE_CONFIG_DIR`](https://code.claude.com/docs/en/env-vars), every `~/.claude/` path below lives under that directory instead, and the installer resolves it in Step 0 of the [runbook](./install/AGENT-INSTALL.md).
-
-| Target | Change | Reversible |
+| Target | Installed change | Reversible |
 |---|---|---|
-| `~/.claude/settings.json` | For a missing key, sets `model` → `"opus"` and `fallbackModel` → `["sonnet"]`; preserves existing choices unless you approve a change; if `availableModels` already restricts selection, keeps `opus`, `fable`, `sonnet`, and `haiku` selectable | Yes — keys are independent |
-| `~/.claude/agents/` | Eight role agent files (listed above) | Yes — delete the files |
-| `~/.claude/CLAUDE.md` | One `## Orchestration` section between `<!-- pilotfish:begin/end -->` markers | Yes — remove the marker block |
+| `settings.json` | Adds missing `model` and `fallbackModel`; conditionally extends an existing `availableModels` allowlist | Restores or removes `model`; `fallbackModel` is removable, while allowlist additions remain unless requested |
+| `agents/` | Eight role-agent files | Yes |
+| `CLAUDE.md` | One versioned `pilotfish:begin/end` policy block | Yes |
 
-Nothing is written into any project. That's deliberate — see the design doc.
+The installer is idempotent and shows a merge plan before writing. Human-readable
+steps, backups, collision handling, verification, updates, and uninstall are all
+in [install/AGENT-INSTALL.md](./install/AGENT-INSTALL.md).
 
-## Updating
+## Operate
 
-The installer is idempotent, so **re-running the install prompt is the update** — unchanged files are skipped, the policy block is replaced in place, your settings are only touched if keys are missing. For a pinned update, first obtain the release tag you want to upgrade to, clone that tagged checkout locally, and start Claude Code from it:
-
-```sh
-git clone --branch <RELEASE_TAG> --depth 1 https://github.com/Nanako0129/pilotfish.git
-cd pilotfish
-claude
-```
-
-If you require a full commit SHA instead, fetch and check out that SHA before starting Claude Code.
-
-Then paste:
-
-```text
-Read the local file install/AGENT-INSTALL.md in the current checkout and follow its "Updating an existing install" section: detect my installed pilotfish version, show me the changelog since then, and upgrade after my approval.
-```
-
-The raw `main` prompt in [Install](#install) remains a mutable convenience path, not a pinned or reliable update path; it may be intercepted by WebFetch prompt-injection protection, and it must not be used to bypass that protection.
-
-| Want to… | How |
+| Task | Where to go |
 |---|---|
-| Check what you have installed | `CFG="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"; grep -o "pilotfish v[0-9.]*" "$CFG/CLAUDE.md"` — no output with markers present = pre-v1.1.0, update recommended |
-| Get notified of new releases | GitHub → **Watch → Custom → Releases** on this repo |
-| See what changed | [CHANGELOG.md](./CHANGELOG.md) — every release is also a git tag |
-| Stay frozen on a reviewed version | Install pinned to a tag or SHA (see [Trust & security](#trust--security)); pinned installs never move until you re-pin |
+| Tune models, effort, delegation, or managed settings | [Usage guide](./docs/usage.md) |
+| Update an existing install | [Runbook: Updating an existing install](./install/AGENT-INSTALL.md#updating-an-existing-install) |
+| Review release changes | [CHANGELOG.md](./CHANGELOG.md) |
+| Disable pilotfish for one project | Use a separate `CLAUDE_CONFIG_DIR`; details are in the [usage guide](./docs/usage.md#disable-update-or-uninstall) |
+| Uninstall safely | [Runbook: Uninstall](./install/AGENT-INSTALL.md#uninstall) |
 
-## The fallback story
-
-This section is about the stack staying *functional* when the primary model disappears, not about staying *cheap*. New installs use the `opus` family alias so provider version changes do not require policy edits, plus a Sonnet fallback for transient primary-model failures. No policy text names a model, so role routing remains isolated in agent frontmatter:
-
-| Failure mode | What catches it | Your action |
-|---|---|---|
-| Primary Opus overloaded / unavailable | `fallbackModel: ["sonnet"]` switches automatically with a notice | None |
-| A tier gets deprecated (Opus 4.8 → 4.9, Sonnet 5 → next) | Role agents use aliases (`opus`, `sonnet`, `haiku`) that track the recommended version | None |
-| An opted-in Fable session refuses a security task mid-run | Security work is pre-routed to `security-executor` (Opus), so it never reaches Fable's classifier | None |
-| The default delegated implementation path collapses onto the Opus main loop | `executor` stays on Sonnet | Re-point `executor`'s `model:` line if your environment overrides its tier |
-
-The delegation policy in `CLAUDE.md` speaks only of roles (`executor`, `scout`, …). Model bindings live in exactly one place — one line of frontmatter per agent file — so re-pointing a tier is a one-line edit that takes effect everywhere.
-
-## Tuning & FAQ
-
-| Question | Answer |
-|---|---|
-| I want to save even more quota | Switch the main session to `/model opusplan` — Opus handles planning turns and Sonnet handles the main session's execution turns. This is a main-session model switch, separate from subagent routing: every role agent still uses its own frontmatter binding. Moving `executor` to Sonnet ([#18](https://github.com/Nanako0129/pilotfish/issues/18)) prevents that default implementation role from escalating an Opus-main-loop fallback back onto Opus; the four explicitly Opus-bound review and security roles remain unchanged. |
-| Why does `executor` use Sonnet while `verifier` stays on Opus? | `executor` is the default volume implementation path, so Sonnet preserves a lower-cost tier below the Opus main session. `verifier`, `plan-verifier`, `security-reviewer`, and `security-executor` remain on Opus for their acceptance-boundary or security responsibilities. A same-tier role call is not automatically useless: fresh context, enforced tool boundaries, and independent review can still justify it. The change in [#18](https://github.com/Nanako0129/pilotfish/issues/18) claims only the routing distinction and tier saving for the default implementation path; no role-specific Opus-versus-Sonnet executor benchmark has been run. |
-| Can I force every subagent onto one model? | `CLAUDE_CODE_SUBAGENT_MODEL` overrides *all* per-agent frontmatter — that's why pilotfish doesn't set it. Leave it unset unless you want a temporary global override. |
-| I use `availableModels` as an allowlist | Then it must contain every alias the agents use (`opus`, `sonnet`, `haiku`), or those agents silently fall back to inheriting the main-session model. The installer checks this. |
-| Why `effort: low` on the cheap roles? | Effort is the second big quota lever. Fable-5-generation models at low effort routinely match previous-generation `xhigh`; recon and mechanical work don't need deep thinking. |
-| Which effort for the main session? | Start with `high` for judgment-heavy orchestration and lower it when quota or latency matters more. If you opt into Fable, follow its model-specific prompting guidance. |
-| How do I request a 1M context window? | The plain `opus` alias follows the provider default. If you need to request 1M explicitly on a supported provider, set `model` to `"opus[1m]"`; pilotfish leaves an existing choice untouched. |
-| Does the orchestrator ever do work itself? | Yes — quick reads, small bounded repository scans, decisions, root-cause exploration, trace-driven debugging, tightly coupled state work, and anything you explicitly asked *it* to judge. Other work is delegated when its combined cost, context, latency, isolation, or verification benefit exceeds reconstruction and integration overhead. |
-| My project has its own CLAUDE.md — conflict? | No project file is ever touched: pilotfish writes only under the Claude Code configuration root (`~/.claude/` by default; `CLAUDE_CONFIG_DIR` overrides it). At runtime Claude Code *stacks* project memory and user memory. A repo-local instruction can keep optional execution inline, but mandatory risk review remains active. For a full repo-specific opt-out, launch that repo with a separate `CLAUDE_CONFIG_DIR` whose `CLAUDE.md` has no pilotfish block. |
-| I also installed a delegation-planning skill | Treat it as a complementary planning layer. A skill such as [Baton](https://github.com/cablate/baton) can shape discovery questions, worker count, ownership, sequence, and stop conditions; pilotfish supplies the named Claude roles, model routing, leaf-agent boundary, approval gate, and verifier contract. The [compatibility Gates](./benchmarks/baton-compatibility/README.md) record the v1.3.2 envelope → current-slice → approved execution → `CONFIRMED` lifecycle, including an Opus 5 rerun whose disclosed post-verdict edit required a third corrective verification invocation. The [prompt-neutral activation Gate](./benchmarks/baton-dispatch-effect/README.md) separately covers four-scout dispatch under v1.3.1. These are bounded compatibility and reachability observations, not efficiency or frequency claims. pilotfish never disables user skills. |
-| Subagent quality worries me | Risk-triggered `plan-verifier` and outcome `verifier` calls provide fresh evidence; their verdicts do not replace main-session judgment. `REVISE` reports all known P0-P2 blockers in one pass, while P3/P4 remain advisory. The main session dispositions every finding as `FIX`, `DEFER`, or `REJECT`; normal verification is one full pass and, after a reproduced fix, one targeted recheck. |
-| Doesn't spawning agents cost extra? | Yes — every spawn is a fresh context that re-reads its slice of the codebase, and synthesis costs main-session tokens. A bounded task-local scan therefore stays inline by default. Discovery may still fan out when disjoint evidence materially reduces Plan uncertainty, while execution delegates only after its contract is stable. In the public mechanical control's execution-only segment, delegation reported 36.01% less cost with a 7.92% wall-time trade-off; neither compared run included the required outcome verifier, so this demonstrates route reachability rather than full-lifecycle savings. The research fixture shows the overhead of two scouts on one small task, not that plan-first discovery is categorically wrong. |
-| Turn it off fast? | "Work inline" disables optional execution delegation only; mandatory risk review still applies. **Full opt-out:** comment out the `pilotfish:begin/end` block in the `CLAUDE.md` under the configuration root resolved by Step 0 of the [runbook](./install/AGENT-INSTALL.md), then start a new session. For one repo only, use a separate `CLAUDE_CONFIG_DIR` without that block. The agent files may remain installed and unused. |
-| Managed / enterprise machine? | Managed settings outrank user settings: a managed `model`, `availableModels` allowlist, or a managed agent with the same name will override pilotfish's user-level install. If roles don't take effect after restart, ask your admin — pilotfish can't (and shouldn't) override managed policy. |
-
-## Research & design
-
-This repo is the packaged result of a sourced research pass (official docs, Anthropic announcements, community measurements) plus a design rationale. Host ports that reuse the same orchestration idea live elsewhere: [pilotfish-grok](https://github.com/Nanako0129/pilotfish-grok) for Grok Build, [pilotfish-codex](https://github.com/miyago9267/pilotfish-codex) for Codex CLI, and [remora](https://github.com/Nanako0129/remora-cc) for session-scoped GPT routing inside Claude Code.
-
-| Document | Language | Contents |
-|---|---|---|
-| [docs/research.md](./docs/research.md) | English | Full research findings: Fable 5 strengths & when it's wasteful, subscription economics, official Claude Code mechanisms, community measurements — with sources |
-| [docs/research.zh-TW.md](./docs/research.zh-TW.md) | 繁體中文 | 研究報告原版（the original the English version translates） |
-| [docs/design.md](./docs/design.md) | English | Why three layers, why role-based policy, why aliases over pinned IDs, effort tiering, what was deliberately left out |
-| [benchmarks/dispatch-brake/README.md](./benchmarks/dispatch-brake/README.md) | English + data | Reproducible negative/positive controls, rejected policy iterations, Agent traces, cost and timing evidence |
-| [benchmarks/dispatch-brake/positive-controls/README.md](./benchmarks/dispatch-brake/positive-controls/README.md) | English + data | Mechanical delegation evidence plus the measured task-local overhead and interpretation limits of small read-only fan-out |
-| [benchmarks/spontaneous-dispatch/README.md](./benchmarks/spontaneous-dispatch/README.md) | English + data | Cue-free Opus baseline, v1.3.1 mechanical/bug topology gates, sanitized traces, and Fable credit-gate disclosure |
-| [benchmarks/baton-dispatch-effect/README.md](./benchmarks/baton-dispatch-effect/README.md) | English + data | Prompt-neutral activation matrix: bounded no-activation observation plus a four-domain Gate with Baton activation, four completed scouts, exclusive ownership, full collection, and output-shape correctness |
-| [benchmarks/baton-compatibility/README.md](./benchmarks/baton-compatibility/README.md) | English + data | Historical exact-byte native-Claude two-turn lifecycle plus the Opus 5 rerun and its corrective third invocation, exact prompts, rejected routing evidence, and machine-readable results |
-| [benchmarks/prompt-compression/README.md](./benchmarks/prompt-compression/README.md) | English + data | v1.3.4 prompt byte reduction, runtime context census, exact candidate hashes, paid behavioral observations, and current claim limits |
-| [benchmarks/verifier-boundary/README.md](./benchmarks/verifier-boundary/README.md) | English + data | v1.3.7 exact-byte native-Claude schema lifecycle and routine-docs control, including failed attempts, role routing, acceptance, and cost |
-
-**Prior art & credits.** The "smart brain, cheap hands" split is not pilotfish's invention: Anthropic's own engineering writeup ([Decoupling the brain from the hands](https://www.anthropic.com/engineering/managed-agents)) frames it, Claude Code ships [`opusplan`](https://code.claude.com/docs/en/model-config) built in — if all you want is cheaper sessions, `/model opusplan` needs no repo at all — and [Rylaa/fable5-orchestrator](https://github.com/Rylaa/fable5-orchestrator) packages the same frugality thesis as a plugin with ledger-enforcing guard hooks. pilotfish's contribution is the packaging: eight deliberately-few roles instead of a 100-agent catalog, a role-based policy that survives model churn, an installer that shows its plan before touching anything, and claims that were adversarially fact-checked. If a heavier, hook-enforced flavor fits you better, use theirs.
-
-## Contributing
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for the test workflow, source-of-truth
-map, exact-byte evidence rules, and pull request checklist.
-
-## Uninstall
-
-Tell Claude Code:
+To delegate uninstall to Claude Code:
 
 ```text
 Read the local install/AGENT-INSTALL.md, resolve the Claude Code configuration
@@ -317,22 +167,23 @@ Show me the full removal and settings-restoration plan and get my approval
 before writing.
 ```
 
-## Support pilotfish
+## Documentation
 
-pilotfish is only configuration, but proving that its policy still works is not
-free. Meaningful compatibility claims require paid Claude Code or API runs
-across multiple model tiers, multi-turn dispatch Gates, and fresh independent
-verifier sessions. Runs that hit quota limits or expose a policy flaw are
-disclosed and, when feasible, rerun rather than counted as proof.
+| Topic | Document |
+|---|---|
+| Daily use and troubleshooting | [docs/usage.md](./docs/usage.md) · [繁體中文](./docs/usage.zh-TW.md) |
+| Architecture and policy decisions | [docs/design.md](./docs/design.md) |
+| Model economics and source research | [docs/research.md](./docs/research.md) · [繁體中文](./docs/research.zh-TW.md) |
+| Real long-session field report | [docs/field-report-tokscale-2026-07.zh-TW.md](./docs/field-report-tokscale-2026-07.zh-TW.md) |
+| Behavioral evidence and claim limits | [dispatch brake](./benchmarks/dispatch-brake/README.md) · [spontaneous dispatch](./benchmarks/spontaneous-dispatch/README.md) · [Baton activation](./benchmarks/baton-dispatch-effect/README.md) · [prompt compression](./benchmarks/prompt-compression/README.md) · [verifier boundary](./benchmarks/verifier-boundary/README.md) |
+| Contribution and evidence contracts | [CONTRIBUTING.md](./CONTRIBUTING.md) |
 
-Sponsorship helps cover those model credits and the ongoing work of tracking
-Claude Code changes, provider aliases, role templates, installer behavior, and
-[release evidence](./benchmarks/baton-dispatch-effect/README.md). If pilotfish
-saves you quota or review time, you can support its continued development on
-Patreon.
+## Project
+
+pilotfish is MIT licensed. Behavioral compatibility claims require paid model
+runs, fresh verification, and maintained evidence; sponsorship helps fund those
+gates.
 
 [![Support pilotfish on Patreon](https://img.shields.io/badge/Support_on_Patreon-FF424D?style=for-the-badge&logo=patreon&logoColor=white)](https://www.patreon.com/cw/Nanako0129/membership)
 
-## License
-
-[MIT](./LICENSE)
+[License](./LICENSE) · [Contributing](./CONTRIBUTING.md)
