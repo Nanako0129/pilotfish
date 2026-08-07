@@ -1189,6 +1189,107 @@ class PolicyContractTests(unittest.TestCase):
         }
         self.assertEqual(len(post_hashes), 10)
 
+    def test_compact_policy_full_matrix_is_exact_and_complete(self) -> None:
+        path = ROOT / "benchmarks" / "spontaneous-dispatch"
+        evidence = json.loads(
+            (path / "compact-policy-full-matrix.json").read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        candidate = (path / evidence["candidate"]["path"]).read_bytes()
+        self.assertEqual(evidence["status"], "passed")
+        self.assertEqual(len(candidate), evidence["candidate"]["bytes"])
+        self.assertEqual(
+            hashlib.sha256(candidate).hexdigest(), evidence["candidate"]["sha256"]
+        )
+        live = (ROOT / "templates/claude-md.orchestration.md").read_bytes()
+        normalize_version_marker = lambda payload: re.sub(
+            rb"<!-- pilotfish v\d+\.\d+\.\d+ -->",
+            b"<!-- pilotfish vX.Y.Z -->",
+            payload,
+        )
+        self.assertNotEqual(candidate, live)
+        self.assertEqual(
+            normalize_version_marker(candidate), normalize_version_marker(live)
+        )
+        self.assertEqual(evidence["route"]["client_versions"], ["2.1.224"])
+
+        expected_adapters = [
+            f"src/adapters/{name}.js"
+            for name in (
+                "alpha bravo charlie delta echo foxtrot golf hotel india "
+                "juliet kilo lima"
+            ).split()
+        ]
+        results = evidence["results"]
+        routine = results["routine_docs"]["attempts"]
+        bug = results["single_unknown_bug"]["attempts"]
+        mechanical = results["mechanical_repetition"]["attempts"]
+        schema = results["schema_lifecycle"]["attempts"]
+        self.assertEqual(len(routine), 2)
+        self.assertEqual(len(bug), 2)
+        self.assertEqual(len(mechanical), 2)
+        self.assertEqual(len(schema), 2)
+        self.assertTrue(
+            all(
+                item["agent_calls"] == 0
+                and item["modified_paths"] == ["README.md"]
+                and item["tests"] == "1 passed, 0 failed"
+                for item in routine
+            )
+        )
+        self.assertTrue(
+            all(
+                item["agent_calls"] == 0
+                and item["modified_paths"] == ["src/reducer.js"]
+                and item["tests"] == "2 passed, 0 failed"
+                for item in bug
+            )
+        )
+        self.assertTrue(
+            all(
+                item["agent_calls"] == 1
+                and item["agent_role"] == "mech-executor"
+                and item["foreground"]
+                and item["collected"]
+                and not item["main_session_source_mutation"]
+                and item["modified_paths"] == expected_adapters
+                and item["tests"] == "12 passed, 0 failed"
+                for item in mechanical
+            )
+        )
+        for item in schema:
+            self.assertRegex(
+                item["session_binding"]["sanitized_session_id_sha256"],
+                r"^[0-9a-f]{64}$",
+            )
+            self.assertEqual(item["turn_1"]["plan_verifier_calls"], 1)
+            self.assertEqual(item["turn_1"]["verdict"], "READY")
+            self.assertFalse(item["turn_1"]["writes_before_approval"])
+            self.assertTrue(item["turn_1"]["stopped_for_approval"])
+            self.assertEqual(item["turn_2"]["primary_tests"], "4 passed, 0 failed")
+            self.assertTrue(item["turn_2"]["primary_tests_before_verifier"])
+            self.assertEqual(item["turn_2"]["verifier_calls"], 1)
+            self.assertEqual(item["turn_2"]["verifier_verdict"], "CONFIRMED")
+            self.assertEqual(
+                item["turn_2"]["modified_paths"], ["store.mjs", "store.test.mjs"]
+            )
+
+        completed = routine + bug + mechanical
+        cost = sum(item["client_reported_cost_usd"] for item in completed) + sum(
+            item[turn]["client_reported_cost_usd"]
+            for item in schema
+            for turn in ("turn_1", "turn_2")
+        )
+        self.assertEqual(
+            cost.quantize(Decimal("0.00000001")), evidence["budget"]["actual_usd"]
+        )
+        hashes = {item["raw_stream_sha256"] for item in completed} | {
+            item[turn]["raw_stream_sha256"]
+            for item in schema
+            for turn in ("turn_1", "turn_2")
+        }
+        self.assertEqual(len(hashes), 10)
+
     def test_spontaneous_dispatch_baseline_is_additive_and_evidence_bound(self) -> None:
         benchmark = ROOT / "benchmarks" / "spontaneous-dispatch"
         results = json.loads((benchmark / "results.json").read_text(encoding="utf-8"))
@@ -1329,7 +1430,6 @@ class PolicyContractTests(unittest.TestCase):
                 encoding="utf-8"
             )
         )
-        qualified_post_review = qualified["adaptive_interaction_routing_post_review_gate"]
         self.assertEqual(results["final_gate_status"], "complete")
         self.assertEqual(results["final_gate"]["status"], "passed")
 
@@ -1382,6 +1482,10 @@ class PolicyContractTests(unittest.TestCase):
             hashlib.sha256(last_qualified_policy).hexdigest(),
         )
         self.assertNotEqual(last_qualified_policy, current_policy)
+        self.assertEqual(
+            normalize_version_marker(last_qualified_policy),
+            normalize_version_marker(current_policy),
+        )
         self.assertEqual(
             runtime["release_candidate_agents_json_sha256"],
             hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
@@ -1468,31 +1572,34 @@ class PolicyContractTests(unittest.TestCase):
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
         self.assertEqual(runtime["release_candidate_version"], version)
-        self.assertEqual(version, "1.3.9")
+        self.assertEqual(version, "1.3.10")
         self.assertEqual(
             runtime["release_candidate_generated_by"],
             "benchmarks/baton-compatibility/build-agents-json.py templates/agents",
         )
         self.assertTrue(
             runtime["release_candidate_behavioral_gate_status"].startswith(
-                "not run;"
+                "passed;"
             )
         )
-        self.assertIsNone(runtime["release_candidate_runtime_evidence"])
+        self.assertEqual(
+            runtime["release_candidate_runtime_evidence"],
+            "../spontaneous-dispatch/compact-policy-full-matrix.json",
+        )
         self.assertEqual(
             runtime["last_behaviorally_qualified_version"],
-            qualified["inputs"]["policy"]["release_version"],
+            qualified["candidate"]["version_marker"],
         )
         self.assertEqual(
             runtime["last_behaviorally_qualified_runtime_evidence"],
-            "../spontaneous-dispatch/issue-29-recovery.json",
+            "../spontaneous-dispatch/compact-policy-full-matrix.json",
         )
         self.assertTrue(
             runtime["last_behaviorally_qualified_status"].startswith("passed;")
         )
         self.assertEqual(
             runtime["last_behaviorally_qualified_agents_json_sha256"],
-            qualified_post_review["agents"]["runtime_sha256"],
+            qualified["agents"]["runtime_sha256"],
         )
         self.assertEqual(
             runtime["release_candidate_offline_evidence"],
@@ -1500,7 +1607,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["last_behaviorally_qualified_offline_evidence"],
-            "tests/test_policy.py::PolicyContractTests.test_issue_29_recovery_gate_is_bounded_and_brake_calibrated",
+            "tests/test_policy.py::PolicyContractTests.test_compact_policy_full_matrix_is_exact_and_complete",
         )
         self.assertTrue(
             runtime["release_candidate_policy_delta_from_final_gate"].startswith(
@@ -1713,7 +1820,7 @@ class PolicyContractTests(unittest.TestCase):
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("<!-- pilotfish v1.3.9 -->", policy)
+        self.assertIn("<!-- pilotfish v1.3.10 -->", policy)
 
         changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
         self.assertRegex(changelog, rf"(?m)^## v{re.escape(version)} ")
@@ -1722,6 +1829,26 @@ class PolicyContractTests(unittest.TestCase):
         for readme in ("README.md", "README.zh-TW.md"):
             content = (ROOT / readme).read_text(encoding="utf-8")
             self.assertIn(f"git clone --branch v{version} --depth 1", content)
+
+    def test_pilotfish_brand_stays_lowercase_in_live_markdown(self) -> None:
+        surfaces = [
+            ROOT / "CHANGELOG.md",
+            ROOT / "CONTRIBUTING.md",
+            ROOT / "README.md",
+            ROOT / "README.zh-TW.md",
+            ROOT / "RELEASING.md",
+            ROOT / "templates/claude-md.orchestration.md",
+            *sorted((ROOT / "templates/agents").glob("*.md")),
+            *sorted((ROOT / "docs").glob("*.md")),
+            *sorted((ROOT / "install").glob("*.md")),
+            *sorted((ROOT / "benchmarks").glob("*/README*.md")),
+        ]
+        for path in surfaces:
+            with self.subTest(path=path.relative_to(ROOT)):
+                for match in re.finditer(
+                    r"(?i)\bpilotfish\b", path.read_text(encoding="utf-8")
+                ):
+                    self.assertEqual(match.group(), "pilotfish")
 
     def test_prompt_templates_stay_within_density_budget(self) -> None:
         # The standing property from #27 is that the prompt text stays densely
@@ -2463,7 +2590,7 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("Baton may still choose direct work", policy)
         self.assertIn("may shape questions, topology, worker count, ownership, stops", policy)
         self.assertIn("If absent, apply this policy without searching/installing", policy)
-        self.assertIn("Pilotfish and Baton compose", policy)
+        self.assertIn("pilotfish and Baton compose", policy)
         self.assertIn("neither bypasses the other's", policy)
         self.assertIn(
             "named-role, model-routing, leaf, approval, or verification boundaries",

@@ -56,7 +56,7 @@ Never overwrite an existing target that lacks the matching
 `pilotfish-activation` ownership marker. Stop and ask the user to keep it,
 or remove it themselves.
 
-Before updating a marked Pilotfish-owned target, copy its exact bytes to a new
+Before updating a marked pilotfish-owned target, copy its exact bytes to a new
 timestamped file under `$CFG/backups/pilotfish-activation/history/`, read it
 back, compare it with the current target, and record its path. For a wrapper,
 also record its executable state. If creating or verifying the history backup
@@ -169,7 +169,7 @@ Re-run the AI install prompt to compare selected targets with this reviewed
 file. For an explicit update rollback, restore the selected history backup and
 verify its bytes and wrapper executable state. For uninstall, remove only a
 target that carries the matching ownership marker and still matches a reviewed
-Pilotfish payload. Never restore a history backup during uninstall. Stop and
+pilotfish payload. Never restore a history backup during uninstall. Stop and
 show a diff if current content has changed. Because this runbook never replaces
-unowned content, uninstall has no pre-Pilotfish file to restore. The core
+unowned content, uninstall has no pre-pilotfish file to restore. The core
 pilotfish and optional Baton installations remain unchanged.
