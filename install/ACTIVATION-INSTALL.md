@@ -26,7 +26,10 @@ prompt rather than a user message.
 
 ## Install with AI
 
-Clone a reviewed release, start Claude Code from that checkout, and paste:
+Use a reviewed release checkout that contains this file. If the pinned release
+you installed does not include `install/ACTIVATION-INSTALL.md`, switch to a
+newer reviewed release that does; do not fetch this file alone from `main`.
+Start Claude Code from that checkout and paste:
 
 ```text
 Read the local file install/ACTIVATION-INSTALL.md in the current checkout and
@@ -126,10 +129,13 @@ claude --append-system-prompt "<SESSION_INSTRUCTION>" %*
 ```
 
 Read every installed target back and compare its complete contents with the
-selected payload. Run `claude-pilotfish --version` to confirm wrapper lookup,
-argument forwarding, and executable state without starting a paid Claude
-session. Report every backup path. Do not modify `settings.json`, the eight role
-agents, the pilotfish policy block, Baton, shell profiles, or `PATH`.
+selected payload. Resolve `claude-pilotfish` with `command -v` on POSIX or
+`(Get-Command claude-pilotfish).Source` in PowerShell and compare the result
+with the selected target; stop if they differ. Then run
+`claude-pilotfish --version` to confirm argument forwarding and executable
+state without starting a paid Claude session. Report every backup path. Do not
+modify `settings.json`, the eight role agents, the pilotfish policy block,
+Baton, shell profiles, or `PATH`.
 
 ## Use and verify
 
