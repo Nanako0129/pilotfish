@@ -1487,6 +1487,10 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["release_candidate_offline_evidence"],
+            "tests/test_policy.py::PolicyContractTests.test_baton_gate_snapshot_matches_recorded_hashes",
+        )
+        self.assertEqual(
+            runtime["last_behaviorally_qualified_offline_evidence"],
             "tests/test_policy.py::PolicyContractTests.test_issue_29_recovery_gate_is_bounded_and_brake_calibrated",
         )
         self.assertTrue(
