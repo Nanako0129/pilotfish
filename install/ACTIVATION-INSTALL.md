@@ -51,7 +51,7 @@ Inspect every selected target before writing. Show its existing state, proposed
 content, update behavior, verification, and rollback, then wait for approval.
 Never overwrite an existing target that lacks the matching
 `pilotfish-activation` ownership marker. Stop and ask the user to keep it,
-remove it themselves, or choose another wrapper name or target.
+or remove it themselves.
 
 Before updating a marked Pilotfish-owned target, copy its exact bytes to a new
 timestamped file under `$CFG/backups/pilotfish-activation/history/`, read it

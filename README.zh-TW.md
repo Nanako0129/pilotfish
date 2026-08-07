@@ -127,7 +127,7 @@ full plan of changes and get my approval before writing anything.
 
 | 目標 | 安裝內容 | 可還原 |
 |---|---|---|
-| `settings.json` | 補上缺少的 `model` 與 `fallbackModel`；除非批准，否則保留既有選擇 | 可 |
+| `settings.json` | 補上缺少的 `model` 與 `fallbackModel`；既有 `availableModels` 白名單才會補必要 alias | 還原或移除 `model`；可移除 `fallbackModel`，白名單 additions 除非要求否則保留 |
 | `agents/` | 八個角色 agent 檔 | 可 |
 | `CLAUDE.md` | 一段有版本的 `pilotfish:begin/end` policy block | 可 |
 

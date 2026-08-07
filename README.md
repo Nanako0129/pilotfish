@@ -139,7 +139,7 @@ full plan of changes and get my approval before writing anything.
 
 | Target | Installed change | Reversible |
 |---|---|---|
-| `settings.json` | Adds missing `model` and `fallbackModel` keys; preserves existing choices unless approved | Yes |
+| `settings.json` | Adds missing `model` and `fallbackModel`; conditionally extends an existing `availableModels` allowlist | Restores or removes `model`; `fallbackModel` is removable, while allowlist additions remain unless requested |
 | `agents/` | Eight role-agent files | Yes |
 | `CLAUDE.md` | One versioned `pilotfish:begin/end` policy block | Yes |
 
