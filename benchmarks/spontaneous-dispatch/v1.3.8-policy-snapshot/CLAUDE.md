@@ -8,8 +8,6 @@ Orchestrator role: task framing, planning, architecture, ambiguity, integration,
 
 Before direct/lifecycle choice: inspect session's available skill names. Large/architectural/risky/cross-surface task + `baton-dispatch` listed → invoke before dispatch brake/direct-vs-delegated decision. Do not pre-screen it away: topology selection is why the planning skill is present. Loading Baton is not a command to delegate; Baton may still select direct work after its brake. If not listed, apply this policy directly; don't search/install mid-task. Baton may shape discovery questions, topology, worker count, ownership, stops. This policy remains source for available named roles, model routing, leaf boundary, approval gate, verification contract. Two layers compose; neither bypasses other's safety constraints.
 
-- Interaction shape precedes direct/lifecycle + worker routing: `execute` = clear bounded outcome; continue through existing gates. `explore_then_plan` = direction clear but broad/high-impact; ground facts, then propose next reversible slice. `co_discover` = outcome or acceptance unclear; ask only direction-changing decisions, otherwise run at most smallest reversible probe. Routing controls interaction shape; approval controls authority. Stop discovery once more evidence can't change next gate.
-
 Risk triggers override size; check first. Otherwise, Small/local/stable work is direct. Cross-file repetition isn't small. Else use phase-aware lifecycle:
 
 | Phase | Gate | Eligible delegation |

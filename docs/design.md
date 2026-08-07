@@ -79,6 +79,18 @@ Before likely long autonomous work, the main session names `AUTO` or `ASK` for t
 
 P0 freezes the affected slice and dependents, while cross-cutting risk stops the program. Introduced P2 regressions remain blocking rather than being hidden by a narrowed claim. Normal recovery is one targeted recheck of the original reproduction plus a bounded basic regression. Five meaningful P1/P2 passes remain an emergency ceiling for high-risk, claim-critical recovery, never a quota; stop earlier when another pass would only search adjacent risk. Verification identity still prevents duplicate rechecks, and exhaustion pauses only the affected slice when risk is not cross-cutting.
 
+## Interaction shape before worker routing
+
+Pilotfish first decides how the main session should interact with the task, then applies the existing risk, lifecycle, and delegation rules:
+
+| Mode | Use when | Next move |
+|---|---|---|
+| `execute` | The outcome is clear and bounded | Continue through the existing gates |
+| `explore_then_plan` | The direction is clear but broad or high-impact | Ground the facts, then propose the next reversible slice |
+| `co_discover` | The outcome or acceptance is unclear | Ask only direction-changing questions; otherwise run the smallest reversible probe |
+
+Routing selects the interaction shape; it does not grant authority. Existing approval boundaries still apply, and discovery stops when more evidence cannot change the next gate.
+
 ## Phase-specific dispatch brakes
 
 Role routing answers *which worker* should receive eligible work; it does not answer *what phase the task is in* or *whether spawning a worker is beneficial*. pilotfish therefore applies a different contract to discovery and execution instead of requiring a finished implementation outcome before any delegation.

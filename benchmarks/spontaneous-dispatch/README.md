@@ -223,6 +223,12 @@ Schema review and implementation routing are separate decisions. Serialization m
 
 [`issue-29-recovery.json`](./issue-29-recovery.json) binds the repository policy, injection method, generated agents payload, prompts, costs, and raw-stream hashes for both the earlier Gate candidate and the release replay. The release replay ran ten completed invocations under an `$8` hard cap and reported `$3.89565485`. Claude Code updated from 2.1.220 to 2.1.221 between the two mechanical attempts; both passed, and the remaining cells ran on 2.1.221. The client transcripts observe the expected fixture `CLAUDE.md` sizes but do not expose a digest of the bytes incorporated into the runtime system prompt, so this is not an exact-loaded-policy causal claim. Stream and final-state evidence are not used to claim causal mutation ownership.
 
+## Adaptive interaction routing Gate
+
+The 18,500-byte candidate adds `execute`, `explore_then_plan`, and `co_discover` before the existing risk, lifecycle, and worker-routing decisions. It repeated the same explicit-opt-in matrix on 2026-08-07: routine and single-bug controls stayed direct `2/2`, mechanical delegation passed `2/2`, and both schema lifecycles completed `plan-verifier READY` → approval stop → direct implementation and primary tests → `verifier CONFIRMED`. Ten completed invocations reported `$4.101095` under an `$8` hard cap. Claude Code updated from 2.1.223 to 2.1.224 between Schema B turns; the resumed lifecycle still passed.
+
+The machine-readable record is `adaptive_interaction_routing_gate` in [`issue-29-recovery.json`](./issue-29-recovery.json). The previous v1.3.8 policy is frozen in [`v1.3.8-policy-snapshot/CLAUDE.md`](./v1.3.8-policy-snapshot/CLAUDE.md), so later template changes cannot rewrite the older release or TUI evidence. This Gate establishes compatibility with the existing topology boundaries, not an A/B quality gain or a mode-selection rate; Routine A explicitly reported `execute`, while the remaining cells were judged by their observable routing and approval contracts.
+
 ## Calico TUI diagnostic
 
 The later cue-free candidate tried to express delegation as a standing user instruction inside `CLAUDE.md`. Four mechanical cells on Claude Code or Calico 2.1.223, Opus 5, high effort made zero Agent calls, changed all twelve adapters in the main session, and passed 12/12 tests. The experiment stopped there; correctness did not satisfy the required ownership topology.

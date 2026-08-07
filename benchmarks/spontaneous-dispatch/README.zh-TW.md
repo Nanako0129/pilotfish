@@ -223,6 +223,12 @@ Schema review 與 implementation routing 是兩個不同決策。Serialization �
 
 [`issue-29-recovery.json`](./issue-29-recovery.json) 綁定早期 Gate candidate 與 release replay 的 repository policy、注入方法、generated agents payload、prompts、成本與 raw-stream hashes。Release replay 在 `$8` hard cap 下完成十次 invocation，reported `$3.89565485`。Claude Code 在兩次 mechanical attempt 之間從 2.1.220 更新為 2.1.221；兩次都通過，其餘 cells 皆在 2.1.221 上執行。Client transcripts 觀察到 fixture `CLAUDE.md` 的預期大小，但沒有提供實際併入 runtime system prompt 的位元組 digest，因此這不是 exact-loaded-policy 因果宣稱。Stream 與 final-state evidence 不用來宣稱 causal mutation ownership。
 
+## Adaptive interaction routing Gate
+
+18,500-byte candidate 在既有 risk、lifecycle 與 worker-routing 決策之前加入 `execute`、`explore_then_plan` 與 `co_discover`。它在 2026-08-07 重跑相同的明確 opt-in matrix：routine 與 single-bug controls 維持 direct `2/2`，mechanical delegation 通過 `2/2`，兩組 schema lifecycle 都完成 `plan-verifier READY` → approval stop → direct implementation 與 primary tests → `verifier CONFIRMED`。十次 completed invocation 在 `$8` hard cap 下 reported `$4.101095`。Claude Code 在 Schema B 兩個 turn 之間從 2.1.223 更新到 2.1.224；resume 後的 lifecycle 仍然通過。
+
+Machine-readable 紀錄位於 [`issue-29-recovery.json`](./issue-29-recovery.json) 的 `adaptive_interaction_routing_gate`。舊 v1.3.8 policy 已固定在 [`v1.3.8-policy-snapshot/CLAUDE.md`](./v1.3.8-policy-snapshot/CLAUDE.md)，後續 template 變更不會重寫舊 release 或 TUI 證據。這個 Gate 證明新規則與既有 topology boundary 相容，不是 A/B 品質提升或 mode-selection rate；Routine A 明確回報 `execute`，其他 cells 仍以可觀察的 routing 與 approval contract 判定。
+
 ## Calico TUI 診斷
 
 後續 cue-free candidate 嘗試在 `CLAUDE.md` 裡把委派表達成使用者的常駐指示。Claude Code 或 Calico 2.1.223、Opus 5、high effort 的四次 mechanical cell 全部為零 Agent call，由主 session 改完十二個 adapter，且 12/12 tests 通過。實驗到此停止；結果正確不代表 ownership topology 通過。

@@ -986,6 +986,106 @@ class PolicyContractTests(unittest.TestCase):
         }
         self.assertEqual(len(replay_hashes), 10)
 
+        adaptive = evidence["adaptive_interaction_routing_gate"]
+        self.assertEqual(adaptive["status"], "passed")
+        candidate = (path / adaptive["candidate"]["path"]).read_bytes()
+        self.assertEqual(len(candidate), adaptive["candidate"]["bytes"])
+        self.assertEqual(
+            hashlib.sha256(candidate).hexdigest(), adaptive["candidate"]["sha256"]
+        )
+        self.assertEqual(adaptive["prompt_set"], "inputs.prompts")
+        self.assertEqual(adaptive["fixture_set"], "inputs.fixtures")
+        self.assertIsNone(adaptive["candidate"]["runtime_loaded_sha256"])
+        self.assertEqual(
+            adaptive["agents"]["runtime_sha256"], inputs["agents"]["runtime_sha256"]
+        )
+        self.assertEqual(
+            set(adaptive["route"]["client_versions"]), {"2.1.223", "2.1.224"}
+        )
+        self.assertIn("between Schema B Turn 1", adaptive["route"]["client_drift"])
+
+        adaptive_results = adaptive["results"]
+        adaptive_routine = adaptive_results["routine_docs"]["attempts"]
+        adaptive_bug = adaptive_results["single_unknown_bug"]["attempts"]
+        adaptive_mechanical = adaptive_results["mechanical_repetition"]["attempts"]
+        adaptive_schema = adaptive_results["schema_lifecycle"]["attempts"]
+        self.assertTrue(
+            all(
+                item["agent_calls"] == 0
+                and item["modified_paths"] == ["README.md"]
+                and item["tests"] == "1 passed, 0 failed"
+                for item in adaptive_routine
+            )
+        )
+        self.assertTrue(
+            all(
+                item["agent_calls"] == 0
+                and item["modified_paths"] == ["src/reducer.js"]
+                and item["tests"] == "2 passed, 0 failed"
+                for item in adaptive_bug
+            )
+        )
+        for item in adaptive_mechanical:
+            self.assertEqual(item["agent_calls"], 1)
+            self.assertEqual(item["agent_role"], "mech-executor")
+            self.assertFalse(item["invocation_model_present"])
+            self.assertTrue(item["foreground"] and item["collected"])
+            self.assertFalse(item["main_session_source_mutation"])
+            self.assertEqual(item["modified_paths"], expected_adapters)
+            self.assertEqual(item["tests"], "12 passed, 0 failed")
+
+        adaptive_schema_tests = {"a": "4 passed, 0 failed", "b": "5 passed, 0 failed"}
+        self.assertTrue(adaptive_results["schema_lifecycle"]["implementation_route_is_non_blocking"])
+        for item in adaptive_schema:
+            self.assertRegex(
+                item["session_binding"]["sanitized_session_id_sha256"],
+                r"^[0-9a-f]{64}$",
+            )
+            turn_1 = item["turn_1"]
+            turn_2 = item["turn_2"]
+            self.assertEqual(turn_1["plan_verifier_calls"], 1)
+            self.assertFalse(turn_1["invocation_model_present"])
+            self.assertTrue(turn_1["foreground"] and turn_1["collected"])
+            self.assertEqual(turn_1["verdict"], "READY")
+            self.assertFalse(turn_1["writes_before_approval"])
+            self.assertTrue(turn_1["stopped_for_approval"])
+            self.assertEqual(turn_2["implementation_route"], "main_session_direct")
+            self.assertEqual(turn_2["execution_agent_calls"], 0)
+            self.assertEqual(turn_2["primary_tests"], adaptive_schema_tests[item["id"]])
+            self.assertTrue(turn_2["primary_tests_before_verifier"])
+            self.assertEqual(turn_2["verifier_calls"], 1)
+            self.assertFalse(turn_2["verifier_invocation_model_present"])
+            self.assertTrue(turn_2["verifier_foreground"] and turn_2["verifier_collected"])
+            self.assertEqual(turn_2["verifier_verdict"], "CONFIRMED")
+            self.assertEqual(
+                turn_2["modified_paths"], ["store.mjs", "store.test.mjs"]
+            )
+
+        adaptive_completed = adaptive_routine + adaptive_bug + adaptive_mechanical
+        adaptive_cost = sum(
+            item["client_reported_cost_usd"] for item in adaptive_completed
+        ) + sum(
+            item[turn]["client_reported_cost_usd"]
+            for item in adaptive_schema
+            for turn in ("turn_1", "turn_2")
+        )
+        self.assertEqual(
+            adaptive_cost.quantize(Decimal("0.00000001")),
+            adaptive["budget"]["actual_usd"],
+        )
+        self.assertLessEqual(
+            adaptive["budget"]["maximum_allocated_usd"],
+            adaptive["budget"]["hard_cap_usd"],
+        )
+        adaptive_hashes = {
+            item["raw_stream_sha256"] for item in adaptive_completed
+        } | {
+            item[turn]["raw_stream_sha256"]
+            for item in adaptive_schema
+            for turn in ("turn_1", "turn_2")
+        }
+        self.assertEqual(len(adaptive_hashes), 10)
+
     def test_spontaneous_dispatch_baseline_is_additive_and_evidence_bound(self) -> None:
         benchmark = ROOT / "benchmarks" / "spontaneous-dispatch"
         results = json.loads((benchmark / "results.json").read_text(encoding="utf-8"))
@@ -1848,6 +1948,23 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("Main session synthesizes evidence into one Plan", policy)
         self.assertIn("workers depend", policy)
         self.assertIn("evolving main-session evidence", policy)
+
+    def test_policy_selects_interaction_shape_before_routing(self) -> None:
+        policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
+            encoding="utf-8"
+        )
+        for mapping in (
+            "`execute` = clear bounded outcome",
+            "`explore_then_plan` = direction clear but broad/high-impact",
+            "`co_discover` = outcome or acceptance unclear",
+        ):
+            self.assertIn(mapping, policy)
+        self.assertLess(
+            policy.index("Interaction shape precedes direct/lifecycle + worker routing"),
+            policy.index("Risk triggers override size"),
+        )
+        self.assertIn("Routing controls interaction shape; approval controls authority", policy)
+        self.assertIn("Stop discovery once more evidence can't change next gate", policy)
 
     def test_policy_brakes_tightly_coupled_execution(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
