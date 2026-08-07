@@ -1360,9 +1360,12 @@ class PolicyContractTests(unittest.TestCase):
             capture_output=True,
         )
         self.assertNotEqual(current_policy, snapshot_policy)
+        release_candidate_policy = (
+            gate / runtime["release_candidate_orchestration_path"]
+        ).read_bytes()
         self.assertEqual(
             runtime["release_candidate_orchestration_sha256"],
-            hashlib.sha256(current_policy).hexdigest(),
+            hashlib.sha256(release_candidate_policy).hexdigest(),
         )
         self.assertEqual(
             runtime["release_candidate_agents_json_sha256"],
@@ -1470,6 +1473,10 @@ class PolicyContractTests(unittest.TestCase):
             runtime["release_candidate_policy_delta_from_final_gate"].startswith(
                 "non-empty"
             )
+        )
+        self.assertNotIn(
+            "current 18,477-byte policy",
+            runtime["release_candidate_policy_delta_from_final_gate"],
         )
         self.assertEqual(
             runtime["release_candidate_agents_json_delta_from_final_gate"],
@@ -1993,9 +2000,9 @@ class PolicyContractTests(unittest.TestCase):
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("omit `model` arg", policy)
-        self.assertIn("invocation-level model overrides role routing", policy)
-        self.assertIn("truly ad-hoc agent, no named role", policy)
+        self.assertIn("Omit invocation `model`", policy)
+        self.assertIn("override would replace role routing", policy)
+        self.assertIn("truly ad-hoc agent", policy)
 
         for role in ROLES:
             agent = (ROOT / "templates" / "agents" / f"{role}.md").read_text(
@@ -2045,30 +2052,54 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertIn("phase-aware lifecycle", policy)
         self.assertIn("Discovery needs stable research contract", policy)
-        self.assertIn("not pre-decided outcome", policy)
-        self.assertIn("No source edit/implementation brief before required approval", policy)
-        self.assertIn("Broad initial request ≠ approval", policy)
-        self.assertIn("Main session synthesizes evidence into one Plan", policy)
-        self.assertIn("workers depend", policy)
-        self.assertIn("evolving main-session evidence", policy)
+        self.assertIn("never pre-decided outcome", policy)
+        self.assertIn("No source edit or implementation brief before required approval", policy)
+        self.assertIn("Broad initial request is not approval", policy)
+        self.assertIn("main synthesizes one Plan", policy)
+        self.assertIn("Block fan-out when evidence evolves", policy)
 
     def test_policy_selects_interaction_shape_before_routing(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
+        routing = next(
+            line
+            for line in policy.splitlines()
+            if line.startswith("- Interaction shape precedes Baton")
+        )
         for mapping in (
-            "`co_discover` = outcome/acceptance unclear",
-            "`explore_then_plan` = otherwise clear direction that is broad/high-impact",
-            "`execute` = otherwise clear, bounded outcome",
+            "`co_discover` when outcome/acceptance is unclear",
+            "`explore_then_plan` when otherwise-clear direction is broad/high-impact",
+            "`execute` for an otherwise-clear bounded outcome",
         ):
-            self.assertIn(mapping, policy)
+            self.assertIn(mapping, routing)
+        self.assertLess(routing.index("`co_discover`"), routing.index("`explore_then_plan`"))
+        self.assertLess(routing.index("`explore_then_plan`"), routing.index("`execute`"))
+        self.assertIn(
+            "`co_discover` asks only direction-changing questions or uses the smallest reversible probe",
+            routing,
+        )
         self.assertLess(
             policy.index("Interaction shape precedes Baton"),
-            policy.index("Before direct/lifecycle choice: inspect session's available skill names"),
+            policy.index("After shape selection, inspect available skills"),
         )
         self.assertIn("Choose first match", policy)
+        boundary = next(
+            line
+            for line in policy.splitlines()
+            if line.startswith("  **`explore_then_plan` boundary:**")
+        )
+        for contract in (
+            "first turn is `discovery_read_only`",
+            "despite imperative implementation wording",
+            "Write/Edit/NotebookEdit and mutating Bash are forbidden",
+            "one reversible slice labeled `next_gate: user_approval`",
+            "then end the turn",
+            "Execution is unreachable until later explicit approval",
+        ):
+            self.assertIn(contract, boundary)
         self.assertIn("Routing controls interaction; approval controls authority", policy)
-        self.assertIn("Stop when more evidence cannot change next gate", policy)
+        self.assertIn("Stop discovery when more evidence cannot change next gate", policy)
 
     def test_policy_brakes_tightly_coupled_execution(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
@@ -2079,7 +2110,7 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("coupled state propagation", policy)
         self.assertIn("Single unknown bug", policy)
         self.assertIn("sequential `scout`→`executor` pipeline", policy)
-        self.assertIn("doesn't own/block main diagnosis", policy)
+        self.assertIn("neither owns nor blocks diagnosis", policy)
         self.assertIn("without rediscovery", policy)
         self.assertIn("non-positive net benefit", policy)
 
@@ -2087,21 +2118,16 @@ class PolicyContractTests(unittest.TestCase):
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("stable multi-file mechanical repetition", policy)
+        self.assertIn("Stable same-shape multi-file repetition", policy)
         self.assertIn("complete one-shot brief", policy)
         self.assertIn("exclusive ownership", policy)
         self.assertIn("per-item acceptance", policy)
-        self.assertIn(
-            "Dispatch a `mech-executor`",
-            policy,
-        )
-        self.assertIn("possible long command requires background", policy)
-        self.assertIn("Collect before main edits", policy)
-        self.assertIn("files stay worker-only until done", policy)
-        self.assertIn("don't redo", policy)
-        self.assertIn("prior blocker", policy)
-        self.assertIn("Triggers: user asks for independent review", policy)
-        self.assertNotIn("Triggers: requested review", policy)
+        self.assertIn("defaults to one `mech-executor`", policy)
+        self.assertIn("Foreground unless possible long command requires background", policy)
+        self.assertIn("Collect mechanical result before main edits", policy)
+        self.assertIn("worker files remain worker-only until completion", policy)
+        self.assertIn("never redo worker changes", policy)
+        self.assertIn("requires prior concrete blocker", policy)
         for blocker in (
             "evolving/coupled evidence",
             "ownership/integration conflict",
@@ -2110,10 +2136,13 @@ class PolicyContractTests(unittest.TestCase):
         ):
             self.assertIn(blocker, policy)
         self.assertIn(
-            "Main session owns per-item triage, exceptions, integration, acceptance",
+            "Main retains per-item triage, exceptions, integration, acceptance",
             policy,
         )
-        self.assertIn("Rebuttable default", policy)
+        self.assertLess(
+            policy.index("defaults to one `mech-executor`"),
+            policy.index("requires prior concrete blocker"),
+        )
         self.assertNotIn("eligible rather than mandatory", policy)
         self.assertNotIn("direct execution being slightly faster is not a veto", policy)
 
@@ -2124,51 +2153,51 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("Single unknown bug", policy)
         self.assertIn("root-cause discovery", policy)
         self.assertIn("first minimal fix", policy)
-        self.assertIn("Bounded task-local search stays main session by default", policy)
-        self.assertIn("doesn't own/block main diagnosis", policy)
+        self.assertIn("Bounded task-local search stays main-session work by default", policy)
+        self.assertIn("neither owns nor blocks diagnosis", policy)
 
     def test_policy_prevents_duplicate_recon_after_dispatch(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("scope = temporarily exclusive", policy)
-        self.assertIn("don't read/analyze same scope", policy)
-        self.assertIn("cancel/redirect agent", policy)
-        self.assertIn("declare main-owned vs agent-owned read scopes", policy)
-        self.assertIn("Check every path in later Read/Glob/Grep/Bash", policy)
-        self.assertIn("mixed-scope command violates", policy)
-        self.assertIn("No cross-surface comparison until all discovery results in", policy)
+        self.assertIn("Active agent scope is temporarily exclusive", policy)
+        self.assertIn("main must not read/analyze same scope", policy)
+        self.assertIn("cancellation, or redirection", policy)
+        self.assertIn("declare main-owned versus agent-owned read scopes", policy)
+        self.assertIn("later Read/Glob/Grep/Bash must reject mixed commands", policy)
+        self.assertIn("touching any active-agent path", policy)
+        self.assertIn("Collect all discovery results before cross-surface comparison", policy)
         self.assertIn("Post-result sanity checks", policy)
         self.assertIn("launch all back-to-back", policy)
-        self.assertIn("before main-session remaining work", policy)
-        self.assertIn("no interleaved duplicate recon", policy)
+        self.assertIn("before remaining main work", policy)
+        self.assertIn("allow no interleaved duplicate reconnaissance", policy)
 
     def test_policy_preserves_positive_delegation_paths(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("net benefit decides", policy)
-        self.assertIn("lower model cost/quota", policy)
+        self.assertIn("delegate only when", policy)
+        self.assertIn("outweigh reconstruction", policy)
+        self.assertIn("lower cost/quota", policy)
         self.assertIn("preserved context", policy)
-        self.assertIn("smallest read-only structure", policy)
-        self.assertIn("stays main session by default", policy)
-        self.assertIn("surfaces genuinely independent+substantial", policy)
-        self.assertIn("latency overlaps", policy)
-        self.assertIn("independent evidence/perspectives", policy)
-        self.assertIn("stable multi-file mechanical repetition", policy)
+        self.assertIn("bounded read-only `scout`/`Explore`", policy)
+        self.assertIn("stays main-session work by default", policy)
+        self.assertIn("genuinely independent substantial surfaces", policy)
+        self.assertIn("overlapping latency", policy)
+        self.assertIn("independently gathered evidence/perspectives", policy)
+        self.assertIn("Stable same-shape multi-file repetition", policy)
 
     def test_policy_uses_backend_neutral_recurrence_conditions(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
         for phrase in (
-            "stable brief",
             "one-shot brief",
-            "independent + same shape",
-            "done-criteria",
+            "independent and same shape",
+            "done criteria",
             "exclusive ownership",
             "per-item acceptance",
-            "Rebuttable default",
+            "defaults to one `mech-executor`",
             "main session",
             "diagnosis",
             "integration",
@@ -2191,34 +2220,32 @@ class PolicyContractTests(unittest.TestCase):
         )
         for phrase in (
             "smallest coherent integration boundary",
-            "Independent falsification",
-            "Independent review is risk-triggered",
-            "Risk triggers override size; check first",
-            "A listed trigger makes the unit risky for this lifecycle",
-            "pre-approval `plan-verifier` readiness and post-implementation `verifier` outcome review are mandatory",
-            "This policy explicitly directs mandatory Agent calls",
-            "pause before edits—no direct fallback",
-            "The bounded fail-soft exception applies only when none of the listed risks is crossed",
-            "The initial request is not approval of an unseen risk-triggered Plan",
-            "implementation starts only after explicit approval in a later user turn",
-            "Plan readiness evaluates the proposed acceptance check",
-            "primary user-visible flow",
-            "avoiding micro-verifier calls",
+            "explicit user request for independent review",
+            "Any independent-review trigger makes that unit risky",
+            "pre-approval `plan-verifier` and post-implementation `verifier` are mandatory Agent calls",
+            "with no extra opt-in",
+            "pause before edits, never direct fallback",
+            "Bounded fail-soft exception applies only without listed risk",
+            "After readiness, present Plan and end turn",
+            "implementation begins only after explicit approval in a later turn",
+            "Plan readiness judges proposed acceptance check",
+            "Run primary user-visible acceptance first",
+            "avoid micro-verifier calls",
             "Tests/builds/static checks are intermediate evidence",
-            "security touch",
+            "security",
             "cross-language/FFI",
             "serialization/pre-aggregation",
-            "irreversible operation",
-            "blocking later integration",
+            "irreversible",
+            "integration-blocking boundaries",
         ):
             self.assertIn(phrase, policy)
         self.assertNotIn("tests are sufficient evidence", policy)
         self.assertNotIn("tests are sufficient", policy)
         self.assertIn(
-            "never modify a `CONFIRMED` candidate for them", policy
+            "never change a `CONFIRMED` candidate for them", policy
         )
         self.assertIn(
-            "Any required post-verdict change invalidates coverage of the final bytes",
+            "Any required post-verdict change invalidates final-byte coverage",
             policy,
         )
 
@@ -2229,42 +2256,48 @@ class PolicyContractTests(unittest.TestCase):
         prompt = (ROOT / "templates/agents/plan-verifier.md").read_text(
             encoding="utf-8"
         )
-        for text in (policy, prompt):
-            self.assertIn("optional downstream implementation detail", text)
-            self.assertIn(
-                "Missing required future-slice metadata (stable ID, outcome, or prerequisites) remains blocking",
-                text,
-            )
+        self.assertIn("stable ID, outcome, scope, non-goals, owners, prerequisites", policy)
+        self.assertIn("unrelated downstream slices do not block", policy)
+        self.assertIn("optional downstream implementation detail", prompt)
+        self.assertIn(
+            "Missing required future-slice metadata (stable ID, outcome, or prerequisites) remains blocking",
+            prompt,
+        )
 
     def test_policy_adjudicates_findings_and_bounds_long_runs(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
         for phrase in (
-            "Role verdicts are evidence, not implementation or scope authority",
-            "label it `FIX`, `DEFER`, or `REJECT`",
-            "documented deferral or evidence-backed rejection is an addressed finding",
-            "does not make it claim-relevant",
+            "Role verdicts are evidence, never implementation/scope authority",
+            "before `FIX`/`DEFER`/`REJECT`",
+            "Documented deferral or evidence-backed rejection addresses a finding",
+            "path overlap alone is irrelevant",
             "stated missing evidence, contract, prerequisite, or environment",
-            "explicit acceptance, approved scope, and bounded",
-            "announce `AUTO` or `ASK`",
-            "emergency ceiling for high-risk recovery, not a quota",
-            "headless likely-long run without an explicit mode",
-            "Otherwise end the turn",
-            "Default recovery is one targeted recheck",
-            "High-risk, claim-critical P1/P2 recovery may use at most five meaningful",
-            "not a new adjacent-hardening audit",
-            "Stop earlier when the next pass would only search adjacent risk",
-            "batch-disposition every current-head finding",
+            "otherwise pause affected slice",
+            "explicit acceptance, approved scope, bounded change",
+            "AUTO/ASK mode selection applies only to likely-long autonomous work",
+            "offer `AUTO` or `ASK` and wait",
+            "explicit “continue while I am away” selects AUTO and must be announced",
+            "emergency recovery, not quota",
+            "Headless likely-long run without selected mode",
+            "otherwise end with `PAUSED_NEEDS_USER`",
+            "Default recovery: one targeted recheck",
+            "High-risk claim-critical P1/P2 recovery allows at most five meaningful",
+            "never adjacent-hardening audit",
+            "stop earlier when next pass only searches adjacent risk",
+            "batch-dispositions every current-head finding",
             "external evidence/prerequisites",
-            "immediately preceding verifier's verdict or output alone is not new evidence",
+            "a verdict/output alone is not change",
             "tracked/staged diff",
-            "untracked input paths plus content",
-            "input submodule's HEAD plus recursive working-tree content",
-            "only when that artifact is explicitly the sole deliverable",
-            "Never reverify the same complete identity",
-            "After five unsuccessful or still-blocking passes",
+            "untracked input paths/content",
+            "input submodule HEAD plus recursive working-tree content",
+            "only as sole deliverable",
+            "Never reverify identical state",
+            "After five still-blocking passes",
             "continue unrelated approved slices",
+            "Questions belong to main session, never child",
+            "unattainable original scope",
         ):
             self.assertIn(phrase, policy)
 
@@ -2353,26 +2386,27 @@ class PolicyContractTests(unittest.TestCase):
             "program envelope",
             "next executable slice",
             "scope, non-goals",
-            "acceptance proving slice outcome",
-            "Blocker:",
-            "Evidence:",
-            "Minimum revision:",
-            "Acceptance check:",
-            "Two automatic `REVISE` same unit",
-            "independently disposition every blocker as `FIX`, `DEFER`, or `REJECT`",
-            "Ask the user only for unresolved P0/P1",
-            "not merely to authorize another review round",
+            "acceptance proving outcome",
+            "Two automatic `REVISE` verdicts",
+            "main dispositions every blocker as `FIX`, `DEFER`, or `REJECT`",
+            "Ask user only for unresolved P0/P1",
+            "not merely permission for another review round",
             "new readiness epoch",
-            "evidence-backed disposition that changes the readiness claim",
-            "exactly one final fresh `plan-verifier` check",
-            "cannot restart the automatic loop",
-            "another `REVISE` pauses or escalates the unit by severity",
+            "evidence-backed disposition changing readiness claim",
+            "exactly one closing fresh review",
+            "closing review cannot restart loop",
+            "Another `REVISE` pauses or escalates",
             "substantially unchanged Plan",
-            "simplify",
+            "simplifies",
             "narrow",
             "split",
         ):
             self.assertIn(phrase, policy)
+        plan_verifier = (
+            ROOT / "templates/agents/plan-verifier.md"
+        ).read_text(encoding="utf-8")
+        for phrase in ("Blocker:", "Evidence:", "Minimum revision:", "Acceptance check:"):
+            self.assertIn(phrase, plan_verifier)
         self.assertNotIn("main session decides the residual disagreements", policy)
 
     def test_planning_skills_compose_with_role_routing(self) -> None:
@@ -2380,25 +2414,26 @@ class PolicyContractTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn(
-            "inspect session's available skill names",
+            "After shape selection, inspect available skills",
             policy,
         )
         self.assertIn("before dispatch brake", policy)
-        self.assertIn("direct-vs-delegated decision", policy)
-        self.assertIn("`baton-dispatch` listed → invoke", policy)
-        self.assertIn("Do not pre-screen it away", policy)
-        self.assertIn("topology selection is why the planning skill is present", policy)
-        self.assertIn("Loading Baton is not a command to delegate", policy)
-        self.assertIn("Baton may still select direct work", policy)
-        self.assertIn("If not listed, apply this policy directly", policy)
-        self.assertIn("don't search/install mid-task", policy)
-        self.assertIn("Baton may shape discovery questions", policy)
-        self.assertIn("This policy remains source for available named roles", policy)
-        self.assertIn("Two layers compose", policy)
-        self.assertIn("final judgment stay yours", policy)
+        self.assertIn("direct-vs-delegated choice", policy)
+        self.assertIn("listed `baton-dispatch` → invoke", policy)
+        self.assertIn("never pre-screen it away", policy)
+        self.assertIn("Baton may still choose direct work", policy)
+        self.assertIn("may shape questions, topology, worker count, ownership, stops", policy)
+        self.assertIn("If absent, apply this policy without searching/installing", policy)
+        self.assertIn("Pilotfish and Baton compose", policy)
+        self.assertIn("neither bypasses the other's", policy)
+        self.assertIn(
+            "named-role, model-routing, leaf, approval, or verification boundaries",
+            policy,
+        )
+        self.assertIn("final judgment", policy)
         self.assertLess(
-            policy.index("inspect session's available skill names"),
-            policy.index("Small/local/stable work"),
+            policy.index("After shape selection, inspect available skills"),
+            policy.index("small/local/stable work"),
         )
 
     def test_plan_and_outcome_verification_have_separate_capabilities(self) -> None:
@@ -2409,8 +2444,8 @@ class PolicyContractTests(unittest.TestCase):
             ROOT / "templates/agents/plan-verifier.md"
         ).read_text(encoding="utf-8")
         verifier = (ROOT / "templates/agents/verifier.md").read_text(encoding="utf-8")
-        self.assertIn("`plan-verifier` brief:", policy)
-        self.assertIn("Outcome `verifier` brief:", policy)
+        self.assertIn("`plan-verifier` reviews one stable envelope/slice", policy)
+        self.assertIn("Outcome `verifier` receives exact claim/acceptance", policy)
         self.assertIn("Never swap roles", policy)
         self.assertIn("tools: Read, Glob, Grep", plan_verifier)
         self.assertIn("excludes Bash, Write, Edit", plan_verifier)
@@ -2472,25 +2507,22 @@ class PolicyContractTests(unittest.TestCase):
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("Long-running processes: yours, not subagent's", policy)
-        self.assertIn("Spawned with `run_in_background: false`", policy)
-        self.assertIn("spawn any agent with possible long command", policy)
-        self.assertIn("absolute working dir or isolated worktree", policy)
-        self.assertIn("in that exact context", policy)
+        self.assertIn("Long-running processes belong to main session", policy)
+        self.assertIn("Agent with possible long command runs `run_in_background: true`", policy)
+        self.assertIn("Bash-capable leaf roles never detach", policy)
+        self.assertIn("absolute working/worktree directory", policy)
+        self.assertIn("in that context", policy)
         self.assertIn("Bash(run_in_background: true)", policy)
 
     def test_result_collection_and_agent_continuation_are_distinct(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("Read completed output directly", policy)
+        self.assertIn("read completed output directly", policy)
         self.assertIn(
-            "resume only when task changed or needs more work", policy
+            "resume only for genuinely new/redirected work", policy
         )
-        self.assertIn(
-            "doesn't prevent orchestrator redirecting/resuming", policy
-        )
-        self.assertIn("Resume only for genuinely new/redirected work", policy)
+        self.assertIn("never collection/restatement", policy)
         self.assertNotIn("resuming one merely makes it re-run", policy)
 
         for role in ("scout", "Explore"):
@@ -2514,7 +2546,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertIn("Before required approval", policy)
         self.assertIn("tool-enforced read-only `security-reviewer`", policy)
-        self.assertIn("Never send pre-approval work", policy)
+        self.assertIn("send pre-approval work to write-capable security executor", policy)
         self.assertIn("tools: Read, Glob, Grep, WebSearch, WebFetch", reviewer)
         self.assertIn("excludes Bash, Write, Edit", reviewer)
         self.assertIn("approved, stable execution contract", executor)
