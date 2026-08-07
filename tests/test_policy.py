@@ -1324,6 +1324,12 @@ class PolicyContractTests(unittest.TestCase):
             parse_float=Decimal,
         )
         runtime = results["runtime"]
+        qualified = json.loads(
+            (gate / runtime["last_behaviorally_qualified_runtime_evidence"]).read_text(
+                encoding="utf-8"
+            )
+        )
+        qualified_post_review = qualified["adaptive_interaction_routing_post_review_gate"]
         self.assertEqual(results["final_gate_status"], "complete")
         self.assertEqual(results["final_gate"]["status"], "passed")
 
@@ -1473,7 +1479,10 @@ class PolicyContractTests(unittest.TestCase):
             )
         )
         self.assertIsNone(runtime["release_candidate_runtime_evidence"])
-        self.assertEqual(runtime["last_behaviorally_qualified_version"], version)
+        self.assertEqual(
+            runtime["last_behaviorally_qualified_version"],
+            qualified["inputs"]["policy"]["release_version"],
+        )
         self.assertEqual(
             runtime["last_behaviorally_qualified_runtime_evidence"],
             "../spontaneous-dispatch/issue-29-recovery.json",
@@ -1483,7 +1492,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["last_behaviorally_qualified_agents_json_sha256"],
-            runtime["release_candidate_agents_json_sha256"],
+            qualified_post_review["agents"]["runtime_sha256"],
         )
         self.assertEqual(
             runtime["release_candidate_offline_evidence"],
@@ -2197,6 +2206,9 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn("launch all back-to-back", policy)
         self.assertIn("before remaining main work", policy)
         self.assertIn("allow no interleaved duplicate reconnaissance", policy)
+        self.assertIn("requires Git", policy)
+        self.assertIn("without Git, never fan out", policy)
+        self.assertIn("use one shared-checkout writer or work direct", policy)
 
     def test_policy_preserves_positive_delegation_paths(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
