@@ -185,7 +185,7 @@ An existing hook rejected the worker's direct `Write` and instructed it to retur
 | Policy and snapshot SHA-256 | `7ff86564cd4cd8469cf3d24646fd395c57be09dc1fc7e1efa9d0d77c61ecfb21` |
 | Shell-stripped historical `agents.json` SHA-256 | `e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61` |
 | Last behaviorally qualified policy SHA-256 | `1748073214f839c43cddfa194baa2106ec1347a72822eeef98270a948e92fbdc` ([immutable snapshot](../spontaneous-dispatch/adaptive-interaction-post-review-gate-snapshot/CLAUDE.md), qualified by the [adaptive interaction exact-byte Gate](../spontaneous-dispatch/README.md#adaptive-interaction-routing-gate)) |
-| Current generated v1.3.8 release payload SHA-256 | `b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc` (shell-stripped builder output exercised by the issue #29 recovery Gate) |
+| Current generated v1.3.9 agents payload SHA-256 | `b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc` (unchanged from the v1.3.8 payload exercised by the issue #29 recovery Gate) |
 | Turn 1 prompt file SHA-256 | `45dbe7b6b24cb5838ebf4219011797b61f172fcc18f0ca5039144017e93fcca7` |
 | Turn 1 runtime-input SHA-256 | `d2ad46b7ecfb503f8f7185d6d68f404d326f1a4a480b9141d1a80318a746bb73` |
 | Turn 2 prompt file SHA-256 | `82d833090ba91982651de9ac4beed8fc96311119c6eb9c6f0304c292821918e7` |

@@ -2,6 +2,14 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
+## v1.3.9 — 2026-08-08
+
+Add adaptive interaction routing before Baton, lifecycle, and worker selection. The first matching shape is now explicit: `co_discover` for an unclear outcome, `explore_then_plan` for a broad or high-impact direction, and `execute` for a bounded outcome. A broad implementation request stays read-only on its first turn and returns one reversible slice. It reaches `user_approval` only after every applicable readiness Gate is `READY`; otherwise it reports the actual blocking or paused Gate. Mandatory risk review remains fail-closed when a higher-priority instruction prohibits agent calls. This design is adapted from [pilotfish-codex PR #14](https://github.com/miyago9267/pilotfish-codex/pull/14) by [@miyago9267](https://github.com/miyago9267).
+
+Compress the main-session policy from the last-qualified 18,477-byte snapshot to 15,841 bytes, a 14.3% reduction, while preserving all 37 semantic rule units. The merged policy had a clean Codex review; the v1.3.9 version-stamped candidate has 39/39 passing contract tests. The exact 15,841-byte release policy has static coverage but no full behavioral matrix. The immutable 18,477-byte adaptive-routing snapshot passed routine and single-bug direct controls `2/2`, mechanical delegation `2/2`, and schema lifecycle `2/2` on Claude Code 2.1.224, Opus 5, high effort; ten completed invocations reported `$4.23888905`. Three later targeted TUI checks on pre-final repair candidates reported `$1.68` total and closed the readiness-exit waiver, but do not qualify the final bytes.
+
+Document the cue-free limitation observed in Calico TUI: a higher-priority client instruction can suppress Agent dispatch, and a user-level `CLAUDE.md` cannot override it. The new activation guide therefore offers explicit `/pilotfish` and CLI-wrapper paths instead of claiming automatic delegation. README content is shorter and routes installation, activation, usage, design, update, and uninstall details to focused documents. The experimental dispatch-rate harness added after v1.3.8 was reverted before this release and is not part of v1.3.9.
+
 ## v1.3.8 — 2026-08-04
 
 Calibrate issue #29 dispatch recovery without making delegation universal. Risk triggers are checked before the small-work shortcut; stable mechanical repetition uses one collected `mech-executor`, while routine docs and a single unknown bug stay in the main session. Schema work keeps mandatory Plan and outcome review separate from the dispatch-brake decision about who implements it.
