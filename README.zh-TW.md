@@ -117,7 +117,7 @@ and call the named agents only when the policy selects delegation.
 Clone 已審閱的 release，從該 checkout 啟動 Claude Code，再要求它讀取本地 runbook：
 
 ```bash
-git clone --branch v1.3.8 --depth 1 https://github.com/Nanako0129/pilotfish.git
+git clone --branch v1.3.9 --depth 1 https://github.com/Nanako0129/pilotfish.git
 cd pilotfish
 claude
 ```
