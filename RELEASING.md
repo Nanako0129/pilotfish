@@ -49,6 +49,40 @@
 
    Any branch-name, push, fetch, or SHA check failure is a stop condition. Do not create or publish tags from a release commit that is absent from the remote default branch.
 
+   If the atomic tag push succeeds but `gh release create` fails, do not rerun the tag-creation block. Resume monotonically by proving that both immutable remote tags identify the same commit, then create only the missing GitHub Release:
+
+   ```bash
+   (
+   set -eu
+   RELEASE_VERSION=$(tr -d '\n' < VERSION)
+   RELEASE_BRANCH=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD)
+   RELEASE_BRANCH=${RELEASE_BRANCH#origin/}
+   test -n "$RELEASE_BRANCH"
+
+   remote_tag_commit() {
+     TAG=$1
+     DIRECT=$(git ls-remote --refs origin "refs/tags/$TAG" | awk 'NR == 1 { print $1 }')
+     PEELED=$(git ls-remote origin "refs/tags/$TAG^{}" | awk 'NR == 1 { print $1 }')
+     test -n "$DIRECT"
+     printf '%s\n' "${PEELED:-$DIRECT}"
+   }
+
+   RELEASE_SHA=$(remote_tag_commit "v$RELEASE_VERSION")
+   test "$(remote_tag_commit "pilotfish--v$RELEASE_VERSION")" = "$RELEASE_SHA"
+   git fetch origin "$RELEASE_BRANCH"
+   git fetch origin "$RELEASE_SHA"
+   git merge-base --is-ancestor "$RELEASE_SHA" "origin/$RELEASE_BRANCH"
+
+   if gh release view "v$RELEASE_VERSION" >/dev/null 2>&1; then
+     test "$(gh release view "v$RELEASE_VERSION" --json tagName --jq .tagName)" = "v$RELEASE_VERSION"
+   else
+     gh release create "v$RELEASE_VERSION" --title "v$RELEASE_VERSION" --notes-from-tag
+   fi
+   )
+   ```
+
+   This recovery path may create or repair only the GitHub Release for those exact existing tags. It must never recreate, move, force, or repush either tag. Read the Release back and repair its prose or links with `gh release edit` only after confirming its `tagName`; a tag-identity mismatch requires a later version, not mutation of v1.4.0.
+
 Keep the project name lowercase (`pilotfish`) in repository and release prose. After publishing or editing a GitHub Release, read its body back and confirm that prose is not manually column-wrapped and every linked path exists on the tagged version.
 
 > If `templates/agents/*.md` changed, keep the legacy global install templates and generated Plugin agents consistent through their renderer checks. Do not mutate a maintainer's real Claude configuration as part of release preparation.

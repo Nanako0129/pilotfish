@@ -134,7 +134,9 @@ pilotfish v1 安裝遷移成 user-scope pilotfish Plugin。
 
 請先解析有效的 Claude configuration root，並執行 read-only preflight。顯示
 解析後的 root、預定的 timestamped backup path，以及將要修改的確切檔案與
-settings，然後只向我要求一次批准。批准後，先建立該 backup，再只移除 legacy
+settings，然後只向我要求一次批准。批准後，先建立該 backup，
+並進行 read-back verification。若任何必要的 backup copy 或 verification 失敗，
+請在移除或安裝任何內容之前停止。只有 verified backup 成功後，才能移除 legacy
 pilotfish policy block、未經修改的 pilotfish agent files，以及可歸因於該安裝
 的 settings；保留所有無關的設定與檔案。如果 agent file 曾被自訂，或 ownership
 不明，請停止並顯示差異，不要刪除。重新執行 preflight，將
@@ -147,15 +149,63 @@ Claude Code。不要輸出 credentials，也不要在仍有 legacy policy 時安
 移除任何內容前，先備份有效設定：
 
 ```bash
+set -eu
+
+CFG="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+case "$CFG" in
+  /*) ;;
+  *) echo "Stop: CLAUDE_CONFIG_DIR must be absolute." >&2; exit 1 ;;
+esac
 STAMP=$(date +%Y%m%d-%H%M%S)
 BACKUP="$CFG/backups/pilotfish-global-$STAMP"
-mkdir -p "$BACKUP"
-[ ! -f "$CFG/CLAUDE.md" ] || cp -p "$CFG/CLAUDE.md" "$BACKUP/CLAUDE.md"
-[ ! -f "$CFG/settings.json" ] || cp -p "$CFG/settings.json" "$BACKUP/settings.json"
-[ ! -d "$CFG/agents" ] || cp -R "$CFG/agents" "$BACKUP/agents"
+mkdir -p "$CFG/backups"
+if [ -e "$BACKUP" ] || [ -L "$BACKUP" ]; then
+  echo "Stop: backup destination already exists: $BACKUP" >&2
+  exit 1
+fi
+mkdir "$BACKUP"
+
+if [ -e "$CFG/CLAUDE.md" ] || [ -L "$CFG/CLAUDE.md" ]; then
+  if [ -L "$CFG/CLAUDE.md" ] || [ ! -f "$CFG/CLAUDE.md" ]; then
+    echo "Stop: CLAUDE.md must be a regular file." >&2
+    exit 1
+  fi
+  cp -p "$CFG/CLAUDE.md" "$BACKUP/CLAUDE.md"
+  if [ -L "$BACKUP/CLAUDE.md" ] || [ ! -f "$BACKUP/CLAUDE.md" ] || \
+      ! cmp -s "$CFG/CLAUDE.md" "$BACKUP/CLAUDE.md"; then
+    echo "Stop: CLAUDE.md backup verification failed." >&2
+    exit 1
+  fi
+fi
+
+if [ -e "$CFG/settings.json" ] || [ -L "$CFG/settings.json" ]; then
+  if [ -L "$CFG/settings.json" ] || [ ! -f "$CFG/settings.json" ]; then
+    echo "Stop: settings.json must be a regular file." >&2
+    exit 1
+  fi
+  cp -p "$CFG/settings.json" "$BACKUP/settings.json"
+  if [ -L "$BACKUP/settings.json" ] || [ ! -f "$BACKUP/settings.json" ] || \
+      ! cmp -s "$CFG/settings.json" "$BACKUP/settings.json"; then
+    echo "Stop: settings.json backup verification failed." >&2
+    exit 1
+  fi
+fi
+
+if [ -e "$CFG/agents" ] || [ -L "$CFG/agents" ]; then
+  if [ -L "$CFG/agents" ] || [ ! -d "$CFG/agents" ]; then
+    echo "Stop: agents must be a directory." >&2
+    exit 1
+  fi
+  cp -Rp "$CFG/agents" "$BACKUP/agents"
+  if [ -L "$BACKUP/agents" ] || [ ! -d "$BACKUP/agents" ] || \
+      ! diff -r "$CFG/agents" "$BACKUP/agents" >/dev/null 2>&1; then
+    echo "Stop: agents backup verification failed." >&2
+    exit 1
+  fi
+fi
 ```
 
-接著依照 [legacy uninstall procedure](./AGENT-INSTALL.md#uninstall)：只移除相符的 pilotfish agent files、唯一的 `pilotfish:begin/end` block，以及可歸因於該次安裝的 settings values。保留使用者自訂檔案與無關設定。重新執行上方 preflight；只有在輸出 no-legacy diagnostic 後才能繼續。
+只有 backup block 以 `0` 結束時才能繼續。若任何 copy 或 read-back verification 失敗，請在 legacy removal 或 Plugin installation 之前停止，並保持原始 configuration 不變。接著依照 [legacy uninstall procedure](./AGENT-INSTALL.md#uninstall)：只移除相符的 pilotfish agent files、唯一的 `pilotfish:begin/end` block，以及可歸因於該次安裝的 settings values。保留使用者自訂檔案與無關設定。重新執行上方 preflight；只有在輸出 no-legacy diagnostic 後才能繼續。
 
 ## 安裝前選擇主模型
 

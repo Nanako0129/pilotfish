@@ -1573,7 +1573,7 @@ class PolicyContractTests(unittest.TestCase):
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
         self.assertEqual(runtime["release_candidate_version"], version)
-        self.assertEqual(version, "1.3.10")
+        self.assertEqual(version, "1.4.0")
         self.assertEqual(
             runtime["release_candidate_generated_by"],
             "benchmarks/baton-compatibility/build-agents-json.py templates/agents",
@@ -1821,7 +1821,7 @@ class PolicyContractTests(unittest.TestCase):
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
             encoding="utf-8"
         )
-        self.assertIn("<!-- pilotfish v1.3.10 -->", policy)
+        self.assertIn(f"<!-- pilotfish v{version} -->", policy)
 
         changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
         self.assertRegex(changelog, rf"(?m)^## v{re.escape(version)} ")
@@ -1911,6 +1911,30 @@ class PolicyContractTests(unittest.TestCase):
             )
             self.assertNotEqual(completed.returncode, 0)
             self.assertFalse(marker.exists())
+
+    def test_release_recovery_never_rewrites_published_tags(self) -> None:
+        release = (ROOT / "RELEASING.md").read_text(encoding="utf-8")
+        blocks = re.findall(r"```bash\n(?P<body>.*?)\n   ```", release, re.DOTALL)
+        matches = [block for block in blocks if "remote_tag_commit()" in block]
+        self.assertEqual(len(matches), 1)
+        block = re.sub(r"(?m)^   ", "", matches[0])
+
+        root = 'RELEASE_SHA=$(remote_tag_commit "v$RELEASE_VERSION")'
+        plugin = (
+            'test "$(remote_tag_commit "pilotfish--v$RELEASE_VERSION")" = '
+            '"$RELEASE_SHA"'
+        )
+        ancestry = (
+            'git merge-base --is-ancestor "$RELEASE_SHA" '
+            '"origin/$RELEASE_BRANCH"'
+        )
+        view = 'if gh release view "v$RELEASE_VERSION"'
+        create = 'gh release create "v$RELEASE_VERSION"'
+        indexes = [block.index(clause) for clause in (root, plugin, ancestry, view, create)]
+        self.assertEqual(indexes, sorted(indexes))
+        for forbidden in ("git tag ", "claude plugin tag", "git push"):
+            self.assertNotIn(forbidden, block)
+        self.assertIn("must never recreate, move, force, or repush either tag", release)
 
     def test_pilotfish_brand_stays_lowercase_in_live_markdown(self) -> None:
         surfaces = [
@@ -2209,6 +2233,205 @@ class PolicyContractTests(unittest.TestCase):
             self.assertIn("remove the eight pilotfish agent files", content)
             self.assertIn("`mech-executor`", content)
             self.assertIn("`verifier`", content)
+
+    def test_legacy_installer_backup_is_verified_and_fail_closed(self) -> None:
+        installer_path = ROOT / "install/AGENT-INSTALL.md"
+        blocks = re.findall(
+            r"```bash\n(?P<body>.*?)\n```",
+            installer_path.read_text(encoding="utf-8"),
+            re.DOTALL,
+        )
+        matches = [block for block in blocks if "SETTINGS_BACKUP_EXISTS=0" in block]
+        self.assertEqual(len(matches), 1)
+        script = matches[0]
+        self.assertNotIn("|| true", script)
+        self.assertNotIn("2>/dev/null", script)
+
+        first_stamp = "20260823-020304"
+        second_stamp = "20260823-020305"
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+
+            def execute(
+                name: str,
+                *,
+                stamp: str = first_stamp,
+                sources: bool = True,
+                fail_utility: str | None = None,
+                collision: bool = False,
+                invalid_retained: str | None = None,
+            ) -> tuple[subprocess.CompletedProcess[bytes], Path, Path, dict[str, bytes], Path]:
+                root = base / name
+                config = root / "config"
+                config.mkdir(parents=True, exist_ok=True)
+                original = {}
+                if sources:
+                    original = {
+                        "settings.json": b'{"model":"custom"}\n',
+                        "CLAUDE.md": b"user policy\n",
+                    }
+                    for relative, content in original.items():
+                        (config / relative).write_bytes(content)
+
+                collision_path = config / "backups" / f"CLAUDE.md.pilotfish-{stamp}"
+                if collision:
+                    collision_path.parent.mkdir(parents=True)
+                    collision_path.write_bytes(b"existing\n")
+
+                if invalid_retained is not None:
+                    backups = config / "backups"
+                    backups.mkdir(parents=True, exist_ok=True)
+                    (backups / "settings.json.pilotfish-00000000-000000").write_bytes(
+                        b"valid retained backup\n"
+                    )
+                    invalid = backups / "settings.json.pilotfish-99999999-999999"
+                    if invalid_retained == "directory":
+                        invalid.mkdir()
+                    elif invalid_retained == "dangling-symlink":
+                        invalid.symlink_to("missing-retained-backup")
+                    else:
+                        raise ValueError(invalid_retained)
+
+                fake_bin = root / "fake-bin"
+                fake_bin.mkdir(exist_ok=True)
+                fake_date = fake_bin / "date"
+                fake_date.write_text(
+                    "#!/bin/sh\n"
+                    f"printf '%s\\n' '{stamp}'\n",
+                    encoding="utf-8",
+                )
+                fake_date.chmod(0o755)
+                if fail_utility is not None:
+                    fake_failure = fake_bin / fail_utility
+                    fake_failure.write_text("#!/bin/sh\nexit 71\n", encoding="utf-8")
+                    fake_failure.chmod(0o755)
+
+                sentinel = root / "mutation-sentinel"
+                env = {
+                    "CLAUDE_CONFIG_DIR": str(config),
+                    "HOME": str(root / "home"),
+                    "PATH": f"{fake_bin}:/usr/bin:/bin",
+                    "PILOTFISH_MUTATION_SENTINEL": str(sentinel),
+                }
+                completed = subprocess.run(
+                    [
+                        "/bin/sh",
+                        "-c",
+                        script
+                        + "\nprintf '%s\\n' mutated > \"$PILOTFISH_MUTATION_SENTINEL\"\n",
+                    ],
+                    cwd=root,
+                    env=env,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=False,
+                )
+                return completed, config, sentinel, original, fake_date
+
+            complete, config, sentinel, original, fake_date = execute("complete")
+            self.assertEqual(complete.returncode, 0, complete.stderr)
+            for relative, content in original.items():
+                self.assertEqual((config / relative).read_bytes(), content)
+                backup = config / "backups" / f"{relative}.pilotfish-{first_stamp}"
+                self.assertEqual(backup.read_bytes(), content)
+            self.assertTrue((config / "agents").is_dir())
+            self.assertTrue(sentinel.exists())
+
+            fake_date.write_text(
+                "#!/bin/sh\n"
+                f"printf '%s\\n' '{second_stamp}'\n",
+                encoding="utf-8",
+            )
+            sentinel.unlink()
+            rerun = subprocess.run(
+                [
+                    "/bin/sh",
+                    "-c",
+                    script
+                    + "\nprintf '%s\\n' mutated > \"$PILOTFISH_MUTATION_SENTINEL\"\n",
+                ],
+                cwd=config.parent,
+                env={
+                    "CLAUDE_CONFIG_DIR": str(config),
+                    "HOME": str(config.parent / "home"),
+                    "PATH": f"{fake_date.parent}:/usr/bin:/bin",
+                    "PILOTFISH_MUTATION_SENTINEL": str(sentinel),
+                },
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+            self.assertEqual(rerun.returncode, 0, rerun.stderr)
+            self.assertEqual(
+                len(list((config / "backups").glob("settings.json.pilotfish-*"))),
+                1,
+            )
+            self.assertEqual(
+                len(list((config / "backups").glob("CLAUDE.md.pilotfish-*"))),
+                2,
+            )
+            self.assertEqual(
+                (
+                    config
+                    / "backups"
+                    / f"settings.json.pilotfish-{first_stamp}"
+                ).read_bytes(),
+                original["settings.json"],
+            )
+
+            missing, config, sentinel, _, _ = execute("missing", sources=False)
+            self.assertEqual(missing.returncode, 0, missing.stderr)
+            self.assertTrue((config / "agents").is_dir())
+            self.assertTrue(sentinel.exists())
+
+            for utility in ("cp", "cmp"):
+                with self.subTest(failure=utility):
+                    failed, config, sentinel, original, _ = execute(
+                        f"fail-{utility}", fail_utility=utility
+                    )
+                    self.assertNotEqual(failed.returncode, 0)
+                    self.assertFalse(sentinel.exists())
+                    self.assertFalse((config / "agents").exists())
+                    for relative, content in original.items():
+                        self.assertEqual((config / relative).read_bytes(), content)
+
+            for retained_kind in ("directory", "dangling-symlink"):
+                with self.subTest(invalid_retained=retained_kind):
+                    failed, config, sentinel, original, _ = execute(
+                        f"invalid-retained-{retained_kind}",
+                        invalid_retained=retained_kind,
+                    )
+                    self.assertNotEqual(failed.returncode, 0)
+                    self.assertIn(
+                        b"retained settings backup must be a readable regular file",
+                        failed.stderr,
+                    )
+                    self.assertFalse(sentinel.exists())
+                    self.assertFalse((config / "agents").exists())
+                    self.assertEqual(
+                        (
+                            config
+                            / "backups"
+                            / "settings.json.pilotfish-00000000-000000"
+                        ).read_bytes(),
+                        b"valid retained backup\n",
+                    )
+                    for relative, content in original.items():
+                        self.assertEqual((config / relative).read_bytes(), content)
+
+            collided, config, sentinel, original, _ = execute(
+                "collision", collision=True
+            )
+            self.assertNotEqual(collided.returncode, 0)
+            self.assertIn(b"backup destination already exists", collided.stderr)
+            self.assertFalse(sentinel.exists())
+            self.assertFalse((config / "agents").exists())
+            collision_path = (
+                config / "backups" / f"CLAUDE.md.pilotfish-{first_stamp}"
+            )
+            self.assertEqual(collision_path.read_bytes(), b"existing\n")
+            for relative, content in original.items():
+                self.assertEqual((config / relative).read_bytes(), content)
 
     def test_fresh_install_defaults_to_opus_with_sonnet_fallback(self) -> None:
         settings = json.loads(

@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugin"
 HOOK = PLUGIN / "hooks" / "emit-sessionstart.sh"
 INSTALL = ROOT / "install" / "PLUGIN-INSTALL.md"
+INSTALL_ZH = ROOT / "install" / "PLUGIN-INSTALL.zh-TW.md"
 POLICY = (PLUGIN / "policy" / "sessionstart.txt").read_bytes()
 SENTINEL = "¶".encode()
 MIGRATION_URL = (
@@ -409,6 +410,134 @@ class PluginHookTests(unittest.TestCase):
                 self.assertEqual(result.stdout, stdout)
                 self.assertEqual(result.stderr, stderr)
                 self.assertFalse(fake_marker.exists())
+
+    def test_documented_migration_backup_is_verified_and_fail_closed(self) -> None:
+        def backup_block(path: Path) -> str:
+            blocks = re.findall(
+                r"```bash\n(?P<body>.*?)\n```",
+                path.read_text(encoding="utf-8"),
+                re.DOTALL,
+            )
+            matches = [
+                block
+                for block in blocks
+                if 'BACKUP="$CFG/backups/pilotfish-global-$STAMP"' in block
+            ]
+            self.assertEqual(len(matches), 1)
+            return matches[0]
+
+        script = backup_block(INSTALL)
+        self.assertEqual(script, backup_block(INSTALL_ZH))
+        self.assertIn('CFG="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"', script)
+
+        english = INSTALL.read_text(encoding="utf-8")
+        chinese = INSTALL_ZH.read_text(encoding="utf-8")
+        self.assertIn("If any required backup copy", english)
+        self.assertIn("stop before removing or installing anything", english)
+        self.assertIn("若任何必要的 backup copy 或 verification 失敗", chinese)
+        self.assertIn("移除或安裝任何內容之前停止", chinese)
+
+        stamp = "20260823-010203"
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+
+            def execute(
+                name: str,
+                *,
+                settings: bool = True,
+                fail_utility: str | None = None,
+                collision: bool = False,
+            ) -> tuple[subprocess.CompletedProcess[bytes], Path, Path, dict[str, bytes]]:
+                root = base / name
+                config = root / "config"
+                agents = config / "agents"
+                agents.mkdir(parents=True)
+                sources = {
+                    "CLAUDE.md": b"user policy\n",
+                    "agents/scout.md": b"agent bytes\n",
+                }
+                if settings:
+                    sources["settings.json"] = b'{"model":"custom"}\n'
+                for relative, content in sources.items():
+                    path = config / relative
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_bytes(content)
+
+                collision_marker = config / "backups" / f"pilotfish-global-{stamp}"
+                if collision:
+                    collision_marker.mkdir(parents=True)
+                    (collision_marker / "keep").write_bytes(b"existing\n")
+
+                fake_bin = root / "fake-bin"
+                fake_bin.mkdir()
+                fake_date = fake_bin / "date"
+                fake_date.write_text(
+                    "#!/bin/sh\n"
+                    f"printf '%s\\n' '{stamp}'\n",
+                    encoding="utf-8",
+                )
+                fake_date.chmod(0o755)
+                if fail_utility is not None:
+                    fake_failure = fake_bin / fail_utility
+                    fake_failure.write_text("#!/bin/sh\nexit 71\n", encoding="utf-8")
+                    fake_failure.chmod(0o755)
+
+                sentinel = root / "mutation-sentinel"
+                env = {
+                    "CLAUDE_CONFIG_DIR": str(config),
+                    "HOME": str(root / "home"),
+                    "PATH": f"{fake_bin}:/usr/bin:/bin",
+                    "PILOTFISH_MUTATION_SENTINEL": str(sentinel),
+                }
+                completed = subprocess.run(
+                    [
+                        "/bin/sh",
+                        "-c",
+                        script
+                        + "\nprintf '%s\\n' mutated > \"$PILOTFISH_MUTATION_SENTINEL\"\n",
+                    ],
+                    cwd=root,
+                    env=env,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=False,
+                )
+                return completed, config, sentinel, sources
+
+            complete, config, sentinel, sources = execute("complete")
+            self.assertEqual(complete.returncode, 0, complete.stderr)
+            backup = config / "backups" / f"pilotfish-global-{stamp}"
+            for relative, content in sources.items():
+                self.assertEqual((config / relative).read_bytes(), content)
+                self.assertEqual((backup / relative).read_bytes(), content)
+            self.assertTrue(sentinel.exists())
+
+            missing, config, sentinel, sources = execute("missing-settings", settings=False)
+            self.assertEqual(missing.returncode, 0, missing.stderr)
+            backup = config / "backups" / f"pilotfish-global-{stamp}"
+            self.assertFalse((backup / "settings.json").exists())
+            for relative, content in sources.items():
+                self.assertEqual((backup / relative).read_bytes(), content)
+            self.assertTrue(sentinel.exists())
+
+            for utility in ("cp", "cmp"):
+                with self.subTest(failure=utility):
+                    failed, config, sentinel, sources = execute(
+                        f"fail-{utility}", fail_utility=utility
+                    )
+                    self.assertNotEqual(failed.returncode, 0)
+                    self.assertFalse(sentinel.exists())
+                    for relative, content in sources.items():
+                        self.assertEqual((config / relative).read_bytes(), content)
+
+            collided, config, sentinel, sources = execute("collision", collision=True)
+            self.assertNotEqual(collided.returncode, 0)
+            self.assertIn(b"backup destination already exists", collided.stderr)
+            self.assertFalse(sentinel.exists())
+            collision_backup = config / "backups" / f"pilotfish-global-{stamp}"
+            self.assertEqual((collision_backup / "keep").read_bytes(), b"existing\n")
+            for relative, content in sources.items():
+                self.assertEqual((config / relative).read_bytes(), content)
 
 
 if __name__ == "__main__":

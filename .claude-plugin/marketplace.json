@@ -10,7 +10,7 @@
     {
       "name": "pilotfish",
       "source": "./plugin",
-      "version": "1.3.10",
+      "version": "1.4.0",
       "description": "Hook-based ambient orchestration beta for macOS and Linux Claude Code.",
       "category": "productivity",
       "tags": [

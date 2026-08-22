@@ -71,14 +71,61 @@ State the resolved `$CFG` from Step 0 above the table, then show the user a tabl
 ### 3.1 Backup and directories
 
 ```bash
+set -eu
+
 CFG="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"   # Step 0
-mkdir -p "$CFG/backups" "$CFG/agents"
+STAMP=$(date +%Y%m%d-%H%M%S)
+mkdir -p "$CFG/backups"
 # settings backup: FIRST install only — the pristine pre-pilotfish state must be preserved
-ls "$CFG"/backups/settings.json.pilotfish-* >/dev/null 2>&1 || \
-  cp "$CFG/settings.json" "$CFG/backups/settings.json.pilotfish-$(date +%Y%m%d-%H%M%S)" 2>/dev/null || true
+SETTINGS_BACKUP_EXISTS=0
+for EXISTING_BACKUP in "$CFG"/backups/settings.json.pilotfish-*; do
+  if [ -e "$EXISTING_BACKUP" ] || [ -L "$EXISTING_BACKUP" ]; then
+    if [ -L "$EXISTING_BACKUP" ] || [ ! -f "$EXISTING_BACKUP" ] || \
+        [ ! -r "$EXISTING_BACKUP" ]; then
+      echo "Stop: retained settings backup must be a readable regular file: $EXISTING_BACKUP" >&2
+      exit 1
+    fi
+    SETTINGS_BACKUP_EXISTS=1
+  fi
+done
+if [ "$SETTINGS_BACKUP_EXISTS" -eq 0 ] && \
+    { [ -e "$CFG/settings.json" ] || [ -L "$CFG/settings.json" ]; }; then
+  SETTINGS_BACKUP="$CFG/backups/settings.json.pilotfish-$STAMP"
+  if [ -L "$CFG/settings.json" ] || [ ! -f "$CFG/settings.json" ]; then
+    echo "Stop: settings.json must be a regular file." >&2
+    exit 1
+  elif [ -e "$SETTINGS_BACKUP" ] || [ -L "$SETTINGS_BACKUP" ]; then
+    echo "Stop: backup destination already exists: $SETTINGS_BACKUP" >&2
+    exit 1
+  fi
+  cp -p "$CFG/settings.json" "$SETTINGS_BACKUP"
+  if [ -L "$SETTINGS_BACKUP" ] || [ ! -f "$SETTINGS_BACKUP" ] || \
+      ! cmp -s "$CFG/settings.json" "$SETTINGS_BACKUP"; then
+    echo "Stop: settings.json backup verification failed." >&2
+    exit 1
+  fi
+fi
 # CLAUDE.md backup: every run
-cp "$CFG/CLAUDE.md" "$CFG/backups/CLAUDE.md.pilotfish-$(date +%Y%m%d-%H%M%S)" 2>/dev/null || true
+if [ -e "$CFG/CLAUDE.md" ] || [ -L "$CFG/CLAUDE.md" ]; then
+  CLAUDE_BACKUP="$CFG/backups/CLAUDE.md.pilotfish-$STAMP"
+  if [ -L "$CFG/CLAUDE.md" ] || [ ! -f "$CFG/CLAUDE.md" ]; then
+    echo "Stop: CLAUDE.md must be a regular file." >&2
+    exit 1
+  elif [ -e "$CLAUDE_BACKUP" ] || [ -L "$CLAUDE_BACKUP" ]; then
+    echo "Stop: backup destination already exists: $CLAUDE_BACKUP" >&2
+    exit 1
+  fi
+  cp -p "$CFG/CLAUDE.md" "$CLAUDE_BACKUP"
+  if [ -L "$CLAUDE_BACKUP" ] || [ ! -f "$CLAUDE_BACKUP" ] || \
+      ! cmp -s "$CFG/CLAUDE.md" "$CLAUDE_BACKUP"; then
+    echo "Stop: CLAUDE.md backup verification failed." >&2
+    exit 1
+  fi
+fi
+mkdir -p "$CFG/agents"
 ```
+
+This block must exit `0` before Steps 3.2–3.4 may begin. If an existing source cannot be copied and read-back verified, or if a required destination collides, stop and do not change settings, agent files, or `CLAUDE.md`. A source that did not exist requires no backup.
 
 > **Note:** If `$CFG/settings.json` did not exist before this install (fresh machine), there is no settings backup — record in your final summary that the pre-install state had **no `model` key**, so a future uninstall knows to *remove* the key rather than restore a value.
 

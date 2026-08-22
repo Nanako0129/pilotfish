@@ -124,13 +124,15 @@ pilotfish Plugin, following those runbooks exactly.
 Resolve the effective Claude configuration root and run the read-only
 preflight. Show me the resolved root, proposed timestamped backup path, and
 exact files and settings you will change, then ask for one approval. After
-approval, create that backup before removing only the legacy pilotfish policy
-block, unmodified pilotfish agent files, and settings attributable to that
-install; preserve every unrelated setting and file. If an agent file was
-customized or ownership is ambiguous, stop and show me the difference instead
-of deleting it. Re-run preflight, install pilotfish@pilotfish at user scope,
-verify the installed Plugin, and tell me to restart Claude Code. Do not print
-credentials or install the Plugin alongside any remaining legacy policy.
+approval, create and read-back verify that backup. If any required backup copy
+or verification fails, stop before removing or installing anything. Only after
+the verified backup succeeds, remove the legacy pilotfish policy block,
+unmodified pilotfish agent files, and settings attributable to that install;
+preserve every unrelated setting and file. If an agent file was customized or
+ownership is ambiguous, stop and show me the difference instead of deleting it.
+Re-run preflight, install pilotfish@pilotfish at user scope, verify the installed
+Plugin, and tell me to restart Claude Code. Do not print credentials or install
+the Plugin alongside any remaining legacy policy.
 ```
 
 The AI should need only that one write approval unless it discovers customized
@@ -139,15 +141,63 @@ or ambiguous legacy state. The manual equivalent follows.
 Back up the effective configuration before removing anything:
 
 ```bash
+set -eu
+
+CFG="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+case "$CFG" in
+  /*) ;;
+  *) echo "Stop: CLAUDE_CONFIG_DIR must be absolute." >&2; exit 1 ;;
+esac
 STAMP=$(date +%Y%m%d-%H%M%S)
 BACKUP="$CFG/backups/pilotfish-global-$STAMP"
-mkdir -p "$BACKUP"
-[ ! -f "$CFG/CLAUDE.md" ] || cp -p "$CFG/CLAUDE.md" "$BACKUP/CLAUDE.md"
-[ ! -f "$CFG/settings.json" ] || cp -p "$CFG/settings.json" "$BACKUP/settings.json"
-[ ! -d "$CFG/agents" ] || cp -R "$CFG/agents" "$BACKUP/agents"
+mkdir -p "$CFG/backups"
+if [ -e "$BACKUP" ] || [ -L "$BACKUP" ]; then
+  echo "Stop: backup destination already exists: $BACKUP" >&2
+  exit 1
+fi
+mkdir "$BACKUP"
+
+if [ -e "$CFG/CLAUDE.md" ] || [ -L "$CFG/CLAUDE.md" ]; then
+  if [ -L "$CFG/CLAUDE.md" ] || [ ! -f "$CFG/CLAUDE.md" ]; then
+    echo "Stop: CLAUDE.md must be a regular file." >&2
+    exit 1
+  fi
+  cp -p "$CFG/CLAUDE.md" "$BACKUP/CLAUDE.md"
+  if [ -L "$BACKUP/CLAUDE.md" ] || [ ! -f "$BACKUP/CLAUDE.md" ] || \
+      ! cmp -s "$CFG/CLAUDE.md" "$BACKUP/CLAUDE.md"; then
+    echo "Stop: CLAUDE.md backup verification failed." >&2
+    exit 1
+  fi
+fi
+
+if [ -e "$CFG/settings.json" ] || [ -L "$CFG/settings.json" ]; then
+  if [ -L "$CFG/settings.json" ] || [ ! -f "$CFG/settings.json" ]; then
+    echo "Stop: settings.json must be a regular file." >&2
+    exit 1
+  fi
+  cp -p "$CFG/settings.json" "$BACKUP/settings.json"
+  if [ -L "$BACKUP/settings.json" ] || [ ! -f "$BACKUP/settings.json" ] || \
+      ! cmp -s "$CFG/settings.json" "$BACKUP/settings.json"; then
+    echo "Stop: settings.json backup verification failed." >&2
+    exit 1
+  fi
+fi
+
+if [ -e "$CFG/agents" ] || [ -L "$CFG/agents" ]; then
+  if [ -L "$CFG/agents" ] || [ ! -d "$CFG/agents" ]; then
+    echo "Stop: agents must be a directory." >&2
+    exit 1
+  fi
+  cp -Rp "$CFG/agents" "$BACKUP/agents"
+  if [ -L "$BACKUP/agents" ] || [ ! -d "$BACKUP/agents" ] || \
+      ! diff -r "$CFG/agents" "$BACKUP/agents" >/dev/null 2>&1; then
+    echo "Stop: agents backup verification failed." >&2
+    exit 1
+  fi
+fi
 ```
 
-Then follow the [legacy uninstall procedure](./AGENT-INSTALL.md#uninstall): remove only the matching pilotfish agent files, the single `pilotfish:begin/end` block, and settings values attributable to that install. Preserve user-customized files and unrelated settings. Re-run the preflight check above; continue only after it prints the no-legacy diagnostic.
+Continue only if the backup block exits `0`. If any copy or read-back verification fails, stop before legacy removal or Plugin installation and leave the original configuration unchanged. Then follow the [legacy uninstall procedure](./AGENT-INSTALL.md#uninstall): remove only the matching pilotfish agent files, the single `pilotfish:begin/end` block, and settings values attributable to that install. Preserve user-customized files and unrelated settings. Re-run the preflight check above; continue only after it prints the no-legacy diagnostic.
 
 ## Choose the main model before installation
 
