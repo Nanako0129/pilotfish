@@ -16,7 +16,6 @@ MARKETPLACE = ROOT / ".claude-plugin" / "marketplace.json"
 TEMPLATE = ROOT / "templates" / "claude-md.orchestration.md"
 POLICY = PLUGIN / "policy" / "ambient.md"
 SESSIONSTART = PLUGIN / "policy" / "sessionstart.txt"
-SKILL = PLUGIN / "skills" / "pilotfish" / "SKILL.md"
 MATRIX = ROOT / "tests" / "plugin_requirements.json"
 SENTINEL = "¶"
 OPT_IN = (
@@ -24,8 +23,6 @@ OPT_IN = (
     "On delegation, call exactly one named pilotfish:<role> in foreground; collect it before main acceptance or source mutation.\n"
     "Grants no other authority; task/tool/write/network/spend/external-action/Plan/approval/verification boundaries remain.\n"
 )
-POLICY_BEGIN = "<!-- pilotfish-plugin-policy:begin -->\n"
-POLICY_END = "<!-- pilotfish-plugin-policy:end -->\n"
 SCRIPT = (
     b"#!/bin/sh\n"
     b"set -eu\n"
@@ -44,7 +41,16 @@ SCRIPT = (
     b"    esac\n"
     b"fi\n"
     b"\n"
+    b'if [ ! -d "$config_root" ] || [ ! -r "$config_root" ] || [ ! -x "$config_root" ]; then\n'
+    b'    /usr/bin/printf \'%s\\n\' "pilotfish Plugin blocked: the effective CLAUDE.md cannot be checked safely. Follow $MIGRATION_URL and restart Claude Code."\n'
+    b"    exit 0\n"
+    b"fi\n"
+    b"\n"
     b'config_file=$config_root/CLAUDE.md\n'
+    b'if [ -L "$config_file" ]; then\n'
+    b'    /usr/bin/printf \'%s\\n\' "pilotfish Plugin blocked: the effective CLAUDE.md cannot be checked safely. Follow $MIGRATION_URL and restart Claude Code."\n'
+    b"    exit 0\n"
+    b"fi\n"
     b'if [ -e "$config_file" ]; then\n'
     b'    if [ ! -f "$config_file" ] || [ ! -r "$config_file" ]; then\n'
     b'        /usr/bin/printf \'%s\\n\' "pilotfish Plugin blocked: the effective CLAUDE.md cannot be checked safely. Follow $MIGRATION_URL and restart Claude Code."\n'
@@ -244,24 +250,6 @@ def build_sessionstart(policy: bytes) -> bytes:
     return rendered.encode("utf-8")
 
 
-def build_skill(policy: bytes) -> bytes:
-    validate_text_bytes(policy, "ambient policy")
-    prefix = (
-        "---\n"
-        "name: pilotfish\n"
-        "description: Manually supply the bounded pilotfish Plugin beta policy when requested.\n"
-        "user-invocable: true\n"
-        "disable-model-invocation: true\n"
-        "---\n\n"
-        "# pilotfish manual policy injection\n\n"
-        "SessionStart hooks are required for ambient activation. This manual command supplies the same policy only when explicitly invoked and grants no additional authority.\n\n"
-        "This macOS beta is tested with Claude Code 2.1.239. It does not claim stable ambient reliability, cross-platform or cross-version support, runtime namespace-collision proof, or equivalence to the legacy global install. Do not use both installation methods; migrate with https://github.com/Nanako0129/pilotfish/blob/main/install/PLUGIN-INSTALL.md#migrate-from-global-v1.\n\n"
-        f"Ambient policy SHA-256: `{sha256(policy)}`\n\n"
-        f"{POLICY_BEGIN}"
-    ).encode("utf-8")
-    return prefix + policy + POLICY_END.encode("utf-8")
-
-
 def transform_agent(role: str, source: bytes) -> bytes:
     text = validate_text_bytes(source, f"template agent {role}")
     for old, new in NAMESPACE_REPLACEMENTS.get(role, ()):
@@ -315,7 +303,6 @@ def generated() -> dict[Path, bytes]:
         MANIFEST: build_manifest(release_version),
         MARKETPLACE: build_marketplace(release_version),
         SESSIONSTART: build_sessionstart(policy),
-        SKILL: build_skill(policy),
         MATRIX: build_matrix(template, policy),
         PLUGIN / "LICENSE": (ROOT / "LICENSE").read_bytes(),
         PLUGIN / "hooks" / "emit-sessionstart.sh": SCRIPT,

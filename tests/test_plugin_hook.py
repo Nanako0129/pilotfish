@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import stat
 import subprocess
 import tempfile
 import unittest
@@ -20,24 +21,44 @@ LEGACY_DIAGNOSTIC = (
     f"pilotfish Plugin blocked: legacy global pilotfish detected. Follow "
     f"{MIGRATION_URL} to migrate, then restart Claude Code.\n"
 ).encode()
+UNSAFE_DIAGNOSTIC = (
+    f"pilotfish Plugin blocked: the effective CLAUDE.md cannot be checked "
+    f"safely. Follow {MIGRATION_URL} and restart Claude Code.\n"
+).encode()
 
 
-def snapshot(root: Path) -> dict[str, bytes]:
-    return {
-        path.relative_to(root).as_posix(): path.read_bytes()
-        for path in root.rglob("*")
-        if path.is_file()
-    }
+def snapshot(root: Path) -> dict[str, tuple[str, int, bytes | str | None]]:
+    result = {}
+    for path in root.rglob("*"):
+        relative = path.relative_to(root).as_posix()
+        mode = stat.S_IMODE(path.lstat().st_mode)
+        if path.is_symlink():
+            result[relative] = ("symlink", mode, os.readlink(path))
+        elif path.is_file():
+            result[relative] = ("file", mode, path.read_bytes())
+        elif path.is_dir():
+            result[relative] = ("directory", mode, None)
+    return result
 
 
 class PluginHookTests(unittest.TestCase):
     def run_hook(
-        self, root: Path, *, config_value: str | None, claude_md: str | None
+        self,
+        root: Path,
+        *,
+        config_value: str | None,
+        claude_md: str | None,
+        config_mode: int | None = None,
+        dangling_claude_md: bool = False,
     ) -> subprocess.CompletedProcess[bytes]:
         config_root = root / "config"
         config_root.mkdir()
+        if claude_md is not None and dangling_claude_md:
+            raise ValueError("CLAUDE.md cannot be both regular and dangling")
         if claude_md is not None:
             (config_root / "CLAUDE.md").write_text(claude_md, encoding="utf-8")
+        elif dangling_claude_md:
+            (config_root / "CLAUDE.md").symlink_to("missing-CLAUDE.md")
         env = {
             "CLAUDE_PLUGIN_ROOT": str(PLUGIN),
             "HOME": str(root / "home"),
@@ -53,17 +74,22 @@ class PluginHookTests(unittest.TestCase):
             env["CLAUDE_CONFIG_DIR"] = (
                 config_value.replace("{config}", str(config_root))
             )
+        if config_mode is not None:
+            config_root.chmod(config_mode)
         before = snapshot(root)
-        result = subprocess.run(
-            ["/bin/sh", str(HOOK)],
-            cwd=root,
-            env=env,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=False,
-        )
-        self.assertEqual(snapshot(root), before)
-        return result
+        try:
+            result = subprocess.run(
+                ["/bin/sh", str(HOOK)],
+                cwd=root,
+                env=env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+            self.assertEqual(snapshot(root), before)
+            return result
+        finally:
+            config_root.chmod(0o700)
 
     def test_no_legacy_config_emits_exact_policy_once(self) -> None:
         cases = (
@@ -118,6 +144,26 @@ class PluginHookTests(unittest.TestCase):
         self.assertNotIn(SENTINEL, result.stdout)
         self.assertNotIn(POLICY, result.stdout)
         self.assertEqual(result.stderr, b"")
+
+    def test_unsafe_config_paths_fail_closed_with_one_migration_diagnostic(self) -> None:
+        cases = (
+            ("non-searchable-config-root", {"config_mode": 0o600}),
+            ("dangling-claude-md-symlink", {"dangling_claude_md": True}),
+        )
+        for name, setup in cases:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as temporary:
+                result = self.run_hook(
+                    Path(temporary),
+                    config_value="{config}",
+                    claude_md=None,
+                    **setup,
+                )
+                self.assertEqual(result.returncode, 0)
+                self.assertEqual(result.stdout, UNSAFE_DIAGNOSTIC)
+                self.assertEqual(result.stdout.count(MIGRATION_URL.encode()), 1)
+                self.assertNotIn(SENTINEL, result.stdout)
+                self.assertNotIn(POLICY, result.stdout)
+                self.assertEqual(result.stderr, b"")
 
 
 if __name__ == "__main__":

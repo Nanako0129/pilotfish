@@ -49,7 +49,6 @@ PLUGIN_FILES = {
     "hooks/hooks.json",
     "policy/ambient.md",
     "policy/sessionstart.txt",
-    "skills/pilotfish/SKILL.md",
 }
 ROLE_REF = re.compile(
     r"(?<![\w:-])(scout|plan-verifier|security-reviewer|mech-executor|executor|verifier|security-executor)(?![\w-])",
@@ -111,7 +110,7 @@ class PluginArtifactTests(unittest.TestCase):
         self.assertEqual(script, RENDERER.SCRIPT)
         self.assertFalse(os.stat(PLUGIN / "hooks" / "emit-sessionstart.sh").st_mode & 0o111)
 
-    def test_sessionstart_bound_hash_and_manual_policy_bytes(self) -> None:
+    def test_sessionstart_bound_policy_bytes(self) -> None:
         policy = (PLUGIN / "policy" / "ambient.md").read_bytes()
         output = (PLUGIN / "policy" / "sessionstart.txt").read_bytes()
         text = output.decode("utf-8")
@@ -122,19 +121,6 @@ class PluginArtifactTests(unittest.TestCase):
         self.assertNotIn("SESSIONSTART_AB_ARM", text)
         self.assertLessEqual(len(text), 9_000)
         self.assertLessEqual(len(text) + text.count("\n"), 9_000)
-        skill = (PLUGIN / "skills" / "pilotfish" / "SKILL.md").read_bytes()
-        fields = frontmatter(PLUGIN / "skills" / "pilotfish" / "SKILL.md")
-        self.assertEqual(fields["disable-model-invocation"], "true")
-        self.assertIn(b"SessionStart hooks are required for ambient activation", skill)
-        self.assertIn(b"tested with Claude Code 2.1.239", skill)
-        embedded = skill.split(RENDERER.POLICY_BEGIN.encode(), 1)[1].split(
-            RENDERER.POLICY_END.encode(), 1
-        )[0]
-        self.assertEqual(embedded, policy)
-        self.assertIn(hashlib.sha256(policy).hexdigest().encode(), skill)
-        lower = skill.split(RENDERER.POLICY_BEGIN.encode(), 1)[0].lower()
-        for claim in (b"fallback", b"replacement", b"v1-equivalence", b"equivalent to v1"):
-            self.assertNotIn(claim, lower)
 
     def test_policy_byte_validation_preserves_shell_metacharacters_and_unicode(self) -> None:
         payload = "pilotfish's $value `literal` path\\segment Unicode 雪\n".encode()
@@ -252,6 +238,7 @@ class PluginArtifactTests(unittest.TestCase):
     def test_plugin_tree_is_closed_regular_and_non_executable(self) -> None:
         files = {path.relative_to(PLUGIN).as_posix() for path in PLUGIN.rglob("*") if path.is_file()}
         self.assertEqual(files, PLUGIN_FILES)
+        self.assertFalse((PLUGIN / "skills").exists())
         self.assertFalse(any(path.is_symlink() for path in PLUGIN.rglob("*")))
         for path in PLUGIN.rglob("*"):
             mode = stat.S_IMODE(path.stat().st_mode)
