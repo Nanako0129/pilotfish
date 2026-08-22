@@ -2257,19 +2257,20 @@ class PolicyContractTests(unittest.TestCase):
                 *,
                 stamp: str = first_stamp,
                 sources: bool = True,
+                settings: bool = True,
                 fail_utility: str | None = None,
                 collision: bool = False,
                 invalid_retained: str | None = None,
+                temp_collision: bool = False,
             ) -> tuple[subprocess.CompletedProcess[bytes], Path, Path, dict[str, bytes], Path]:
                 root = base / name
                 config = root / "config"
                 config.mkdir(parents=True, exist_ok=True)
                 original = {}
                 if sources:
-                    original = {
-                        "settings.json": b'{"model":"custom"}\n',
-                        "CLAUDE.md": b"user policy\n",
-                    }
+                    original = {"CLAUDE.md": b"user policy\n"}
+                    if settings:
+                        original["settings.json"] = b'{"model":"custom"}\n'
                     for relative, content in original.items():
                         (config / relative).write_bytes(content)
 
@@ -2292,6 +2293,11 @@ class PolicyContractTests(unittest.TestCase):
                     else:
                         raise ValueError(invalid_retained)
 
+                if temp_collision:
+                    temp = config / "backups" / f".pilotfish-settings-{stamp}.tmp"
+                    temp.parent.mkdir(parents=True, exist_ok=True)
+                    temp.symlink_to("missing-temporary-backup")
+
                 fake_bin = root / "fake-bin"
                 fake_bin.mkdir(exist_ok=True)
                 fake_date = fake_bin / "date"
@@ -2303,7 +2309,16 @@ class PolicyContractTests(unittest.TestCase):
                 fake_date.chmod(0o755)
                 if fail_utility is not None:
                     fake_failure = fake_bin / fail_utility
-                    fake_failure.write_text("#!/bin/sh\nexit 71\n", encoding="utf-8")
+                    fake_failure.write_text(
+                        (
+                            "#!/bin/sh\n"
+                            "printf '%s\\n' partial > \"$3\"\n"
+                            "exit 71\n"
+                        )
+                        if fail_utility == "cp"
+                        else "#!/bin/sh\nexit 71\n",
+                        encoding="utf-8",
+                    )
                     fake_failure.chmod(0o755)
 
                 sentinel = root / "mutation-sentinel"
@@ -2335,6 +2350,7 @@ class PolicyContractTests(unittest.TestCase):
                 backup = config / "backups" / f"{relative}.pilotfish-{first_stamp}"
                 self.assertEqual(backup.read_bytes(), content)
             self.assertTrue((config / "agents").is_dir())
+            self.assertEqual(list((config / "backups").glob(".pilotfish-*.tmp")), [])
             self.assertTrue(sentinel.exists())
 
             fake_date.write_text(
@@ -2378,20 +2394,36 @@ class PolicyContractTests(unittest.TestCase):
                 ).read_bytes(),
                 original["settings.json"],
             )
+            self.assertEqual(list((config / "backups").glob(".pilotfish-*.tmp")), [])
 
             missing, config, sentinel, _, _ = execute("missing", sources=False)
             self.assertEqual(missing.returncode, 0, missing.stderr)
             self.assertTrue((config / "agents").is_dir())
             self.assertTrue(sentinel.exists())
 
-            for utility in ("cp", "cmp"):
-                with self.subTest(failure=utility):
+            for utility, source, settings in (
+                ("cp", "settings.json", True),
+                ("cmp", "settings.json", True),
+                ("cp", "CLAUDE.md", False),
+                ("cmp", "CLAUDE.md", False),
+            ):
+                with self.subTest(failure=utility, source=source):
                     failed, config, sentinel, original, _ = execute(
-                        f"fail-{utility}", fail_utility=utility
+                        f"fail-{utility}-{source}",
+                        settings=settings,
+                        fail_utility=utility,
                     )
                     self.assertNotEqual(failed.returncode, 0)
                     self.assertFalse(sentinel.exists())
                     self.assertFalse((config / "agents").exists())
+                    backups = config / "backups"
+                    self.assertEqual(
+                        list(backups.glob("settings.json.pilotfish-*")), []
+                    )
+                    self.assertEqual(
+                        list(backups.glob("CLAUDE.md.pilotfish-*")), []
+                    )
+                    self.assertEqual(list(backups.glob(".pilotfish-*.tmp")), [])
                     for relative, content in original.items():
                         self.assertEqual((config / relative).read_bytes(), content)
 
@@ -2418,6 +2450,19 @@ class PolicyContractTests(unittest.TestCase):
                     )
                     for relative, content in original.items():
                         self.assertEqual((config / relative).read_bytes(), content)
+
+            collided, config, sentinel, original, _ = execute(
+                "temp-collision", temp_collision=True
+            )
+            self.assertNotEqual(collided.returncode, 0)
+            self.assertIn(b"backup temporary path already exists", collided.stderr)
+            self.assertFalse(sentinel.exists())
+            self.assertFalse((config / "agents").exists())
+            self.assertEqual(
+                list((config / "backups").glob("settings.json.pilotfish-*")), []
+            )
+            for relative, content in original.items():
+                self.assertEqual((config / relative).read_bytes(), content)
 
             collided, config, sentinel, original, _ = execute(
                 "collision", collision=True

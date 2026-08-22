@@ -444,18 +444,19 @@ class PluginHookTests(unittest.TestCase):
             def execute(
                 name: str,
                 *,
+                claude: bool = True,
                 settings: bool = True,
                 fail_utility: str | None = None,
                 collision: bool = False,
+                temp_collision: bool = False,
             ) -> tuple[subprocess.CompletedProcess[bytes], Path, Path, dict[str, bytes]]:
                 root = base / name
                 config = root / "config"
                 agents = config / "agents"
                 agents.mkdir(parents=True)
-                sources = {
-                    "CLAUDE.md": b"user policy\n",
-                    "agents/scout.md": b"agent bytes\n",
-                }
+                sources = {"agents/scout.md": b"agent bytes\n"}
+                if claude:
+                    sources["CLAUDE.md"] = b"user policy\n"
                 if settings:
                     sources["settings.json"] = b'{"model":"custom"}\n'
                 for relative, content in sources.items():
@@ -467,6 +468,10 @@ class PluginHookTests(unittest.TestCase):
                 if collision:
                     collision_marker.mkdir(parents=True)
                     (collision_marker / "keep").write_bytes(b"existing\n")
+                if temp_collision:
+                    temp = config / "backups" / f".pilotfish-global-{stamp}.tmp"
+                    temp.parent.mkdir(parents=True, exist_ok=True)
+                    temp.symlink_to("missing-temporary-backup")
 
                 fake_bin = root / "fake-bin"
                 fake_bin.mkdir()
@@ -479,7 +484,16 @@ class PluginHookTests(unittest.TestCase):
                 fake_date.chmod(0o755)
                 if fail_utility is not None:
                     fake_failure = fake_bin / fail_utility
-                    fake_failure.write_text("#!/bin/sh\nexit 71\n", encoding="utf-8")
+                    fake_failure.write_text(
+                        (
+                            "#!/bin/sh\n"
+                            "printf '%s\\n' partial > \"$3\"\n"
+                            "exit 71\n"
+                        )
+                        if fail_utility == "cp"
+                        else "#!/bin/sh\nexit 71\n",
+                        encoding="utf-8",
+                    )
                     fake_failure.chmod(0o755)
 
                 sentinel = root / "mutation-sentinel"
@@ -510,6 +524,7 @@ class PluginHookTests(unittest.TestCase):
             for relative, content in sources.items():
                 self.assertEqual((config / relative).read_bytes(), content)
                 self.assertEqual((backup / relative).read_bytes(), content)
+            self.assertEqual(list((config / "backups").glob(".pilotfish-global-*")), [])
             self.assertTrue(sentinel.exists())
 
             missing, config, sentinel, sources = execute("missing-settings", settings=False)
@@ -518,15 +533,30 @@ class PluginHookTests(unittest.TestCase):
             self.assertFalse((backup / "settings.json").exists())
             for relative, content in sources.items():
                 self.assertEqual((backup / relative).read_bytes(), content)
+            self.assertEqual(list((config / "backups").glob(".pilotfish-global-*")), [])
             self.assertTrue(sentinel.exists())
 
-            for utility in ("cp", "cmp"):
-                with self.subTest(failure=utility):
+            for utility, source, without_claude in (
+                ("cp", "CLAUDE.md", False),
+                ("cmp", "CLAUDE.md", False),
+                ("cp", "settings.json", True),
+                ("cmp", "settings.json", True),
+                ("diff", "agents", False),
+            ):
+                with self.subTest(failure=utility, source=source):
                     failed, config, sentinel, sources = execute(
-                        f"fail-{utility}", fail_utility=utility
+                        f"fail-{utility}-{source}",
+                        claude=not without_claude,
+                        fail_utility=utility,
                     )
                     self.assertNotEqual(failed.returncode, 0)
                     self.assertFalse(sentinel.exists())
+                    self.assertEqual(
+                        list((config / "backups").glob("pilotfish-global-*")), []
+                    )
+                    self.assertEqual(
+                        list((config / "backups").glob(".pilotfish-global-*")), []
+                    )
                     for relative, content in sources.items():
                         self.assertEqual((config / relative).read_bytes(), content)
 
@@ -536,6 +566,18 @@ class PluginHookTests(unittest.TestCase):
             self.assertFalse(sentinel.exists())
             collision_backup = config / "backups" / f"pilotfish-global-{stamp}"
             self.assertEqual((collision_backup / "keep").read_bytes(), b"existing\n")
+            for relative, content in sources.items():
+                self.assertEqual((config / relative).read_bytes(), content)
+
+            collided, config, sentinel, sources = execute(
+                "temp-collision", temp_collision=True
+            )
+            self.assertNotEqual(collided.returncode, 0)
+            self.assertIn(b"backup temporary path already exists", collided.stderr)
+            self.assertFalse(sentinel.exists())
+            self.assertEqual(
+                list((config / "backups").glob("pilotfish-global-*")), []
+            )
             for relative, content in sources.items():
                 self.assertEqual((config / relative).read_bytes(), content)
 
