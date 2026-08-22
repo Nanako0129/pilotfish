@@ -71,14 +71,81 @@ State the resolved `$CFG` from Step 0 above the table, then show the user a tabl
 ### 3.1 Backup and directories
 
 ```bash
+set -eu
+
 CFG="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"   # Step 0
-mkdir -p "$CFG/backups" "$CFG/agents"
+STAMP=$(date +%Y%m%d-%H%M%S)
+mkdir -p "$CFG/backups"
+
+pilotfish_backup_file() {
+  BACKUP_SOURCE=$1
+  BACKUP_FINAL=$2
+  BACKUP_TEMP=$3
+  BACKUP_LABEL=$4
+  if [ -L "$BACKUP_SOURCE" ] || [ ! -f "$BACKUP_SOURCE" ]; then
+    echo "Stop: $BACKUP_LABEL must be a regular file." >&2
+    exit 1
+  elif [ -e "$BACKUP_FINAL" ] || [ -L "$BACKUP_FINAL" ]; then
+    echo "Stop: backup destination already exists: $BACKUP_FINAL" >&2
+    exit 1
+  elif [ -e "$BACKUP_TEMP" ] || [ -L "$BACKUP_TEMP" ]; then
+    echo "Stop: backup temporary path already exists: $BACKUP_TEMP" >&2
+    exit 1
+  fi
+  if ! cp -p "$BACKUP_SOURCE" "$BACKUP_TEMP"; then
+    rm -f "$BACKUP_TEMP"
+    echo "Stop: $BACKUP_LABEL backup copy failed." >&2
+    exit 1
+  fi
+  if [ -L "$BACKUP_TEMP" ] || [ ! -f "$BACKUP_TEMP" ] || \
+      ! cmp -s "$BACKUP_SOURCE" "$BACKUP_TEMP"; then
+    rm -f "$BACKUP_TEMP"
+    echo "Stop: $BACKUP_LABEL backup verification failed." >&2
+    exit 1
+  fi
+  if ! mv "$BACKUP_TEMP" "$BACKUP_FINAL"; then
+    rm -f "$BACKUP_TEMP"
+    echo "Stop: $BACKUP_LABEL backup publication failed." >&2
+    exit 1
+  fi
+  if [ -L "$BACKUP_FINAL" ] || [ ! -f "$BACKUP_FINAL" ] || \
+      ! cmp -s "$BACKUP_SOURCE" "$BACKUP_FINAL"; then
+    rm -f "$BACKUP_FINAL"
+    echo "Stop: published $BACKUP_LABEL backup verification failed." >&2
+    exit 1
+  fi
+}
+
 # settings backup: FIRST install only — the pristine pre-pilotfish state must be preserved
-ls "$CFG"/backups/settings.json.pilotfish-* >/dev/null 2>&1 || \
-  cp "$CFG/settings.json" "$CFG/backups/settings.json.pilotfish-$(date +%Y%m%d-%H%M%S)" 2>/dev/null || true
+SETTINGS_BACKUP_EXISTS=0
+for EXISTING_BACKUP in "$CFG"/backups/settings.json.pilotfish-*; do
+  if [ -e "$EXISTING_BACKUP" ] || [ -L "$EXISTING_BACKUP" ]; then
+    if [ -L "$EXISTING_BACKUP" ] || [ ! -f "$EXISTING_BACKUP" ] || \
+        [ ! -r "$EXISTING_BACKUP" ]; then
+      echo "Stop: retained settings backup must be a readable regular file: $EXISTING_BACKUP" >&2
+      exit 1
+    fi
+    SETTINGS_BACKUP_EXISTS=1
+  fi
+done
+if [ "$SETTINGS_BACKUP_EXISTS" -eq 0 ] && \
+    { [ -e "$CFG/settings.json" ] || [ -L "$CFG/settings.json" ]; }; then
+  SETTINGS_BACKUP="$CFG/backups/settings.json.pilotfish-$STAMP"
+  SETTINGS_BACKUP_TEMP="$CFG/backups/.pilotfish-settings-$STAMP.tmp"
+  pilotfish_backup_file \
+    "$CFG/settings.json" "$SETTINGS_BACKUP" "$SETTINGS_BACKUP_TEMP" settings.json
+fi
 # CLAUDE.md backup: every run
-cp "$CFG/CLAUDE.md" "$CFG/backups/CLAUDE.md.pilotfish-$(date +%Y%m%d-%H%M%S)" 2>/dev/null || true
+if [ -e "$CFG/CLAUDE.md" ] || [ -L "$CFG/CLAUDE.md" ]; then
+  CLAUDE_BACKUP="$CFG/backups/CLAUDE.md.pilotfish-$STAMP"
+  CLAUDE_BACKUP_TEMP="$CFG/backups/.pilotfish-CLAUDE-$STAMP.tmp"
+  pilotfish_backup_file \
+    "$CFG/CLAUDE.md" "$CLAUDE_BACKUP" "$CLAUDE_BACKUP_TEMP" CLAUDE.md
+fi
+mkdir -p "$CFG/agents"
 ```
+
+This block must exit `0` before Steps 3.2–3.4 may begin. If an existing source cannot be copied and read-back verified, or if a required destination collides, stop and do not change settings, agent files, or `CLAUDE.md`. A source that did not exist requires no backup.
 
 > **Note:** If `$CFG/settings.json` did not exist before this install (fresh machine), there is no settings backup — record in your final summary that the pre-install state had **no `model` key**, so a future uninstall knows to *remove* the key rather than restore a value.
 

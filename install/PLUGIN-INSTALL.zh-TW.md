@@ -134,7 +134,9 @@ pilotfish v1 安裝遷移成 user-scope pilotfish Plugin。
 
 請先解析有效的 Claude configuration root，並執行 read-only preflight。顯示
 解析後的 root、預定的 timestamped backup path，以及將要修改的確切檔案與
-settings，然後只向我要求一次批准。批准後，先建立該 backup，再只移除 legacy
+settings，然後只向我要求一次批准。批准後，先建立該 backup，
+並進行 read-back verification。若任何必要的 backup copy 或 verification 失敗，
+請在移除或安裝任何內容之前停止。只有 verified backup 成功後，才能移除 legacy
 pilotfish policy block、未經修改的 pilotfish agent files，以及可歸因於該安裝
 的 settings；保留所有無關的設定與檔案。如果 agent file 曾被自訂，或 ownership
 不明，請停止並顯示差異，不要刪除。重新執行 preflight，將
@@ -147,15 +149,105 @@ Claude Code。不要輸出 credentials，也不要在仍有 legacy policy 時安
 移除任何內容前，先備份有效設定：
 
 ```bash
+set -eu
+
+CFG="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+case "$CFG" in
+  /*) ;;
+  *) echo "Stop: CLAUDE_CONFIG_DIR must be absolute." >&2; exit 1 ;;
+esac
 STAMP=$(date +%Y%m%d-%H%M%S)
 BACKUP="$CFG/backups/pilotfish-global-$STAMP"
-mkdir -p "$BACKUP"
-[ ! -f "$CFG/CLAUDE.md" ] || cp -p "$CFG/CLAUDE.md" "$BACKUP/CLAUDE.md"
-[ ! -f "$CFG/settings.json" ] || cp -p "$CFG/settings.json" "$BACKUP/settings.json"
-[ ! -d "$CFG/agents" ] || cp -R "$CFG/agents" "$BACKUP/agents"
+BACKUP_TEMP="$CFG/backups/.pilotfish-global-$STAMP.tmp"
+mkdir -p "$CFG/backups"
+if [ -e "$BACKUP" ] || [ -L "$BACKUP" ]; then
+  echo "Stop: backup destination already exists: $BACKUP" >&2
+  exit 1
+elif [ -e "$BACKUP_TEMP" ] || [ -L "$BACKUP_TEMP" ]; then
+  echo "Stop: backup temporary path already exists: $BACKUP_TEMP" >&2
+  exit 1
+fi
+mkdir "$BACKUP_TEMP"
+
+pilotfish_backup_fail() {
+  PILOTFISH_BACKUP_ERROR=$1
+  rm -rf "$BACKUP_TEMP"
+  echo "Stop: $PILOTFISH_BACKUP_ERROR" >&2
+  exit 1
+}
+
+pilotfish_published_backup_fail() {
+  PILOTFISH_BACKUP_ERROR=$1
+  rm -rf "$BACKUP"
+  echo "Stop: $PILOTFISH_BACKUP_ERROR" >&2
+  exit 1
+}
+
+BACKED_UP_CLAUDE=0
+BACKED_UP_SETTINGS=0
+BACKED_UP_AGENTS=0
+
+if [ -e "$CFG/CLAUDE.md" ] || [ -L "$CFG/CLAUDE.md" ]; then
+  if [ -L "$CFG/CLAUDE.md" ] || [ ! -f "$CFG/CLAUDE.md" ]; then
+    pilotfish_backup_fail "CLAUDE.md must be a regular file."
+  elif ! cp -p "$CFG/CLAUDE.md" "$BACKUP_TEMP/CLAUDE.md"; then
+    pilotfish_backup_fail "CLAUDE.md backup copy failed."
+  fi
+  if [ -L "$BACKUP_TEMP/CLAUDE.md" ] || [ ! -f "$BACKUP_TEMP/CLAUDE.md" ] || \
+      ! cmp -s "$CFG/CLAUDE.md" "$BACKUP_TEMP/CLAUDE.md"; then
+    pilotfish_backup_fail "CLAUDE.md backup verification failed."
+  fi
+  BACKED_UP_CLAUDE=1
+fi
+
+if [ -e "$CFG/settings.json" ] || [ -L "$CFG/settings.json" ]; then
+  if [ -L "$CFG/settings.json" ] || [ ! -f "$CFG/settings.json" ]; then
+    pilotfish_backup_fail "settings.json must be a regular file."
+  elif ! cp -p "$CFG/settings.json" "$BACKUP_TEMP/settings.json"; then
+    pilotfish_backup_fail "settings.json backup copy failed."
+  fi
+  if [ -L "$BACKUP_TEMP/settings.json" ] || \
+      [ ! -f "$BACKUP_TEMP/settings.json" ] || \
+      ! cmp -s "$CFG/settings.json" "$BACKUP_TEMP/settings.json"; then
+    pilotfish_backup_fail "settings.json backup verification failed."
+  fi
+  BACKED_UP_SETTINGS=1
+fi
+
+if [ -e "$CFG/agents" ] || [ -L "$CFG/agents" ]; then
+  if [ -L "$CFG/agents" ] || [ ! -d "$CFG/agents" ]; then
+    pilotfish_backup_fail "agents must be a directory."
+  elif ! cp -Rp "$CFG/agents" "$BACKUP_TEMP/agents"; then
+    pilotfish_backup_fail "agents backup copy failed."
+  fi
+  if [ -L "$BACKUP_TEMP/agents" ] || [ ! -d "$BACKUP_TEMP/agents" ] || \
+      ! diff -r "$CFG/agents" "$BACKUP_TEMP/agents" >/dev/null 2>&1; then
+    pilotfish_backup_fail "agents backup verification failed."
+  fi
+  BACKED_UP_AGENTS=1
+fi
+
+if ! mv "$BACKUP_TEMP" "$BACKUP"; then
+  pilotfish_backup_fail "backup publication failed."
+fi
+if [ -L "$BACKUP" ] || [ ! -d "$BACKUP" ]; then
+  pilotfish_published_backup_fail "published backup must be a directory."
+elif [ "$BACKED_UP_CLAUDE" -eq 1 ] && \
+    { [ -L "$BACKUP/CLAUDE.md" ] || [ ! -f "$BACKUP/CLAUDE.md" ] || \
+      ! cmp -s "$CFG/CLAUDE.md" "$BACKUP/CLAUDE.md"; }; then
+  pilotfish_published_backup_fail "published CLAUDE.md backup verification failed."
+elif [ "$BACKED_UP_SETTINGS" -eq 1 ] && \
+    { [ -L "$BACKUP/settings.json" ] || [ ! -f "$BACKUP/settings.json" ] || \
+      ! cmp -s "$CFG/settings.json" "$BACKUP/settings.json"; }; then
+  pilotfish_published_backup_fail "published settings.json backup verification failed."
+elif [ "$BACKED_UP_AGENTS" -eq 1 ] && \
+    { [ -L "$BACKUP/agents" ] || [ ! -d "$BACKUP/agents" ] || \
+      ! diff -r "$CFG/agents" "$BACKUP/agents" >/dev/null 2>&1; }; then
+  pilotfish_published_backup_fail "published agents backup verification failed."
+fi
 ```
 
-接著依照 [legacy uninstall procedure](./AGENT-INSTALL.md#uninstall)：只移除相符的 pilotfish agent files、唯一的 `pilotfish:begin/end` block，以及可歸因於該次安裝的 settings values。保留使用者自訂檔案與無關設定。重新執行上方 preflight；只有在輸出 no-legacy diagnostic 後才能繼續。
+只有 backup block 以 `0` 結束時才能繼續。若任何 copy 或 read-back verification 失敗，請在 legacy removal 或 Plugin installation 之前停止，並保持原始 configuration 不變。接著依照 [legacy uninstall procedure](./AGENT-INSTALL.md#uninstall)：只移除相符的 pilotfish agent files、唯一的 `pilotfish:begin/end` block，以及可歸因於該次安裝的 settings values。保留使用者自訂檔案與無關設定。重新執行上方 preflight；只有在輸出 no-legacy diagnostic 後才能繼續。
 
 ## 安裝前選擇主模型
 

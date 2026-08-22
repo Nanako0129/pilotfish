@@ -2,9 +2,11 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
-## Unreleased
+## v1.4.0 — 2026-08-23
 
 Productize the experimental macOS and Linux Claude Code Plugin beta with fail-closed legacy-global detection, hook-based ambient activation, exact `pilotfish:<role>` routing, and explicit security-reviewer web-egress limits. Linux is contract-qualified only for Ubuntu 20.04+, Debian 10+, and Alpine Linux 3.19+, with an otherwise-working officially supported Claude Code installation; these floors follow the [official system requirements](https://code.claude.com/docs/en/setup#system-requirements) checked 2026-08-22. macOS with Claude Code 2.1.239 is live-observed; Linux has not been tested, verified, or live-observed. Windows, stable reliability, and cross-version compatibility remain excluded. Plugin and marketplace versions render from root `VERSION`; install, migration, update, disable/enable, uninstall, rollback, validation, and dual-tag release procedures are documented.
+
+Make migration approachable without weakening its write boundary. The English and new Traditional Chinese Plugin guides include copy-paste prompts that let Claude Code resolve the effective configuration root, present one approval plan, preserve customized or unrelated state, migrate the legacy global install, and install the user-scope Plugin. Both Plugin migration and legacy install backups now fail closed: existing sources must copy to noncolliding destinations and pass read-back verification before any legacy removal, configuration write, or Plugin installation. Disposable success, copy-failure, verification-failure, collision, missing-source, and retention tests cover the documented shell blocks without touching user configuration.
 
 ## v1.3.10 — 2026-08-08
 
