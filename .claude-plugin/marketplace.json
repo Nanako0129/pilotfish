@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "pilotfish",
+  "owner": {
+    "name": "Nanako0129",
+    "url": "https://github.com/Nanako0129"
+  },
+  "description": "Marketplace for the pilotfish macOS and Linux Claude Code Plugin beta.",
+  "plugins": [
+    {
+      "name": "pilotfish",
+      "source": "./plugin",
+      "version": "1.3.10",
+      "description": "Hook-based ambient orchestration beta for macOS and Linux Claude Code.",
+      "category": "productivity",
+      "tags": [
+        "orchestration",
+        "subagents",
+        "delegation",
+        "beta"
+      ]
+    }
+  ]
+}

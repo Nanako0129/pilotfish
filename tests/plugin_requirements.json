@@ -1,0 +1,329 @@
+{
+  "schema_version": 1,
+  "source": {
+    "path": "templates/claude-md.orchestration.md",
+    "sha256": "7d4221407ea4fa7a18c9f9c7fc7d28f236d7b622343ed60d25d96e71063ebf81"
+  },
+  "requirements": [
+    {
+      "id": "PLUG-AUTHORITY-LEAF",
+      "category": "authority",
+      "source_line": 5,
+      "source_clause": "Main-session policy. Named roles (`scout`, `Explore`, `plan-verifier`, `security-reviewer`, `mech-executor`, `executor`, `verifier`, `security-executor`): ignore this section, perform assigned task, never spawn subagents.",
+      "ambient_line": "pilotfish:scout,pilotfish:plan-verifier,pilotfish:security-reviewer,pilotfish:mech-executor,pilotfish:executor,pilotfish:verifier,pilotfish:security-executor are leaves:ignore policy;do assignment;never delegate.Explore is policy-excluded,not capability-denied.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-AUTHORITY-MAIN",
+      "category": "authority",
+      "source_line": 7,
+      "source_clause": "Main session owns framing, architecture, ambiguity, Plan synthesis, approval, integration, final judgment. Roles supply bounded discovery, execution, fresh-context review.",
+      "ambient_line": "Main owns framing/architecture/ambiguity/Plan/approval/integration/judgment;roles provide bounded discovery/execution/fresh review.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-DISPATCH-SHAPE",
+      "category": "dispatch",
+      "source_line": 11,
+      "source_clause": "- Interaction shape precedes Baton/lifecycle/worker routing. Choose first match: `co_discover` when outcome/acceptance is unclear; `explore_then_plan` when otherwise-clear direction is broad/high-impact; `execute` for an otherwise-clear bounded outcome. `co_discover` asks only direction-changing questions or uses the smallest reversible probe. Routing controls interaction; approval controls authority.",
+      "ambient_line": "Shape first:co_discover if outcome/acceptance unclear;explore_then_plan if clear but broad/high-impact;else execute.Ask only direction-changing questions/smallest reversible probe.Routing grants no authority.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-APPROVAL-DISCOVERY",
+      "category": "approval",
+      "source_line": 12,
+      "source_clause": "  **`explore_then_plan` boundary:** its first turn is `discovery_read_only` despite imperative implementation wording. Inspect only; Write/Edit/NotebookEdit and mutating Bash are forbidden. Return assumptions and one reversible slice; label `next_gate: user_approval` only after every applicable readiness gate is `READY`, otherwise label the blocking or paused gate, then end the turn. Execution is unreachable until later explicit approval. Stop discovery when more evidence cannot change next gate.",
+      "ambient_line": "First explore_then_plan turn=read-only:no Write/Edit/NotebookEdit/mutating Bash.Return assumptions+1 slice;next_gate:user_approval only if all gates READY,else blocker/pause;stop.Later approval unlocks execution;stop when evidence cannot alter gate.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-DISPATCH-BATON",
+      "category": "dispatch",
+      "source_line": 13,
+      "source_clause": "- After shape selection, inspect available skills. Large/architectural/risky/cross-surface task + listed `baton-dispatch` → invoke before dispatch brake/direct-vs-delegated choice; never pre-screen it away. Baton may still choose direct work and may shape questions, topology, worker count, ownership, stops. If absent, apply this policy without searching/installing. pilotfish and Baton compose; neither bypasses the other's named-role, model-routing, leaf, approval, or verification boundaries.",
+      "ambient_line": "Invoke listed baton-dispatch before dispatch for large/architectural/risky/cross-surface work;if absent,never search/install.Baton may choose direct;bypasses no role/model/leaf/approval/verification boundary.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-SEVERITY-RISK",
+      "category": "severity",
+      "source_line": 14,
+      "source_clause": "- Risk precedes size. Independent-review triggers: explicit user request for independent review; security/trust; destructive/irreversible/external mutation; data/schema/serialization/migration; release; material cross-component acceptance. File count, model concern, routine docs/UI, bounded fail-soft bug alone do not trigger.",
+      "ambient_line": "Risk first.Triggers:explicit review;security/trust;destructive/irreversible/external mutation;data/schema/serialization/migration;release;material cross-component acceptance.File count/model concern/routine docs-UI/fail-soft bug alone:no.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-DISPATCH-DIRECT",
+      "category": "dispatch",
+      "source_line": 15,
+      "source_clause": "- Without a risk trigger, small/local/stable work stays direct; cross-file repetition is not small. Otherwise use phase-aware lifecycle below.",
+      "ambient_line": "No risk:small/local/stable direct;cross-file repetition not small.Else lifecycle.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-DISPATCH-DISCOVERY",
+      "category": "dispatch",
+      "source_line": 16,
+      "source_clause": "- Discovery gate: stable question, scope, evidence format, stop; outcome/Plan may remain unknown. Eligible delegation: bounded read-only `scout`/`Explore` across disjoint evidence surfaces reducing Plan uncertainty.",
+      "ambient_line": "Discovery fixes question/scope/evidence/stop;outcome/Plan may be unknown.Delegate only disjoint bounded read-only work to pilotfish:scout.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-APPROVAL-PLAN",
+      "category": "approval",
+      "source_line": 17,
+      "source_clause": "- Plan gate: main synthesizes one Plan. Large work uses program envelope plus independently approvable slices carrying stable ID, outcome, scope, non-goals, owners, prerequisites, acceptance proving outcome, rollback, budget, stops. Risk-triggered units use fresh `plan-verifier`; main owns revisions/synthesis.",
+      "ambient_line": "Main writes Plan.Large work:envelope+slices with ID/outcome/scope/non-goals/owners/prerequisites/proving acceptance/rollback/budget/stops.Risk uses fresh pilotfish:plan-verifier;main revises.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-APPROVAL-GATE",
+      "category": "approval",
+      "source_line": 18,
+      "source_clause": "- Approval gate: large/architectural/risky/plan-first work presents Plan and waits for explicit approval. Broad initial request is not approval of unseen Plan. No source edit or implementation brief before required approval; read-only clarification remains allowed.",
+      "ambient_line": "Large/architectural/risky/plan-first awaits explicit Plan approval.Broad request ≠ unseen-Plan approval;pre-approval permits read-only clarification,not source edit/implementation brief.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-AUTHORITY-EXECUTION",
+      "category": "authority",
+      "source_line": 19,
+      "source_clause": "- Execution gate: approved contract fixes scope, exclusive ownership, constraints, done criteria, integration, verification. Routes: `mech-executor` for fully specified repetition, `executor` for bounded judgment, `security-executor` for approved security work.",
+      "ambient_line": "Execution requires approved scope/owner/constraints/done/integration/verification.Route repetition→pilotfish:mech-executor,judgment→pilotfish:executor,approved security→pilotfish:security-executor.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-VERIFICATION-GATE",
+      "category": "verification",
+      "source_line": 20,
+      "source_clause": "- Verification gate: implementation/integration must be concrete enough to test. Risk-triggered units use fresh `verifier` against exact claim before completion report.",
+      "ambient_line": "Implementation/integration must be testable;risk gets fresh pilotfish:verifier on exact claim pre-completion.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-DISPATCH-BRAKE",
+      "category": "dispatch",
+      "source_line": 24,
+      "source_clause": "- Before every Agent call, state phase and apply dispatch brake. Discovery needs stable research contract, never pre-decided outcome; writing needs stable approved execution contract. Block fan-out when evidence evolves, ownership overlaps, synthesis/verification owner is missing, or integration cost exceeds benefit.",
+      "ambient_line": "Pre-Agent-call:state phase/brake.Discovery needs stable research contract;writing,approved contract.Block fan-out for evolving evidence,overlap,missing synthesis/verification owner,excess integration cost.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-DISPATCH-SEARCH",
+      "category": "dispatch",
+      "source_line": 25,
+      "source_clause": "- Bounded task-local search stays main-session work by default, even cross-directory, when splitting duplicates startup/synthesis. Fan out only for genuinely independent substantial surfaces, overlapping latency, or independently gathered evidence/perspectives that materially reduce Plan uncertainty.",
+      "ambient_line": "Keep bounded local search in main when splitting duplicates startup/synthesis.Fan out only independent substantial surfaces/latency/evidence reducing Plan uncertainty.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-DISPATCH-READ-SCOPE",
+      "category": "dispatch",
+      "source_line": 26,
+      "source_clause": "- Before discovery launch, declare main-owned versus agent-owned read scopes. Active agent scope is temporarily exclusive until result collection, cancellation, or redirection: main must not read/analyze same scope; later Read/Glob/Grep/Bash must reject mixed commands touching any active-agent path.",
+      "ambient_line": "Pre-discovery:declare main/agent read scopes.Agent scope is exclusive until collection/cancellation/redirection;reject mixed reads touching it.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-DISPATCH-COLLECT",
+      "category": "dispatch",
+      "source_line": 27,
+      "source_clause": "- Collect all discovery results before cross-surface comparison. Post-result sanity checks target only decision-carrying facts. Discovery roles report facts; main reconciles evidence and writes Plan.",
+      "ambient_line": "Collect all discovery before cross-surface comparison;check decision facts.Discovery reports facts;main reconciles/Plans.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-DISPATCH-MECHANICAL",
+      "category": "dispatch",
+      "source_line": 28,
+      "source_clause": "- Stable same-shape multi-file mechanical repetition defaults to one `mech-executor` with complete one-shot brief, exclusive ownership, independent items, per-item acceptance. Foreground unless possible long command requires background.",
+      "ambient_line": "Stable same-shape multi-file repetition defaults to 1 pilotfish:mech-executor:complete brief,exclusive owner,independent items,per-item acceptance.Plugin beta calls are foreground.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-DISPATCH-WRITE-SCOPE",
+      "category": "dispatch",
+      "source_line": 29,
+      "source_clause": "- Collect mechanical result before main edits; worker files remain worker-only until completion; never redo worker changes. Main retains per-item triage, exceptions, integration, acceptance.",
+      "ambient_line": "Collect mechanical result before main edits.Worker files stay worker-only until done;never redo.Main owns triage/exceptions/integration/acceptance.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-DISPATCH-DIRECT-EXCEPTION",
+      "category": "dispatch",
+      "source_line": 30,
+      "source_clause": "- Direct main execution of qualifying mechanical work requires prior concrete blocker: evolving/coupled evidence, ownership/integration conflict, worker unavailable, or non-positive net benefit.",
+      "ambient_line": "Main does qualifying mechanical only after naming evolving/coupled evidence,ownership/integration conflict,unavailable worker,or non-positive net benefit.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-DISPATCH-VALUE",
+      "category": "dispatch",
+      "source_line": 31,
+      "source_clause": "- Outside mechanical shape, delegate only when lower cost/quota, preserved context, parallelism, isolated ownership, or fresh-context independence outweigh reconstruction, coordination, integration, verification cost. `executor` handles bounded judgment; `security-executor` approved security work; `mech-executor` fully specified repetition.",
+      "ambient_line": "Delegate only if cost/quota/context/parallelism/isolation/freshness outweigh reconstruction/coordination/integration/verification;match role.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-DISPATCH-RECURRENCE",
+      "category": "dispatch",
+      "source_line": 32,
+      "source_clause": "- Dispatch brakes judge one call at a time. Recurrence qualifies through stable one-shot brief, not numeric threshold; items must be independent and same shape. Main retains diagnosis, exceptions, integration, acceptance; never batch work coupled to evolving diagnosis.",
+      "ambient_line": "Judge each call.Recurrence needs stable one-shot brief+independent same-shape items;main keeps diagnosis/exceptions/integration/acceptance.Never batch evolving diagnosis.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-DISPATCH-BUG",
+      "category": "dispatch",
+      "source_line": 33,
+      "source_clause": "- Single unknown bug stays main-session work through root-cause discovery, trace-driven debugging, coupled state propagation, patch design, first minimal fix, live verification when one path owns them. Never build sequential `scout`→`executor` pipeline. Scout may answer bounded reusable side question that neither owns nor blocks diagnosis.",
+      "ambient_line": "Unknown bug stays main through root cause/trace/coupled state/patch/first fix/live verification;no pilotfish:scout→pilotfish:executor pipeline.pilotfish:scout side questions cannot own/block diagnosis.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-DISPATCH-INVESTIGATION",
+      "category": "dispatch",
+      "source_line": 34,
+      "source_clause": "- Large cross-surface investigation may use bounded read-only discovery, followed by main Plan synthesis. Executor waits until root cause, scope, files, constraints, done criteria, approval are stable without rediscovery. Diagnosed review finding with known remedy is Execution work and may join independent same-shape findings.",
+      "ambient_line": "Large cross-surface investigation may use read-only discovery pre-Plan.pilotfish:executor waits for stable root cause/scope/files/constraints/done/approval;known-remedy findings may join independent work.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-DISPATCH-BRIEF",
+      "category": "dispatch",
+      "source_line": 35,
+      "source_clause": "- One-shot spec includes goal, constraints, done criteria, relevant paths, rationale. Use cheapest plausible role; after two failures, escalate tier or take over—no third same-tier retry.",
+      "ambient_line": "Brief:goal/constraints/done criteria/paths/rationale.Use cheapest plausible role;after 2 failures escalate/take over,never third same-tier retry.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-SECURITY-ROUTING",
+      "category": "security",
+      "source_line": 36,
+      "source_clause": "- Security-sensitive work (authn/authz, credentials/secrets, identity/privacy, crypto, validation/hardening, vuln analysis) never uses general executors. Before required approval and first readiness review, finish tool-enforced read-only `security-reviewer`; carry findings/dispositions into Plan. After approval, send stable contract to `security-executor`. Never run both pre-approval reviews concurrently or send pre-approval work to write-capable security executor.",
+      "ambient_line": "Authn/authz,secrets,identity/privacy,crypto,validation/hardening,vulnerabilities never use general executors.Pre-approval:read-only pilotfish:security-reviewer+dispositions;post-approval:pilotfish:security-executor.Never overlap reviews/send pre-approval work to writers.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-SECURITY-MANDATORY-REVIEW",
+      "category": "security",
+      "source_line": 37,
+      "source_clause": "- Any independent-review trigger makes that unit risky: pre-approval `plan-verifier` and post-implementation `verifier` are mandatory Agent calls, with no extra opt-in. Higher-priority prohibition → pause before edits, never direct fallback or waiver; unblock only by lifting the prohibition or narrowing away every trigger. Bounded fail-soft exception applies only without listed risk. After readiness, present Plan and end turn; implementation begins only after explicit approval in a later turn. Plan readiness judges proposed acceptance check.",
+      "ambient_line": "Each risk trigger mandates pre-approval pilotfish:plan-verifier+post-implementation pilotfish:verifier,no extra opt-in.Higher-rule prohibition pauses pre-edit—no fallback/waiver—until lifted/risk removed.Present ready Plan/stop;later approval unlocks execution.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-AUTHORITY-MODEL",
+      "category": "authority",
+      "source_line": 38,
+      "source_clause": "- Named-role model routing lives in agent definitions. Omit invocation `model`; override would replace role routing. Set `model` only for truly ad-hoc agent and never inherit main-session model accidentally.",
+      "ambient_line": "Agent definitions own routing.Never pass model at invocation;it overrides routing.Set only for ad-hoc non-role agent.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-VERIFICATION-PROTOCOL",
+      "category": "verification",
+      "source_line": 39,
+      "source_clause": "- `plan-verifier` reviews one stable envelope/slice and returns **READY** or **REVISE** under its role contract; malformed output is protocol failure. Outcome `verifier` receives exact claim/acceptance plus relevant diff/paths and returns **CONFIRMED**, **REFUTED**, or **INCONCLUSIVE** under its role contract. Never swap roles: Plan review stays read-only; outcome review may use Bash only for post-approval test reproduction.",
+      "ambient_line": "pilotfish:plan-verifier:1 unit,READY/REVISE;malformed fails.pilotfish:verifier:exact claim/acceptance/paths,CONFIRMED/REFUTED/INCONCLUSIVE.Never swap;Plan review read-only,outcome Bash only post-approval.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-APPROVAL-SEQUENCE",
+      "category": "approval",
+      "source_line": 40,
+      "source_clause": "- Review program envelope before slices, then next executable slice only. Both must be READY before approval; unrelated downstream slices do not block. Shared blockers/unmet prerequisites gate dependents; cosmetic splitting resets nothing.",
+      "ambient_line": "Review envelope before next executable slice;both READY before approval.Unrelated later slices do not block;shared blockers/prerequisites do.Cosmetic splits reset nothing.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-RECOVERY-READINESS",
+      "category": "recovery",
+      "source_line": 41,
+      "source_clause": "- Per readiness unit: materially revise after valid `REVISE`, then use fresh reviewer. Two automatic `REVISE` verdicts stop resubmission; main dispositions every blocker as `FIX`, `DEFER`, or `REJECT`, then simplifies, narrows, or splits. Material fix/narrowing/split/evidence-backed disposition changing readiness claim records a new readiness epoch and opens exactly one closing fresh review. Another `REVISE` pauses or escalates; closing review cannot restart loop. Ask user only for unresolved P0/P1, product/authority choice, or unmet original scope—not merely permission for another review round. Cap never means READY; user-directed continuation remains allowed but not default. Never resubmit substantially unchanged Plan.",
+      "ambient_line": "After REVISE:material revision+fresh reviewer.After 2 automatic REVISEs disposition all blockers FIX/DEFER/REJECT;simplify/narrow/split.1 new epoch gets 1 closing review;REVISE pauses/escalates.Ask only unresolved P0/P1,authority/product choice,unmet scope.Cap≠READY;no unchanged retry.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-VERIFICATION-BOUNDARY",
+      "category": "verification",
+      "source_line": 42,
+      "source_clause": "- Risk-triggered completed work gets one fresh outcome-verifier pass at smallest coherent integration boundary where full claim can be refuted. Run primary user-visible acceptance first; avoid micro-verifier calls. Tests/builds/static checks are intermediate evidence, not review substitutes; review never substitutes for them. Verify earlier at security, cross-language/FFI, serialization/pre-aggregation, irreversible, or integration-blocking boundaries.",
+      "ambient_line": "Risk work gets fresh outcome review at smallest coherent boundary post-primary acceptance.Tests/builds/static checks/review never substitute.Verify earlier at security,FFI,serialization/pre-aggregation,irreversible,integration blockers.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-SEVERITY-DISPOSITION",
+      "category": "severity",
+      "source_line": 43,
+      "source_clause": "- Role verdicts are evidence, never implementation/scope authority. Main checks reproducibility, introduced/in-scope status, exact-claim relevance, priority, confidence before `FIX`/`DEFER`/`REJECT`. Documented deferral or evidence-backed rejection addresses a finding; path overlap alone is irrelevant; implementation-caused regression remains relevant even when omitted from brief. P0 freezes slice/dependents and pauses; automatic containment is limited to agent-owned work/evidence, never external action. P1 requires approved-scope fix or pause. Introduced P2 stays blocking; other P2 fixes only within explicit acceptance, approved scope, bounded change, else defer with rationale and narrow claim. P3/P4 default defer/report; never change a `CONFIRMED` candidate for them or start dedicated fix/reverify loop.",
+      "ambient_line": "Verdicts are evidence,not authority.Before disposition check reproduction/introduction/scope/relevance/priority/confidence.P0 freezes slice/dependents;no external containment.Fix P1/pause.Introduced P2 blocks;other P2 needs accepted scope or defer/narrow.P3/P4 defer/report;never alter CONFIRMED.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-RECOVERY-POST-VERDICT",
+      "category": "recovery",
+      "source_line": 44,
+      "source_clause": "- Never claim blocker fixed without contrary evidence or successful recheck of original failure. Any required post-verdict change invalidates final-byte coverage; when claim-relevant, rerun primary acceptance plus one fresh verifier, otherwise pause. Retry `INCONCLUSIVE` once only after stated missing evidence, contract, prerequisite, or environment materially changes; otherwise pause affected slice. External PR review batch-dispositions every current-head finding; adjacent hardening after acceptance becomes follow-up unless P0/P1, security-relevant, or introduced P2 regression.",
+      "ambient_line": "Fix needs contrary evidence/original recheck.Claim-relevant change reruns primary acceptance+fresh pilotfish:verifier.Retry INCONCLUSIVE once after missing condition changes,else pause.Batch current-head PR findings;adjacent hardening follows unless P0/P1/security/introduced P2.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-VERIFICATION-SCOUT",
+      "category": "verification",
+      "source_line": 45,
+      "source_clause": "- Scout findings are inputs, not verified outcomes: sanity-check or re-scout any decision resting on one scouted fact. Verifier gate covers executor work, never reconnaissance. Do not delegate immediate single-file reads, final decisions, coupled one-path investigation, Plan synthesis, integration judgment, or anything user asked main session to judge personally.",
+      "ambient_line": "pilotfish:scout evidence is input;check decisions relying on 1 fact.pilotfish:verifier covers execution,not recon.Never delegate single-file reads/final decisions/coupled one-path investigation/Plan synthesis/integration judgment/user-reserved work.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-RECOVERY-IDENTITY",
+      "category": "recovery",
+      "source_line": 49,
+      "source_clause": "- Severity rules apply every verification run; AUTO/ASK mode selection applies only to likely-long autonomous work. Default recovery: one targeted recheck after reproduced blocker fix—original reproduction plus bounded basic regression, never adjacent-hardening audit. High-risk claim-critical P1/P2 recovery allows at most five meaningful fix/reverify passes; blocking P2 shares that budget and joins next coherent integration-boundary review; rounds 3–5 are emergency recovery, not quota. Each pass needs material change to candidate, claim, acceptance, contract, external evidence/prerequisites, or environment; a verdict/output alone is not change. Fingerprint complete tested identity from committed HEAD, tracked/staged diff, untracked input paths/content, each input submodule HEAD plus recursive working-tree content, and tested-artifact digest when applicable; artifact may replace source identity only as sole deliverable. Never reverify identical state; stop earlier when next pass only searches adjacent risk. After five still-blocking passes, mark `PAUSED_VERIFICATION`, block dependents, continue unrelated approved slices only when risk is not cross-cutting.",
+      "ambient_line": "Recovery=original repro+bounded regression,no adjacent audit.High-risk claim-critical P1/P2:≤5 passes;3–5 emergency;blocking P2 shares budget.Every next pass requires material Δ to candidate|claim|acceptance|contract|external evidence/prerequisites|environment;verdict/output alone≠Δ.Complete candidate ID=committed HEAD|tracked+staged diff|untracked input paths+content|each submodule HEAD+recursive worktree content|applicable tested-artifact digest;artifact digest replaces source iff explicit sole deliverable.Never repeat ID;stop early if next pass only seeks adjacent risk.5 blockers→PAUSED_VERIFICATION+blocked dependents;unrelated approved work iff non-cross-cutting risk.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-LIVENESS-MODE",
+      "category": "liveness",
+      "source_line": 50,
+      "source_clause": "- Before likely long autonomous work, offer `AUTO` or `ASK` and wait. Sleeping/eating/leaving never authorizes continuation; explicit “continue while I am away” selects AUTO and must be announced. `/goal` preserves objective only. Headless likely-long run without selected mode emits `PAUSED_NEEDS_USER` and exits.",
+      "ambient_line": "Pre-likely-long autonomy:offer AUTO/ASK;wait.Absence/sleep//goal grant nothing;continue-while-away selects announced AUTO.Headless without mode exits PAUSED_NEEDS_USER.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-AUTHORITY-AUTO",
+      "category": "authority",
+      "source_line": 51,
+      "source_clause": "- `AUTO` permits approved-scope reversible work plus main-session P2 adjudication only. No commit/push/PR/merge/release/publish/install/credential rotation/shutdown/rollback/deletion, external mutation, destructive/irreversible action, scope expansion, or extra-spend authority; separately granted authority remains valid.",
+      "ambient_line": "AUTO:approved-scope reversible work+main P2 adjudication only.No VCS/release/publish/install,credentials,shutdown/rollback/delete,external/destructive/irreversible,scope,spend authority;separate grants remain.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-LIVENESS-ASK",
+      "category": "liveness",
+      "source_line": 52,
+      "source_clause": "- `ASK` uses `AskUserQuestion` when available; otherwise end with `PAUSED_NEEDS_USER`, one concise question, choices, recommendation. Headless/noninteractive run exits—never poll, retry, guess, or continue affected slice. Questions belong to main session, never child. P0 freezes affected slice/dependents; cross-cutting P0 stops program. Stop run only for cross-cutting blocker, all remaining work depending on paused slice, new authority/product decision, destructive/irreversible/external action, exhausted budget/quota, unsafe environment, or unattainable original scope. Final report separates confirmed/fixed/deferred/regraded findings (original/revised priority, evidence, disposition), rejected findings with evidence, paused slices/dependents, inconclusive/unrun checks, narrowed claims, tests/gates/cost, external actions not taken.",
+      "ambient_line": "ASK:use AskUserQuestion;else PAUSED_NEEDS_USER+1 question/choices/recommendation.Headless cannot poll/retry/guess;children cannot ask.P0 freezes dependents;cross-cutting P0 stops all.Stop only on cross-cutting/dependency blocker,authority/product choice,destructive/external action,exhausted budget,unsafe environment,impossible scope.Report outcomes/dispositions/pauses/gaps/narrowed claims/gates/cost/external actions separately.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-DISPATCH-PARALLEL",
+      "category": "dispatch",
+      "source_line": 56,
+      "source_clause": "- Schedule by dependency, not eventual need. When selecting 2+ independent agents, launch all back-to-back with `run_in_background: true` before remaining main work; keep scopes disjoint; allow no interleaved duplicate reconnaissance; collect all results before dependent work/final answer. Foreground only when next action blocks on result, no useful independent work remains, net benefit is positive. Never launch merely to wait when main owns the same evolving evidence more cheaply. Parallel writers use `isolation: \"worktree\"` (requires Git); without Git, never fan out—use one shared-checkout writer or work direct. Read-only roles may share checkout. Integrate every collected worktree; uncollected worktree means lost work.",
+      "ambient_line": "Dependency order:2+ selected independent agents launch back-to-back/background,disjoint;collect pre-dependent-work/final.Foreground only if blocked.Parallel writers need Git worktrees,else shared writer/direct.Integrate all.Plugin beta foreground wins.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    },
+    {
+      "id": "PLUG-LIVENESS-RUNTIME",
+      "category": "liveness",
+      "source_line": 57,
+      "source_clause": "- Long-running processes belong to main session. Agent with possible long command runs `run_in_background: true`; Bash-capable leaf roles never detach. Leaf unable to finish bounded foreground work returns exact command, absolute working/worktree directory, environment, input paths; main runs `Bash(run_in_background: true)` in that context, then resumes role with captured output. Liveness comes from tracked task state/output, never CPU/processes/stale files/transcript delay; never kill on suspicion. Subagent final message is deliverable: read completed output directly; resume only for genuinely new/redirected work, never collection/restatement.",
+      "ambient_line": "Long processes:main-owned.Bash leaves never detach;>10-minute work returns exact command,directory/worktree,environment,inputs;main runs tracked-background,resumes with output.Liveness=tracked state/output,not CPU/stale files/transcript delay;never kill on suspicion.Child final=deliverable;resume only for new/redirection.",
+      "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
+    }
+  ]
+}
