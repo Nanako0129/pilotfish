@@ -1,6 +1,8 @@
-# pilotfish — Agent Install Runbook
+# pilotfish — Legacy Global Agent Install Runbook
 
 > This document is written for an AI agent (Claude Code) performing the installation on a user's machine. If you are that agent: follow the steps in order, never skip the approval gate in Step 2, and prefer merging over overwriting at every point. A human can follow the same steps by hand.
+
+> New macOS users can use the [Claude Code Plugin beta](./PLUGIN-INSTALL.md) instead. The Plugin and this legacy global installation must not coexist.
 
 ## What you are installing
 

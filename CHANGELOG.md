@@ -2,6 +2,10 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
+## Unreleased
+
+Productize the macOS Claude Code Plugin beta with fail-closed legacy-global detection, hook-based ambient activation, exact `pilotfish:<role>` routing, and explicit security-reviewer web-egress limits. Plugin and marketplace versions now render from root `VERSION`; install, migration, update, disable/enable, uninstall, rollback, validation, and dual-tag release procedures are documented without claiming stable, cross-platform, or cross-version reliability.
+
 ## v1.3.10 — 2026-08-08
 
 Normalize the project name to lowercase across the live policy, documentation, and diagrams. A regression test now rejects title-case or uppercase variants on those surfaces, while the release checklist requires lowercase prose, unwrapped GitHub Release Markdown, and links that exist on the published tag.

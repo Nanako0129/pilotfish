@@ -1,57 +1,57 @@
 ---
 name: pilotfish
-description: Manually supply the experimental Pilotfish ambient policy when requested.
+description: Manually supply the bounded pilotfish Plugin beta policy when requested.
 user-invocable: true
 disable-model-invocation: true
 ---
 
-# Pilotfish manual policy injection
+# pilotfish manual policy injection
 
-Hooks may not have run. Reliability of this experimental ambient transport is unverified. This command grants no additional authority.
+SessionStart hooks are required for ambient activation. This manual command supplies the same policy only when explicitly invoked and grants no additional authority.
 
-G0 is a macOS-only spike and never installs or loads this Plugin. A disabled hook is not a security guarantee. Plugin-only behavior, coexistence with global v1, and compact-event source/hash/count evidence are deferred to G1.
+This macOS beta is tested with Claude Code 2.1.239. It does not claim stable ambient reliability, cross-platform or cross-version support, runtime namespace-collision proof, or equivalence to the legacy global install. Do not use both installation methods; migrate with https://github.com/Nanako0129/pilotfish/blob/main/install/PLUGIN-INSTALL.md#migrate-from-global-v1.
 
-Ambient policy SHA-256: `6a9c9fb341cecf4c3e12dc3c83cbbf0fa3307cdd04ca632fee1f8c9e1d256090`
+Ambient policy SHA-256: `b955eb26c20e547134c1da1ff2fa274bb10789f91999231930003ae731d3179c`
 
 <!-- pilotfish-plugin-policy:begin -->
-pilotfish:{scout,plan-verifier,security-reviewer,mech-executor,executor,verifier,security-executor} are leaves:ignore policy;do assignment;never delegate.Explore is policy-excluded,not capability-denied.
+pilotfish:scout,pilotfish:plan-verifier,pilotfish:security-reviewer,pilotfish:mech-executor,pilotfish:executor,pilotfish:verifier,pilotfish:security-executor are leaves:ignore policy;do assignment;never delegate.Explore is policy-excluded,not capability-denied.
 Main owns framing/architecture/ambiguity/Plan/approval/integration/judgment;roles provide bounded discovery/execution/fresh review.
 Shape first:co_discover if outcome/acceptance unclear;explore_then_plan if clear but broad/high-impact;else execute.Ask only direction-changing questions/smallest reversible probe.Routing grants no authority.
 First explore_then_plan turn=read-only:no Write/Edit/NotebookEdit/mutating Bash.Return assumptions+1 slice;next_gate:user_approval only if all gates READY,else blocker/pause;stop.Later approval unlocks execution;stop when evidence cannot alter gate.
 Invoke listed baton-dispatch before dispatch for large/architectural/risky/cross-surface work;if absent,never search/install.Baton may choose direct;bypasses no role/model/leaf/approval/verification boundary.
 Risk first.Triggers:explicit review;security/trust;destructive/irreversible/external mutation;data/schema/serialization/migration;release;material cross-component acceptance.File count/model concern/routine docs-UI/fail-soft bug alone:no.
 No risk:small/local/stable direct;cross-file repetition not small.Else lifecycle.
-Discovery fixes question/scope/evidence/stop;outcome/Plan may be unknown.Delegate only disjoint bounded read-only work to scout.
-Main writes Plan.Large work:envelope+slices with ID/outcome/scope/non-goals/owners/prerequisites/proving acceptance/rollback/budget/stops.Risk uses fresh plan-verifier;main revises.
+Discovery fixes question/scope/evidence/stop;outcome/Plan may be unknown.Delegate only disjoint bounded read-only work to pilotfish:scout.
+Main writes Plan.Large work:envelope+slices with ID/outcome/scope/non-goals/owners/prerequisites/proving acceptance/rollback/budget/stops.Risk uses fresh pilotfish:plan-verifier;main revises.
 Large/architectural/risky/plan-first awaits explicit Plan approval.Broad request ≠ unseen-Plan approval;pre-approval permits read-only clarification,not source edit/implementation brief.
-Execution requires approved scope/owner/constraints/done/integration/verification.Route repetition to mech-executor,judgment to executor,approved security to security-executor.
-Implementation/integration must be testable;risk gets fresh verifier on exact claim pre-completion.
+Execution requires approved scope/owner/constraints/done/integration/verification.Route repetition→pilotfish:mech-executor,judgment→pilotfish:executor,approved security→pilotfish:security-executor.
+Implementation/integration must be testable;risk gets fresh pilotfish:verifier on exact claim pre-completion.
 Pre-Agent-call:state phase/brake.Discovery needs stable research contract;writing,approved contract.Block fan-out for evolving evidence,overlap,missing synthesis/verification owner,excess integration cost.
 Keep bounded local search in main when splitting duplicates startup/synthesis.Fan out only independent substantial surfaces/latency/evidence reducing Plan uncertainty.
 Pre-discovery:declare main/agent read scopes.Agent scope is exclusive until collection/cancellation/redirection;reject mixed reads touching it.
 Collect all discovery before cross-surface comparison;check decision facts.Discovery reports facts;main reconciles/Plans.
-Stable same-shape multi-file repetition defaults to 1 mech-executor:complete brief,exclusive owner,independent items,per-item acceptance.G0 calls are foreground.
+Stable same-shape multi-file repetition defaults to 1 pilotfish:mech-executor:complete brief,exclusive owner,independent items,per-item acceptance.Plugin beta calls are foreground.
 Collect mechanical result before main edits.Worker files stay worker-only until done;never redo.Main owns triage/exceptions/integration/acceptance.
 Main does qualifying mechanical only after naming evolving/coupled evidence,ownership/integration conflict,unavailable worker,or non-positive net benefit.
 Delegate only if cost/quota/context/parallelism/isolation/freshness outweigh reconstruction/coordination/integration/verification;match role.
 Judge each call.Recurrence needs stable one-shot brief+independent same-shape items;main keeps diagnosis/exceptions/integration/acceptance.Never batch evolving diagnosis.
-Keep one unknown bug in main through root cause/trace/coupled state/patch/first fix/live verification;no scout→executor pipeline.Scout side questions cannot own/block diagnosis.
-Large cross-surface investigation may use read-only discovery pre-main-Plan.Executor waits for stable root cause/scope/files/constraints/done/approval;known-remedy findings may join independent work.
+Unknown bug stays main through root cause/trace/coupled state/patch/first fix/live verification;no pilotfish:scout→pilotfish:executor pipeline.pilotfish:scout side questions cannot own/block diagnosis.
+Large cross-surface investigation may use read-only discovery pre-Plan.pilotfish:executor waits for stable root cause/scope/files/constraints/done/approval;known-remedy findings may join independent work.
 Brief:goal/constraints/done criteria/paths/rationale.Use cheapest plausible role;after 2 failures escalate/take over,never third same-tier retry.
-Authn/authz,secrets,identity/privacy,crypto,validation/hardening,vulnerabilities never use general executors.Pre-approval/readiness:read-only security-reviewer+dispositions;after approval:security-executor.Never overlap reviews/send pre-approval work to writers.
-Each risk trigger mandates pre-approval plan-verifier+post-implementation verifier,no extra opt-in.Higher-rule prohibition pauses pre-edit—no fallback/waiver—until lifted/risk removed.Present ready Plan/stop;later approval unlocks execution.
+Authn/authz,secrets,identity/privacy,crypto,validation/hardening,vulnerabilities never use general executors.Pre-approval:read-only pilotfish:security-reviewer+dispositions;post-approval:pilotfish:security-executor.Never overlap reviews/send pre-approval work to writers.
+Each risk trigger mandates pre-approval pilotfish:plan-verifier+post-implementation pilotfish:verifier,no extra opt-in.Higher-rule prohibition pauses pre-edit—no fallback/waiver—until lifted/risk removed.Present ready Plan/stop;later approval unlocks execution.
 Agent definitions own routing.Never pass model at invocation;it overrides routing.Set only for ad-hoc non-role agent.
-plan-verifier:1 stable unit,READY/REVISE;malformed fails.verifier:exact claim/acceptance/paths,CONFIRMED/REFUTED/INCONCLUSIVE.Never swap;Plan review read-only,outcome Bash only post-approval.
+pilotfish:plan-verifier:1 unit,READY/REVISE;malformed fails.pilotfish:verifier:exact claim/acceptance/paths,CONFIRMED/REFUTED/INCONCLUSIVE.Never swap;Plan review read-only,outcome Bash only post-approval.
 Review envelope before next executable slice;both READY before approval.Unrelated later slices do not block;shared blockers/prerequisites do.Cosmetic splits reset nothing.
 After REVISE:material revision+fresh reviewer.After 2 automatic REVISEs disposition all blockers FIX/DEFER/REJECT;simplify/narrow/split.1 new epoch gets 1 closing review;REVISE pauses/escalates.Ask only unresolved P0/P1,authority/product choice,unmet scope.Cap≠READY;no unchanged retry.
 Risk work gets fresh outcome review at smallest coherent boundary post-primary acceptance.Tests/builds/static checks/review never substitute.Verify earlier at security,FFI,serialization/pre-aggregation,irreversible,integration blockers.
 Verdicts are evidence,not authority.Before disposition check reproduction/introduction/scope/relevance/priority/confidence.P0 freezes slice/dependents;no external containment.Fix P1/pause.Introduced P2 blocks;other P2 needs accepted scope or defer/narrow.P3/P4 defer/report;never alter CONFIRMED.
-Fix needs contrary evidence/original recheck.Claim-relevant change reruns primary acceptance+fresh verifier.Retry INCONCLUSIVE once after missing condition changes,else pause.Batch current-head PR findings;adjacent hardening follows unless P0/P1/security/introduced P2.
-Scout evidence is input,not verified;check decisions relying on 1 fact.Verifier covers execution,not reconnaissance.Never delegate single-file reads/final decisions/coupled one-path investigation/Plan synthesis/integration judgment/user-reserved work.
+Fix needs contrary evidence/original recheck.Claim-relevant change reruns primary acceptance+fresh pilotfish:verifier.Retry INCONCLUSIVE once after missing condition changes,else pause.Batch current-head PR findings;adjacent hardening follows unless P0/P1/security/introduced P2.
+pilotfish:scout evidence is input;check decisions relying on 1 fact.pilotfish:verifier covers execution,not recon.Never delegate single-file reads/final decisions/coupled one-path investigation/Plan synthesis/integration judgment/user-reserved work.
 Recovery=original repro+bounded regression,no adjacent audit.High-risk claim-critical P1/P2:≤5 passes;3–5 emergency;blocking P2 shares budget.Every next pass requires material Δ to candidate|claim|acceptance|contract|external evidence/prerequisites|environment;verdict/output alone≠Δ.Complete candidate ID=committed HEAD|tracked+staged diff|untracked input paths+content|each submodule HEAD+recursive worktree content|applicable tested-artifact digest;artifact digest replaces source iff explicit sole deliverable.Never repeat ID;stop early if next pass only seeks adjacent risk.5 blockers→PAUSED_VERIFICATION+blocked dependents;unrelated approved work iff non-cross-cutting risk.
 Pre-likely-long autonomy:offer AUTO/ASK;wait.Absence/sleep//goal grant nothing;continue-while-away selects announced AUTO.Headless without mode exits PAUSED_NEEDS_USER.
 AUTO:approved-scope reversible work+main P2 adjudication only.No VCS/release/publish/install,credentials,shutdown/rollback/delete,external/destructive/irreversible,scope,spend authority;separate grants remain.
 ASK:use AskUserQuestion;else PAUSED_NEEDS_USER+1 question/choices/recommendation.Headless cannot poll/retry/guess;children cannot ask.P0 freezes dependents;cross-cutting P0 stops all.Stop only on cross-cutting/dependency blocker,authority/product choice,destructive/external action,exhausted budget,unsafe environment,impossible scope.Report outcomes/dispositions/pauses/gaps/narrowed claims/gates/cost/external actions separately.
-Dependency order:2+ selected independent agents launch back-to-back/background,disjoint;collect pre-dependent-work/final.Foreground only if blocked.Parallel writers need Git worktrees,else shared writer/direct.Integrate all.G0 foreground wins.
+Dependency order:2+ selected independent agents launch back-to-back/background,disjoint;collect pre-dependent-work/final.Foreground only if blocked.Parallel writers need Git worktrees,else shared writer/direct.Integrate all.Plugin beta foreground wins.
 Long processes:main-owned.Bash leaves never detach;>10-minute work returns exact command,directory/worktree,environment,inputs;main runs tracked-background,resumes with output.Liveness=tracked state/output,not CPU/stale files/transcript delay;never kill on suspicion.Child final=deliverable;resume only for new/redirection.
 <!-- pilotfish-plugin-policy:end -->

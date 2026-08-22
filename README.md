@@ -3,11 +3,12 @@
 > Small, fast role agents handle volume work while the frontier main session
 > keeps planning, approval, integration, and final judgment.
 
-**pilotfish** is a global multi-model orchestration policy for
-[Claude Code](https://code.claude.com). New installs use the `opus` family for
-the main session, Sonnet and Haiku for bounded execution and reconnaissance,
-and fresh Opus contexts for risk-triggered review. It installs configuration,
-not a runtime service, and writes nothing into your projects.
+**pilotfish** is a multi-model orchestration policy for
+[Claude Code](https://code.claude.com). The [macOS Plugin beta](./install/PLUGIN-INSTALL.md)
+adds hook-based ambient activation; the global configuration install remains a
+legacy alternative. The policy uses the `opus` family for the main session,
+Sonnet and Haiku for bounded execution and reconnaissance, and fresh Opus
+contexts for risk-triggered review.
 
 [繁體中文](./README.zh-TW.md)
 
@@ -41,6 +42,9 @@ wins every task. The rationale and measurements live in
 | Codex CLI | [pilotfish-codex](https://github.com/miyago9267/pilotfish-codex) |
 
 ## How it works
+
+The Plugin beta packages the policy and namespaced roles under Claude Code's
+native Plugin lifecycle. The legacy global install uses these direct targets:
 
 | Layer | Installed target | Responsibility |
 |---|---|---|
@@ -126,6 +130,17 @@ system-prompt bytes.
 
 ## Install
 
+### Plugin beta for macOS
+
+Use the [Plugin beta install guide](./install/PLUGIN-INSTALL.md) for native
+user-scope marketplace commands, migration from global v1, update,
+disable/enable, uninstall, and rollback. It is tested with Claude Code 2.1.239,
+requires SessionStart hooks, and must not coexist with the legacy global
+install. This beta does not claim stable reliability, cross-platform or
+cross-version support, or runtime namespace-collision proof.
+
+### Legacy global install
+
 Clone the reviewed release, start Claude Code from that checkout, and ask it to
 follow the local runbook:
 
@@ -164,6 +179,7 @@ in [install/AGENT-INSTALL.md](./install/AGENT-INSTALL.md).
 
 | Task | Where to go |
 |---|---|
+| Install, update, disable, or remove the macOS Plugin beta | [Plugin beta guide](./install/PLUGIN-INSTALL.md) |
 | Tune models, effort, delegation, or managed settings | [Usage guide](./docs/usage.md) |
 | Activate pilotfish for a task or session | [Install `/pilotfish` or the CLI wrapper](./install/ACTIVATION-INSTALL.md) |
 | Update an existing install | [Runbook: Updating an existing install](./install/AGENT-INSTALL.md#updating-an-existing-install) |

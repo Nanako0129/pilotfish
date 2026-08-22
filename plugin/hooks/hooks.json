@@ -1,5 +1,5 @@
 {
-  "description": "Experimental static Pilotfish ambient policy transport.",
+  "description": "pilotfish Plugin beta ambient policy activation for macOS Claude Code.",
   "hooks": {
     "SessionStart": [
       {

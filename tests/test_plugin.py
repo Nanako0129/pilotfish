@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import stat
 import unittest
 from pathlib import Path
@@ -50,6 +51,14 @@ PLUGIN_FILES = {
     "policy/sessionstart.txt",
     "skills/pilotfish/SKILL.md",
 }
+ROLE_REF = re.compile(
+    r"(?<![\w:-])(scout|plan-verifier|security-reviewer|mech-executor|executor|verifier|security-executor)(?![\w-])",
+    re.IGNORECASE,
+)
+QUOTED_ROLE_REF = re.compile(
+    r"`(scout|plan-verifier|security-reviewer|mech-executor|executor|verifier|security-executor)`",
+    re.IGNORECASE,
+)
 
 
 def frontmatter(path: Path) -> dict[str, str]:
@@ -61,21 +70,38 @@ def frontmatter(path: Path) -> dict[str, str]:
     }
 
 
+def unqualified_role_refs(text: str, *, allow_frontmatter: bool = False) -> list[str]:
+    if allow_frontmatter and text.startswith("---\n"):
+        text = text.split("---", 2)[2]
+    return [match.group(0) for match in ROLE_REF.finditer(text)]
+
+
 class PluginArtifactTests(unittest.TestCase):
-    def test_manifests_describe_only_the_experimental_plugin(self) -> None:
+    def test_manifests_are_versioned_beta_metadata_from_version(self) -> None:
+        release_version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         manifest = json.loads(
             (PLUGIN / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8")
         )
         self.assertEqual(manifest["name"], "pilotfish")
-        self.assertEqual(manifest["version"], "0.0.0")
-        self.assertIn("Experimental Ambient Spike", manifest["displayName"])
+        self.assertEqual(manifest["version"], release_version)
+        self.assertEqual(manifest["displayName"], "pilotfish Plugin beta")
         self.assertEqual(manifest["repository"], "https://github.com/Nanako0129/pilotfish")
         self.assertEqual(manifest["license"], "MIT")
         self.assertNotIn("agent", manifest)
+        self.assertEqual(
+            (PLUGIN / ".claude-plugin" / "plugin.json").read_bytes(),
+            RENDERER.build_manifest(release_version),
+        )
         marketplace = json.loads(
             (ROOT / ".claude-plugin" / "marketplace.json").read_text(encoding="utf-8")
         )
         self.assertEqual([(p["name"], p["source"]) for p in marketplace["plugins"]], [("pilotfish", "./plugin")])
+        self.assertEqual(marketplace["plugins"][0]["version"], release_version)
+        self.assertEqual(
+            (ROOT / ".claude-plugin" / "marketplace.json").read_bytes(),
+            RENDERER.build_marketplace(release_version),
+        )
+        self.assertNotIn("0.0.0", json.dumps((manifest, marketplace)))
 
     def test_renderer_and_transport_are_byte_exact_without_hook_execution(self) -> None:
         self.assertEqual(RENDERER.check(), [])
@@ -99,8 +125,8 @@ class PluginArtifactTests(unittest.TestCase):
         skill = (PLUGIN / "skills" / "pilotfish" / "SKILL.md").read_bytes()
         fields = frontmatter(PLUGIN / "skills" / "pilotfish" / "SKILL.md")
         self.assertEqual(fields["disable-model-invocation"], "true")
-        self.assertIn(b"Hooks may not have run", skill)
-        self.assertIn(b"Reliability of this experimental ambient transport is unverified", skill)
+        self.assertIn(b"SessionStart hooks are required for ambient activation", skill)
+        self.assertIn(b"tested with Claude Code 2.1.239", skill)
         embedded = skill.split(RENDERER.POLICY_BEGIN.encode(), 1)[1].split(
             RENDERER.POLICY_END.encode(), 1
         )[0]
@@ -197,6 +223,31 @@ class PluginArtifactTests(unittest.TestCase):
                     self.assertTrue({"Write", "Edit", "NotebookEdit"} <= denied)
         policy = (PLUGIN / "policy" / "ambient.md").read_text(encoding="utf-8")
         self.assertIn("Never pass model at invocation", policy)
+        security_review = (PLUGIN / "agents" / "security-reviewer.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("WebSearch and WebFetch provide outbound web egress", security_review)
+        self.assertIn("never transmit secrets", security_review)
+
+    def test_dispatch_targets_are_plugin_qualified_outside_frontmatter(self) -> None:
+        self.assertEqual(unqualified_role_refs("Route to scout."), ["scout"])
+        self.assertEqual(
+            unqualified_role_refs(
+                "---\nname: scout\n---\nRoute to pilotfish:scout.\n",
+                allow_frontmatter=True,
+            ),
+            [],
+        )
+        targets = [PLUGIN / "policy" / "ambient.md", *(PLUGIN / "agents").glob("*.md")]
+        for path in targets:
+            with self.subTest(path=path):
+                text = path.read_text(encoding="utf-8")
+                if path.parent.name == "agents":
+                    text = text.split("---", 2)[2]
+                    refs = [match.group(0) for match in QUOTED_ROLE_REF.finditer(text)]
+                else:
+                    refs = unqualified_role_refs(text)
+                self.assertEqual(refs, [])
 
     def test_plugin_tree_is_closed_regular_and_non_executable(self) -> None:
         files = {path.relative_to(PLUGIN).as_posix() for path in PLUGIN.rglob("*") if path.is_file()}
@@ -209,21 +260,24 @@ class PluginArtifactTests(unittest.TestCase):
         self.assertFalse({path.name for path in PLUGIN.rglob("*")} & forbidden)
         self.assertFalse(any(path.name in {"bin", "monitors", "lsp", "mcp"} for path in PLUGIN.rglob("*")))
 
-    def test_license_attribution_and_g0_claim_boundary(self) -> None:
+    def test_license_attribution_and_beta_claim_boundary(self) -> None:
         self.assertEqual((PLUGIN / "LICENSE").read_bytes(), (ROOT / "LICENSE").read_bytes())
         attribution = (PLUGIN / "ATTRIBUTION.md").read_text(encoding="utf-8")
         for commit in ("f636e298", "647fd5b4", "5067870b", "71d92bc"):
             self.assertIn(commit, attribution)
         for phrase in (
-            "brand-new G0 Plugin artifact",
-            "macOS-only spike",
-            "never installs or loads",
-            "disabled hook is not a security guarantee",
-            "coexistence with a global v1 installation",
-            "deferred to G1",
-            "no ambient reliability, authority, v1-equivalence, or product-readiness claim",
+            "Plugin beta",
+            "supported on macOS",
+            "tested with Claude Code 2.1.239",
+            "does not claim stable ambient reliability",
+            "cross-platform support",
+            "cross-version compatibility",
+            "runtime namespace-collision proof",
+            "equivalence to the legacy global install",
         ):
             self.assertIn(phrase, attribution)
+        for stale in ("G0", "G1", "spike", "never installs or loads"):
+            self.assertNotIn(stale, attribution)
 
     def test_focused_tests_do_not_execute_or_mutate_external_runtime(self) -> None:
         tree = ast.parse(Path(__file__).read_text(encoding="utf-8"))

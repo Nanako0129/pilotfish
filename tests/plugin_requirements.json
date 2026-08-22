@@ -10,7 +10,7 @@
       "category": "authority",
       "source_line": 5,
       "source_clause": "Main-session policy. Named roles (`scout`, `Explore`, `plan-verifier`, `security-reviewer`, `mech-executor`, `executor`, `verifier`, `security-executor`): ignore this section, perform assigned task, never spawn subagents.",
-      "ambient_line": "pilotfish:{scout,plan-verifier,security-reviewer,mech-executor,executor,verifier,security-executor} are leaves:ignore policy;do assignment;never delegate.Explore is policy-excluded,not capability-denied.",
+      "ambient_line": "pilotfish:scout,pilotfish:plan-verifier,pilotfish:security-reviewer,pilotfish:mech-executor,pilotfish:executor,pilotfish:verifier,pilotfish:security-executor are leaves:ignore policy;do assignment;never delegate.Explore is policy-excluded,not capability-denied.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -66,7 +66,7 @@
       "category": "dispatch",
       "source_line": 16,
       "source_clause": "- Discovery gate: stable question, scope, evidence format, stop; outcome/Plan may remain unknown. Eligible delegation: bounded read-only `scout`/`Explore` across disjoint evidence surfaces reducing Plan uncertainty.",
-      "ambient_line": "Discovery fixes question/scope/evidence/stop;outcome/Plan may be unknown.Delegate only disjoint bounded read-only work to scout.",
+      "ambient_line": "Discovery fixes question/scope/evidence/stop;outcome/Plan may be unknown.Delegate only disjoint bounded read-only work to pilotfish:scout.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -74,7 +74,7 @@
       "category": "approval",
       "source_line": 17,
       "source_clause": "- Plan gate: main synthesizes one Plan. Large work uses program envelope plus independently approvable slices carrying stable ID, outcome, scope, non-goals, owners, prerequisites, acceptance proving outcome, rollback, budget, stops. Risk-triggered units use fresh `plan-verifier`; main owns revisions/synthesis.",
-      "ambient_line": "Main writes Plan.Large work:envelope+slices with ID/outcome/scope/non-goals/owners/prerequisites/proving acceptance/rollback/budget/stops.Risk uses fresh plan-verifier;main revises.",
+      "ambient_line": "Main writes Plan.Large work:envelope+slices with ID/outcome/scope/non-goals/owners/prerequisites/proving acceptance/rollback/budget/stops.Risk uses fresh pilotfish:plan-verifier;main revises.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -90,7 +90,7 @@
       "category": "authority",
       "source_line": 19,
       "source_clause": "- Execution gate: approved contract fixes scope, exclusive ownership, constraints, done criteria, integration, verification. Routes: `mech-executor` for fully specified repetition, `executor` for bounded judgment, `security-executor` for approved security work.",
-      "ambient_line": "Execution requires approved scope/owner/constraints/done/integration/verification.Route repetition to mech-executor,judgment to executor,approved security to security-executor.",
+      "ambient_line": "Execution requires approved scope/owner/constraints/done/integration/verification.Route repetition→pilotfish:mech-executor,judgment→pilotfish:executor,approved security→pilotfish:security-executor.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -98,7 +98,7 @@
       "category": "verification",
       "source_line": 20,
       "source_clause": "- Verification gate: implementation/integration must be concrete enough to test. Risk-triggered units use fresh `verifier` against exact claim before completion report.",
-      "ambient_line": "Implementation/integration must be testable;risk gets fresh verifier on exact claim pre-completion.",
+      "ambient_line": "Implementation/integration must be testable;risk gets fresh pilotfish:verifier on exact claim pre-completion.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -138,7 +138,7 @@
       "category": "dispatch",
       "source_line": 28,
       "source_clause": "- Stable same-shape multi-file mechanical repetition defaults to one `mech-executor` with complete one-shot brief, exclusive ownership, independent items, per-item acceptance. Foreground unless possible long command requires background.",
-      "ambient_line": "Stable same-shape multi-file repetition defaults to 1 mech-executor:complete brief,exclusive owner,independent items,per-item acceptance.G0 calls are foreground.",
+      "ambient_line": "Stable same-shape multi-file repetition defaults to 1 pilotfish:mech-executor:complete brief,exclusive owner,independent items,per-item acceptance.Plugin beta calls are foreground.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -178,7 +178,7 @@
       "category": "dispatch",
       "source_line": 33,
       "source_clause": "- Single unknown bug stays main-session work through root-cause discovery, trace-driven debugging, coupled state propagation, patch design, first minimal fix, live verification when one path owns them. Never build sequential `scout`→`executor` pipeline. Scout may answer bounded reusable side question that neither owns nor blocks diagnosis.",
-      "ambient_line": "Keep one unknown bug in main through root cause/trace/coupled state/patch/first fix/live verification;no scout→executor pipeline.Scout side questions cannot own/block diagnosis.",
+      "ambient_line": "Unknown bug stays main through root cause/trace/coupled state/patch/first fix/live verification;no pilotfish:scout→pilotfish:executor pipeline.pilotfish:scout side questions cannot own/block diagnosis.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -186,7 +186,7 @@
       "category": "dispatch",
       "source_line": 34,
       "source_clause": "- Large cross-surface investigation may use bounded read-only discovery, followed by main Plan synthesis. Executor waits until root cause, scope, files, constraints, done criteria, approval are stable without rediscovery. Diagnosed review finding with known remedy is Execution work and may join independent same-shape findings.",
-      "ambient_line": "Large cross-surface investigation may use read-only discovery pre-main-Plan.Executor waits for stable root cause/scope/files/constraints/done/approval;known-remedy findings may join independent work.",
+      "ambient_line": "Large cross-surface investigation may use read-only discovery pre-Plan.pilotfish:executor waits for stable root cause/scope/files/constraints/done/approval;known-remedy findings may join independent work.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -202,7 +202,7 @@
       "category": "security",
       "source_line": 36,
       "source_clause": "- Security-sensitive work (authn/authz, credentials/secrets, identity/privacy, crypto, validation/hardening, vuln analysis) never uses general executors. Before required approval and first readiness review, finish tool-enforced read-only `security-reviewer`; carry findings/dispositions into Plan. After approval, send stable contract to `security-executor`. Never run both pre-approval reviews concurrently or send pre-approval work to write-capable security executor.",
-      "ambient_line": "Authn/authz,secrets,identity/privacy,crypto,validation/hardening,vulnerabilities never use general executors.Pre-approval/readiness:read-only security-reviewer+dispositions;after approval:security-executor.Never overlap reviews/send pre-approval work to writers.",
+      "ambient_line": "Authn/authz,secrets,identity/privacy,crypto,validation/hardening,vulnerabilities never use general executors.Pre-approval:read-only pilotfish:security-reviewer+dispositions;post-approval:pilotfish:security-executor.Never overlap reviews/send pre-approval work to writers.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -210,7 +210,7 @@
       "category": "security",
       "source_line": 37,
       "source_clause": "- Any independent-review trigger makes that unit risky: pre-approval `plan-verifier` and post-implementation `verifier` are mandatory Agent calls, with no extra opt-in. Higher-priority prohibition → pause before edits, never direct fallback or waiver; unblock only by lifting the prohibition or narrowing away every trigger. Bounded fail-soft exception applies only without listed risk. After readiness, present Plan and end turn; implementation begins only after explicit approval in a later turn. Plan readiness judges proposed acceptance check.",
-      "ambient_line": "Each risk trigger mandates pre-approval plan-verifier+post-implementation verifier,no extra opt-in.Higher-rule prohibition pauses pre-edit—no fallback/waiver—until lifted/risk removed.Present ready Plan/stop;later approval unlocks execution.",
+      "ambient_line": "Each risk trigger mandates pre-approval pilotfish:plan-verifier+post-implementation pilotfish:verifier,no extra opt-in.Higher-rule prohibition pauses pre-edit—no fallback/waiver—until lifted/risk removed.Present ready Plan/stop;later approval unlocks execution.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -226,7 +226,7 @@
       "category": "verification",
       "source_line": 39,
       "source_clause": "- `plan-verifier` reviews one stable envelope/slice and returns **READY** or **REVISE** under its role contract; malformed output is protocol failure. Outcome `verifier` receives exact claim/acceptance plus relevant diff/paths and returns **CONFIRMED**, **REFUTED**, or **INCONCLUSIVE** under its role contract. Never swap roles: Plan review stays read-only; outcome review may use Bash only for post-approval test reproduction.",
-      "ambient_line": "plan-verifier:1 stable unit,READY/REVISE;malformed fails.verifier:exact claim/acceptance/paths,CONFIRMED/REFUTED/INCONCLUSIVE.Never swap;Plan review read-only,outcome Bash only post-approval.",
+      "ambient_line": "pilotfish:plan-verifier:1 unit,READY/REVISE;malformed fails.pilotfish:verifier:exact claim/acceptance/paths,CONFIRMED/REFUTED/INCONCLUSIVE.Never swap;Plan review read-only,outcome Bash only post-approval.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -266,7 +266,7 @@
       "category": "recovery",
       "source_line": 44,
       "source_clause": "- Never claim blocker fixed without contrary evidence or successful recheck of original failure. Any required post-verdict change invalidates final-byte coverage; when claim-relevant, rerun primary acceptance plus one fresh verifier, otherwise pause. Retry `INCONCLUSIVE` once only after stated missing evidence, contract, prerequisite, or environment materially changes; otherwise pause affected slice. External PR review batch-dispositions every current-head finding; adjacent hardening after acceptance becomes follow-up unless P0/P1, security-relevant, or introduced P2 regression.",
-      "ambient_line": "Fix needs contrary evidence/original recheck.Claim-relevant change reruns primary acceptance+fresh verifier.Retry INCONCLUSIVE once after missing condition changes,else pause.Batch current-head PR findings;adjacent hardening follows unless P0/P1/security/introduced P2.",
+      "ambient_line": "Fix needs contrary evidence/original recheck.Claim-relevant change reruns primary acceptance+fresh pilotfish:verifier.Retry INCONCLUSIVE once after missing condition changes,else pause.Batch current-head PR findings;adjacent hardening follows unless P0/P1/security/introduced P2.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -274,7 +274,7 @@
       "category": "verification",
       "source_line": 45,
       "source_clause": "- Scout findings are inputs, not verified outcomes: sanity-check or re-scout any decision resting on one scouted fact. Verifier gate covers executor work, never reconnaissance. Do not delegate immediate single-file reads, final decisions, coupled one-path investigation, Plan synthesis, integration judgment, or anything user asked main session to judge personally.",
-      "ambient_line": "Scout evidence is input,not verified;check decisions relying on 1 fact.Verifier covers execution,not reconnaissance.Never delegate single-file reads/final decisions/coupled one-path investigation/Plan synthesis/integration judgment/user-reserved work.",
+      "ambient_line": "pilotfish:scout evidence is input;check decisions relying on 1 fact.pilotfish:verifier covers execution,not recon.Never delegate single-file reads/final decisions/coupled one-path investigation/Plan synthesis/integration judgment/user-reserved work.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -314,7 +314,7 @@
       "category": "dispatch",
       "source_line": 56,
       "source_clause": "- Schedule by dependency, not eventual need. When selecting 2+ independent agents, launch all back-to-back with `run_in_background: true` before remaining main work; keep scopes disjoint; allow no interleaved duplicate reconnaissance; collect all results before dependent work/final answer. Foreground only when next action blocks on result, no useful independent work remains, net benefit is positive. Never launch merely to wait when main owns the same evolving evidence more cheaply. Parallel writers use `isolation: \"worktree\"` (requires Git); without Git, never fan out—use one shared-checkout writer or work direct. Read-only roles may share checkout. Integrate every collected worktree; uncollected worktree means lost work.",
-      "ambient_line": "Dependency order:2+ selected independent agents launch back-to-back/background,disjoint;collect pre-dependent-work/final.Foreground only if blocked.Parallel writers need Git worktrees,else shared writer/direct.Integrate all.G0 foreground wins.",
+      "ambient_line": "Dependency order:2+ selected independent agents launch back-to-back/background,disjoint;collect pre-dependent-work/final.Foreground only if blocked.Parallel writers need Git worktrees,else shared writer/direct.Integrate all.Plugin beta foreground wins.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
