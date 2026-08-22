@@ -132,13 +132,13 @@ pilotfish_plugin_preflight
 install/AGENT-INSTALL.md，嚴格依照這兩份 runbook，把我既有的 global
 pilotfish v1 安裝遷移成 user-scope pilotfish Plugin。
 
-請先解析有效的 Claude configuration root、執行 read-only preflight，並在
-任何變更前建立文件指定的 timestamped backup。顯示解析後的 root、backup
-path，以及將要修改的確切檔案與 settings，然後只向我要求一次批准。批准後，
-只移除 legacy pilotfish policy block、未經修改的 pilotfish agent files，以及
-可歸因於該安裝的 settings；保留所有無關的設定與檔案。如果 agent file 曾被
-自訂，或 ownership 不明，請停止並顯示差異，不要刪除。重新執行 preflight，
-將 pilotfish@pilotfish 安裝到 user scope，驗證已安裝的 Plugin，最後告訴我重啟
+請先解析有效的 Claude configuration root，並執行 read-only preflight。顯示
+解析後的 root、預定的 timestamped backup path，以及將要修改的確切檔案與
+settings，然後只向我要求一次批准。批准後，先建立該 backup，再只移除 legacy
+pilotfish policy block、未經修改的 pilotfish agent files，以及可歸因於該安裝
+的 settings；保留所有無關的設定與檔案。如果 agent file 曾被自訂，或 ownership
+不明，請停止並顯示差異，不要刪除。重新執行 preflight，將
+pilotfish@pilotfish 安裝到 user scope，驗證已安裝的 Plugin，最後告訴我重啟
 Claude Code。不要輸出 credentials，也不要在仍有 legacy policy 時安裝 Plugin。
 ```
 

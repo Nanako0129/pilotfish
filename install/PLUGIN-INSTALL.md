@@ -121,12 +121,12 @@ Read install/PLUGIN-INSTALL.md and install/AGENT-INSTALL.md in this checkout.
 Migrate my existing global pilotfish v1 installation to the user-scope
 pilotfish Plugin, following those runbooks exactly.
 
-Resolve the effective Claude configuration root, run the read-only preflight,
-and create the documented timestamped backup before changing anything. Show me
-the resolved root, backup path, and exact files and settings you will change,
-then ask for one approval. After approval, remove only the legacy pilotfish
-policy block, unmodified pilotfish agent files, and settings attributable to
-that install; preserve every unrelated setting and file. If an agent file was
+Resolve the effective Claude configuration root and run the read-only
+preflight. Show me the resolved root, proposed timestamped backup path, and
+exact files and settings you will change, then ask for one approval. After
+approval, create that backup before removing only the legacy pilotfish policy
+block, unmodified pilotfish agent files, and settings attributable to that
+install; preserve every unrelated setting and file. If an agent file was
 customized or ownership is ambiguous, stop and show me the difference instead
 of deleting it. Re-run preflight, install pilotfish@pilotfish at user scope,
 verify the installed Plugin, and tell me to restart Claude Code. Do not print
