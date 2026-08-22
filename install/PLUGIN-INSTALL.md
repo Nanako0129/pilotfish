@@ -1,5 +1,7 @@
 # pilotfish macOS and Linux Plugin beta install
 
+[繁體中文](./PLUGIN-INSTALL.zh-TW.md)
+
 > This experimental beta targets macOS and Linux. Linux requires Ubuntu 20.04+, Debian 10+, or Alpine Linux 3.19+ and an otherwise-working officially supported Claude Code installation, per the [official system requirements](https://code.claude.com/docs/en/setup#system-requirements) (checked 2026-08-22). macOS with Claude Code 2.1.239 is live-observed. Linux is contract-qualified only; it has not been tested, verified, or live-observed. Windows is excluded. SessionStart hooks are required for ambient activation. This beta does not claim stable reliability, cross-version compatibility, or runtime namespace-collision proof.
 
 The Plugin and the legacy global install must not coexist. The Plugin hook fails closed when the effective user `CLAUDE.md` contains canonical pilotfish markers or the known legacy policy header: it emits no policy and tells you to migrate.
@@ -110,6 +112,29 @@ EOF
    Continue only after the command prints `No legacy global pilotfish policy detected.` Any other result is fail-closed.
 
 ## Migrate from global v1
+
+The easiest path is to let Claude Code perform the migration from a reviewed,
+local pilotfish checkout. Start Claude Code in that checkout and paste:
+
+```text
+Read install/PLUGIN-INSTALL.md and install/AGENT-INSTALL.md in this checkout.
+Migrate my existing global pilotfish v1 installation to the user-scope
+pilotfish Plugin, following those runbooks exactly.
+
+Resolve the effective Claude configuration root, run the read-only preflight,
+and create the documented timestamped backup before changing anything. Show me
+the resolved root, backup path, and exact files and settings you will change,
+then ask for one approval. After approval, remove only the legacy pilotfish
+policy block, unmodified pilotfish agent files, and settings attributable to
+that install; preserve every unrelated setting and file. If an agent file was
+customized or ownership is ambiguous, stop and show me the difference instead
+of deleting it. Re-run preflight, install pilotfish@pilotfish at user scope,
+verify the installed Plugin, and tell me to restart Claude Code. Do not print
+credentials or install the Plugin alongside any remaining legacy policy.
+```
+
+The AI should need only that one write approval unless it discovers customized
+or ambiguous legacy state. The manual equivalent follows.
 
 Back up the effective configuration before removing anything:
 
