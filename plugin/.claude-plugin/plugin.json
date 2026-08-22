@@ -3,7 +3,7 @@
   "name": "pilotfish",
   "displayName": "pilotfish Plugin beta",
   "version": "1.3.10",
-  "description": "macOS Claude Code Plugin beta with hook-based ambient policy activation and namespaced role agents.",
+  "description": "macOS and Linux Claude Code Plugin beta with hook-based ambient policy activation and namespaced role agents.",
   "author": {
     "name": "Nanako0129",
     "url": "https://github.com/Nanako0129"

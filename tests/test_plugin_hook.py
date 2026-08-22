@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import os
+import re
 import stat
 import subprocess
 import tempfile
+import textwrap
 import unittest
 from pathlib import Path
 
@@ -11,6 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugin"
 HOOK = PLUGIN / "hooks" / "emit-sessionstart.sh"
+INSTALL = ROOT / "install" / "PLUGIN-INSTALL.md"
 POLICY = (PLUGIN / "policy" / "sessionstart.txt").read_bytes()
 SENTINEL = "¶".encode()
 MIGRATION_URL = (
@@ -50,6 +53,8 @@ class PluginHookTests(unittest.TestCase):
         claude_md: str | None,
         config_mode: int | None = None,
         dangling_claude_md: bool = False,
+        inherited_path: str = "/usr/bin:/bin",
+        extra_env: dict[str, str] | None = None,
     ) -> subprocess.CompletedProcess[bytes]:
         config_root = root / "config"
         config_root.mkdir()
@@ -62,8 +67,9 @@ class PluginHookTests(unittest.TestCase):
         env = {
             "CLAUDE_PLUGIN_ROOT": str(PLUGIN),
             "HOME": str(root / "home"),
-            "PATH": "/usr/bin:/bin",
+            "PATH": inherited_path,
         }
+        env.update(extra_env or {})
         (root / "home" / ".claude").mkdir(parents=True)
         if not config_value:
             fallback = root / "home" / ".claude"
@@ -181,6 +187,117 @@ class PluginHookTests(unittest.TestCase):
         self.assertNotIn(SENTINEL, result.stdout)
         self.assertNotIn(POLICY, result.stdout)
         self.assertEqual(result.stderr, b"")
+
+    def test_hook_ignores_hostile_inherited_path_for_all_output_classes(self) -> None:
+        cases = (
+            ("clean", "# unrelated user policy\n", False, POLICY),
+            ("legacy", "<!-- pilotfish:begin -->\n", False, LEGACY_DIAGNOSTIC),
+            ("unsafe", None, True, UNSAFE_DIAGNOSTIC),
+        )
+        for name, claude_md, dangling, expected in cases:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                fake_bin = root / "fake-bin"
+                fake_bin.mkdir()
+                marker = root / "fake-utility-ran"
+                fake_script = (
+                    "#!/bin/sh\n"
+                    ': > "$PILOTFISH_FAKE_UTILITY_MARKER"\n'
+                    "exit 99\n"
+                )
+                for utility in ("grep", "cat", "printf"):
+                    path = fake_bin / utility
+                    path.write_text(fake_script, encoding="utf-8")
+                    path.chmod(0o755)
+
+                result = self.run_hook(
+                    root,
+                    config_value="{config}",
+                    claude_md=claude_md,
+                    dangling_claude_md=dangling,
+                    inherited_path=str(fake_bin),
+                    extra_env={"PILOTFISH_FAKE_UTILITY_MARKER": str(marker)},
+                )
+                self.assertEqual(result.returncode, 0)
+                self.assertEqual(result.stdout, expected)
+                self.assertEqual(result.stderr, b"")
+                self.assertFalse(marker.exists())
+
+    def test_documented_preflight_exact_eight_case_matrix(self) -> None:
+        document = INSTALL.read_text(encoding="utf-8")
+        match = re.search(
+            r"```bash\n(?P<body>   pilotfish_plugin_preflight\(\) \{.*?"
+            r"\n   \}\n\n   pilotfish_plugin_preflight)\n   ```",
+            document,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(match)
+        function = textwrap.dedent(match.group("body")).rsplit(
+            "\n\npilotfish_plugin_preflight", 1
+        )[0]
+        self.assertIn("PATH=/usr/bin:/bin grep -F -q", function)
+        self.assertNotIn("/usr/bin/grep", function)
+
+        cases = (
+            ("missing", None, None, b"No legacy global pilotfish policy detected.\n", b"", 0),
+            ("unrelated", "# unrelated\n", None, b"No legacy global pilotfish policy detected.\n", b"", 0),
+            ("begin", "<!-- pilotfish:begin -->\n", None, b"", b"Stop: legacy global pilotfish detected; migrate before installing.\n", 1),
+            ("end", "<!-- pilotfish:end -->\n", None, b"", b"Stop: legacy global pilotfish detected; migrate before installing.\n", 1),
+            ("version", "<!-- pilotfish v1.3.10 -->\n", None, b"", b"Stop: legacy global pilotfish detected; migrate before installing.\n", 1),
+            ("header", "Main-session policy. Named roles (`scout`)\n", None, b"", b"Stop: legacy global pilotfish detected; migrate before installing.\n", 1),
+            ("relative", None, "relative", b"", b"Stop: CLAUDE_CONFIG_DIR must be absolute.\n", 1),
+            ("symlink", None, "symlink", b"", b"Stop: CLAUDE.md must not be a symlink; replace it with a regular readable file or remove it.\n", 1),
+        )
+        for name, claude_md, special, stdout, stderr, status in cases:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                config = root / "config"
+                config.mkdir()
+                if claude_md is not None:
+                    (config / "CLAUDE.md").write_text(claude_md, encoding="utf-8")
+                elif special == "symlink":
+                    (config / "CLAUDE.md").symlink_to("missing-CLAUDE.md")
+                fake_bin = root / "fake-bin"
+                fake_bin.mkdir()
+                fake_marker = root / "fake-grep-ran"
+                fake_grep = fake_bin / "grep"
+                fake_grep.write_text(
+                    "#!/bin/sh\n"
+                    ': > "$PILOTFISH_FAKE_UTILITY_MARKER"\n'
+                    "exit 99\n",
+                    encoding="utf-8",
+                )
+                fake_grep.chmod(0o755)
+                env = {
+                    "HOME": str(root / "home"),
+                    "PATH": str(fake_bin),
+                    "CLAUDE_CONFIG_DIR": (
+                        "relative" if special == "relative" else str(config)
+                    ),
+                    "PILOTFISH_FAKE_UTILITY_MARKER": str(fake_marker),
+                }
+                script = (
+                    f"{function}\n"
+                    "inherited_path=$PATH\n"
+                    "pilotfish_plugin_preflight\n"
+                    "status=$?\n"
+                    "[ \"$PATH\" = \"$inherited_path\" ] || exit 97\n"
+                    "exit \"$status\"\n"
+                )
+                before = snapshot(root)
+                result = subprocess.run(
+                    ["/bin/sh", "-c", script],
+                    cwd=root,
+                    env=env,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=False,
+                )
+                self.assertEqual(snapshot(root), before)
+                self.assertEqual(result.returncode, status)
+                self.assertEqual(result.stdout, stdout)
+                self.assertEqual(result.stderr, stderr)
+                self.assertFalse(fake_marker.exists())
 
 
 if __name__ == "__main__":

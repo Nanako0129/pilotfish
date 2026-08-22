@@ -1,5 +1,5 @@
 {
-  "description": "pilotfish Plugin beta ambient policy activation for macOS Claude Code.",
+  "description": "pilotfish Plugin beta ambient policy activation for macOS and Linux Claude Code.",
   "hooks": {
     "SessionStart": [
       {

@@ -4,7 +4,7 @@
 > keeps planning, approval, integration, and final judgment.
 
 **pilotfish** is a multi-model orchestration policy for
-[Claude Code](https://code.claude.com). The [macOS Plugin beta](./install/PLUGIN-INSTALL.md)
+[Claude Code](https://code.claude.com). The [macOS and Linux Plugin beta](./install/PLUGIN-INSTALL.md)
 adds hook-based ambient activation; the global configuration install remains a
 legacy alternative. The policy uses the `opus` family for the main session,
 Sonnet and Haiku for bounded execution and reconnaissance, and fresh Opus
@@ -130,14 +130,19 @@ system-prompt bytes.
 
 ## Install
 
-### Plugin beta for macOS
+### Plugin beta for macOS and Linux
 
 Use the [Plugin beta install guide](./install/PLUGIN-INSTALL.md) for native
 user-scope marketplace commands, migration from global v1, update,
-disable/enable, uninstall, and rollback. It is tested with Claude Code 2.1.239,
-requires SessionStart hooks, and must not coexist with the legacy global
-install. This beta does not claim stable reliability, cross-platform or
-cross-version support, or runtime namespace-collision proof.
+disable/enable, uninstall, and rollback. The experimental beta targets macOS
+and Linux. Linux requires Ubuntu 20.04+, Debian 10+, or Alpine Linux 3.19+ and
+an otherwise-working officially supported Claude Code installation, per the
+[official system requirements](https://code.claude.com/docs/en/setup#system-requirements)
+(checked 2026-08-22). macOS with Claude Code 2.1.239 is live-observed. Linux is
+contract-qualified only; it has not been tested, verified, or live-observed.
+Windows is excluded. SessionStart hooks are required, the Plugin must not
+coexist with the legacy global install, and this beta does not claim stable
+reliability, cross-version compatibility, or runtime namespace-collision proof.
 
 ### Legacy global install
 
@@ -179,7 +184,7 @@ in [install/AGENT-INSTALL.md](./install/AGENT-INSTALL.md).
 
 | Task | Where to go |
 |---|---|
-| Install, update, disable, or remove the macOS Plugin beta | [Plugin beta guide](./install/PLUGIN-INSTALL.md) |
+| Install, update, disable, or remove the macOS and Linux Plugin beta | [Plugin beta guide](./install/PLUGIN-INSTALL.md) |
 | Tune models, effort, delegation, or managed settings | [Usage guide](./docs/usage.md) |
 | Activate pilotfish for a task or session | [Install `/pilotfish` or the CLI wrapper](./install/ACTIVATION-INSTALL.md) |
 | Update an existing install | [Runbook: Updating an existing install](./install/AGENT-INSTALL.md#updating-an-existing-install) |

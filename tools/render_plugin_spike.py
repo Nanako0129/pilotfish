@@ -26,38 +26,40 @@ OPT_IN = (
 SCRIPT = (
     b"#!/bin/sh\n"
     b"set -eu\n"
+    b"PATH=/usr/bin:/bin\n"
+    b"export PATH\n"
     b"\n"
     b'MIGRATION_URL="https://github.com/Nanako0129/pilotfish/blob/main/install/PLUGIN-INSTALL.md#migrate-from-global-v1"\n'
     b"\n"
     b'if [ -n "${CLAUDE_CONFIG_DIR:-}" ]; then\n'
     b'    case "$CLAUDE_CONFIG_DIR" in\n'
     b'        /*) config_root=$CLAUDE_CONFIG_DIR ;;\n'
-    b'        *) /usr/bin/printf \'%s\\n\' "pilotfish Plugin blocked: CLAUDE_CONFIG_DIR must be absolute. Fix it, then follow $MIGRATION_URL and restart Claude Code."; exit 0 ;;\n'
+    b'        *) printf \'%s\\n\' "pilotfish Plugin blocked: CLAUDE_CONFIG_DIR must be absolute. Fix it, then follow $MIGRATION_URL and restart Claude Code."; exit 0 ;;\n'
     b"    esac\n"
     b"else\n"
     b'    case "${HOME:-}" in\n'
     b'        /*) config_root=$HOME/.claude ;;\n'
-    b'        *) /usr/bin/printf \'%s\\n\' "pilotfish Plugin blocked: HOME must be absolute when CLAUDE_CONFIG_DIR is empty. Fix it, then follow $MIGRATION_URL and restart Claude Code."; exit 0 ;;\n'
+    b'        *) printf \'%s\\n\' "pilotfish Plugin blocked: HOME must be absolute when CLAUDE_CONFIG_DIR is empty. Fix it, then follow $MIGRATION_URL and restart Claude Code."; exit 0 ;;\n'
     b"    esac\n"
     b"fi\n"
     b"\n"
     b'if [ ! -d "$config_root" ] || [ ! -r "$config_root" ] || [ ! -x "$config_root" ]; then\n'
-    b'    /usr/bin/printf \'%s\\n\' "pilotfish Plugin blocked: the effective CLAUDE.md cannot be checked safely. Follow $MIGRATION_URL and restart Claude Code."\n'
+    b'    printf \'%s\\n\' "pilotfish Plugin blocked: the effective CLAUDE.md cannot be checked safely. Follow $MIGRATION_URL and restart Claude Code."\n'
     b"    exit 0\n"
     b"fi\n"
     b"\n"
     b'config_file=$config_root/CLAUDE.md\n'
     b'if [ -L "$config_file" ]; then\n'
-    b'    /usr/bin/printf \'%s\\n\' "pilotfish Plugin blocked: the effective CLAUDE.md cannot be checked safely. Follow $MIGRATION_URL and restart Claude Code."\n'
+    b'    printf \'%s\\n\' "pilotfish Plugin blocked: the effective CLAUDE.md cannot be checked safely. Follow $MIGRATION_URL and restart Claude Code."\n'
     b"    exit 0\n"
     b"fi\n"
     b'if [ -e "$config_file" ]; then\n'
     b'    if [ ! -f "$config_file" ] || [ ! -r "$config_file" ]; then\n'
-    b'        /usr/bin/printf \'%s\\n\' "pilotfish Plugin blocked: the effective CLAUDE.md cannot be checked safely. Follow $MIGRATION_URL and restart Claude Code."\n'
+    b'        printf \'%s\\n\' "pilotfish Plugin blocked: the effective CLAUDE.md cannot be checked safely. Follow $MIGRATION_URL and restart Claude Code."\n'
     b"        exit 0\n"
     b"    fi\n"
     b"    set +e\n"
-    b"    /usr/bin/grep -F -q \\\n"
+    b"    grep -F -q \\\n"
     b"        -e '<!-- pilotfish:begin -->' \\\n"
     b"        -e '<!-- pilotfish:end -->' \\\n"
     b"        -e '<!-- pilotfish v' \\\n"
@@ -67,18 +69,18 @@ SCRIPT = (
     b"    set -e\n"
     b"    case $grep_status in\n"
     b"        0)\n"
-    b'            /usr/bin/printf \'%s\\n\' "pilotfish Plugin blocked: legacy global pilotfish detected. Follow $MIGRATION_URL to migrate, then restart Claude Code."\n'
+    b'            printf \'%s\\n\' "pilotfish Plugin blocked: legacy global pilotfish detected. Follow $MIGRATION_URL to migrate, then restart Claude Code."\n'
     b"            exit 0\n"
     b"            ;;\n"
     b"        1) ;;\n"
     b"        *)\n"
-    b'            /usr/bin/printf \'%s\\n\' "pilotfish Plugin blocked: the effective CLAUDE.md cannot be checked safely. Follow $MIGRATION_URL and restart Claude Code."\n'
+    b'            printf \'%s\\n\' "pilotfish Plugin blocked: the effective CLAUDE.md cannot be checked safely. Follow $MIGRATION_URL and restart Claude Code."\n'
     b"            exit 0\n"
     b"            ;;\n"
     b"    esac\n"
     b"fi\n"
     b"\n"
-    b'/bin/cat "${CLAUDE_PLUGIN_ROOT}/policy/sessionstart.txt"\n'
+    b'cat "${CLAUDE_PLUGIN_ROOT}/policy/sessionstart.txt"\n'
 )
 HOOK_COMMAND = '/bin/sh "${CLAUDE_PLUGIN_ROOT}/hooks/emit-sessionstart.sh"'
 MAX_CHARS = 9_000
@@ -169,7 +171,7 @@ def build_manifest(release_version: str) -> bytes:
             "name": "pilotfish",
             "displayName": "pilotfish Plugin beta",
             "version": release_version,
-            "description": "macOS Claude Code Plugin beta with hook-based ambient policy activation and namespaced role agents.",
+            "description": "macOS and Linux Claude Code Plugin beta with hook-based ambient policy activation and namespaced role agents.",
             "author": {
                 "name": "Nanako0129",
                 "url": "https://github.com/Nanako0129",
@@ -196,13 +198,13 @@ def build_marketplace(release_version: str) -> bytes:
                 "name": "Nanako0129",
                 "url": "https://github.com/Nanako0129",
             },
-            "description": "Marketplace for the pilotfish macOS Claude Code Plugin beta.",
+            "description": "Marketplace for the pilotfish macOS and Linux Claude Code Plugin beta.",
             "plugins": [
                 {
                     "name": "pilotfish",
                     "source": "./plugin",
                     "version": release_version,
-                    "description": "Hook-based ambient orchestration beta for macOS Claude Code.",
+                    "description": "Hook-based ambient orchestration beta for macOS and Linux Claude Code.",
                     "category": "productivity",
                     "tags": [
                         "orchestration",

@@ -1,12 +1,12 @@
-# pilotfish Plugin beta install
+# pilotfish macOS and Linux Plugin beta install
 
-> This is a macOS beta tested with Claude Code 2.1.239. SessionStart hooks are required for ambient activation. It does not claim stable reliability, cross-platform support, cross-version compatibility, or runtime namespace-collision proof.
+> This experimental beta targets macOS and Linux. Linux requires Ubuntu 20.04+, Debian 10+, or Alpine Linux 3.19+ and an otherwise-working officially supported Claude Code installation, per the [official system requirements](https://code.claude.com/docs/en/setup#system-requirements) (checked 2026-08-22). macOS with Claude Code 2.1.239 is live-observed. Linux is contract-qualified only; it has not been tested, verified, or live-observed. Windows is excluded. SessionStart hooks are required for ambient activation. This beta does not claim stable reliability, cross-version compatibility, or runtime namespace-collision proof.
 
 The Plugin and the legacy global install must not coexist. The Plugin hook fails closed when the effective user `CLAUDE.md` contains canonical pilotfish markers or the known legacy policy header: it emits no policy and tells you to migrate.
 
 ## Preflight
 
-1. Confirm the tested client version:
+1. Confirm the otherwise-working officially supported Claude Code installation and observe its version:
 
    ```bash
    claude --version
@@ -33,7 +33,7 @@ The Plugin and the legacy global install must not coexist. The Plugin hook fails
      elif [ ! -f "$CFG/CLAUDE.md" ] || [ ! -r "$CFG/CLAUDE.md" ]; then
        echo "Stop: CLAUDE.md cannot be checked safely." >&2
        return 1
-     elif /usr/bin/grep -F -q \
+     elif PATH=/usr/bin:/bin grep -F -q \
          -e '<!-- pilotfish:begin -->' \
          -e '<!-- pilotfish:end -->' \
          -e '<!-- pilotfish v' \

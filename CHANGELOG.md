@@ -4,7 +4,7 @@ All notable changes to pilotfish. The installed version is stamped inside the po
 
 ## Unreleased
 
-Productize the macOS Claude Code Plugin beta with fail-closed legacy-global detection, hook-based ambient activation, exact `pilotfish:<role>` routing, and explicit security-reviewer web-egress limits. Plugin and marketplace versions now render from root `VERSION`; install, migration, update, disable/enable, uninstall, rollback, validation, and dual-tag release procedures are documented without claiming stable, cross-platform, or cross-version reliability.
+Productize the experimental macOS and Linux Claude Code Plugin beta with fail-closed legacy-global detection, hook-based ambient activation, exact `pilotfish:<role>` routing, and explicit security-reviewer web-egress limits. Linux is contract-qualified only for Ubuntu 20.04+, Debian 10+, and Alpine Linux 3.19+, with an otherwise-working officially supported Claude Code installation; these floors follow the [official system requirements](https://code.claude.com/docs/en/setup#system-requirements) checked 2026-08-22. macOS with Claude Code 2.1.239 is live-observed; Linux has not been tested, verified, or live-observed. Windows, stable reliability, and cross-version compatibility remain excluded. Plugin and marketplace versions render from root `VERSION`; install, migration, update, disable/enable, uninstall, rollback, validation, and dual-tag release procedures are documented.
 
 ## v1.3.10 — 2026-08-08
 

@@ -86,6 +86,7 @@ class PluginArtifactTests(unittest.TestCase):
         self.assertEqual(manifest["displayName"], "pilotfish Plugin beta")
         self.assertEqual(manifest["repository"], "https://github.com/Nanako0129/pilotfish")
         self.assertEqual(manifest["license"], "MIT")
+        self.assertIn("macOS and Linux", manifest["description"])
         self.assertNotIn("agent", manifest)
         self.assertEqual(
             (PLUGIN / ".claude-plugin" / "plugin.json").read_bytes(),
@@ -96,6 +97,8 @@ class PluginArtifactTests(unittest.TestCase):
         )
         self.assertEqual([(p["name"], p["source"]) for p in marketplace["plugins"]], [("pilotfish", "./plugin")])
         self.assertEqual(marketplace["plugins"][0]["version"], release_version)
+        self.assertIn("macOS and Linux", marketplace["description"])
+        self.assertIn("macOS and Linux", marketplace["plugins"][0]["description"])
         self.assertEqual(
             (ROOT / ".claude-plugin" / "marketplace.json").read_bytes(),
             RENDERER.build_marketplace(release_version),
@@ -108,7 +111,21 @@ class PluginArtifactTests(unittest.TestCase):
         script = (PLUGIN / "hooks" / "emit-sessionstart.sh").read_bytes()
         RENDERER.validate_transport(hooks, script)
         self.assertEqual(script, RENDERER.SCRIPT)
+        self.assertTrue(
+            script.startswith(
+                b"#!/bin/sh\nset -eu\nPATH=/usr/bin:/bin\nexport PATH\n"
+            )
+        )
+        for hardcoded_utility in (b"/usr/bin/grep", b"/usr/bin/printf", b"/bin/cat"):
+            with self.subTest(hardcoded_utility=hardcoded_utility):
+                self.assertNotIn(hardcoded_utility, script)
+        self.assertIn(b"\n    grep -F -q ", script)
+        self.assertTrue(script.endswith(b'cat "${CLAUDE_PLUGIN_ROOT}/policy/sessionstart.txt"\n'))
         self.assertFalse(os.stat(PLUGIN / "hooks" / "emit-sessionstart.sh").st_mode & 0o111)
+
+        installer = (ROOT / "install" / "PLUGIN-INSTALL.md").read_bytes()
+        self.assertIn(b"PATH=/usr/bin:/bin grep -F -q", installer)
+        self.assertNotIn(b"/usr/bin/grep", installer)
 
     def test_sessionstart_bound_policy_bytes(self) -> None:
         policy = (PLUGIN / "policy" / "ambient.md").read_bytes()
@@ -254,10 +271,18 @@ class PluginArtifactTests(unittest.TestCase):
             self.assertIn(commit, attribution)
         for phrase in (
             "Plugin beta",
-            "supported on macOS",
-            "tested with Claude Code 2.1.239",
+            "macOS and Linux",
+            "Ubuntu 20.04+",
+            "Debian 10+",
+            "Alpine Linux 3.19+",
+            "otherwise-working officially supported Claude Code installation",
+            "https://code.claude.com/docs/en/setup#system-requirements",
+            "checked 2026-08-22",
+            "macOS with Claude Code 2.1.239 is live-observed",
+            "Linux is contract-qualified only",
+            "it has not been tested, verified, or live-observed",
+            "Windows is excluded",
             "does not claim stable ambient reliability",
-            "cross-platform support",
             "cross-version compatibility",
             "runtime namespace-collision proof",
             "equivalence to the legacy global install",
@@ -265,6 +290,62 @@ class PluginArtifactTests(unittest.TestCase):
             self.assertIn(phrase, attribution)
         for stale in ("G0", "G1", "spike", "never installs or loads"):
             self.assertNotIn(stale, attribution)
+
+    def test_platform_claims_preserve_exact_linux_floors_and_evidence_boundary(self) -> None:
+        source = "https://code.claude.com/docs/en/setup#system-requirements"
+        english_paths = (
+            ROOT / "README.md",
+            ROOT / "install" / "PLUGIN-INSTALL.md",
+            PLUGIN / "ATTRIBUTION.md",
+        )
+        for path in english_paths:
+            content = " ".join(path.read_text(encoding="utf-8").split())
+            with self.subTest(path=path):
+                for phrase in (
+                    "macOS and Linux",
+                    "Ubuntu 20.04+",
+                    "Debian 10+",
+                    "Alpine Linux 3.19+",
+                    "otherwise-working officially supported Claude Code installation",
+                    source,
+                    "2026-08-22",
+                    "macOS with Claude Code 2.1.239 is live-observed",
+                    "Linux is contract-qualified only",
+                    "not been tested, verified, or live-observed",
+                    "Windows is excluded",
+                    "stable",
+                    "cross-version",
+                ):
+                    self.assertIn(" ".join(phrase.split()), content)
+
+        chinese = " ".join(
+            (ROOT / "README.zh-TW.md").read_text(encoding="utf-8").split()
+        )
+        for phrase in (
+            "macOS 與 Linux",
+            "Ubuntu 20.04+",
+            "Debian 10+",
+            "Alpine Linux 3.19+",
+            source,
+            "2026-08-22",
+            "Claude Code 2.1.239 已有 live observation",
+            "Linux 僅完成",
+            "未經測試、驗證或 live observation",
+            "Windows 不在範圍內",
+            "stable reliability",
+            "跨版本",
+        ):
+            self.assertIn(" ".join(phrase.split()), chinese)
+
+        metadata = "\n".join(
+            (
+                (ROOT / ".claude-plugin" / "marketplace.json").read_text(encoding="utf-8"),
+                (PLUGIN / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"),
+                (PLUGIN / "hooks" / "hooks.json").read_text(encoding="utf-8"),
+            )
+        )
+        self.assertNotIn("for macOS Claude Code", metadata)
+        self.assertGreaterEqual(metadata.count("macOS and Linux"), 4)
 
     def test_focused_tests_do_not_execute_or_mutate_external_runtime(self) -> None:
         tree = ast.parse(Path(__file__).read_text(encoding="utf-8"))

@@ -3,7 +3,7 @@
 > 小而快的角色 agents 處理大量工作；前沿主 session 保留規劃、批准、整合與最終判斷。
 
 **pilotfish** 是 [Claude Code](https://code.claude.com) 的多模型編排政策。
-[macOS Plugin beta](./install/PLUGIN-INSTALL.md) 提供 hook-based ambient activation；
+[macOS 與 Linux Plugin beta](./install/PLUGIN-INSTALL.md) 提供 hook-based ambient activation；
 全域設定安裝則保留為 legacy alternative。Policy 以 `opus` family 作為主 session，
 Sonnet 與 Haiku 負責有界的執行與偵察，風險觸發的 review 使用全新 Opus context。
 
@@ -117,12 +117,17 @@ and call the named agents only when the policy selects delegation.
 
 ## 安裝
 
-### macOS Plugin beta
+### macOS 與 Linux Plugin beta
 
 原生 user-scope marketplace 指令、從 global v1 遷移、更新、停用／啟用、移除與
-rollback，請見 [Plugin beta 安裝指南](./install/PLUGIN-INSTALL.md)。這個 beta 已在
-Claude Code 2.1.239 測試，必須啟用 SessionStart hooks，且不可與 legacy global install
-共存。不主張 stable reliability、跨平台／跨版本支援或 runtime namespace collision proof。
+rollback，請見 [Plugin beta 安裝指南](./install/PLUGIN-INSTALL.md)。這個 experimental beta
+涵蓋 macOS 與 Linux。Linux 的最低版本是 Ubuntu 20.04+、Debian 10+ 或 Alpine Linux
+3.19+，並要求其他部分可正常運作、且官方支援的 Claude Code 安裝；依據
+[官方系統需求](https://code.claude.com/docs/en/setup#system-requirements)（查核日期
+2026-08-22）。macOS 的 Claude Code 2.1.239 已有 live observation；Linux 僅完成
+contract qualification，未經測試、驗證或 live observation。Windows 不在範圍內。
+必須啟用 SessionStart hooks，且不可與 legacy global install 共存；本 beta 不主張
+stable reliability、跨版本相容性或 runtime namespace collision proof。
 
 ### Legacy global install
 
@@ -161,7 +166,7 @@ verification、更新與移除都在 [install/AGENT-INSTALL.md](./install/AGENT-
 
 | 任務 | 文件或方法 |
 |---|---|
-| 安裝、更新、停用或移除 macOS Plugin beta | [Plugin beta 指南](./install/PLUGIN-INSTALL.md) |
+| 安裝、更新、停用或移除 macOS 與 Linux Plugin beta | [Plugin beta 指南](./install/PLUGIN-INSTALL.md) |
 | 調整模型、effort、委派或 managed settings | [使用指南](./docs/usage.zh-TW.md) |
 | 為單一任務或 session 啟用 pilotfish | [安裝 `/pilotfish` 或 CLI wrapper](./install/ACTIVATION-INSTALL.md) |
 | 更新既有安裝 | [Runbook：Updating an existing install](./install/AGENT-INSTALL.md#updating-an-existing-install) |
