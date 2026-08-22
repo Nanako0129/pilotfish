@@ -130,12 +130,12 @@ The Plugin does not edit `settings.json`. Before running the install commands, r
 
 User, project, and local `availableModels` arrays merge and deduplicate. Evaluate their effective non-managed union first. Only when that union omits a shipped alias should the user explicitly approve appending each missing alias to one appropriate editable scope while preserving every existing entry; do not duplicate an alias already supplied by another scope. Managed policy is highest priority and can enforce a strict `availableModels` allowlist that lower scopes cannot loosen; if it excludes any shipped alias and an administrator cannot change it, stop. See the [official settings precedence](https://code.claude.com/docs/en/configuration#settings-precedence). Any effective model set that omits a shipped alias does not establish the advertised tiering.
 
-Then make one explicit user-approved main-model choice:
+Then make one explicit user-approved main-model choice and use `/status` inside every intended project to confirm the effective main model is Opus:
 
-1. **Persistent:** merge `"model": "opus"` into the effective `$CFG/settings.json`, preserving every other key.
-2. **Per session:** leave the persistent `model` setting unchanged and launch every pilotfish session explicitly with `claude --model opus`. The common effective-scope and `availableModels` checks above still apply.
+1. **Persistent:** merge `"model": "opus"` into the highest-priority editable scope that currently sets `model`—local, project, or user—while preserving every other key. If no editable scope sets `model` and no managed selection blocks persistent setup, explicitly approve creating or merging `"model": "opus"` in the user `$CFG/settings.json`. A lower-priority user setting does not override a project or local model selection. A managed non-Opus `model` remains the startup default, so this option alone does not establish persistent Opus selection.
+2. **Per session:** leave persistent settings unchanged and launch every pilotfish session explicitly with `claude --model opus`. This can override a managed non-Opus startup default when Opus remains selectable. The common effective-scope and `availableModels` checks above still apply.
 
-Do not silently mutate configuration. If the user keeps a non-Opus main model, the Plugin may still install and load, but the advertised Opus-main tiering is not established.
+Stop only when managed `availableModels` or another organization restriction prevents selecting Opus, or when `/status` does not confirm an effective Opus main after the chosen setup. Do not silently mutate configuration. If the user keeps a non-Opus main model, the Plugin may still install and load, but the advertised Opus-main tiering is not established.
 
 ## Install at user scope
 

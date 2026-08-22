@@ -1848,7 +1848,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         root_tag = 'git tag -a "v$RELEASE_VERSION"'
         plugin_tag = 'claude plugin tag plugin'
-        tag_push = 'git push origin "v$RELEASE_VERSION" "pilotfish--v$RELEASE_VERSION"'
+        tag_push = 'git push --atomic origin "v$RELEASE_VERSION" "pilotfish--v$RELEASE_VERSION"'
         github_release = 'gh release create "v$RELEASE_VERSION"'
         ordered = (
             "refs/remotes/origin/HEAD",

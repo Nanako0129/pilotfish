@@ -42,7 +42,7 @@
    test "$(git rev-parse HEAD)" = "$(git rev-parse "origin/$RELEASE_BRANCH")"
    git tag -a "v$RELEASE_VERSION" -m "pilotfish v$RELEASE_VERSION"
    claude plugin tag plugin -m "pilotfish Plugin v%s"
-   git push origin "v$RELEASE_VERSION" "pilotfish--v$RELEASE_VERSION"
+   git push --atomic origin "v$RELEASE_VERSION" "pilotfish--v$RELEASE_VERSION"
    gh release create "v$RELEASE_VERSION" --title "v$RELEASE_VERSION" --notes-from-tag
    )
    ```
