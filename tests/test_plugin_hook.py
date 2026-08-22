@@ -76,8 +76,15 @@ class PluginHookTests(unittest.TestCase):
             )
         if config_mode is not None:
             config_root.chmod(config_mode)
-        before = snapshot(root)
         try:
+            if config_mode is not None and (
+                os.geteuid() == 0 or os.access(config_root, os.X_OK)
+            ):
+                self.skipTest(
+                    "current UID or filesystem cannot make the config root "
+                    "non-searchable with chmod"
+                )
+            before = snapshot(root)
             result = subprocess.run(
                 ["/bin/sh", str(HOOK)],
                 cwd=root,
@@ -145,25 +152,35 @@ class PluginHookTests(unittest.TestCase):
         self.assertNotIn(POLICY, result.stdout)
         self.assertEqual(result.stderr, b"")
 
-    def test_unsafe_config_paths_fail_closed_with_one_migration_diagnostic(self) -> None:
-        cases = (
-            ("non-searchable-config-root", {"config_mode": 0o600}),
-            ("dangling-claude-md-symlink", {"dangling_claude_md": True}),
-        )
-        for name, setup in cases:
-            with self.subTest(name=name), tempfile.TemporaryDirectory() as temporary:
-                result = self.run_hook(
-                    Path(temporary),
-                    config_value="{config}",
-                    claude_md=None,
-                    **setup,
-                )
-                self.assertEqual(result.returncode, 0)
-                self.assertEqual(result.stdout, UNSAFE_DIAGNOSTIC)
-                self.assertEqual(result.stdout.count(MIGRATION_URL.encode()), 1)
-                self.assertNotIn(SENTINEL, result.stdout)
-                self.assertNotIn(POLICY, result.stdout)
-                self.assertEqual(result.stderr, b"")
+    def test_non_searchable_config_root_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            result = self.run_hook(
+                Path(temporary),
+                config_value="{config}",
+                claude_md=None,
+                config_mode=0o600,
+            )
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(result.stdout, UNSAFE_DIAGNOSTIC)
+        self.assertEqual(result.stdout.count(MIGRATION_URL.encode()), 1)
+        self.assertNotIn(SENTINEL, result.stdout)
+        self.assertNotIn(POLICY, result.stdout)
+        self.assertEqual(result.stderr, b"")
+
+    def test_dangling_claude_md_symlink_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            result = self.run_hook(
+                Path(temporary),
+                config_value="{config}",
+                claude_md=None,
+                dangling_claude_md=True,
+            )
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(result.stdout, UNSAFE_DIAGNOSTIC)
+        self.assertEqual(result.stdout.count(MIGRATION_URL.encode()), 1)
+        self.assertNotIn(SENTINEL, result.stdout)
+        self.assertNotIn(POLICY, result.stdout)
+        self.assertEqual(result.stderr, b"")
 
 
 if __name__ == "__main__":

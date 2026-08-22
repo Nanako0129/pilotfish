@@ -22,7 +22,13 @@ The Plugin and the legacy global install must not coexist. The Plugin hook fails
        *) echo "Stop: CLAUDE_CONFIG_DIR must be absolute." >&2; return 1 ;;
      esac
 
-     if [ ! -e "$CFG/CLAUDE.md" ]; then
+     if [ ! -d "$CFG" ] || [ ! -r "$CFG" ] || [ ! -x "$CFG" ]; then
+       echo "Stop: the effective config root must be an existing, readable, searchable directory." >&2
+       return 1
+     elif [ -L "$CFG/CLAUDE.md" ]; then
+       echo "Stop: CLAUDE.md must not be a symlink; replace it with a regular readable file or remove it." >&2
+       return 1
+     elif [ ! -e "$CFG/CLAUDE.md" ]; then
        echo "No legacy global pilotfish policy detected."
      elif [ ! -f "$CFG/CLAUDE.md" ] || [ ! -r "$CFG/CLAUDE.md" ]; then
        echo "Stop: CLAUDE.md cannot be checked safely." >&2
