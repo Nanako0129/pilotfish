@@ -27,15 +27,27 @@
 
    The dry-run must report `pilotfish--vX.Y.Z`, where `X.Y.Z` equals `VERSION`. An existing tag or version mismatch is a stop condition; never use `--force` to bypass it.
 
-5. After review and separate release authorization, create the normal root tag and the matching Plugin tag on the same commit:
+5. After review and separate release authorization, push the release commit to the repository's default branch and verify the remote branch before creating either tag:
 
    ```bash
+   (
+   set -eu
    RELEASE_VERSION=$(tr -d '\n' < VERSION)
+   RELEASE_BRANCH=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD)
+   RELEASE_BRANCH=${RELEASE_BRANCH#origin/}
+   test -n "$RELEASE_BRANCH"
+   test "$(git branch --show-current)" = "$RELEASE_BRANCH"
+   git push origin "HEAD:refs/heads/$RELEASE_BRANCH"
+   git fetch origin "$RELEASE_BRANCH"
+   test "$(git rev-parse HEAD)" = "$(git rev-parse "origin/$RELEASE_BRANCH")"
    git tag -a "v$RELEASE_VERSION" -m "pilotfish v$RELEASE_VERSION"
    claude plugin tag plugin -m "pilotfish Plugin v%s"
    git push origin "v$RELEASE_VERSION" "pilotfish--v$RELEASE_VERSION"
    gh release create "v$RELEASE_VERSION" --title "v$RELEASE_VERSION" --notes-from-tag
+   )
    ```
+
+   Any branch-name, push, fetch, or SHA check failure is a stop condition. Do not create or publish tags from a release commit that is absent from the remote default branch.
 
 Keep the project name lowercase (`pilotfish`) in repository and release prose. After publishing or editing a GitHub Release, read its body back and confirm that prose is not manually column-wrapped and every linked path exists on the tagged version.
 

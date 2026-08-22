@@ -3,6 +3,7 @@ from __future__ import annotations
 from decimal import Decimal
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -1829,6 +1830,87 @@ class PolicyContractTests(unittest.TestCase):
         for readme in ("README.md", "README.zh-TW.md"):
             content = (ROOT / readme).read_text(encoding="utf-8")
             self.assertIn(f"git clone --branch v{version} --depth 1", content)
+
+    def test_release_pushes_default_branch_before_tags(self) -> None:
+        release = (ROOT / "RELEASING.md").read_text(encoding="utf-8")
+        match = re.search(
+            r"```bash\n(?P<body>   \(\n   set -eu\n.*?\n   \))\n   ```",
+            release,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(match)
+        block = re.sub(r"(?m)^   ", "", match.group("body"))
+        branch_push = 'git push origin "HEAD:refs/heads/$RELEASE_BRANCH"'
+        branch_fetch = 'git fetch origin "$RELEASE_BRANCH"'
+        remote_sha = (
+            'test "$(git rev-parse HEAD)" = '
+            '"$(git rev-parse "origin/$RELEASE_BRANCH")"'
+        )
+        root_tag = 'git tag -a "v$RELEASE_VERSION"'
+        plugin_tag = 'claude plugin tag plugin'
+        tag_push = 'git push origin "v$RELEASE_VERSION" "pilotfish--v$RELEASE_VERSION"'
+        github_release = 'gh release create "v$RELEASE_VERSION"'
+        ordered = (
+            "refs/remotes/origin/HEAD",
+            'test "$(git branch --show-current)" = "$RELEASE_BRANCH"',
+            branch_push,
+            branch_fetch,
+            remote_sha,
+            root_tag,
+            plugin_tag,
+            tag_push,
+            github_release,
+        )
+
+        def assert_contract(candidate: str) -> None:
+            self.assertTrue(candidate.startswith("(\nset -eu\n"))
+            self.assertTrue(candidate.endswith("\n)"))
+            indexes = [candidate.index(clause) for clause in ordered]
+            self.assertEqual(indexes, sorted(indexes))
+
+        assert_contract(block)
+        self.assertIn("absent from the remote default branch", release)
+
+        without_errexit = block.replace("set -eu\n", "", 1)
+        with self.assertRaises(AssertionError):
+            assert_contract(without_errexit)
+        release_before_push = block.replace(
+            f"{github_release} --title \"v$RELEASE_VERSION\" --notes-from-tag\n",
+            "",
+        ).replace(branch_push, f"{github_release} --title \"v$RELEASE_VERSION\" --notes-from-tag\n{branch_push}")
+        with self.assertRaises(AssertionError):
+            assert_contract(release_before_push)
+        fetch_after_tags = block.replace(f"{branch_fetch}\n", "").replace(
+            root_tag, f"{root_tag}\n{branch_fetch}"
+        )
+        with self.assertRaises(AssertionError):
+            assert_contract(fetch_after_tags)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            marker = Path(temporary) / "tag-phase-reached"
+            late = 'printf \'late\\n\' >> "$MARKER"'
+            harness = block.replace(
+                'test "$(git branch --show-current)" = "$RELEASE_BRANCH"', ":"
+            ).replace(branch_push, "false")
+            for command in (
+                branch_fetch,
+                remote_sha,
+                root_tag,
+                plugin_tag,
+                tag_push,
+                f'{github_release} --title "v$RELEASE_VERSION" --notes-from-tag',
+            ):
+                harness = harness.replace(command, late)
+            completed = subprocess.run(
+                ["/bin/sh", "-c", harness],
+                cwd=ROOT,
+                env={**os.environ, "MARKER": str(marker)},
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertFalse(marker.exists())
 
     def test_pilotfish_brand_stays_lowercase_in_live_markdown(self) -> None:
         surfaces = [
