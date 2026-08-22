@@ -227,3 +227,5 @@ pilotfish Plugin blocked: legacy global pilotfish detected. Follow https://githu
 ```
 
 Use the effective config root from Preflight, back it up, complete the legacy uninstall, and restart. A relative `CLAUDE_CONFIG_DIR`, missing absolute `HOME`, unreadable `CLAUDE.md`, or config-probe error also blocks policy emission until corrected.
+
+Every SessionStart also rechecks `CLAUDE_CODE_SUBAGENT_MODEL`. If it is non-empty, the hook prints no value, sentinel, or policy; unset it in the launching environment, then restart or relaunch Claude Code.

@@ -27,6 +27,11 @@ UNSAFE_DIAGNOSTIC = (
     f"pilotfish Plugin blocked: the effective CLAUDE.md cannot be checked "
     f"safely. Follow {MIGRATION_URL} and restart Claude Code.\n"
 ).encode()
+MODEL_OVERRIDE_DIAGNOSTIC = (
+    "pilotfish Plugin blocked: CLAUDE_CODE_SUBAGENT_MODEL is non-empty and "
+    "overrides every agent model frontmatter. Unset it, then restart or "
+    "relaunch Claude Code.\n"
+).encode()
 
 
 def snapshot(root: Path) -> dict[str, tuple[str, int, bytes | str | None]]:
@@ -105,19 +110,39 @@ class PluginHookTests(unittest.TestCase):
 
     def test_no_legacy_config_emits_exact_policy_once(self) -> None:
         cases = (
-            ("unset-none", None, None),
-            ("empty-home-fallback", "", "# unrelated user policy\n"),
-            ("explicit-plugin-only", "{config}", "# no global pilotfish\n"),
+            ("unset-none", None, None, None),
+            ("empty-home-fallback", "", "# unrelated user policy\n", None),
+            ("explicit-plugin-only", "{config}", "# no global pilotfish\n", None),
+            ("empty-model-override", "{config}", None, {"CLAUDE_CODE_SUBAGENT_MODEL": ""}),
         )
-        for name, config_value, claude_md in cases:
+        for name, config_value, claude_md, extra_env in cases:
             with self.subTest(name=name), tempfile.TemporaryDirectory() as temporary:
                 result = self.run_hook(
-                    Path(temporary), config_value=config_value, claude_md=claude_md
+                    Path(temporary),
+                    config_value=config_value,
+                    claude_md=claude_md,
+                    extra_env=extra_env,
                 )
                 self.assertEqual(result.returncode, 0)
                 self.assertEqual(result.stdout, POLICY)
                 self.assertEqual(result.stdout.count(SENTINEL), 1)
                 self.assertEqual(result.stderr, b"")
+
+    def test_nonempty_model_override_fails_closed_without_value_or_policy(self) -> None:
+        secret = "secret-model-value"
+        with tempfile.TemporaryDirectory() as temporary:
+            result = self.run_hook(
+                Path(temporary),
+                config_value="{config}",
+                claude_md="<!-- pilotfish:begin -->\n",
+                extra_env={"CLAUDE_CODE_SUBAGENT_MODEL": secret},
+            )
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(result.stdout, MODEL_OVERRIDE_DIAGNOSTIC)
+        self.assertNotIn(secret.encode(), result.stdout + result.stderr)
+        self.assertNotIn(SENTINEL, result.stdout)
+        self.assertNotIn(POLICY, result.stdout)
+        self.assertEqual(result.stderr, b"")
 
     def test_legacy_global_config_fails_closed_with_one_migration_diagnostic(self) -> None:
         cases = (
@@ -189,11 +214,18 @@ class PluginHookTests(unittest.TestCase):
 
     def test_hook_ignores_hostile_inherited_path_for_all_output_classes(self) -> None:
         cases = (
-            ("clean", "# unrelated user policy\n", False, POLICY),
-            ("legacy", "<!-- pilotfish:begin -->\n", False, LEGACY_DIAGNOSTIC),
-            ("unsafe", None, True, UNSAFE_DIAGNOSTIC),
+            ("clean", "# unrelated user policy\n", False, POLICY, {}),
+            ("legacy", "<!-- pilotfish:begin -->\n", False, LEGACY_DIAGNOSTIC, {}),
+            ("unsafe", None, True, UNSAFE_DIAGNOSTIC, {}),
+            (
+                "model-override",
+                None,
+                False,
+                MODEL_OVERRIDE_DIAGNOSTIC,
+                {"CLAUDE_CODE_SUBAGENT_MODEL": "secret-model-value"},
+            ),
         )
-        for name, claude_md, dangling, expected in cases:
+        for name, claude_md, dangling, expected, case_env in cases:
             with self.subTest(name=name), tempfile.TemporaryDirectory() as temporary:
                 root = Path(temporary)
                 fake_bin = root / "fake-bin"
@@ -215,11 +247,15 @@ class PluginHookTests(unittest.TestCase):
                     claude_md=claude_md,
                     dangling_claude_md=dangling,
                     inherited_path=str(fake_bin),
-                    extra_env={"PILOTFISH_FAKE_UTILITY_MARKER": str(marker)},
+                    extra_env={
+                        "PILOTFISH_FAKE_UTILITY_MARKER": str(marker),
+                        **case_env,
+                    },
                 )
                 self.assertEqual(result.returncode, 0)
                 self.assertEqual(result.stdout, expected)
                 self.assertEqual(result.stderr, b"")
+                self.assertNotIn(b"secret-model-value", result.stdout + result.stderr)
                 self.assertFalse(marker.exists())
 
     def test_documented_preflight_exact_client_and_legacy_matrix(self) -> None:

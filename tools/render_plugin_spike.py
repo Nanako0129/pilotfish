@@ -31,6 +31,11 @@ SCRIPT = (
     b"\n"
     b'MIGRATION_URL="https://github.com/Nanako0129/pilotfish/blob/main/install/PLUGIN-INSTALL.md#migrate-from-global-v1"\n'
     b"\n"
+    b'if [ -n "${CLAUDE_CODE_SUBAGENT_MODEL:-}" ]; then\n'
+    b'    printf \'%s\\n\' "pilotfish Plugin blocked: CLAUDE_CODE_SUBAGENT_MODEL is non-empty and overrides every agent model frontmatter. Unset it, then restart or relaunch Claude Code."\n'
+    b"    exit 0\n"
+    b"fi\n"
+    b"\n"
     b'if [ -n "${CLAUDE_CONFIG_DIR:-}" ]; then\n'
     b'    case "$CLAUDE_CONFIG_DIR" in\n'
     b'        /*) config_root=$CLAUDE_CONFIG_DIR ;;\n'
