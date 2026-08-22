@@ -134,8 +134,11 @@ class PluginArtifactTests(unittest.TestCase):
             b"The Plugin does not edit `settings.json`",
             b'merge `"model": "opus"` into the effective `$CFG/settings.json`',
             b"preserving every other key",
-            b"existing `availableModels` allowlist",
-            b"explicit user-approved choice",
+            b"For either setup option below",
+            b'`"opus"`, `"sonnet"`, and `"haiku"`',
+            b"preserving every existing entry",
+            b"common `availableModels` check above still applies",
+            b"explicit user-approved main-model choice",
             b"claude --model opus",
             b"the advertised Opus-main tiering is not established",
         ):

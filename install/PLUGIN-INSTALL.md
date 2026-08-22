@@ -126,10 +126,12 @@ Then follow the [legacy uninstall procedure](./AGENT-INSTALL.md#uninstall): remo
 
 ## Choose the main model before installation
 
-The Plugin does not edit `settings.json`. Before running the install commands, make one explicit user-approved choice so the advertised Opus-main tiering is established:
+The Plugin does not edit `settings.json`. Before running the install commands, inspect the effective `$CFG/settings.json`. For either setup option below, if `availableModels` already exists, obtain explicit user approval to append every missing shipped role-model alias—`"opus"`, `"sonnet"`, and `"haiku"`—while preserving every existing entry. An existing allowlist that omits any of these aliases does not establish the advertised tiering.
 
-1. **Persistent:** merge `"model": "opus"` into the effective `$CFG/settings.json`, preserving every other key. If an existing `availableModels` allowlist would exclude `opus` or a Plugin role alias, extend that array with the missing values instead of replacing its entries.
-2. **Per session:** leave settings unchanged and launch every pilotfish session explicitly with `claude --model opus`.
+Then make one explicit user-approved main-model choice:
+
+1. **Persistent:** merge `"model": "opus"` into the effective `$CFG/settings.json`, preserving every other key.
+2. **Per session:** leave the persistent `model` setting unchanged and launch every pilotfish session explicitly with `claude --model opus`. The common `availableModels` check above still applies.
 
 Do not silently mutate configuration. If the user keeps a non-Opus main model, the Plugin may still install and load, but the advertised Opus-main tiering is not established.
 
