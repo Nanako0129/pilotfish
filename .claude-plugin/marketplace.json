@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "pilotfish",
+  "owner": {
+    "name": "Nanako0129",
+    "url": "https://github.com/Nanako0129"
+  },
+  "description": "Local marketplace for the experimental Pilotfish ambient Plugin spike.",
+  "plugins": [
+    {
+      "name": "pilotfish",
+      "source": "./plugin",
+      "description": "Experimental ambient orchestration spike with static SessionStart transport.",
+      "category": "productivity",
+      "tags": [
+        "orchestration",
+        "subagents",
+        "delegation",
+        "experimental"
+      ]
+    }
+  ]
+}

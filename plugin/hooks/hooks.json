@@ -1,0 +1,16 @@
+{
+  "description": "Experimental static Pilotfish ambient policy transport.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh \"${CLAUDE_PLUGIN_ROOT}/hooks/emit-sessionstart.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}
