@@ -126,6 +126,21 @@ class PluginArtifactTests(unittest.TestCase):
         installer = (ROOT / "install" / "PLUGIN-INSTALL.md").read_bytes()
         self.assertIn(b"PATH=/usr/bin:/bin grep -F -q", installer)
         self.assertNotIn(b"/usr/bin/grep", installer)
+        for claim in (
+            b"requires Claude Code 2.1.219 or newer",
+            b"plan-verifier` and `security-reviewer` roles depend on those allowlists",
+            b"CLAUDE_CODE_SUBAGENT_MODEL",
+            b"overrides every agent `model` frontmatter",
+            b"The Plugin does not edit `settings.json`",
+            b'merge `"model": "opus"` into the effective `$CFG/settings.json`',
+            b"preserving every other key",
+            b"existing `availableModels` allowlist",
+            b"explicit user-approved choice",
+            b"claude --model opus",
+            b"the advertised Opus-main tiering is not established",
+        ):
+            with self.subTest(claim=claim):
+                self.assertIn(claim, installer)
 
     def test_sessionstart_bound_policy_bytes(self) -> None:
         policy = (PLUGIN / "policy" / "ambient.md").read_bytes()

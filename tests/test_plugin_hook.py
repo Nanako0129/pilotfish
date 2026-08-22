@@ -5,7 +5,6 @@ import re
 import stat
 import subprocess
 import tempfile
-import textwrap
 import unittest
 from pathlib import Path
 
@@ -223,7 +222,7 @@ class PluginHookTests(unittest.TestCase):
                 self.assertEqual(result.stderr, b"")
                 self.assertFalse(marker.exists())
 
-    def test_documented_preflight_exact_eight_case_matrix(self) -> None:
+    def test_documented_preflight_exact_client_and_legacy_matrix(self) -> None:
         document = INSTALL.read_text(encoding="utf-8")
         match = re.search(
             r"```bash\n(?P<body>   pilotfish_plugin_preflight\(\) \{.*?"
@@ -232,11 +231,79 @@ class PluginHookTests(unittest.TestCase):
             re.DOTALL,
         )
         self.assertIsNotNone(match)
-        function = textwrap.dedent(match.group("body")).rsplit(
-            "\n\npilotfish_plugin_preflight", 1
+        function = match.group("body").rsplit(
+            "\n   pilotfish_plugin_preflight", 1
         )[0]
         self.assertIn("PATH=/usr/bin:/bin grep -F -q", function)
         self.assertNotIn("/usr/bin/grep", function)
+        self.assertNotIn("sort -V", function)
+
+        client_cases = (
+            ("below-floor", "2.1.218 (Claude Code)", 0, None, 1, b"requires Claude Code 2.1.219"),
+            ("exact-floor", "2.1.219 (Claude Code)", 0, None, 0, b""),
+            ("higher-minor", "2.2.0 (Claude Code)", 0, None, 0, b""),
+            ("missing-minor-patch", "3", 0, None, 1, b"first-token numeric X.Y.Z"),
+            ("missing-patch", "3.0", 0, None, 1, b"first-token numeric X.Y.Z"),
+            ("malformed", "Claude Code 2.1.219", 0, None, 1, b"first-token numeric X.Y.Z"),
+            ("command-nonzero", "ignored", 7, None, 1, b"claude --version failed"),
+            ("command-unavailable", None, 0, None, 1, b"claude --version failed"),
+            ("override-nonempty", "2.1.219", 0, "secret-model-value", 1, b"Unset it yourself"),
+            ("override-unset", "2.1.219", 0, None, 0, b""),
+            ("override-empty", "2.1.219", 0, "", 0, b""),
+        )
+        for name, version, command_status, override, status, diagnostic in client_cases:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                config = root / "config"
+                config.mkdir()
+                fake_bin = root / "fake-bin"
+                fake_bin.mkdir()
+                if version is not None:
+                    fake_claude = fake_bin / "claude"
+                    fake_claude.write_text(
+                        "#!/bin/sh\n"
+                        '[ "$#" -eq 1 ] && [ "$1" = "--version" ] || exit 98\n'
+                        f'printf \'%s\\n\' "{version}"\n'
+                        f"exit {command_status}\n",
+                        encoding="utf-8",
+                    )
+                    fake_claude.chmod(0o755)
+                env = {
+                    "HOME": str(root / "home"),
+                    "PATH": str(fake_bin),
+                    "CLAUDE_CONFIG_DIR": str(config),
+                }
+                if override is not None:
+                    env["CLAUDE_CODE_SUBAGENT_MODEL"] = override
+                script = (
+                    f"{function}\n"
+                    "inherited_path=$PATH\n"
+                    "inherited_override_state=${CLAUDE_CODE_SUBAGENT_MODEL+x}\n"
+                    "inherited_override_value=${CLAUDE_CODE_SUBAGENT_MODEL-}\n"
+                    "pilotfish_plugin_preflight\n"
+                    "status=$?\n"
+                    '[ "$PATH" = "$inherited_path" ] || exit 97\n'
+                    '[ "${CLAUDE_CODE_SUBAGENT_MODEL+x}" = "$inherited_override_state" ] || exit 96\n'
+                    '[ "${CLAUDE_CODE_SUBAGENT_MODEL-}" = "$inherited_override_value" ] || exit 95\n'
+                    'exit "$status"\n'
+                )
+                before = snapshot(root)
+                result = subprocess.run(
+                    ["/bin/sh", "-c", script],
+                    cwd=root,
+                    env=env,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=False,
+                )
+                self.assertEqual(snapshot(root), before)
+                self.assertEqual(result.returncode, status)
+                self.assertEqual(
+                    result.stdout,
+                    b"No legacy global pilotfish policy detected.\n" if status == 0 else b"",
+                )
+                self.assertIn(diagnostic, result.stderr)
+                self.assertNotIn(b"secret-model-value", result.stdout + result.stderr)
 
         cases = (
             ("missing", None, None, b"No legacy global pilotfish policy detected.\n", b"", 0),
@@ -259,6 +326,14 @@ class PluginHookTests(unittest.TestCase):
                     (config / "CLAUDE.md").symlink_to("missing-CLAUDE.md")
                 fake_bin = root / "fake-bin"
                 fake_bin.mkdir()
+                fake_claude = fake_bin / "claude"
+                fake_claude.write_text(
+                    "#!/bin/sh\n"
+                    '[ "$#" -eq 1 ] && [ "$1" = "--version" ] || exit 98\n'
+                    "printf '%s\\n' '2.1.219 (Claude Code)'\n",
+                    encoding="utf-8",
+                )
+                fake_claude.chmod(0o755)
                 fake_marker = root / "fake-grep-ran"
                 fake_grep = fake_bin / "grep"
                 fake_grep.write_text(

@@ -6,16 +6,71 @@ The Plugin and the legacy global install must not coexist. The Plugin hook fails
 
 ## Preflight
 
-1. Confirm the otherwise-working officially supported Claude Code installation and observe its version:
+Run this copy-paste POSIX `/bin/sh` preflight. It executes `claude --version`, accepts a numeric `X.Y.Z` first token only, and requires Claude Code 2.1.219 or newer. That floor is newer than the verified baseline that enforces agent `tools` allowlists; do not install a prompt-only approximation because the read-only `plan-verifier` and `security-reviewer` roles depend on those allowlists.
 
-   ```bash
-   claude --version
-   ```
+It also rejects a non-empty `CLAUDE_CODE_SUBAGENT_MODEL` without printing its value because that variable overrides every agent `model` frontmatter. Unset it yourself and rerun rather than letting an installer silently change the caller's environment.
 
-2. Resolve the effective user configuration root and check for a legacy global policy without printing `CLAUDE.md`. `CLAUDE_CONFIG_DIR` must be absolute when non-empty; otherwise Claude Code uses `$HOME/.claude`.
+The same preflight resolves the effective user configuration root and checks for a legacy global policy without printing `CLAUDE.md`. `CLAUDE_CONFIG_DIR` must be absolute when non-empty; otherwise Claude Code uses `$HOME/.claude`.
 
    ```bash
    pilotfish_plugin_preflight() {
+     if CLAUDE_VERSION_OUTPUT=$(claude --version 2>/dev/null); then
+       :
+     else
+       echo "Stop: claude --version failed. Install or repair Claude Code, then rerun this preflight." >&2
+       return 1
+     fi
+
+     read -r CLAUDE_VERSION _ <<EOF
+$CLAUDE_VERSION_OUTPUT
+EOF
+     case "$CLAUDE_VERSION" in
+       *.*.*) ;;
+       *)
+         echo "Stop: Claude Code version must be a first-token numeric X.Y.Z. Update Claude Code, then rerun this preflight." >&2
+         return 1
+         ;;
+     esac
+     case "$CLAUDE_VERSION" in
+       ''|*[!0-9.]*|*.*.*.*|.*|*.|*..*)
+         echo "Stop: Claude Code version must be a first-token numeric X.Y.Z. Update Claude Code, then rerun this preflight." >&2
+         return 1
+         ;;
+     esac
+
+     CLAUDE_MAJOR=${CLAUDE_VERSION%%.*}
+     CLAUDE_REST=${CLAUDE_VERSION#*.}
+     CLAUDE_MINOR=${CLAUDE_REST%%.*}
+     CLAUDE_PATCH=${CLAUDE_REST#*.}
+     while [ "${CLAUDE_MAJOR#0}" != "$CLAUDE_MAJOR" ]; do CLAUDE_MAJOR=${CLAUDE_MAJOR#0}; done
+     while [ "${CLAUDE_MINOR#0}" != "$CLAUDE_MINOR" ]; do CLAUDE_MINOR=${CLAUDE_MINOR#0}; done
+     while [ "${CLAUDE_PATCH#0}" != "$CLAUDE_PATCH" ]; do CLAUDE_PATCH=${CLAUDE_PATCH#0}; done
+     CLAUDE_MAJOR=${CLAUDE_MAJOR:-0}
+     CLAUDE_MINOR=${CLAUDE_MINOR:-0}
+     CLAUDE_PATCH=${CLAUDE_PATCH:-0}
+
+     CLAUDE_VERSION_OK=0
+     if [ "${#CLAUDE_MAJOR}" -gt 1 ] || [ "$CLAUDE_MAJOR" -gt 2 ]; then
+       CLAUDE_VERSION_OK=1
+     elif [ "$CLAUDE_MAJOR" -eq 2 ]; then
+       if [ "${#CLAUDE_MINOR}" -gt 1 ] || [ "$CLAUDE_MINOR" -gt 1 ]; then
+         CLAUDE_VERSION_OK=1
+       elif [ "$CLAUDE_MINOR" -eq 1 ] && \
+           { [ "${#CLAUDE_PATCH}" -gt 3 ] || \
+             { [ "${#CLAUDE_PATCH}" -eq 3 ] && [ "$CLAUDE_PATCH" -ge 219 ]; }; }; then
+         CLAUDE_VERSION_OK=1
+       fi
+     fi
+     if [ "$CLAUDE_VERSION_OK" -ne 1 ]; then
+       echo "Stop: pilotfish requires Claude Code 2.1.219 or newer. Update Claude Code, then rerun this preflight." >&2
+       return 1
+     fi
+
+     if [ -n "${CLAUDE_CODE_SUBAGENT_MODEL:-}" ]; then
+       echo "Stop: CLAUDE_CODE_SUBAGENT_MODEL is non-empty and overrides every agent model frontmatter. Unset it yourself, then rerun this preflight." >&2
+       return 1
+     fi
+
      CFG="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
      case "$CFG" in
        /*) ;;
@@ -68,6 +123,15 @@ mkdir -p "$BACKUP"
 ```
 
 Then follow the [legacy uninstall procedure](./AGENT-INSTALL.md#uninstall): remove only the matching pilotfish agent files, the single `pilotfish:begin/end` block, and settings values attributable to that install. Preserve user-customized files and unrelated settings. Re-run the preflight check above; continue only after it prints the no-legacy diagnostic.
+
+## Choose the main model before installation
+
+The Plugin does not edit `settings.json`. Before running the install commands, make one explicit user-approved choice so the advertised Opus-main tiering is established:
+
+1. **Persistent:** merge `"model": "opus"` into the effective `$CFG/settings.json`, preserving every other key. If an existing `availableModels` allowlist would exclude `opus` or a Plugin role alias, extend that array with the missing values instead of replacing its entries.
+2. **Per session:** leave settings unchanged and launch every pilotfish session explicitly with `claude --model opus`.
+
+Do not silently mutate configuration. If the user keeps a non-Opus main model, the Plugin may still install and load, but the advertised Opus-main tiering is not established.
 
 ## Install at user scope
 
