@@ -155,6 +155,14 @@
         {
           "source": "benchmarks/baton-compatibility/results.json",
           "json_pointer": "/failed_candidate_gate"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/v1_3_2_opus5_rejected_user_source_attempt/explicit_route_probe"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/superseded_candidate_gate/turns/1"
         }
       ],
       "attempt_pointers": [
@@ -165,12 +173,20 @@
         {
           "source": "benchmarks/baton-compatibility/results.json",
           "json_pointer": "/failed_candidate_gate/turns/0"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/v1_3_2_opus5_rejected_user_source_attempt/explicit_route_probe"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/superseded_candidate_gate/turns/1"
         }
       ],
       "count_status": "known",
-      "attempted": 2,
+      "attempted": 4,
       "passed": 0,
-      "failed": 2
+      "failed": 4
     },
     {
       "id": "cell:benchmarks/baton-compatibility/results.json#unknown",
@@ -217,10 +233,6 @@
         {
           "source": "benchmarks/baton-compatibility/results.json",
           "json_pointer": "/superseded_candidate_gate/turns/0"
-        },
-        {
-          "source": "benchmarks/baton-compatibility/results.json",
-          "json_pointer": "/superseded_candidate_gate/turns/1"
         }
       ],
       "count_status": "unknown",
@@ -1755,6 +1767,43 @@
           "source": "benchmarks/baton-compatibility/results.json",
           "json_pointer": "/failed_candidate_gate",
           "transcript_sha256": "250b8cd8b53e758299b233d16c2753890a46c6284a99a8d21ba5d5e907bf7ebc"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/baton-compatibility/results.json#/v1_3_2_opus5_rejected_user_source_attempt/explicit_route_probe",
+      "cell_id": "cell:benchmarks/baton-compatibility/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/baton-compatibility/results.json",
+        "json_pointer": "/v1_3_2_opus5_rejected_user_source_attempt/explicit_route_probe"
+      },
+      "candidate_identity": {
+        "limitation": "This historical route probe does not expose a policy version, hash, or configuration identity."
+      },
+      "failure_boundary": "reviewed_failure=EXPLICIT_OPUS_ROUTE_OK",
+      "evidence": [
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/v1_3_2_opus5_rejected_user_source_attempt/explicit_route_probe"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/baton-compatibility/results.json#/superseded_candidate_gate/turns/1",
+      "cell_id": "cell:benchmarks/baton-compatibility/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/baton-compatibility/results.json",
+        "json_pointer": "/superseded_candidate_gate/turns/1"
+      },
+      "candidate_identity": {
+        "hash": "dc765dfc22b2c1875101ce665e8b3bba5968ff2549556459e5c2a8c847da0f44",
+        "version": "1.3.0"
+      },
+      "failure_boundary": "is_error=true; disposition=interrupted",
+      "evidence": [
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/superseded_candidate_gate/turns/1"
         }
       ]
     },

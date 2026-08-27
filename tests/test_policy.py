@@ -41,6 +41,7 @@ ATTEMPT_ACCOUNTING_SOURCES = (
 ATTEMPT_ACCOUNTING_MARKERS = frozenset(
     {
         "claim",
+        "is_error",
         "status",
         "passed",
         "test_passed",
@@ -119,6 +120,9 @@ ATTEMPT_ACCOUNTING_ATTEMPT_ARRAY_KEYS = frozenset(
     }
 )
 ATTEMPT_ACCOUNTING_SINGULAR_ATTEMPTS = {
+    "benchmarks/baton-compatibility/results.json": (
+        "/v1_3_2_opus5_rejected_user_source_attempt/explicit_route_probe",
+    ),
     "benchmarks/baton-dispatch-effect/results.json": (
         "/release_payload_replay",
     ),
@@ -155,7 +159,22 @@ ATTEMPT_ACCOUNTING_REVIEWED_FAILURES = {
         "name": "uncollected-background-verification",
         "outcome": "approval gate held; acceptance not met",
     },
+    (
+        "benchmarks/baton-compatibility/results.json",
+        "/v1_3_2_opus5_rejected_user_source_attempt/explicit_route_probe",
+    ): {
+        "result": "EXPLICIT_OPUS_ROUTE_OK",
+        "observed_model": "claude-opus-4-8",
+    },
 }
+ATTEMPT_ACCOUNTING_REVIEWED_CLAIMS = frozenset(
+    {
+        (
+            "benchmarks/baton-compatibility/results.json",
+            "/v1_3_2_opus5_rejected_user_source_attempt/explicit_route_probe",
+        )
+    }
+)
 ATTEMPT_ACCOUNTING_IDENTITY_FIELDS = (
     ("policy_sha256", "hash"),
     ("policy_orchestration_sha256", "hash"),
@@ -312,7 +331,9 @@ def _attempt_accounting_outcome(
             record.get(field) == expected
             for field, expected in reviewed_failure.items()
         ):
-            return "failed", (f"reviewed_failure={reviewed_failure['name']}",)
+            label = reviewed_failure.get("name", reviewed_failure.get("result"))
+            assert isinstance(label, str) and label
+            return "failed", (f"reviewed_failure={label}",)
 
     boundaries: list[str] = []
     for key in ("passed", "test_passed", "topology_pass"):
@@ -322,6 +343,10 @@ def _attempt_accounting_outcome(
         boundaries.append("reachability=FAIL")
     if record.get("topology") == "FAIL":
         boundaries.append("topology=FAIL")
+    if record.get("is_error") is True:
+        boundaries.append("is_error=true")
+    if record.get("disposition") == "interrupted":
+        boundaries.append("disposition=interrupted")
     status = record.get("status")
     if status in ATTEMPT_ACCOUNTING_FAILURE_STATUSES:
         boundaries.append(f"status={status}")
@@ -529,6 +554,13 @@ def _attempt_accounting_validate(ledger: dict) -> None:
                 continue
             oracle[key] = record
             outcomes[key] = _attempt_accounting_outcome(record, source, pointer)
+    for source, pointer in ATTEMPT_ACCOUNTING_REVIEWED_CLAIMS:
+        key = (source, pointer)
+        assert key not in oracle
+        record = _attempt_accounting_resolve_pointer(documents[source], pointer)
+        assert isinstance(record, dict)
+        oracle[key] = record
+        outcomes[key] = _attempt_accounting_outcome(record, source, pointer)
 
     attempt_oracle = {}
     attempt_outcomes = {}
@@ -599,7 +631,9 @@ def _attempt_accounting_validate(ledger: dict) -> None:
             record.get(field) == expected
             for field, expected in reviewed_failure.items()
         )
-        boundary = (f"reviewed_failure={reviewed_failure['name']}",)
+        label = reviewed_failure.get("name", reviewed_failure.get("result"))
+        assert isinstance(label, str) and label
+        boundary = (f"reviewed_failure={label}",)
         for occurrence in range(
             _attempt_accounting_occurrence_count(source, pointer, record)
         ):
@@ -4496,10 +4530,10 @@ class PolicyContractTests(unittest.TestCase):
 
         self.assertEqual(len(ledger["sources"]), 11)
         self.assertEqual(
-            sum(len(cell["claim_pointers"]) for cell in ledger["cells"]), 196
+            sum(len(cell["claim_pointers"]) for cell in ledger["cells"]), 198
         )
         self.assertEqual(
-            sum(len(cell["attempt_pointers"]) for cell in ledger["cells"]), 137
+            sum(len(cell["attempt_pointers"]) for cell in ledger["cells"]), 138
         )
         self.assertEqual(
             sum(
@@ -4507,7 +4541,7 @@ class PolicyContractTests(unittest.TestCase):
                 for cell in ledger["cells"]
                 if cell["count_status"] == "known"
             ),
-            40,
+            42,
         )
 
         spontaneous_cells = {
@@ -4534,6 +4568,41 @@ class PolicyContractTests(unittest.TestCase):
         self.assertEqual(
             _attempt_accounting_outcome({"topology": "FAIL"}),
             ("failed", ("topology=FAIL",)),
+        )
+
+        baton_cells = {
+            cell["claim_status"]: cell
+            for cell in ledger["cells"]
+            if cell["id"].startswith(
+                "cell:benchmarks/baton-compatibility/results.json#"
+            )
+        }
+        self.assertEqual(
+            (
+                baton_cells["failed"]["attempted"],
+                baton_cells["failed"]["failed"],
+                len(baton_cells["unknown"]["attempt_pointers"]),
+            ),
+            (4, 4, 5),
+        )
+        self.assertEqual(
+            _attempt_accounting_outcome(
+                {"is_error": True, "disposition": "interrupted"}
+            ),
+            ("failed", ("is_error=true", "disposition=interrupted")),
+        )
+        baton_failure_pointers = {
+            entry["attempt_pointer"]["json_pointer"]
+            for entry in ledger["failed_attempts"]
+            if entry["attempt_pointer"]["source"]
+            == "benchmarks/baton-compatibility/results.json"
+        }
+        self.assertIn(
+            "/v1_3_2_opus5_rejected_user_source_attempt/explicit_route_probe",
+            baton_failure_pointers,
+        )
+        self.assertIn(
+            "/superseded_candidate_gate/turns/1", baton_failure_pointers
         )
 
         verifier_failed = next(
