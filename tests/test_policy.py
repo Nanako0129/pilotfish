@@ -79,6 +79,8 @@ ATTEMPT_ACCOUNTING_PASS_STATUSES = frozenset(
         "passed_activation_dispatch_ownership_collection_final_byte_correctness",
         "passed_before_final_edit",
         "passed_after_final_write",
+        "ready",
+        "confirmed",
     }
 )
 ATTEMPT_ACCOUNTING_FAILURE_STATUSES = frozenset(
@@ -97,6 +99,7 @@ ATTEMPT_ACCOUNTING_FAILURE_STATUSES = frozenset(
         "stopped_after_failed_topology",
         "rejected_quota_exhausted",
         "rejected_operator_contract_blocked_agents",
+        "revise",
     }
 )
 ATTEMPT_ACCOUNTING_NOT_RUN_STATUSES = frozenset(
@@ -132,7 +135,8 @@ ATTEMPT_ACCOUNTING_SINGULAR_ATTEMPTS = {
         "/behavioral_gates/spontaneous_bug_candidate",
         "/behavioral_gates/explicit_lifecycle_turn_1",
         "/behavioral_gates/explicit_lifecycle_user_continuation",
-        "/behavioral_gates/small_lifecycle",
+        "/behavioral_gates/small_lifecycle/turn_1_plan",
+        "/behavioral_gates/small_lifecycle/turn_2_approved_execution",
     ),
     "benchmarks/verifier-boundary/results.json": (
         "/passing_gate/schema_lifecycle/attempt_a",
@@ -669,6 +673,7 @@ def _attempt_accounting_validate(ledger: dict) -> None:
                 expected_state = "unknown"
                 expected_attempted = expected_passed = expected_failed = None
         elif "unknown" in attempt_states:
+            assert set(attempt_states) == {"unknown"}
             expected_state = "unknown"
             expected_attempted = expected_passed = expected_failed = None
         else:
@@ -4533,7 +4538,7 @@ class PolicyContractTests(unittest.TestCase):
             sum(len(cell["claim_pointers"]) for cell in ledger["cells"]), 198
         )
         self.assertEqual(
-            sum(len(cell["attempt_pointers"]) for cell in ledger["cells"]), 138
+            sum(len(cell["attempt_pointers"]) for cell in ledger["cells"]), 139
         )
         self.assertEqual(
             sum(
@@ -4541,7 +4546,7 @@ class PolicyContractTests(unittest.TestCase):
                 for cell in ledger["cells"]
                 if cell["count_status"] == "known"
             ),
-            42,
+            43,
         )
 
         spontaneous_cells = {
@@ -4568,6 +4573,44 @@ class PolicyContractTests(unittest.TestCase):
         self.assertEqual(
             _attempt_accounting_outcome({"topology": "FAIL"}),
             ("failed", ("topology=FAIL",)),
+        )
+
+        prompt_cells = {
+            cell["claim_status"]: cell
+            for cell in ledger["cells"]
+            if cell["id"].startswith(
+                "cell:benchmarks/prompt-compression/results.json#"
+            )
+        }
+        self.assertNotIn("unknown", prompt_cells)
+        self.assertEqual(
+            (
+                prompt_cells["passed"]["attempted"],
+                prompt_cells["passed"]["passed"],
+                prompt_cells["failed"]["attempted"],
+                prompt_cells["failed"]["failed"],
+            ),
+            (3, 3, 4, 4),
+        )
+        self.assertEqual(
+            _attempt_accounting_outcome({"status": "ready"}),
+            ("passed", ("status=ready",)),
+        )
+        self.assertEqual(
+            _attempt_accounting_outcome({"status": "confirmed"}),
+            ("passed", ("status=confirmed",)),
+        )
+        self.assertEqual(
+            _attempt_accounting_outcome({"status": "revise"}),
+            ("failed", ("status=revise",)),
+        )
+        self.assertEqual(
+            sum(
+                len(cell["attempt_pointers"])
+                for cell in ledger["cells"]
+                if cell["count_status"] == "unknown"
+            ),
+            52,
         )
 
         baton_cells = {

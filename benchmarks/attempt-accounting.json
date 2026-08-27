@@ -540,6 +540,14 @@
         {
           "source": "benchmarks/prompt-compression/results.json",
           "json_pointer": "/behavioral_gates/small_lifecycle"
+        },
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/small_lifecycle/turn_1_plan"
+        },
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/small_lifecycle/turn_2_approved_execution"
         }
       ],
       "attempt_pointers": [
@@ -549,12 +557,16 @@
         },
         {
           "source": "benchmarks/prompt-compression/results.json",
-          "json_pointer": "/behavioral_gates/small_lifecycle"
+          "json_pointer": "/behavioral_gates/small_lifecycle/turn_1_plan"
+        },
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/small_lifecycle/turn_2_approved_execution"
         }
       ],
       "count_status": "known",
-      "attempted": 2,
-      "passed": 2,
+      "attempted": 3,
+      "passed": 3,
       "failed": 0
     },
     {
@@ -572,6 +584,10 @@
         {
           "source": "benchmarks/prompt-compression/results.json",
           "json_pointer": "/behavioral_gates/explicit_lifecycle_turn_1"
+        },
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/explicit_lifecycle_user_continuation"
         }
       ],
       "attempt_pointers": [
@@ -586,12 +602,16 @@
         {
           "source": "benchmarks/prompt-compression/results.json",
           "json_pointer": "/behavioral_gates/explicit_lifecycle_turn_1"
+        },
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/explicit_lifecycle_user_continuation"
         }
       ],
       "count_status": "known",
-      "attempted": 3,
+      "attempted": 4,
       "passed": 0,
-      "failed": 3
+      "failed": 4
     },
     {
       "id": "cell:benchmarks/prompt-compression/results.json#not_run",
@@ -612,35 +632,6 @@
       "passed": 0,
       "failed": 0,
       "reason": "Source explicitly records no behavioral invocation ran for these records."
-    },
-    {
-      "id": "cell:benchmarks/prompt-compression/results.json#unknown",
-      "claim_status": "unknown",
-      "claim_pointers": [
-        {
-          "source": "benchmarks/prompt-compression/results.json",
-          "json_pointer": "/behavioral_gates/explicit_lifecycle_user_continuation"
-        },
-        {
-          "source": "benchmarks/prompt-compression/results.json",
-          "json_pointer": "/behavioral_gates/small_lifecycle/turn_1_plan"
-        },
-        {
-          "source": "benchmarks/prompt-compression/results.json",
-          "json_pointer": "/behavioral_gates/small_lifecycle/turn_2_approved_execution"
-        }
-      ],
-      "attempt_pointers": [
-        {
-          "source": "benchmarks/prompt-compression/results.json",
-          "json_pointer": "/behavioral_gates/explicit_lifecycle_user_continuation"
-        }
-      ],
-      "count_status": "unknown",
-      "attempted": null,
-      "passed": null,
-      "failed": null,
-      "reason": "Attempt pointers are absent or include records without an explicit per-attempt outcome; counts are not inferred from aggregate evidence."
     },
     {
       "id": "cell:benchmarks/spontaneous-dispatch/results.json#passed",
@@ -2013,6 +2004,25 @@
           "source": "benchmarks/prompt-compression/results.json",
           "json_pointer": "/behavioral_gates/explicit_lifecycle_turn_1",
           "raw_stream_sha256": "e1d80d3dcddb285a41c3eb1a301688463a4aef93c9afc45be6ab6bd5d43fe8c6"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/prompt-compression/results.json#/behavioral_gates/explicit_lifecycle_user_continuation",
+      "cell_id": "cell:benchmarks/prompt-compression/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/prompt-compression/results.json",
+        "json_pointer": "/behavioral_gates/explicit_lifecycle_user_continuation"
+      },
+      "candidate_identity": {
+        "version": "1.3.4"
+      },
+      "failure_boundary": "status=revise",
+      "evidence": [
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/explicit_lifecycle_user_continuation",
+          "raw_stream_sha256": "177b1ec882daca159529e58130e9a341dc2b54ab5a7e8a34521d99f0d2e01687"
         }
       ]
     },
