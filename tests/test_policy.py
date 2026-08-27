@@ -1573,7 +1573,7 @@ class PolicyContractTests(unittest.TestCase):
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
         self.assertEqual(runtime["release_candidate_version"], version)
-        self.assertEqual(version, "1.4.0")
+        self.assertEqual(version, "1.4.1")
         self.assertEqual(
             runtime["release_candidate_generated_by"],
             "benchmarks/baton-compatibility/build-agents-json.py templates/agents",
@@ -1934,7 +1934,17 @@ class PolicyContractTests(unittest.TestCase):
         self.assertEqual(indexes, sorted(indexes))
         for forbidden in ("git tag ", "claude plugin tag", "git push"):
             self.assertNotIn(forbidden, block)
-        self.assertIn("must never recreate, move, force, or repush either tag", release)
+        warning = re.search(
+            r"This recovery path .*?(?=\n\n)", release, re.DOTALL
+        ).group()
+        self.assertIn("must never recreate, move, force, or repush either tag", warning)
+        self.assertIn(
+            "requires a later `VERSION` and new tags, not mutation of the "
+            "Release for those exact existing tags",
+            warning,
+        )
+        version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+        self.assertNotIn(f"v{version}", warning)
 
     def test_pilotfish_brand_stays_lowercase_in_live_markdown(self) -> None:
         surfaces = [

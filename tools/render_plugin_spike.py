@@ -54,11 +54,7 @@ SCRIPT = (
     b"fi\n"
     b"\n"
     b'config_file=$config_root/CLAUDE.md\n'
-    b'if [ -L "$config_file" ]; then\n'
-    b'    printf \'%s\\n\' "pilotfish Plugin blocked: the effective CLAUDE.md cannot be checked safely. Follow $MIGRATION_URL and restart Claude Code."\n'
-    b"    exit 0\n"
-    b"fi\n"
-    b'if [ -e "$config_file" ]; then\n'
+    b'if [ -e "$config_file" ] || [ -L "$config_file" ]; then\n'
     b'    if [ ! -f "$config_file" ] || [ ! -r "$config_file" ]; then\n'
     b'        printf \'%s\\n\' "pilotfish Plugin blocked: the effective CLAUDE.md cannot be checked safely. Follow $MIGRATION_URL and restart Claude Code."\n'
     b"        exit 0\n"

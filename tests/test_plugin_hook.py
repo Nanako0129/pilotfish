@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import socket
 import stat
 import subprocess
 import tempfile
@@ -33,6 +34,28 @@ MODEL_OVERRIDE_DIAGNOSTIC = (
     "overrides every agent model frontmatter. Unset it, then restart or "
     "relaunch Claude Code.\n"
 ).encode()
+PREFLIGHT_NO_LEGACY = b"No legacy global pilotfish policy detected.\n"
+PREFLIGHT_LEGACY = (
+    b"Stop: legacy global pilotfish detected; migrate before installing.\n"
+)
+PREFLIGHT_UNSAFE = b"Stop: CLAUDE.md cannot be checked safely.\n"
+
+
+def documented_preflight(path: Path) -> str:
+    match = re.search(
+        r"```bash\n(?P<body>[ ]*pilotfish_plugin_preflight\(\) \{.*?"
+        r"\n[ ]*\}\n\n[ ]*pilotfish_plugin_preflight)\n[ ]*```",
+        path.read_text(encoding="utf-8"),
+        re.DOTALL,
+    )
+    if match is None:
+        raise AssertionError(f"preflight block not found in {path}")
+    lines = match.group("body").splitlines()
+    margin = len(lines[0]) - len(lines[0].lstrip())
+    body = "\n".join(
+        line[margin:] if line.startswith(" " * margin) else line for line in lines
+    )
+    return body.rsplit("\npilotfish_plugin_preflight", 1)[0]
 
 
 def snapshot(root: Path) -> dict[str, tuple[str, int, bytes | str | None]]:
@@ -50,6 +73,49 @@ def snapshot(root: Path) -> dict[str, tuple[str, int, bytes | str | None]]:
 
 
 class PluginHookTests(unittest.TestCase):
+    def invoke_hook(
+        self, root: Path, config_root: Path, hook: Path = HOOK
+    ) -> subprocess.CompletedProcess[bytes]:
+        return subprocess.run(
+            ["/bin/sh", str(hook)],
+            cwd=root,
+            env={
+                "CLAUDE_PLUGIN_ROOT": str(PLUGIN),
+                "HOME": str(root / "home"),
+                "PATH": "/usr/bin:/bin",
+                "CLAUDE_CONFIG_DIR": str(config_root),
+            },
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+
+    def run_preflight(
+        self, function: str, root: Path, config_root: Path
+    ) -> subprocess.CompletedProcess[bytes]:
+        fake_bin = root / "fake-bin"
+        fake_bin.mkdir(exist_ok=True)
+        fake_claude = fake_bin / "claude"
+        fake_claude.write_text(
+            "#!/bin/sh\n"
+            '[ "$#" -eq 1 ] && [ "$1" = "--version" ] || exit 98\n'
+            "printf '%s\\n' '2.1.219 (Claude Code)'\n",
+            encoding="utf-8",
+        )
+        fake_claude.chmod(0o755)
+        return subprocess.run(
+            ["/bin/sh", "-c", f"{function}\npilotfish_plugin_preflight\n"],
+            cwd=root,
+            env={
+                "HOME": str(root / "home"),
+                "PATH": str(fake_bin),
+                "CLAUDE_CONFIG_DIR": str(config_root),
+            },
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+
     def run_hook(
         self,
         root: Path,
@@ -259,19 +325,177 @@ class PluginHookTests(unittest.TestCase):
                 self.assertNotIn(b"secret-model-value", result.stdout + result.stderr)
                 self.assertFalse(marker.exists())
 
-    def test_documented_preflight_exact_client_and_legacy_matrix(self) -> None:
-        document = INSTALL.read_text(encoding="utf-8")
-        match = re.search(
-            r"```bash\n(?P<body>   pilotfish_plugin_preflight\(\) \{.*?"
-            r"\n   \}\n\n   pilotfish_plugin_preflight)\n   ```",
-            document,
-            re.DOTALL,
+    def test_claude_md_symlink_target_matrix(self) -> None:
+        preflights = {
+            INSTALL.name: documented_preflight(INSTALL),
+            INSTALL_ZH.name: documented_preflight(INSTALL_ZH),
+        }
+        self.assertEqual(*preflights.values())
+        cases = (
+            (
+                "clean-regular",
+                "file",
+                "# unrelated user policy\n",
+                POLICY,
+                (0, PREFLIGHT_NO_LEGACY, b""),
+            ),
+            (
+                "legacy-regular",
+                "file",
+                "<!-- pilotfish:begin -->\n",
+                LEGACY_DIAGNOSTIC,
+                (1, b"", PREFLIGHT_LEGACY),
+            ),
+            (
+                "dangling",
+                "dangling",
+                None,
+                UNSAFE_DIAGNOSTIC,
+                (1, b"", PREFLIGHT_UNSAFE),
+            ),
+            (
+                "directory",
+                "directory",
+                None,
+                UNSAFE_DIAGNOSTIC,
+                (1, b"", PREFLIGHT_UNSAFE),
+            ),
+            (
+                "unix-socket",
+                "socket",
+                None,
+                UNSAFE_DIAGNOSTIC,
+                (1, b"", PREFLIGHT_UNSAFE),
+            ),
         )
-        self.assertIsNotNone(match)
-        function = match.group("body").rsplit(
-            "\n   pilotfish_plugin_preflight", 1
-        )[0]
+        for name, kind, content, hook_stdout, preflight_result in cases:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as temporary:
+                root = Path(temporary)
+                config = root / "config"
+                config.mkdir()
+                target = root / "target"
+                listener = None
+                if kind == "file":
+                    target.write_text(content or "", encoding="utf-8")
+                elif kind == "directory":
+                    target.mkdir()
+                elif kind == "socket":
+                    listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                    listener.bind(str(target))
+                (config / "CLAUDE.md").symlink_to(target)
+                try:
+                    hook_result = self.invoke_hook(root, config)
+                    self.assertEqual(hook_result.returncode, 0)
+                    self.assertEqual(hook_result.stdout, hook_stdout)
+                    self.assertEqual(hook_result.stderr, b"")
+                    if hook_stdout == POLICY:
+                        self.assertEqual(hook_result.stdout.count(SENTINEL), 1)
+                    else:
+                        self.assertNotIn(SENTINEL, hook_result.stdout)
+                        self.assertNotIn(POLICY, hook_result.stdout)
+
+                    observed = []
+                    for document, function in preflights.items():
+                        with self.subTest(document=document):
+                            result = self.run_preflight(function, root, config)
+                            actual = (result.returncode, result.stdout, result.stderr)
+                            self.assertEqual(actual, preflight_result)
+                            observed.append(actual)
+                    self.assertEqual(observed[0], observed[1])
+                finally:
+                    if listener is not None:
+                        listener.close()
+
+    def test_unreadable_claude_md_symlink_target_fails_closed(self) -> None:
+        preflights = {
+            INSTALL.name: documented_preflight(INSTALL),
+            INSTALL_ZH.name: documented_preflight(INSTALL_ZH),
+        }
+        self.assertEqual(*preflights.values())
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            config = root / "config"
+            config.mkdir()
+            target = root / "target"
+            target.write_text("# unrelated user policy\n", encoding="utf-8")
+            target.chmod(0)
+            (config / "CLAUDE.md").symlink_to(target)
+            try:
+                if os.geteuid() == 0 or os.access(target, os.R_OK):
+                    self.skipTest(
+                        "current UID or filesystem cannot enforce unreadability "
+                        "for a chmod-000 regular target"
+                    )
+
+                hook_result = self.invoke_hook(root, config)
+                self.assertEqual(hook_result.returncode, 0)
+                self.assertEqual(hook_result.stdout, UNSAFE_DIAGNOSTIC)
+                self.assertEqual(hook_result.stderr, b"")
+                self.assertNotIn(SENTINEL, hook_result.stdout)
+                self.assertNotIn(POLICY, hook_result.stdout)
+
+                observed = []
+                for document, function in preflights.items():
+                    with self.subTest(document=document):
+                        result = self.run_preflight(function, root, config)
+                        actual = (result.returncode, result.stdout, result.stderr)
+                        self.assertEqual(actual, (1, b"", PREFLIGHT_UNSAFE))
+                        observed.append(actual)
+                self.assertEqual(observed[0], observed[1])
+            finally:
+                target.chmod(0o600)
+
+    def test_grep_error_fails_closed_for_hook_and_documented_preflights(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            config = root / "config"
+            config.mkdir()
+            (config / "CLAUDE.md").write_text(
+                "# unrelated user policy\n", encoding="utf-8"
+            )
+
+            hook_source = HOOK.read_text(encoding="utf-8")
+            hook_needle = "    grep -F -q \\\n"
+            self.assertEqual(hook_source.count(hook_needle), 1)
+            forced_hook = root / "forced-grep-error-hook.sh"
+            forced_hook.write_text(
+                hook_source.replace(
+                    hook_needle, "    /bin/sh -c 'exit 2' -- \\\n", 1
+                ),
+                encoding="utf-8",
+            )
+            hook_result = self.invoke_hook(root, config, forced_hook)
+            self.assertEqual(hook_result.returncode, 0)
+            self.assertEqual(hook_result.stdout, UNSAFE_DIAGNOSTIC)
+            self.assertEqual(hook_result.stderr, b"")
+            self.assertNotIn(SENTINEL, hook_result.stdout)
+            self.assertNotIn(POLICY, hook_result.stdout)
+
+            observed = []
+            preflight_needle = "PATH=/usr/bin:/bin grep -F -q \\\n"
+            for document in (INSTALL, INSTALL_ZH):
+                function = documented_preflight(document)
+                self.assertEqual(function.count(preflight_needle), 1)
+                forced_function = function.replace(
+                    preflight_needle,
+                    "PATH=/usr/bin:/bin /bin/sh -c 'exit 2' -- \\\n",
+                    1,
+                )
+                result = self.run_preflight(forced_function, root, config)
+                actual = (result.returncode, result.stdout, result.stderr)
+                self.assertEqual(actual, (1, b"", PREFLIGHT_UNSAFE))
+                observed.append(actual)
+            self.assertEqual(observed[0], observed[1])
+
+    def test_documented_preflight_exact_client_and_legacy_matrix(self) -> None:
+        function = documented_preflight(INSTALL)
+        self.assertEqual(function, documented_preflight(INSTALL_ZH))
         self.assertIn("PATH=/usr/bin:/bin grep -F -q", function)
+        self.assertIn(
+            '[ ! -e "$CFG/CLAUDE.md" ] && [ ! -L "$CFG/CLAUDE.md" ]',
+            function,
+        )
+        self.assertNotIn('elif [ -L "$CFG/CLAUDE.md" ]', function)
         self.assertNotIn("/usr/bin/grep", function)
         self.assertNotIn("sort -V", function)
 
@@ -350,7 +574,7 @@ class PluginHookTests(unittest.TestCase):
             ("version", "<!-- pilotfish v1.3.10 -->\n", None, b"", b"Stop: legacy global pilotfish detected; migrate before installing.\n", 1),
             ("header", "Main-session policy. Named roles (`scout`)\n", None, b"", b"Stop: legacy global pilotfish detected; migrate before installing.\n", 1),
             ("relative", None, "relative", b"", b"Stop: CLAUDE_CONFIG_DIR must be absolute.\n", 1),
-            ("symlink", None, "symlink", b"", b"Stop: CLAUDE.md must not be a symlink; replace it with a regular readable file or remove it.\n", 1),
+            ("dangling-symlink", None, "symlink", b"", PREFLIGHT_UNSAFE, 1),
         )
         for name, claude_md, special, stdout, stderr, status in cases:
             with self.subTest(name=name), tempfile.TemporaryDirectory() as temporary:
