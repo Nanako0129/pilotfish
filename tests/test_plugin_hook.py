@@ -361,13 +361,6 @@ class PluginHookTests(unittest.TestCase):
                 (1, b"", PREFLIGHT_UNSAFE),
             ),
             (
-                "unreadable-regular",
-                "unreadable",
-                "# unrelated user policy\n",
-                UNSAFE_DIAGNOSTIC,
-                (1, b"", PREFLIGHT_UNSAFE),
-            ),
-            (
                 "unix-socket",
                 "socket",
                 None,
@@ -382,10 +375,8 @@ class PluginHookTests(unittest.TestCase):
                 config.mkdir()
                 target = root / "target"
                 listener = None
-                if kind in ("file", "unreadable"):
+                if kind == "file":
                     target.write_text(content or "", encoding="utf-8")
-                    if kind == "unreadable":
-                        target.chmod(0)
                 elif kind == "directory":
                     target.mkdir()
                 elif kind == "socket":
@@ -393,14 +384,6 @@ class PluginHookTests(unittest.TestCase):
                     listener.bind(str(target))
                 (config / "CLAUDE.md").symlink_to(target)
                 try:
-                    if kind == "unreadable" and (
-                        os.geteuid() == 0 or os.access(target, os.R_OK)
-                    ):
-                        self.skipTest(
-                            "current UID or filesystem cannot enforce unreadability "
-                            "for a chmod-000 regular target"
-                        )
-
                     hook_result = self.invoke_hook(root, config)
                     self.assertEqual(hook_result.returncode, 0)
                     self.assertEqual(hook_result.stdout, hook_stdout)
@@ -422,8 +405,45 @@ class PluginHookTests(unittest.TestCase):
                 finally:
                     if listener is not None:
                         listener.close()
-                    if kind == "unreadable":
-                        target.chmod(0o600)
+
+    def test_unreadable_claude_md_symlink_target_fails_closed(self) -> None:
+        preflights = {
+            INSTALL.name: documented_preflight(INSTALL),
+            INSTALL_ZH.name: documented_preflight(INSTALL_ZH),
+        }
+        self.assertEqual(*preflights.values())
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            config = root / "config"
+            config.mkdir()
+            target = root / "target"
+            target.write_text("# unrelated user policy\n", encoding="utf-8")
+            target.chmod(0)
+            (config / "CLAUDE.md").symlink_to(target)
+            try:
+                if os.geteuid() == 0 or os.access(target, os.R_OK):
+                    self.skipTest(
+                        "current UID or filesystem cannot enforce unreadability "
+                        "for a chmod-000 regular target"
+                    )
+
+                hook_result = self.invoke_hook(root, config)
+                self.assertEqual(hook_result.returncode, 0)
+                self.assertEqual(hook_result.stdout, UNSAFE_DIAGNOSTIC)
+                self.assertEqual(hook_result.stderr, b"")
+                self.assertNotIn(SENTINEL, hook_result.stdout)
+                self.assertNotIn(POLICY, hook_result.stdout)
+
+                observed = []
+                for document, function in preflights.items():
+                    with self.subTest(document=document):
+                        result = self.run_preflight(function, root, config)
+                        actual = (result.returncode, result.stdout, result.stderr)
+                        self.assertEqual(actual, (1, b"", PREFLIGHT_UNSAFE))
+                        observed.append(actual)
+                self.assertEqual(observed[0], observed[1])
+            finally:
+                target.chmod(0o600)
 
     def test_grep_error_fails_closed_for_hook_and_documented_preflights(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

@@ -81,7 +81,7 @@
    )
    ```
 
-   This recovery path may create or repair only the GitHub Release for those exact existing tags. It must never recreate, move, force, or repush either tag. Read the Release back and repair its prose or links with `gh release edit` only after confirming its `tagName`; a tag-identity mismatch requires a later version, not mutation of v1.4.0.
+   This recovery path may create or repair only the GitHub Release for those exact existing tags. It must never recreate, move, force, or repush either tag. Read the Release back and repair its prose or links with `gh release edit` only after confirming its `tagName`; a tag-identity mismatch requires a later `VERSION` and new tags, not mutation of the Release for those exact existing tags.
 
 Keep the project name lowercase (`pilotfish`) in repository and release prose. After publishing or editing a GitHub Release, read its body back and confirm that prose is not manually column-wrapped and every linked path exists on the tagged version.
 
