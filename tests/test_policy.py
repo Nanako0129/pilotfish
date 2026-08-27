@@ -1573,7 +1573,6 @@ class PolicyContractTests(unittest.TestCase):
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
         self.assertEqual(runtime["release_candidate_version"], version)
-        self.assertEqual(version, "1.4.1")
         self.assertEqual(
             runtime["release_candidate_generated_by"],
             "benchmarks/baton-compatibility/build-agents-json.py templates/agents",
@@ -1830,6 +1829,23 @@ class PolicyContractTests(unittest.TestCase):
         for readme in ("README.md", "README.zh-TW.md"):
             content = (ROOT / readme).read_text(encoding="utf-8")
             self.assertIn(f"git clone --branch v{version} --depth 1", content)
+
+        for readme, label in (
+            ("benchmarks/baton-compatibility/README.md", "Current generated"),
+            ("benchmarks/baton-compatibility/README.zh-TW.md", "目前產生的"),
+        ):
+            content = (ROOT / readme).read_text(encoding="utf-8")
+            self.assertIn(f"{label} v{version} agents payload", content)
+
+        runtime = json.loads(
+            (ROOT / "benchmarks/baton-compatibility/results.json").read_text(
+                encoding="utf-8"
+            )
+        )["runtime"]
+        self.assertIn(
+            f"v{version} release candidate",
+            runtime["release_candidate_behavioral_gate_status"],
+        )
 
     def test_release_pushes_default_branch_before_tags(self) -> None:
         release = (ROOT / "RELEASING.md").read_text(encoding="utf-8")
