@@ -155,6 +155,21 @@ ATTEMPT_ACCOUNTING_REVIEWED_FAILURES = {
         "outcome": "approval gate held; acceptance not met",
     },
 }
+ATTEMPT_ACCOUNTING_IDENTITY_FIELDS = (
+    ("policy_sha256", "hash"),
+    ("policy_orchestration_sha256", "hash"),
+    ("orchestration_sha256", "hash"),
+    ("configuration", "config"),
+    ("policy_version", "version"),
+    ("candidate_version", "version"),
+    ("release_candidate_version", "version"),
+)
+ATTEMPT_ACCOUNTING_REVIEWED_IDENTITIES = {
+    (
+        "benchmarks/prompt-compression/results.json",
+        "/behavioral_gates/spontaneous_mechanical_v1_3_3_control",
+    ): {"version": "1.3.3"},
+}
 
 
 def _attempt_accounting_pointer_part(value: object) -> str:
@@ -184,6 +199,62 @@ def _attempt_accounting_marked_records(
 
 def _attempt_accounting_nonempty(value: object) -> bool:
     return value not in (None, "", [], {})
+
+
+def _attempt_accounting_pointer_key(pointer: dict) -> tuple[str, str, int]:
+    assert isinstance(pointer, dict)
+    source = pointer.get("source")
+    json_pointer = pointer.get("json_pointer")
+    occurrence = pointer.get("occurrence", 0)
+    assert isinstance(source, str) and source
+    assert isinstance(json_pointer, str)
+    assert type(occurrence) is int and occurrence >= 0
+    return source, json_pointer, occurrence
+
+
+def _attempt_accounting_occurrence_count(
+    source: str, pointer: str, record: dict
+) -> int:
+    if source != "benchmarks/verifier-boundary/results.json":
+        return 1
+    if pointer == "/failed_attempts/2":
+        return 2 if isinstance(record.get("inconclusive_diagnostic"), dict) else 1
+    if pointer == "/failed_attempts/3":
+        hashes = record.get("raw_stream_sha256")
+        return len(hashes) if isinstance(hashes, list) and hashes else 1
+    return 1
+
+
+def _attempt_accounting_candidate_identity(
+    record: dict,
+) -> dict[str, object]:
+    identity: dict[str, object] = {}
+    for source_key, identity_key in ATTEMPT_ACCOUNTING_IDENTITY_FIELDS:
+        value = record.get(source_key)
+        if identity_key not in identity and _attempt_accounting_nonempty(value):
+            identity[identity_key] = value
+    return identity
+
+
+def _attempt_accounting_candidate_identity_for_attempt(
+    source: str, pointer: str, document: object
+) -> dict[str, object]:
+    reviewed_identity = ATTEMPT_ACCOUNTING_REVIEWED_IDENTITIES.get(
+        (source, pointer)
+    )
+    if reviewed_identity is not None:
+        return reviewed_identity
+    if pointer != "" and not pointer.startswith("/"):
+        raise AssertionError(f"invalid JSON Pointer: {pointer!r}")
+    tokens = pointer[1:].split("/") if pointer else []
+    for depth in range(len(tokens), -1, -1):
+        ancestor_pointer = "" if depth == 0 else "/" + "/".join(tokens[:depth])
+        ancestor = _attempt_accounting_resolve_pointer(document, ancestor_pointer)
+        if isinstance(ancestor, dict):
+            identity = _attempt_accounting_candidate_identity(ancestor)
+            if identity:
+                return identity
+    return {}
 
 
 def _attempt_accounting_outcome(
@@ -227,12 +298,21 @@ def _attempt_accounting_outcome(
 
 def _attempt_accounting_attempt_pointers(
     source: str, document: object
-) -> list[str]:
-    pointers: list[str] = []
+) -> list[tuple[str, int]]:
+    pointers: list[tuple[str, int]] = []
 
-    def add(pointer: str) -> None:
-        if pointer not in pointers:
-            pointers.append(pointer)
+    def add(pointer: str, occurrence: int = 0) -> None:
+        key = (pointer, occurrence)
+        if key not in pointers:
+            pointers.append(key)
+
+    def add_attempt(pointer: str) -> None:
+        record = _attempt_accounting_resolve_pointer(document, pointer)
+        assert isinstance(record, dict)
+        for occurrence in range(
+            _attempt_accounting_occurrence_count(source, pointer, record)
+        ):
+            add(pointer, occurrence)
 
     def walk(value: object, pointer: str = "") -> None:
         if isinstance(value, dict):
@@ -242,7 +322,7 @@ def _attempt_accounting_attempt_pointers(
                     child, list
                 ):
                     for index in range(len(child)):
-                        add(child_pointer + "/" + str(index))
+                        add_attempt(child_pointer + "/" + str(index))
                 walk(child, child_pointer)
         elif isinstance(value, list):
             for index, child in enumerate(value):
@@ -256,17 +336,29 @@ def _attempt_accounting_attempt_pointers(
             turns = record.get("turns")
             if isinstance(turns, list):
                 for index in range(len(turns)):
-                    add(pointer + "/turns/" + str(index))
+                    add_attempt(pointer + "/turns/" + str(index))
             else:
-                add(pointer)
+                add_attempt(pointer)
     for pointer in ATTEMPT_ACCOUNTING_SINGULAR_ATTEMPTS.get(source, ()):
-        add(pointer)
+        add_attempt(pointer)
     return pointers
 
 
 def _attempt_accounting_attempt_outcome(
-    source: str, pointer: str, record: dict, document: object
+    source: str,
+    pointer: str,
+    occurrence: int,
+    record: dict,
+    document: object,
 ) -> tuple[str, tuple[str, ...]]:
+    if (
+        source == "benchmarks/verifier-boundary/results.json"
+        and pointer == "/failed_attempts/2"
+        and occurrence == 1
+    ):
+        diagnostic = record.get("inconclusive_diagnostic")
+        if isinstance(diagnostic, dict):
+            return "failed", ("inconclusive_diagnostic=nonempty",)
     outcome = _attempt_accounting_outcome(record, source, pointer)
     if outcome[0] != "unknown":
         return outcome
@@ -394,14 +486,16 @@ def _attempt_accounting_validate(ledger: dict) -> None:
     attempt_outcomes = {}
     attempt_order = []
     for source, document in documents.items():
-        for pointer in _attempt_accounting_attempt_pointers(source, document):
-            key = (source, pointer)
+        for pointer, occurrence in _attempt_accounting_attempt_pointers(
+            source, document
+        ):
+            key = (source, pointer, occurrence)
             assert key not in attempt_oracle
             record = _attempt_accounting_resolve_pointer(document, pointer)
             assert isinstance(record, dict)
             attempt_oracle[key] = record
             attempt_outcomes[key] = _attempt_accounting_attempt_outcome(
-                source, pointer, record, document
+                source, pointer, occurrence, record, document
             )
             attempt_order.append(key)
     assert attempt_order
@@ -439,10 +533,7 @@ def _attempt_accounting_validate(ledger: dict) -> None:
         attempt_pointers = cell.get("attempt_pointers")
         assert isinstance(attempt_pointers, list)
         for attempt_pointer in attempt_pointers:
-            assert isinstance(attempt_pointer, dict)
-            source = attempt_pointer.get("source")
-            pointer = attempt_pointer.get("json_pointer")
-            key = (source, pointer)
+            key = _attempt_accounting_pointer_key(attempt_pointer)
             assert key in attempt_oracle
             assert key not in attempt_owner_by_pointer
             attempt_owner_by_pointer[key] = cell["id"]
@@ -451,18 +542,21 @@ def _attempt_accounting_validate(ledger: dict) -> None:
     failure_oracle = {}
     for key, (state, boundaries) in outcomes.items():
         if state == "failed":
-            failure_oracle[key] = boundaries
+            failure_oracle[(*key, 0)] = boundaries
     for key, reviewed_failure in ATTEMPT_ACCOUNTING_REVIEWED_FAILURES.items():
-        assert key in attempt_oracle
         source, pointer = key
-        record = attempt_oracle[key]
+        record = _attempt_accounting_resolve_pointer(documents[source], pointer)
+        assert isinstance(record, dict)
         assert all(
             record.get(field) == expected
             for field, expected in reviewed_failure.items()
         )
-        failure_oracle[key] = (
-            f"reviewed_failure={reviewed_failure['name']}",
-        )
+        boundary = (f"reviewed_failure={reviewed_failure['name']}",)
+        for occurrence in range(
+            _attempt_accounting_occurrence_count(source, pointer, record)
+        ):
+            assert (source, pointer, occurrence) in attempt_oracle
+            failure_oracle[(source, pointer, occurrence)] = boundary
     attempt_failure_oracle = {
         key: boundaries
         for key, (state, boundaries) in attempt_outcomes.items()
@@ -481,7 +575,7 @@ def _attempt_accounting_validate(ledger: dict) -> None:
         assert cell.get("claim_status") == next(iter(claim_states))
 
         attempt_pointers = [
-            (attempt_pointer["source"], attempt_pointer["json_pointer"])
+            _attempt_accounting_pointer_key(attempt_pointer)
             for attempt_pointer in cell["attempt_pointers"]
         ]
         attempt_states = [attempt_outcomes[key][0] for key in attempt_pointers]
@@ -546,40 +640,47 @@ def _attempt_accounting_validate(ledger: dict) -> None:
         cell_id = entry.get("cell_id")
         assert cell_id in cell_by_id
         attempt_pointer = entry.get("attempt_pointer")
-        assert isinstance(attempt_pointer, dict)
-        attempt_key = (
-            attempt_pointer.get("source"),
-            attempt_pointer.get("json_pointer"),
-        )
+        attempt_key = _attempt_accounting_pointer_key(attempt_pointer)
         assert attempt_key in attempt_failure_oracle
         assert attempt_key not in attempt_failures_by_pointer
         assert attempt_owner_by_pointer[attempt_key] == cell_id
         identity = entry.get("candidate_identity")
         assert isinstance(identity, dict)
-        assert any(
-            key in identity and _attempt_accounting_nonempty(identity[key])
-            for key in ("version", "hash", "config", "limitation")
+        expected_identity = _attempt_accounting_candidate_identity_for_attempt(
+            attempt_key[0], attempt_key[1], documents[attempt_key[0]]
         )
+        if expected_identity:
+            assert identity == expected_identity
+        else:
+            assert (
+                isinstance(identity.get("limitation"), str)
+                and identity["limitation"]
+            )
+            assert not any(
+                key in identity and _attempt_accounting_nonempty(identity[key])
+                for key in ("version", "hash", "config")
+            )
         boundary = entry.get("failure_boundary")
         assert isinstance(boundary, str) and boundary
         evidence = entry.get("evidence")
         assert isinstance(evidence, list) and evidence
         assert boundary == "; ".join(attempt_failure_oracle[attempt_key])
         for evidence_item in evidence:
-            assert isinstance(evidence_item, dict)
-            key = (
-                evidence_item.get("source"),
-                evidence_item.get("json_pointer"),
-            )
+            key = _attempt_accounting_pointer_key(evidence_item)
             assert key in failure_oracle
             assert key not in evidence_by_pointer
-            owner = owner_by_pointer.get(key, attempt_owner_by_pointer.get(key))
+            claim_key = (key[0], key[1])
+            owner = owner_by_pointer.get(claim_key, attempt_owner_by_pointer.get(key))
             assert owner == cell_id
-            record = oracle.get(key, attempt_oracle.get(key))
+            record = oracle.get(claim_key, attempt_oracle.get(key))
             assert isinstance(record, dict)
             for hash_key in ("raw_stream_sha256", "transcript_sha256"):
                 if isinstance(record.get(hash_key), str):
                     assert evidence_item.get(hash_key) == record[hash_key]
+                elif isinstance(record.get(hash_key), list):
+                    occurrence = key[2]
+                    assert occurrence < len(record[hash_key])
+                    assert evidence_item.get(hash_key) == record[hash_key][occurrence]
             evidence_by_pointer[key] = entry
         attempt_failures_by_pointer[attempt_key] = entry
 
@@ -4341,6 +4442,116 @@ class PolicyContractTests(unittest.TestCase):
         ledger_path = ROOT / "benchmarks" / "attempt-accounting.json"
         ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
         _attempt_accounting_validate(ledger)
+
+        self.assertEqual(len(ledger["sources"]), 11)
+        self.assertEqual(
+            sum(len(cell["claim_pointers"]) for cell in ledger["cells"]), 193
+        )
+        self.assertEqual(
+            sum(len(cell["attempt_pointers"]) for cell in ledger["cells"]), 137
+        )
+        self.assertEqual(
+            sum(
+                cell["failed"]
+                for cell in ledger["cells"]
+                if cell["count_status"] == "known"
+            ),
+            37,
+        )
+
+        verifier_failed = next(
+            cell
+            for cell in ledger["cells"]
+            if cell["id"]
+            == "cell:benchmarks/verifier-boundary/results.json#failed"
+        )
+        self.assertEqual(
+            (verifier_failed["attempted"], verifier_failed["passed"], verifier_failed["failed"]),
+            (6, 0, 6),
+        )
+        verifier_failures = [
+            entry
+            for entry in ledger["failed_attempts"]
+            if entry["attempt_pointer"]["source"]
+            == "benchmarks/verifier-boundary/results.json"
+        ]
+        self.assertEqual(len(verifier_failures), 6)
+        self.assertEqual(
+            sorted(
+                entry["attempt_pointer"].get("occurrence", 0)
+                for entry in verifier_failures
+                if entry["attempt_pointer"]["json_pointer"] == "/failed_attempts/2"
+            ),
+            [0, 1],
+        )
+        self.assertEqual(
+            sorted(
+                entry["attempt_pointer"].get("occurrence", 0)
+                for entry in verifier_failures
+                if entry["attempt_pointer"]["json_pointer"] == "/failed_attempts/3"
+            ),
+            [0, 1],
+        )
+
+        hash_identity = deepcopy(ledger)
+        hash_entry = next(
+            entry
+            for entry in hash_identity["failed_attempts"]
+            if entry["attempt_pointer"]["source"]
+            == "benchmarks/verifier-boundary/results.json"
+            and entry["attempt_pointer"]["json_pointer"] == "/failed_attempts/2"
+            and entry["attempt_pointer"].get("occurrence", 0) == 0
+        )
+        hash_entry["candidate_identity"] = {
+            "limitation": "identity intentionally removed"
+        }
+        with self.assertRaises(AssertionError):
+            _attempt_accounting_validate(hash_identity)
+
+        config_identity = deepcopy(ledger)
+        config_entry = next(
+            entry
+            for entry in config_identity["failed_attempts"]
+            if entry["attempt_pointer"]["source"]
+            == "benchmarks/spontaneous-dispatch/issue-29-topology.json"
+        )
+        config_entry["candidate_identity"] = {
+            "limitation": "identity intentionally removed"
+        }
+        with self.assertRaises(AssertionError):
+            _attempt_accounting_validate(config_identity)
+
+        control_entry = next(
+            entry
+            for entry in ledger["failed_attempts"]
+            if entry["attempt_pointer"]["source"]
+            == "benchmarks/prompt-compression/results.json"
+            and entry["attempt_pointer"]["json_pointer"]
+            == "/behavioral_gates/spontaneous_mechanical_v1_3_3_control"
+        )
+        self.assertEqual(control_entry["candidate_identity"], {"version": "1.3.3"})
+
+        root_identity = deepcopy(ledger)
+        root_entry = next(
+            entry
+            for entry in root_identity["failed_attempts"]
+            if entry["id"] == control_entry["id"]
+        )
+        root_entry["candidate_identity"] = {"version": "1.3.4"}
+        with self.assertRaises(AssertionError):
+            _attempt_accounting_validate(root_identity)
+
+        control_limitation = deepcopy(ledger)
+        limitation_entry = next(
+            entry
+            for entry in control_limitation["failed_attempts"]
+            if entry["id"] == control_entry["id"]
+        )
+        limitation_entry["candidate_identity"] = {
+            "limitation": "identity intentionally removed"
+        }
+        with self.assertRaises(AssertionError):
+            _attempt_accounting_validate(control_limitation)
 
         missing_cell_mapping = deepcopy(ledger)
         cell = next(

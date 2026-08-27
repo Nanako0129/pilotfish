@@ -1590,17 +1590,29 @@
         },
         {
           "source": "benchmarks/verifier-boundary/results.json",
-          "json_pointer": "/failed_attempts/2"
+          "json_pointer": "/failed_attempts/2",
+          "occurrence": 0
         },
         {
           "source": "benchmarks/verifier-boundary/results.json",
-          "json_pointer": "/failed_attempts/3"
+          "json_pointer": "/failed_attempts/2",
+          "occurrence": 1
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/failed_attempts/3",
+          "occurrence": 0
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/failed_attempts/3",
+          "occurrence": 1
         }
       ],
       "count_status": "known",
-      "attempted": 4,
+      "attempted": 6,
       "passed": 0,
-      "failed": 4
+      "failed": 6
     },
     {
       "id": "cell:benchmarks/verifier-boundary/results.json#unknown",
@@ -1723,7 +1735,8 @@
         "json_pointer": "/failed_candidate_gate/turns/0"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "hash": "d41a9d41db21e97176e82614dcfd4d80cba670ec28136666cc96906dd5efda35",
+        "version": "1.3.0"
       },
       "failure_boundary": "failure_reasons=nonempty; failure_summary=nonempty",
       "evidence": [
@@ -1742,7 +1755,7 @@
         "json_pointer": "/large_policy_activation_gate/attempts/0"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "hash": "46155d17c9d78c5fb567571ece0928e1515d04ea9ef98aaaaec5688a81e7b614"
       },
       "failure_boundary": "status=activation_dispatch_pass_ownership_fail; failure=nonempty",
       "evidence": [
@@ -1761,7 +1774,7 @@
         "json_pointer": "/large_policy_activation_gate/attempts/1"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "hash": "153d30aa3032033f3a6368a0a77a6d37b43f2e4e9d97a5a8689c24d1472bdf6b"
       },
       "failure_boundary": "status=activation_dispatch_parallel_launch_pass_ownership_fail; failure=nonempty",
       "evidence": [
@@ -1780,7 +1793,7 @@
         "json_pointer": "/large_policy_activation_gate/attempts/2"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "hash": "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf"
       },
       "failure_boundary": "test_passed=false; status=topology_pass_runtime_limit_outcome_incomplete; failure=nonempty",
       "evidence": [
@@ -1894,7 +1907,7 @@
         "json_pointer": "/behavioral_gates/spontaneous_mechanical_candidate"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "version": "1.3.4"
       },
       "failure_boundary": "status=correctness_passed_topology_blocked",
       "evidence": [
@@ -1913,7 +1926,7 @@
         "json_pointer": "/behavioral_gates/spontaneous_mechanical_v1_3_3_control"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "version": "1.3.3"
       },
       "failure_boundary": "status=correctness_passed_same_topology_blocker",
       "evidence": [
@@ -1932,7 +1945,7 @@
         "json_pointer": "/behavioral_gates/explicit_lifecycle_turn_1"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "version": "1.3.4"
       },
       "failure_boundary": "status=stopped_after_two_revise",
       "evidence": [
@@ -1951,7 +1964,7 @@
         "json_pointer": "/runs/1"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "version": "1.3.0"
       },
       "failure_boundary": "status=success_topology_fail",
       "evidence": [
@@ -2055,7 +2068,7 @@
         "json_pointer": "/attempts/0"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "config": "v1.3.7-opus5-2.1.220"
       },
       "failure_boundary": "reachability=FAIL",
       "evidence": [
@@ -2074,7 +2087,7 @@
         "json_pointer": "/attempts/1"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "config": "v1.3.7-opus5-2.1.220"
       },
       "failure_boundary": "reachability=FAIL",
       "evidence": [
@@ -2093,7 +2106,7 @@
         "json_pointer": "/attempts/2"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "config": "candidate-1-opus5-2.1.220"
       },
       "failure_boundary": "reachability=FAIL",
       "evidence": [
@@ -2112,7 +2125,7 @@
         "json_pointer": "/attempts/3"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "config": "candidate-1-opus5-2.1.220"
       },
       "failure_boundary": "reachability=FAIL",
       "evidence": [
@@ -2131,7 +2144,7 @@
         "json_pointer": "/attempts/4"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "config": "candidate-2-opus5-2.1.220"
       },
       "failure_boundary": "reachability=FAIL",
       "evidence": [
@@ -2150,7 +2163,7 @@
         "json_pointer": "/attempts/5"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "config": "candidate-2-opus5-2.1.220"
       },
       "failure_boundary": "reachability=FAIL",
       "evidence": [
@@ -2169,7 +2182,7 @@
         "json_pointer": "/attempts/8"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "config": "v1.3.1-opus5-2.1.220"
       },
       "failure_boundary": "reachability=FAIL",
       "evidence": [
@@ -2188,7 +2201,7 @@
         "json_pointer": "/attempts/9"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "config": "v1.3.1-opus5-2.1.220"
       },
       "failure_boundary": "reachability=FAIL",
       "evidence": [
@@ -2207,7 +2220,7 @@
         "json_pointer": "/attempts/10"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "config": "v1.3.1-opus4.8-2.1.220"
       },
       "failure_boundary": "reachability=FAIL",
       "evidence": [
@@ -2226,7 +2239,7 @@
         "json_pointer": "/attempts/11"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "config": "v1.3.1-opus4.8-2.1.220"
       },
       "failure_boundary": "reachability=FAIL",
       "evidence": [
@@ -2245,7 +2258,7 @@
         "json_pointer": "/attempts/12"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "config": "v1.3.7-opus4.8-2.1.220"
       },
       "failure_boundary": "reachability=FAIL",
       "evidence": [
@@ -2264,7 +2277,7 @@
         "json_pointer": "/attempts/13"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "config": "v1.3.7-opus4.8-2.1.220"
       },
       "failure_boundary": "reachability=FAIL",
       "evidence": [
@@ -2283,7 +2296,7 @@
         "json_pointer": "/attempts/19"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "config": "v1.3.1-opus4.8-2.1.218-release-roles"
       },
       "failure_boundary": "reachability=FAIL",
       "evidence": [
@@ -2302,7 +2315,7 @@
         "json_pointer": "/failed_attempts/0"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "version": "1.3.7"
       },
       "failure_boundary": "status=rejected_quota_exhausted",
       "evidence": [
@@ -2320,7 +2333,7 @@
         "json_pointer": "/failed_attempts/1"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "version": "1.3.7"
       },
       "failure_boundary": "status=rejected_operator_contract_blocked_agents",
       "evidence": [
@@ -2336,16 +2349,38 @@
       "cell_id": "cell:benchmarks/verifier-boundary/results.json#failed",
       "attempt_pointer": {
         "source": "benchmarks/verifier-boundary/results.json",
-        "json_pointer": "/failed_attempts/2"
+        "json_pointer": "/failed_attempts/2",
+        "occurrence": 0
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "hash": "59f18c6dd85cd92a6797bf691bb8ee1c372587b08e419991430955877d4e64ba"
       },
       "failure_boundary": "reviewed_failure=compressed-candidate-schema-non-reproduction",
       "evidence": [
         {
           "source": "benchmarks/verifier-boundary/results.json",
-          "json_pointer": "/failed_attempts/2"
+          "json_pointer": "/failed_attempts/2",
+          "occurrence": 0
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/verifier-boundary/results.json#/failed_attempts/2#occurrence-1",
+      "cell_id": "cell:benchmarks/verifier-boundary/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/verifier-boundary/results.json",
+        "json_pointer": "/failed_attempts/2",
+        "occurrence": 1
+      },
+      "candidate_identity": {
+        "hash": "59f18c6dd85cd92a6797bf691bb8ee1c372587b08e419991430955877d4e64ba"
+      },
+      "failure_boundary": "inconclusive_diagnostic=nonempty",
+      "evidence": [
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/failed_attempts/2",
+          "occurrence": 1
         }
       ]
     },
@@ -2354,16 +2389,40 @@
       "cell_id": "cell:benchmarks/verifier-boundary/results.json#failed",
       "attempt_pointer": {
         "source": "benchmarks/verifier-boundary/results.json",
-        "json_pointer": "/failed_attempts/3"
+        "json_pointer": "/failed_attempts/3",
+        "occurrence": 0
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "hash": "6b1e809551ebe776bfca3543c8e17d78383f23301497d95904d9725b727e16d4"
       },
       "failure_boundary": "reviewed_failure=uncollected-background-verification",
       "evidence": [
         {
           "source": "benchmarks/verifier-boundary/results.json",
-          "json_pointer": "/failed_attempts/3"
+          "json_pointer": "/failed_attempts/3",
+          "occurrence": 0,
+          "raw_stream_sha256": "594791006d663210ab943a0ee2dffee170e6cb3dea9a7a6af8b801ae32182737"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/verifier-boundary/results.json#/failed_attempts/3#occurrence-1",
+      "cell_id": "cell:benchmarks/verifier-boundary/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/verifier-boundary/results.json",
+        "json_pointer": "/failed_attempts/3",
+        "occurrence": 1
+      },
+      "candidate_identity": {
+        "hash": "6b1e809551ebe776bfca3543c8e17d78383f23301497d95904d9725b727e16d4"
+      },
+      "failure_boundary": "reviewed_failure=uncollected-background-verification",
+      "evidence": [
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/failed_attempts/3",
+          "occurrence": 1,
+          "raw_stream_sha256": "f927d03834ba431858ed4e508fdd5714a8eaa309f0f23ab05bedbbe6da15d66b"
         }
       ]
     }
