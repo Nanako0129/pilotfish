@@ -502,6 +502,7 @@
       "configuration_identity": "superseded-v1.3.6",
       "status": "passed_phase",
       "record": {
+        "verdict": "REVISE",
         "client_reported_cost_usd": 0.485038,
         "duration_ms": 54456,
         "raw_stream_sha256": "7e253da8d29414604335bd11b21a12dd74dd33f407b066ab90cd5b95835acef2"
@@ -513,6 +514,7 @@
       "configuration_identity": "superseded-v1.3.6",
       "status": "passed_phase",
       "record": {
+        "verdict": "REVISE",
         "client_reported_cost_usd": 0.26048,
         "duration_ms": 43123,
         "raw_stream_sha256": "3b629184fd7169419294d36a4d0ffba9a7743efc618f4ca5925c67d133aa255a"
@@ -524,6 +526,7 @@
       "configuration_identity": "superseded-v1.3.6",
       "status": "passed_phase",
       "record": {
+        "verdict": "READY",
         "client_reported_cost_usd": 0.252255,
         "duration_ms": 40975,
         "raw_stream_sha256": "a17ef249c7cc02c7e68869e4923cf0b978b9d27173dc84c7d04c92bd19a3c55f"

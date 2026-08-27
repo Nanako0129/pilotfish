@@ -3401,7 +3401,10 @@ class PolicyContractTests(unittest.TestCase):
                 ),
                 "configuration_identity": "superseded-v1.3.6",
                 "status": "passed_phase",
-                "record": old["post_cap_plan_control"]["turns"][index],
+                "record": {
+                    "verdict": old["post_cap_plan_control"]["verdicts"][index],
+                    **old["post_cap_plan_control"]["turns"][index],
+                },
             }
             for index in range(3)
         ]
