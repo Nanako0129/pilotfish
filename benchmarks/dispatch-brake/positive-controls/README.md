@@ -1,5 +1,12 @@
 # Positive controls and rejected dispatch policies
 
+## Contents
+
+- [Reproduction](#reproduction)
+- [What failed before the balanced policy](#what-failed-before-the-balanced-policy)
+- [Key measurements](#key-measurements)
+- [Disclosed limits](#disclosed-limits)
+
 The original state-clone benchmark proved that delegation can be wasteful. It could not prove the equally important claim that the brake still permits useful delegation. These controls test both sides of that boundary.
 
 | Control | Intended decision | Acceptance gate |
@@ -44,49 +51,37 @@ The result is intentionally not “delegate less.” Stable mechanical repetitio
 
 In the mechanical control's execution-only segment, delegation reduced the reported cost field by 36.01% while adding 7.92% wall time. Neither mechanical run performed the release policy's required outcome-verifier pass, so this demonstrates that the cheap execution route remains reachable; it does **not** establish full-lifecycle savings. For the small research control, the two-scout run increased wall time by 11.71% and the reported cost field by 15.61% relative to its direct comparison. These are single task-local runs, not population estimates, and the research comparison did not include downstream Plan synthesis or execution.
 
-## Reproduce
+## Reproduction
 
-To replay the published balanced mechanical harness with byte-identical policy and role inputs, fetch the full pinned commit (required for a shallow release checkout) and attach it as a temporary worktree. The current checkout supplies only the generic JSON builder; both the policy and all six role definitions come from the pinned snapshot and are injected explicitly, so no global pilotfish install is required. The main session is pinned to the recorded Opus 4.8 model; generated output, timing, and cost remain single-run observations rather than deterministic bytes.
+This is a safe static baseline-contract check. The current fixture is intentionally red before the mechanical task: its fixture-owned `npm test` must report exactly `pass 0` and `fail 12` with exit status 1. This does not reproduce acceptance after implementation, live model behavior, dispatch/topology, cost, or latency. Historical commit `863b117b9da42179c5bb77a05158920fbc092ee2` has no proven remotely reachable named ref; any historical live replay is conditional and non-turnkey, requiring an already-authenticated compatible account/client/provider, separate spend authorization, and a disposable fixture.
 
 ```bash
-HARNESS=/path/to/current/pilotfish
-SNAPSHOT=/tmp/pilotfish-dispatch-863b117
-PINNED=863b117b9da42179c5bb77a05158920fbc092ee2
-
-git -C "$HARNESS" fetch --depth 1 origin "$PINNED"
-git -C "$HARNESS" worktree add --detach "$SNAPSHOT" "$PINNED"
-cp -R "$SNAPSHOT/benchmarks/dispatch-brake/positive-controls/mechanical/fixture" \
-  /tmp/pilotfish-mechanical
-cd /tmp/pilotfish-mechanical
-git init -q
-git add .
-git -c user.name=pilotfish-benchmark \
-  -c user.email=pilotfish-benchmark@example.invalid commit -qm baseline
-npm test
-
-TASK="$(sed -n '/^```text$/,/^```$/p' \
-  "$SNAPSHOT/benchmarks/dispatch-brake/positive-controls/mechanical/task.md" \
-  | sed '1d;$d')"
-AGENTS_JSON="$(python3 \
-  "$HARNESS/benchmarks/baton-compatibility/build-agents-json.py" \
-  "$SNAPSHOT/templates/agents")"
-
-/usr/bin/time -p claude -p "$TASK" \
-  --output-format stream-json \
-  --verbose \
-  --no-session-persistence \
-  --dangerously-skip-permissions \
-  --max-budget-usd 3 \
-  --model claude-opus-4-8 \
-  --setting-sources project,local \
-  --strict-mcp-config \
-  --agents "$AGENTS_JSON" \
-  --append-system-prompt-file "$SNAPSHOT/templates/claude-md.orchestration.md"
-
-git -C "$HARNESS" worktree remove "$SNAPSHOT"
+set -eu
+HARNESS="$(git rev-parse --show-toplevel)"
+ROOT="$(mktemp -d "${TMPDIR:-/tmp}/pilotfish-dispatch-static.XXXXXX")"
+case "$ROOT" in "${TMPDIR:-/tmp}"/pilotfish-dispatch-static.*) ;; *) exit 1 ;; esac
+test -d "$ROOT"
+SENTINEL="$ROOT/.sentinel"
+(umask 077 && (set -C; : > "$SENTINEL"))
+test -f "$SENTINEL"
+test -d "$HARNESS/benchmarks/dispatch-brake/positive-controls/mechanical/fixture"
+test ! -e "$ROOT/fixture"
+cp -R "$HARNESS/benchmarks/dispatch-brake/positive-controls/mechanical/fixture" "$ROOT/fixture"
+test -f "$ROOT/fixture/package.json"
+set +e
+NPM_OUTPUT="$(npm --prefix "$ROOT/fixture" test 2>&1)"
+NPM_STATUS=$?
+set -e
+test "$NPM_STATUS" -eq 1
+NORMALIZED_OUTPUT="$(printf '%s\n' "$NPM_OUTPUT" | sed 's/ℹ pass/# pass/; s/ℹ fail/# fail/')"
+printf '%s\n' "$NORMALIZED_OUTPUT"
+printf '%s\n' "$NORMALIZED_OUTPUT" | grep -F '# pass 0' >/dev/null
+printf '%s\n' "$NORMALIZED_OUTPUT" | grep -F '# fail 12' >/dev/null
+find "$ROOT/fixture" -name '*.js' -type f -exec node --check {} +
+echo "Static fixture retained at $ROOT; remove manually when authorized."
 ```
 
-> ⚠️ **Safety boundary:** bypass mode was used only in disposable copies of these published fixtures. Never reuse it in an untrusted or valuable checkout.
+Only reviewed normalized evidence and hashes may be published. Any separately authorized raw capture must be outside the checkout/fixture, private mode `0600`, and never committed or shared.
 
 ## Disclosed limits
 

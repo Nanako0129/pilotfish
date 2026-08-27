@@ -4,6 +4,77 @@ This behavioral matrix asks two separate questions: is Baton invoked when merely
 
 > **Result:** the bounded availability observation remained inline, but the substantial v1.3.1 Gate passed. An exact post-PR-19 release-payload replay passed the same activation, four-scout dispatch, ownership, collection, and final-byte correctness boundaries with agents SHA `0b42c137…9723c`.
 
+## Contents
+
+- [Reproduction](#reproduction)
+- [What was tested](#what-was-tested)
+- [Large Gate contract](#large-gate-contract)
+- [Claim boundary](#claim-boundary)
+
+## Reproduction
+
+This is a safe static reconstruction of the published fixture; it does not replay the historical live model run.
+The fixture contains 45 domain files and 3,032 lines across `domain-a` through `domain-d`; its static harness is checked below.
+
+```bash
+set -eu
+SOURCE=https://github.com/Nanako0129/pilotfish.git
+REF=refs/heads/benchmark/v1.3.1-baton-large-fixture
+EXPECTED_COMMIT=34ebabe2a26dd53de1a019607992f1ac10af245f
+EXPECTED_TREE=3773149bae5c514abe6d141d6fc5216e86d02574
+ROOT="$(mktemp -d)"
+test ! -e "$ROOT/repo" && mkdir "$ROOT/repo"
+git -C "$ROOT/repo" init -q
+git -C "$ROOT/repo" remote add origin "$SOURCE"
+test "$(git -C "$ROOT/repo" ls-remote "$SOURCE" "$REF" | awk '{print $1}')" = "$EXPECTED_COMMIT"
+git -C "$ROOT/repo" fetch -q --depth 1 origin "$REF"
+test "$(git -C "$ROOT/repo" rev-parse FETCH_HEAD)" = "$EXPECTED_COMMIT"
+git -C "$ROOT/repo" checkout -q --detach FETCH_HEAD
+test "$(git -C "$ROOT/repo" rev-parse HEAD^{tree})" = "$EXPECTED_TREE"
+test ! -e "$ROOT/sentinel" && mkdir "$ROOT/sentinel"
+test "$(python3 - "$ROOT/repo/CLAUDE.md" <<'PY'
+import hashlib, sys
+print(hashlib.sha256(open(sys.argv[1], 'rb').read()).hexdigest())
+PY
+)" = "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf"
+test "$(python3 - "$ROOT/repo/domain-d/baton-dispatch-effect/prompts/large-audit.txt" <<'PY'
+import hashlib, sys
+print(hashlib.sha256(open(sys.argv[1], 'rb').read()).hexdigest())
+PY
+)" = "c0cebdcebe1186f41bed2ff442bd35bf3df68719530c1f4555f8b609d735ffba"
+test "$(python3 - "$ROOT/repo/.claude/skills/baton-dispatch/SKILL.md" <<'PY'
+import hashlib, sys
+print(hashlib.sha256(open(sys.argv[1], 'rb').read()).hexdigest())
+PY
+)" = "48b1e573a9e3de85fdb68c433bd47d69add9ec8491613ca304cfcef2326e3d67"
+test "$(python3 - "$ROOT/repo/verify-audit.mjs" <<'PY'
+import hashlib, sys
+print(hashlib.sha256(open(sys.argv[1], 'rb').read()).hexdigest())
+PY
+)" = "72a4c1baed5537aa5ceb9051cae74289f8611a387082da3a7c11976a4ea842c7"
+python3 "$ROOT/repo/domain-d/baton-compatibility/build-agents-json.py" "$ROOT/repo/domain-a/templates/agents" > "$ROOT/agents.json"
+test "$(python3 - "$ROOT/agents.json" <<'PY'
+import hashlib, sys
+print(hashlib.sha256(open(sys.argv[1], 'rb').read().rstrip(b'\n')).hexdigest())
+PY
+)" = "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61"
+test "$(find "$ROOT/repo" -path "$ROOT/repo/domain-*" -type f | wc -l | tr -d ' ')" = 45
+test "$(find "$ROOT/repo" -path "$ROOT/repo/domain-*" -type f -print0 | xargs -0 cat | wc -l | tr -d ' ')" = 3032
+node --check "$ROOT/repo/verify-audit.mjs"
+echo "Static fixture retained at $ROOT; remove manually when authorized."
+```
+
+| Input | Recorded SHA-256 |
+|---|---|
+| Policy | `17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf` |
+| Prompt | `c0cebdcebe1186f41bed2ff442bd35bf3df68719530c1f4555f8b609d735ffba` |
+| Baton `SKILL.md` | `48b1e573a9e3de85fdb68c433bd47d69add9ec8491613ca304cfcef2326e3d67` |
+| Historical role payload | `e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61` |
+| Release-replay role payload | `0b42c137…9723c` (historical hash-only input; not reconstructible from this fixture ref) |
+| Fixture harness | `72a4c1baed5537aa5ceb9051cae74289f8611a387082da3a7c11976a4ea842c7` |
+
+Static checks do not reproduce skill activation, Agent topology, cost/latency, semantic correctness, or cue-free behavior. The small pair remains availability-only; the large replay prompt is prompt-neutral reachability evidence. Historical live replay is conditional and non-turnkey: it requires an already-authenticated compatible account/client/provider, separate spend authorization, and a disposable fixture; unavailable historical routing/account state cannot be recreated. Any separately authorized raw capture must be outside the checkout/fixture, private mode `0600`, never committed/shared; publish only reviewed normalized evidence and hashes.
+
 ## What was tested
 
 | Cell | Prompt and fixture | Policy | Result |

@@ -6,6 +6,7 @@
 
 - [問題](#問題)
 - [背景與限制](#背景與限制)
+- [重現](#重現)
 - [實驗結果](#實驗結果)
 - [結果解讀](#結果解讀)
 - [建議](#建議)
@@ -41,27 +42,15 @@ flowchart LR
 | remora main／worker | `gpt-5.6-sol`／`gpt-5.6-luna` |
 | Permission mode | `bypassPermissions`，僅用於可丟棄的 fixture copy |
 
-> ⚠️ **安全界線：** `--dangerously-skip-permissions` 只在可丟棄的公開 fixture copy 中使用。不要把這個 flag 套用到不可信或有價值的 checkout。
+第一階段 remora／pilotfish runs、research 與 bug controls、cost／latency 及 raw streams 都是歷史證據，不是 turnkey live recipe。原始實驗的 bypass mode 只在可丟棄 fixture copy 使用；那些 live 條件無法由本 checkout 重建。本實驗不宣稱完整的 discovery → Plan → approval → execution lifecycle。
 
 Baseline 使用當時已安裝的 policy；candidate 使用較短的 dispatch-brake 草稿；postpatch 使用第一次整合後 repo 裡的 policy。所有原始階段的 policy source 對照都公開在 [`policies/`](./policies/)。較短的 remora candidate 沒包含 verifier 規則，因此完整揭露，但不列入建議版本的主要比較。後續 positive-control 階段、淘汰的迭代與最終唯讀規模 gate 都公開在 [`positive-controls/`](./positive-controls/)。
 
-```bash
-TASK="$(sed -n '/^```text$/,/^```$/p' benchmarks/dispatch-brake/task.md | sed '1d;$d')"
+## 重現
 
-/usr/bin/time -p claude -p "$TASK" \
-  --output-format stream-json \
-  --verbose \
-  --no-session-persistence \
-  --dangerously-skip-permissions \
-  --max-budget-usd 3
+安全的 current static fixture validation 見雙語 [`positive-controls/`](./positive-controls/README.zh-TW.md) reproduction。它只驗證 fixture acceptance，不會重現 model behavior、dispatch、topology、cost、latency 或完整 lifecycle。
 
-/usr/bin/time -p remora -p "$TASK" \
-  --output-format stream-json \
-  --verbose \
-  --no-session-persistence \
-  --dangerously-skip-permissions \
-  --max-budget-usd 3
-```
+Historical live replay 具備前提且非 turnkey：需要已登入且相容的 account／client／provider、另行批准的 spend authorization 與全新的 disposable fixture。歷史 routing、account 與 provider 狀態無法由此重建，因此不提供 live command。Raw streams 不隨附；若另行授權，capture 必須放在 checkout／fixture 外、private mode `0600`，不得 commit／分享，只發布審核過的 normalized evidence 與 hashes。
 
 Postpatch 額外用 `--append-system-prompt-file` 傳入 repo 中的精確 policy。完整機器可讀數據、正規化後的可觀察工具序列與精確 Agent tool input 分別位於 [`results.json`](./results.json)、[`traces.json`](./traces.json) 和 [`agent-calls.json`](./agent-calls.json)。
 

@@ -4,6 +4,77 @@
 
 > **結果：**小型 availability observation 仍由 main inline 完成；大型 v1.3.1 Gate 則通過。之後以 post-PR-19 exact release payload 重跑，也通過相同的 activation、四-scout dispatch、ownership、collection 與 final-byte correctness 邊界；agents SHA 是 `0b42c137…9723c`。
 
+## 目錄
+
+- [重現](#重現)
+- [測試內容](#測試內容)
+- [大型 Gate 契約](#大型-gate-契約)
+- [結論邊界](#結論邊界)
+
+## 重現
+
+這是安全的 published fixture 靜態重建，不會重播歷史 live model run。來源、identity、hashes 與 fixture shape 任一 mismatch 都必須停止。
+Fixture 包含 45 個 domain files、3,032 行，分布在 `domain-a` 至 `domain-d`；以下會檢查其 static harness。
+
+```bash
+set -eu
+SOURCE=https://github.com/Nanako0129/pilotfish.git
+REF=refs/heads/benchmark/v1.3.1-baton-large-fixture
+EXPECTED_COMMIT=34ebabe2a26dd53de1a019607992f1ac10af245f
+EXPECTED_TREE=3773149bae5c514abe6d141d6fc5216e86d02574
+ROOT="$(mktemp -d)"
+test ! -e "$ROOT/repo" && mkdir "$ROOT/repo"
+git -C "$ROOT/repo" init -q
+git -C "$ROOT/repo" remote add origin "$SOURCE"
+test "$(git -C "$ROOT/repo" ls-remote "$SOURCE" "$REF" | awk '{print $1}')" = "$EXPECTED_COMMIT"
+git -C "$ROOT/repo" fetch -q --depth 1 origin "$REF"
+test "$(git -C "$ROOT/repo" rev-parse FETCH_HEAD)" = "$EXPECTED_COMMIT"
+git -C "$ROOT/repo" checkout -q --detach FETCH_HEAD
+test "$(git -C "$ROOT/repo" rev-parse HEAD^{tree})" = "$EXPECTED_TREE"
+test ! -e "$ROOT/sentinel" && mkdir "$ROOT/sentinel"
+test "$(python3 - "$ROOT/repo/CLAUDE.md" <<'PY'
+import hashlib, sys
+print(hashlib.sha256(open(sys.argv[1], 'rb').read()).hexdigest())
+PY
+)" = "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf"
+test "$(python3 - "$ROOT/repo/domain-d/baton-dispatch-effect/prompts/large-audit.txt" <<'PY'
+import hashlib, sys
+print(hashlib.sha256(open(sys.argv[1], 'rb').read()).hexdigest())
+PY
+)" = "c0cebdcebe1186f41bed2ff442bd35bf3df68719530c1f4555f8b609d735ffba"
+test "$(python3 - "$ROOT/repo/.claude/skills/baton-dispatch/SKILL.md" <<'PY'
+import hashlib, sys
+print(hashlib.sha256(open(sys.argv[1], 'rb').read()).hexdigest())
+PY
+)" = "48b1e573a9e3de85fdb68c433bd47d69add9ec8491613ca304cfcef2326e3d67"
+test "$(python3 - "$ROOT/repo/verify-audit.mjs" <<'PY'
+import hashlib, sys
+print(hashlib.sha256(open(sys.argv[1], 'rb').read()).hexdigest())
+PY
+)" = "72a4c1baed5537aa5ceb9051cae74289f8611a387082da3a7c11976a4ea842c7"
+python3 "$ROOT/repo/domain-d/baton-compatibility/build-agents-json.py" "$ROOT/repo/domain-a/templates/agents" > "$ROOT/agents.json"
+test "$(python3 - "$ROOT/agents.json" <<'PY'
+import hashlib, sys
+print(hashlib.sha256(open(sys.argv[1], 'rb').read().rstrip(b'\n')).hexdigest())
+PY
+)" = "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61"
+test "$(find "$ROOT/repo" -path "$ROOT/repo/domain-*" -type f | wc -l | tr -d ' ')" = 45
+test "$(find "$ROOT/repo" -path "$ROOT/repo/domain-*" -type f -print0 | xargs -0 cat | wc -l | tr -d ' ')" = 3032
+node --check "$ROOT/repo/verify-audit.mjs"
+echo "Static fixture retained at $ROOT; remove manually when authorized."
+```
+
+| Input | 已記錄 SHA-256 |
+|---|---|
+| Policy | `17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf` |
+| Prompt | `c0cebdcebe1186f41bed2ff442bd35bf3df68719530c1f4555f8b609d735ffba` |
+| Baton `SKILL.md` | `48b1e573a9e3de85fdb68c433bd47d69add9ec8491613ca304cfcef2326e3d67` |
+| 歷史 role payload | `e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61` |
+| Release replay role payload | `0b42c137…9723c`（歷史 hash-only input；無法由此 fixture ref 重建） |
+| Fixture harness | `72a4c1baed5537aa5ceb9051cae74289f8611a387082da3a7c11976a4ea842c7` |
+
+靜態檢查不會重現 skill activation、Agent topology、cost／latency、semantic correctness 或 cue-free behavior。Small pair 仍只是 availability；large replay prompt 是 prompt-neutral reachability evidence。Historical live replay 具備前提且非 turnkey：需要已登入且相容的 account／client／provider、另行批准的 spend authorization 與 disposable fixture；無法從本 checkout 重建不可取得的歷史 routing／account 狀態。若另行授權 raw capture，必須放在 checkout／fixture 外、private mode `0600`，不得 commit／分享；只發布審核過的 normalized evidence 與 hashes。
+
 ## 測試內容
 
 | Cell | Prompt 與 fixture | Policy | 結果 |

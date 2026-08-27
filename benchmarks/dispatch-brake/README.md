@@ -6,6 +6,7 @@ This public experiment asks whether remora and pilotfish should distinguish *rol
 
 - [Question](#question)
 - [Context and constraints](#context-and-constraints)
+- [Reproduction](#reproduction)
 - [Findings](#findings)
 - [Interpretation](#interpretation)
 - [Recommendation](#recommendation)
@@ -41,27 +42,15 @@ The complete fixture is in [`fixture/`](./fixture/), and the exact neutral promp
 | remora main / worker | `gpt-5.6-sol` / `gpt-5.6-luna` |
 | Permission mode | `bypassPermissions`, restricted to disposable fixture copies |
 
-> ⚠️ **Safety boundary:** `--dangerously-skip-permissions` was used only inside disposable copies of the published fixture. Do not reuse that flag in an untrusted or valuable checkout.
+Historical first-phase remora/pilotfish runs, research and bug controls, costs/latency, and raw streams are historical evidence, not a turnkey live recipe. The original experiments used bypass mode only inside disposable fixture copies; those live conditions cannot be recreated from this checkout. The experiment does not claim a complete discovery → Plan → approval → execution lifecycle.
 
 The baseline runs used the installed policies. The candidate runs tested a short dispatch-brake draft. The postpatch runs used the repository policy after the first integration. Every original policy source is mapped in [`policies/`](./policies/). The short remora candidate did not contain the verifier rule, so it is disclosed for completeness but excluded from the recommended comparison. The later positive-control phase, including rejected iterations and the final sized read-only gate, is published under [`positive-controls/`](./positive-controls/).
 
-```bash
-TASK="$(sed -n '/^```text$/,/^```$/p' benchmarks/dispatch-brake/task.md | sed '1d;$d')"
+## Reproduction
 
-/usr/bin/time -p claude -p "$TASK" \
-  --output-format stream-json \
-  --verbose \
-  --no-session-persistence \
-  --dangerously-skip-permissions \
-  --max-budget-usd 3
+Safe current static fixture validation is documented in the bilingual [`positive-controls/`](./positive-controls/README.md) reproduction. It checks fixture acceptance only and does not reproduce model behavior, dispatch, topology, cost, latency, or the full lifecycle.
 
-/usr/bin/time -p remora -p "$TASK" \
-  --output-format stream-json \
-  --verbose \
-  --no-session-persistence \
-  --dangerously-skip-permissions \
-  --max-budget-usd 3
-```
+Historical live replay is conditional and non-turnkey: it requires an already-authenticated compatible account/client/provider, separate spend authorization, and a fresh disposable fixture. Historical routing, account, and provider state cannot be recreated here, so no live command is supplied. Raw streams are not supplied; if separately authorized, capture them outside the checkout/fixture with private mode `0600`, never commit/share them, and publish only reviewed normalized evidence and hashes.
 
 For the postpatch runs, the exact policy file was supplied with `--append-system-prompt-file`. Full machine-readable measurements, normalized observable tool sequences, and exact Agent tool inputs are published in [`results.json`](./results.json), [`traces.json`](./traces.json), and [`agent-calls.json`](./agent-calls.json).
 

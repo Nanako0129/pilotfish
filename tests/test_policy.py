@@ -1728,7 +1728,7 @@ class PolicyContractTests(unittest.TestCase):
             / "positive-controls"
             / "README.md"
         ).read_text(encoding="utf-8")
-        self.assertIn("--model claude-opus-4-8", controls)
+        self.assertNotIn("--model claude-opus-4-8", controls)
 
     def test_verifier_boundary_gate_is_exact_and_claim_limited(self) -> None:
         gate = ROOT / "benchmarks" / "verifier-boundary"
@@ -2675,10 +2675,97 @@ class PolicyContractTests(unittest.TestCase):
             content = (ROOT / readme).read_text(encoding="utf-8")
             fetch = f'fetch --depth 1 origin "$PINNED"'
             worktree = 'worktree add --detach "$SNAPSHOT" "$PINNED"'
-            self.assertIn(f"PINNED={pinned}", content)
-            self.assertIn(fetch, content)
-            self.assertIn(worktree, content)
-            self.assertLess(content.index(fetch), content.index(worktree))
+            self.assertNotIn(f"PINNED={pinned}", content)
+            self.assertNotIn(fetch, content)
+            self.assertNotIn(worktree, content)
+            self.assertIn('pilotfish-dispatch-static.XXXXXX', content)
+            self.assertIn('SENTINEL=', content)
+            self.assertIn('npm --prefix "$ROOT/fixture" test', content)
+
+    def test_reproduction_sections_are_bilingual_safe_and_claim_bounded(self) -> None:
+        documents = (
+            ROOT / "benchmarks/baton-dispatch-effect/README.md",
+            ROOT / "benchmarks/baton-dispatch-effect/README.zh-TW.md",
+            ROOT / "benchmarks/dispatch-brake/README.md",
+            ROOT / "benchmarks/dispatch-brake/README.zh-TW.md",
+            ROOT / "benchmarks/dispatch-brake/positive-controls/README.md",
+            ROOT / "benchmarks/dispatch-brake/positive-controls/README.zh-TW.md",
+        )
+        sections = {}
+        for path in documents:
+            text = path.read_text(encoding="utf-8")
+            heading = "## Reproduction" if path.name == "README.md" else "## 重現"
+            self.assertEqual(text.count(heading), 1, path)
+            slug = heading[3:].lower().replace(" ", "-")
+            self.assertIn(f"](#{slug})", text)
+            body = text.split(heading, 1)[1].split("\n## ", 1)[0]
+            sections[path] = body
+            for forbidden in (
+                r"claude\s+-p",
+                r"remora\s+-p",
+                r"dangerously-skip-permissions",
+                r"git\s+fetch[^\n]*[0-9a-f]{40}",
+                r"rm\s+-rf",
+                r"\beval\b|sh\s+-c",
+                r"(?:print|export)[^\n]*(?:token|secret)|token dump",
+            ):
+                code = "\n".join(re.findall(r"```(?:bash|sh)?\n(.*?)```", body, re.S))
+                self.assertIsNone(re.search(forbidden, code, re.I), (path, forbidden))
+
+        baton_en = sections[documents[0]]
+        baton_zh = sections[documents[1]]
+        for value in (
+            "https://github.com/Nanako0129/pilotfish.git",
+            "refs/heads/benchmark/v1.3.1-baton-large-fixture",
+            "34ebabe2a26dd53de1a019607992f1ac10af245f",
+            "3773149bae5c514abe6d141d6fc5216e86d02574",
+            "45",
+            "3,032",
+            "mktemp -d",
+            "0600",
+            "normalized",
+        ):
+            for body in (baton_en, baton_zh):
+                self.assertIn(value, body)
+        for value in ("Static", "historical", "non-turnkey"):
+            self.assertIn(value, baton_en)
+        for value in ("靜態", "歷史", "非 turnkey"):
+            self.assertIn(value, baton_zh)
+        self.assertIn("does not replay", baton_en)
+        self.assertIn("不會重播", baton_zh)
+        for body in (baton_en, baton_zh):
+            self.assertIn("EXPECTED_COMMIT", body)
+            self.assertIn("EXPECTED_TREE", body)
+            self.assertIn("set -eu", body)
+            self.assertIn("ls-remote", body)
+            self.assertIn("FETCH_HEAD", body)
+            self.assertIn("git -C", body)
+            self.assertIn("hashlib", body)
+            self.assertNotIn("sha256sum", body)
+            self.assertNotIn("worktree add", body)
+            self.assertIn("e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61", body)
+            self.assertIn("0b42c137…9723c", body)
+
+        for body in (sections[documents[2]], sections[documents[3]]):
+            self.assertIn("positive-controls", body)
+            self.assertRegex(body.lower(), r"(?:full lifecycle|完整 lifecycle)")
+            self.assertRegex(body.lower(), r"(?:separate spend|另行批准的 spend)")
+            self.assertIn("normalized", body.lower())
+        for body in (sections[documents[4]], sections[documents[5]]):
+            self.assertIn("863b117", body)
+            self.assertIn("mktemp -d", body)
+            self.assertIn("sentinel", body)
+            self.assertIn("SENTINEL=", body)
+            self.assertIn("npm", body)
+            self.assertIn("set -eu", body)
+            self.assertIn("set +e", body)
+            self.assertIn('NPM_STATUS=$?', body)
+            self.assertIn('test "$NPM_STATUS" -eq 1', body)
+            self.assertIn("# pass 0", body)
+            self.assertIn("# fail 12", body)
+            self.assertNotIn("|| test", body)
+            self.assertRegex(body.lower(), r"(?:non-turnkey|非 turnkey)")
+        self.assertIn("沒有已證明可遠端取得", sections[documents[5]])
 
     def test_every_named_role_owns_its_model(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
