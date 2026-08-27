@@ -2909,6 +2909,214 @@ class PolicyContractTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             validate(replaced_evidence)
 
+    def test_dispatch_brake_attempts_are_source_bound(self) -> None:
+        benchmark = ROOT / "benchmarks" / "dispatch-brake"
+        attempts = json.loads(
+            (benchmark / "attempts.json").read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        source_bytes = (benchmark / "results.json").read_bytes()
+        source = json.loads(source_bytes, parse_float=Decimal)
+        expected_source_keys = {
+            "schema_version",
+            "run_date",
+            "timezone",
+            "environment",
+            "source_commits",
+            "runs",
+            "primary_comparison",
+            "positive_control_extension",
+        }
+        expected_names = [
+            "pilotfish-current",
+            "remora-current",
+            "pilotfish-candidate",
+            "remora-candidate",
+            "pilotfish-postpatch",
+            "remora-postpatch",
+        ]
+        expected_pointers = [f"/runs/{index}" for index in range(6)]
+        expected_ledger_keys = {
+            "schema_version",
+            "source",
+            "counts",
+            "coverage",
+            "passed_attempts",
+            "failed_attempts",
+            "not_run",
+        }
+        common_entry_keys = {
+            "id",
+            "source_pointer",
+            "name",
+            "configuration_identity",
+            "status",
+            "wall_seconds",
+            "duration_ms",
+            "num_turns",
+            "reported_cost_usd",
+            "tests_passed",
+            "tests_failed",
+            "agent_calls",
+            "raw_stream_sha256",
+        }
+
+        def resolve(pointer: str) -> dict:
+            self.assertTrue(pointer.startswith("/"))
+            self.assertNotEqual(pointer, "/")
+            value: object = source
+            for token in pointer[1:].split("/"):
+                if isinstance(value, dict):
+                    self.assertIn(token, value)
+                    value = value[token]
+                elif isinstance(value, list):
+                    self.assertTrue(token.isdigit())
+                    index = int(token)
+                    self.assertLess(index, len(value))
+                    value = value[index]
+                else:
+                    self.fail(f"cannot resolve {pointer!r}")
+            self.assertIsInstance(value, dict)
+            return value
+
+        def validate(ledger: dict) -> None:
+            self.assertEqual(set(ledger), expected_ledger_keys)
+            self.assertEqual(set(source), expected_source_keys)
+            self.assertEqual(len(source["runs"]), 6)
+            self.assertEqual(
+                [run["name"] for run in source["runs"]], expected_names
+            )
+            self.assertEqual(ledger["schema_version"], 1)
+            self.assertEqual(
+                ledger["source"],
+                {
+                    "path": "results.json",
+                    "sha256": hashlib.sha256(source_bytes).hexdigest(),
+                },
+            )
+            self.assertEqual(
+                ledger["coverage"],
+                {
+                    "source_pointer": "/runs",
+                    "invocation_pointers": expected_pointers,
+                },
+            )
+
+            passed = ledger["passed_attempts"]
+            failed = ledger["failed_attempts"]
+            not_run = ledger["not_run"]
+            self.assertEqual(len(passed), 6)
+            self.assertEqual(failed, [])
+            self.assertEqual(not_run, [])
+            self.assertEqual(
+                ledger["counts"], {"attempted": 6, "passed": 6, "failed": 0}
+            )
+            self.assertEqual(ledger["counts"]["attempted"], len(passed) + len(failed))
+            self.assertEqual(
+                ledger["counts"]["attempted"],
+                ledger["counts"]["passed"] + ledger["counts"]["failed"],
+            )
+            self.assertEqual(
+                [entry["source_pointer"] for entry in passed], expected_pointers
+            )
+            self.assertEqual(
+                len({entry["id"] for entry in passed}), len(passed)
+            )
+            self.assertEqual(
+                len({entry["source_pointer"] for entry in passed}), len(passed)
+            )
+            self.assertEqual(
+                set(entry["source_pointer"] for entry in passed),
+                set(expected_pointers),
+            )
+            for forbidden_pointer in (
+                "/",
+                "/primary_comparison",
+                "/positive_control_extension",
+            ):
+                self.assertNotIn(
+                    forbidden_pointer,
+                    [entry["source_pointer"] for entry in passed],
+                )
+
+            for index, (entry, pointer, name) in enumerate(
+                zip(passed, expected_pointers, expected_names)
+            ):
+                run = resolve(pointer)
+                expected_entry_keys = common_entry_keys | (
+                    {"model_usage"} if "model_usage" in run else set()
+                )
+                self.assertEqual(set(entry), expected_entry_keys)
+                self.assertEqual(entry["id"], f"dispatch-brake-{name}")
+                self.assertEqual(entry["source_pointer"], pointer)
+                self.assertEqual(entry["name"], name)
+                self.assertEqual(entry["name"], run["name"])
+                self.assertEqual(
+                    entry["configuration_identity"], run["policy"]
+                )
+                self.assertEqual(entry["status"], "success")
+                self.assertEqual(entry["status"], run["status"])
+                self.assertEqual(entry["tests_passed"], 2)
+                self.assertEqual(entry["tests_failed"], 0)
+                self.assertEqual(entry["tests_passed"], run["tests_passed"])
+                self.assertEqual(entry["tests_failed"], run["tests_failed"])
+                for key in (
+                    "wall_seconds",
+                    "duration_ms",
+                    "num_turns",
+                    "reported_cost_usd",
+                    "agent_calls",
+                    "raw_stream_sha256",
+                ):
+                    if key in run:
+                        self.assertIn(key, entry)
+                        self.assertEqual(entry[key], run[key])
+                    else:
+                        self.assertNotIn(key, entry)
+                if "model_usage" in run:
+                    self.assertEqual(entry["model_usage"], run["model_usage"])
+                else:
+                    self.assertNotIn("model_usage", entry)
+                self.assertNotIn("cost_usd", entry)
+                self.assertRegex(entry["raw_stream_sha256"], r"^[0-9a-f]{64}$")
+                self.assertEqual(index, int(pointer.rsplit("/", 1)[1]))
+
+        validate(attempts)
+
+        missing_run = deepcopy(attempts)
+        missing_run["passed_attempts"].pop()
+        with self.assertRaises(AssertionError):
+            validate(missing_run)
+
+        for invalid_pointer in (
+            "/",
+            "/primary_comparison",
+            "/positive_control_extension",
+        ):
+            invalid_pointer_ledger = deepcopy(attempts)
+            invalid_pointer_ledger["passed_attempts"][0][
+                "source_pointer"
+            ] = invalid_pointer
+            with self.assertRaises(AssertionError):
+                validate(invalid_pointer_ledger)
+
+        replaced_policy = deepcopy(attempts)
+        replaced_policy["passed_attempts"][0][
+            "configuration_identity"
+        ] = "different policy"
+        with self.assertRaises(AssertionError):
+            validate(replaced_policy)
+
+        replaced_hash = deepcopy(attempts)
+        replaced_hash["passed_attempts"][0]["raw_stream_sha256"] = "0" * 64
+        with self.assertRaises(AssertionError):
+            validate(replaced_hash)
+
+        replaced_cost = deepcopy(attempts)
+        replaced_cost["passed_attempts"][0]["reported_cost_usd"] = Decimal("0")
+        with self.assertRaises(AssertionError):
+            validate(replaced_cost)
+
     def test_installer_requires_tool_enforcing_runtime(self) -> None:
         installer = (ROOT / "install/AGENT-INSTALL.md").read_text(encoding="utf-8")
         self.assertIn("claude --version", installer)
