@@ -200,6 +200,8 @@
         "file_sha256": "e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f",
         "runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc"
       },
+      "prompt_set": "inputs.prompts",
+      "fixture_set": "inputs.fixtures",
       "route": {
         "requested_main_model": "opus",
         "observed_main_model": "claude-opus-5",
@@ -234,6 +236,8 @@
         "file_sha256": "e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f",
         "runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc"
       },
+      "prompt_set": "inputs.prompts",
+      "fixture_set": "inputs.fixtures",
       "route": {
         "requested_main_model": "opus",
         "observed_main_model": "claude-opus-5",

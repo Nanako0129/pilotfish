@@ -1852,6 +1852,8 @@ class PolicyContractTests(unittest.TestCase):
                     "claim_boundary",
                     "candidate",
                     "agents",
+                    "prompt_set",
+                    "fixture_set",
                     "route",
                 )
             },
@@ -1863,6 +1865,8 @@ class PolicyContractTests(unittest.TestCase):
                     "claim_boundary",
                     "candidate",
                     "agents",
+                    "prompt_set",
+                    "fixture_set",
                     "route",
                 )
             },
