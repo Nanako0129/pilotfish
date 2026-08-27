@@ -3424,7 +3424,7 @@ class PolicyContractTests(unittest.TestCase):
             {
                 "id": "verifier-boundary-quota-rejected",
                 "source_pointer": "/failed_attempts/0",
-                "configuration_identity": "current-candidate",
+                "configuration_identity": "unidentified-candidate",
                 "status": "quota_rejected",
                 "boundary": source["failed_attempts"][0]["reason"],
                 "record": source["failed_attempts"][0],
@@ -3432,18 +3432,28 @@ class PolicyContractTests(unittest.TestCase):
             {
                 "id": "verifier-boundary-operator-contract-rejected",
                 "source_pointer": "/failed_attempts/1",
-                "configuration_identity": "current-candidate",
+                "configuration_identity": "superseded-v1.3.6",
                 "status": "operator_contract_blocked_agents",
                 "boundary": source["failed_attempts"][1]["reason"],
                 "record": source["failed_attempts"][1],
             },
             {
-                "id": "verifier-boundary-schema-non-reproduction",
+                "id": "verifier-boundary-schema-non-reproduction-turn-1",
                 "source_pointer": "/failed_attempts/2",
                 "configuration_identity": "compressed-candidate-59f18c6d",
-                "status": "schema_non_reproduction",
+                "source_phase": "turn_1",
+                "status": "approval_boundary_violated",
                 "boundary": source["failed_attempts"][2]["observed"],
-                "record": non_reproduction,
+                "record": {"phase": "turn_1"},
+            },
+            {
+                "id": "verifier-boundary-schema-non-reproduction-turn-2",
+                "source_pointer": "/failed_attempts/2",
+                "configuration_identity": "compressed-candidate-59f18c6d",
+                "source_phase": "turn_2",
+                "status": "required_execution_verification_missing",
+                "boundary": source["failed_attempts"][2]["observed"],
+                "record": {"phase": "turn_2"},
             },
             {
                 "id": "verifier-boundary-uncollected-turn-2",
@@ -3498,13 +3508,20 @@ class PolicyContractTests(unittest.TestCase):
                 "claim_boundary": current["claim_boundary"],
             },
             "compressed-candidate-59f18c6d": {
-                key: source["failed_attempts"][2][key]
-                for key in (
-                    "policy_sha256",
-                    "run_date",
-                    "cell",
-                    "same_bytes_later_reproduced",
-                )
+                "policy_sha256": source["failed_attempts"][2]["policy_sha256"],
+                "run_date": source["failed_attempts"][2]["run_date"],
+                "cell": source["failed_attempts"][2]["cell"],
+                "same_bytes_later_reproduced": source["failed_attempts"][2][
+                    "same_bytes_later_reproduced"
+                ],
+                "attempt_context": non_reproduction,
+            },
+            "unidentified-candidate": {
+                "status": "configuration_unknown",
+                "reason": (
+                    "The quota-rejected source record retains no policy or agents "
+                    "identity."
+                ),
             },
             "uncollected-background-attempt": {
                 key: value
@@ -3524,6 +3541,7 @@ class PolicyContractTests(unittest.TestCase):
             + [
                 "/failed_attempts/0",
                 "/failed_attempts/1",
+                "/failed_attempts/2",
                 "/failed_attempts/2",
                 "/failed_attempts/2/inconclusive_diagnostic",
                 "/failed_attempts/3/raw_stream_sha256/0",
@@ -3568,6 +3586,7 @@ class PolicyContractTests(unittest.TestCase):
                     "superseded_v1_3_6_inputs",
                 },
             )
+            self.assertEqual(source["schema_version"], 2)
             self.assertEqual(
                 set(candidate),
                 {
@@ -3594,9 +3613,9 @@ class PolicyContractTests(unittest.TestCase):
             self.assertEqual(
                 candidate["counts"],
                 {
-                    "attempted": 23,
+                    "attempted": 24,
                     "passed": 18,
-                    "failed": 4,
+                    "failed": 5,
                     "unknown": 1,
                     "unknown_invocation_count_records": 10,
                 },
@@ -3620,9 +3639,17 @@ class PolicyContractTests(unittest.TestCase):
             self.assertEqual(candidate["unknown_attempt_counts"], unknown_counts)
             self.assertEqual(candidate["not_run"], [])
             entries = passed + failed + [diagnostic]
-            self.assertEqual(len(entries), 23)
-            self.assertEqual(len({entry["id"] for entry in entries}), 23)
-            self.assertEqual(len({entry["source_pointer"] for entry in entries}), 23)
+            self.assertEqual(len(entries), 24)
+            self.assertEqual(len({entry["id"] for entry in entries}), 24)
+            self.assertEqual(
+                len(
+                    {
+                        (entry["source_pointer"], entry.get("source_phase"))
+                        for entry in entries
+                    }
+                ),
+                24,
+            )
             hashes = {
                 entry["record"].get("raw_stream_sha256")
                 or entry["record"].get("raw_result_sha256")
@@ -3633,7 +3660,8 @@ class PolicyContractTests(unittest.TestCase):
             self.assertEqual(len(hashes), 21)
             self.assertEqual(approval_pass["status"], "passed_phase")
             self.assertEqual(failed[-1]["status"], "uncollected_background_failure")
-            self.assertNotIn("inconclusive_diagnostic", failed[2]["record"])
+            self.assertEqual(failed[2]["record"], {"phase": "turn_1"})
+            self.assertEqual(failed[3]["record"], {"phase": "turn_2"})
             self.assertEqual(diagnostic["status"], "outcome_unknown")
             self.assertEqual(
                 sum(item["client_reported_cost_usd"] for item in source["paid_campaign"]["attempt_log"]),

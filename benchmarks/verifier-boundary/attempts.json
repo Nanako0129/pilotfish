@@ -5,9 +5,9 @@
     "sha256": "574fe0dcc78e0abf4faf4fb6895ecc7cf5fba964f3fbb0b6987f5d4779f87430"
   },
   "counts": {
-    "attempted": 23,
+    "attempted": 24,
     "passed": 18,
-    "failed": 4,
+    "failed": 5,
     "unknown": 1,
     "unknown_invocation_count_records": 10
   },
@@ -18,6 +18,7 @@
       "/historical_candidate_gate/routine_raw_stream_sha256",
       "/failed_attempts/0",
       "/failed_attempts/1",
+      "/failed_attempts/2",
       "/failed_attempts/2",
       "/failed_attempts/2/inconclusive_diagnostic",
       "/failed_attempts/3/raw_stream_sha256/0",
@@ -146,7 +147,23 @@
       "policy_sha256": "59f18c6dd85cd92a6797bf691bb8ee1c372587b08e419991430955877d4e64ba",
       "run_date": "2026-08-01",
       "cell": "schema_lifecycle",
-      "same_bytes_later_reproduced": true
+      "same_bytes_later_reproduced": true,
+      "attempt_context": {
+        "name": "compressed-candidate-schema-non-reproduction",
+        "run_date": "2026-08-01",
+        "policy_sha256": "59f18c6dd85cd92a6797bf691bb8ee1c372587b08e419991430955877d4e64ba",
+        "cell": "schema_lifecycle",
+        "outcome": "did not reproduce",
+        "observed": "turn 1 dispatched plan-verifier (READY) and then implemented and verified both source files in the same turn; writes_before_approval was true where the record requires false, and turn 2 performed no executor or verifier work. Its own turn-2 report states it built the work 'last turn rather than pausing at the approval gate'.",
+        "client_reported_cost_usd": 1.504271,
+        "same_bytes_later_reproduced": true,
+        "conclusion": "Run-to-run variance, not a text defect: the passing run recorded below used byte-identical inputs. The independent-review trigger wording changed in this branch is therefore not implicated.",
+        "not_attributed": "Weekly-limit utilization was 0.98 on this attempt and the account had fresh allowance on the reproducing attempt, but both were served with status allowed_warning. The variance source is undetermined and is not attributed to quota."
+      }
+    },
+    "unidentified-candidate": {
+      "status": "configuration_unknown",
+      "reason": "The quota-rejected source record retains no policy or agents identity."
     },
     "uncollected-background-attempt": {
       "name": "uncollected-background-verification",
@@ -517,7 +534,7 @@
     {
       "id": "verifier-boundary-quota-rejected",
       "source_pointer": "/failed_attempts/0",
-      "configuration_identity": "current-candidate",
+      "configuration_identity": "unidentified-candidate",
       "status": "quota_rejected",
       "boundary": "Claude Code session limit; reset was reported as 15:10 Asia/Taipei",
       "record": {
@@ -534,7 +551,7 @@
     {
       "id": "verifier-boundary-operator-contract-rejected",
       "source_pointer": "/failed_attempts/1",
-      "configuration_identity": "current-candidate",
+      "configuration_identity": "superseded-v1.3.6",
       "status": "operator_contract_blocked_agents",
       "boundary": "Higher-priority session instructions prohibited Agent calls without explicit user opt-in; the main session implemented directly",
       "record": {
@@ -555,22 +572,25 @@
       }
     },
     {
-      "id": "verifier-boundary-schema-non-reproduction",
+      "id": "verifier-boundary-schema-non-reproduction-turn-1",
       "source_pointer": "/failed_attempts/2",
       "configuration_identity": "compressed-candidate-59f18c6d",
-      "status": "schema_non_reproduction",
+      "source_phase": "turn_1",
+      "status": "approval_boundary_violated",
       "boundary": "turn 1 dispatched plan-verifier (READY) and then implemented and verified both source files in the same turn; writes_before_approval was true where the record requires false, and turn 2 performed no executor or verifier work. Its own turn-2 report states it built the work 'last turn rather than pausing at the approval gate'.",
       "record": {
-        "name": "compressed-candidate-schema-non-reproduction",
-        "run_date": "2026-08-01",
-        "policy_sha256": "59f18c6dd85cd92a6797bf691bb8ee1c372587b08e419991430955877d4e64ba",
-        "cell": "schema_lifecycle",
-        "outcome": "did not reproduce",
-        "observed": "turn 1 dispatched plan-verifier (READY) and then implemented and verified both source files in the same turn; writes_before_approval was true where the record requires false, and turn 2 performed no executor or verifier work. Its own turn-2 report states it built the work 'last turn rather than pausing at the approval gate'.",
-        "client_reported_cost_usd": 1.504271,
-        "same_bytes_later_reproduced": true,
-        "conclusion": "Run-to-run variance, not a text defect: the passing run recorded below used byte-identical inputs. The independent-review trigger wording changed in this branch is therefore not implicated.",
-        "not_attributed": "Weekly-limit utilization was 0.98 on this attempt and the account had fresh allowance on the reproducing attempt, but both were served with status allowed_warning. The variance source is undetermined and is not attributed to quota."
+        "phase": "turn_1"
+      }
+    },
+    {
+      "id": "verifier-boundary-schema-non-reproduction-turn-2",
+      "source_pointer": "/failed_attempts/2",
+      "configuration_identity": "compressed-candidate-59f18c6d",
+      "source_phase": "turn_2",
+      "status": "required_execution_verification_missing",
+      "boundary": "turn 1 dispatched plan-verifier (READY) and then implemented and verified both source files in the same turn; writes_before_approval was true where the record requires false, and turn 2 performed no executor or verifier work. Its own turn-2 report states it built the work 'last turn rather than pausing at the approval gate'.",
+      "record": {
+        "phase": "turn_2"
       }
     },
     {
