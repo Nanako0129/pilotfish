@@ -1825,6 +1825,253 @@ class PolicyContractTests(unittest.TestCase):
         }
         self.assertEqual(len(hashes), 10)
 
+    def test_compact_policy_full_matrix_attempts_are_source_bound(self) -> None:
+        benchmark = ROOT / "benchmarks" / "spontaneous-dispatch"
+        ledger = json.loads(
+            (benchmark / "compact-policy-full-matrix.attempts.json").read_text(
+                encoding="utf-8"
+            ),
+            parse_float=Decimal,
+        )
+        source_bytes = (benchmark / "compact-policy-full-matrix.json").read_bytes()
+        source = json.loads(source_bytes, parse_float=Decimal)
+        pointers = [
+            "/results/routine_docs/attempts/0",
+            "/results/routine_docs/attempts/1",
+            "/results/single_unknown_bug/attempts/0",
+            "/results/single_unknown_bug/attempts/1",
+            "/results/mechanical_repetition/attempts/0",
+            "/results/mechanical_repetition/attempts/1",
+            "/results/schema_lifecycle/attempts/0/turn_1",
+            "/results/schema_lifecycle/attempts/0/turn_2",
+            "/results/schema_lifecycle/attempts/1/turn_1",
+            "/results/schema_lifecycle/attempts/1/turn_2",
+        ]
+        specs = [
+            ("compact-policy-routine-a", pointers[0], "routine_docs", "a", None, "routine", "routine_and_schema", None),
+            ("compact-policy-routine-b", pointers[1], "routine_docs", "b", None, "routine", "routine_and_schema", None),
+            ("compact-policy-bug-a", pointers[2], "single_unknown_bug", "a", None, "bug", "single_unknown_bug", None),
+            ("compact-policy-bug-b", pointers[3], "single_unknown_bug", "b", None, "bug", "single_unknown_bug", None),
+            ("compact-policy-mechanical-a", pointers[4], "mechanical_repetition", "a", None, "mechanical", "mechanical_repetition", None),
+            ("compact-policy-mechanical-b", pointers[5], "mechanical_repetition", "b", None, "mechanical", "mechanical_repetition", None),
+            ("compact-policy-schema-a-turn-1", pointers[6], "schema_lifecycle", "a", "turn_1", "schema_turn_1", "routine_and_schema", 0),
+            ("compact-policy-schema-a-turn-2", pointers[7], "schema_lifecycle", "a", "turn_2", "schema_turn_2", "routine_and_schema", 0),
+            ("compact-policy-schema-b-turn-1", pointers[8], "schema_lifecycle", "b", "turn_1", "schema_turn_1", "routine_and_schema", 1),
+            ("compact-policy-schema-b-turn-2", pointers[9], "schema_lifecycle", "b", "turn_2", "schema_turn_2", "routine_and_schema", 1),
+        ]
+
+        def resolve(pointer: str) -> dict:
+            value: object = source
+            for token in pointer.removeprefix("/").split("/"):
+                if isinstance(value, dict):
+                    self.assertIn(token, value)
+                    value = value[token]
+                elif isinstance(value, list):
+                    self.assertTrue(token.isdigit())
+                    value = value[int(token)]
+                else:
+                    self.fail(f"cannot resolve {pointer!r}")
+            self.assertIsInstance(value, dict)
+            return value
+
+        def identity(prompt: str, fixture: str, schema_index: int | None) -> dict:
+            result = {
+                "candidate_sha256": source["candidate"]["sha256"],
+                "candidate_base_head": source["candidate"]["base_head"],
+                "candidate_version_marker": source["candidate"]["version_marker"],
+                "candidate_bytes": source["candidate"]["bytes"],
+                "runtime_loaded_sha256": source["candidate"][
+                    "runtime_loaded_sha256"
+                ],
+                "agents_file_sha256": source["agents"]["file_sha256"],
+                "agents_runtime_sha256": source["agents"]["runtime_sha256"],
+                "prompt_runtime_sha256": source["inputs"][
+                    "prompt_runtime_sha256"
+                ][prompt],
+                "fixture_sha256": source["inputs"]["fixture_sha256"][fixture],
+                **{
+                    key: source["route"][key]
+                    for key in (
+                        "requested_main_model",
+                        "observed_main_model",
+                        "effort",
+                        "client_versions",
+                        "setting_sources",
+                        "provider_route",
+                        "account_plan",
+                    )
+                },
+            }
+            if schema_index is not None:
+                result["session_binding"] = source["results"]["schema_lifecycle"][
+                    "attempts"
+                ][schema_index]["session_binding"]
+            return result
+
+        def expected_entry(spec: tuple) -> dict:
+            entry_id, pointer, cell, attempt_id, turn, prompt, fixture, index = spec
+            return {
+                "id": entry_id,
+                "source_pointer": pointer,
+                "cell": cell,
+                "attempt_id": attempt_id,
+                "turn": turn,
+                "configuration_identity": identity(prompt, fixture, index),
+                "status": "passed",
+                "record": resolve(pointer),
+            }
+
+        def validate(candidate: dict) -> None:
+            self.assertEqual(
+                set(source),
+                {
+                    "schema_version",
+                    "status",
+                    "run_date",
+                    "claim",
+                    "claim_boundary",
+                    "candidate",
+                    "agents",
+                    "inputs",
+                    "route",
+                    "budget",
+                    "results",
+                },
+            )
+            self.assertEqual(source["status"], "passed")
+            self.assertIsNone(source["candidate"]["runtime_loaded_sha256"])
+            self.assertEqual(
+                list(source["results"]),
+                [
+                    "routine_docs",
+                    "single_unknown_bug",
+                    "mechanical_repetition",
+                    "schema_lifecycle",
+                ],
+            )
+            for cell in source["results"].values():
+                self.assertEqual(cell["status"], "passed")
+                self.assertEqual(len(cell["attempts"]), 2)
+            self.assertEqual(
+                set(candidate),
+                {
+                    "schema_version",
+                    "source",
+                    "counts",
+                    "coverage",
+                    "passed_attempts",
+                    "failed_attempts",
+                    "not_run",
+                },
+            )
+            self.assertEqual(candidate["schema_version"], 1)
+            self.assertEqual(
+                candidate["source"],
+                {
+                    "path": "compact-policy-full-matrix.json",
+                    "sha256": hashlib.sha256(source_bytes).hexdigest(),
+                },
+            )
+            self.assertEqual(
+                candidate["counts"], {"attempted": 10, "passed": 10, "failed": 0}
+            )
+            self.assertEqual(
+                candidate["coverage"],
+                {"source_pointer": "/results", "invocation_pointers": pointers},
+            )
+            self.assertEqual(candidate["failed_attempts"], [])
+            self.assertEqual(candidate["not_run"], [])
+            self.assertEqual(
+                candidate["passed_attempts"],
+                [expected_entry(spec) for spec in specs],
+            )
+            entries = candidate["passed_attempts"]
+            self.assertEqual(len({entry["id"] for entry in entries}), 10)
+            self.assertEqual(len({entry["source_pointer"] for entry in entries}), 10)
+            self.assertEqual(
+                sum(entry["record"]["client_reported_cost_usd"] for entry in entries),
+                source["budget"]["actual_usd"],
+            )
+            self.assertEqual(
+                len({entry["record"]["raw_stream_sha256"] for entry in entries}),
+                10,
+            )
+            self.assertTrue(
+                all("/agent_calls/" not in pointer for pointer in pointers)
+            )
+            self.assertEqual(
+                sum(
+                    entry["record"].get("agent_calls", 0)
+                    + entry["record"].get("plan_verifier_calls", 0)
+                    + entry["record"].get("verifier_calls", 0)
+                    for entry in entries
+                ),
+                6,
+            )
+            for index in (0, 1):
+                first = entries[6 + 2 * index]
+                second = entries[7 + 2 * index]
+                self.assertEqual(first["turn"], "turn_1")
+                self.assertEqual(second["turn"], "turn_2")
+                self.assertEqual(
+                    first["configuration_identity"]["session_binding"],
+                    second["configuration_identity"]["session_binding"],
+                )
+
+        validate(ledger)
+
+        missing = deepcopy(ledger)
+        missing["passed_attempts"].pop()
+        with self.assertRaises(AssertionError):
+            validate(missing)
+
+        aggregate = deepcopy(ledger)
+        aggregate["coverage"]["invocation_pointers"][0] = "/results/routine_docs"
+        with self.assertRaises(AssertionError):
+            validate(aggregate)
+
+        flipped = deepcopy(ledger)
+        flipped["passed_attempts"][0]["status"] = "failed"
+        with self.assertRaises(AssertionError):
+            validate(flipped)
+
+        for target, key, value in (
+            ("configuration_identity", "candidate_sha256", "0" * 64),
+            ("configuration_identity", "prompt_runtime_sha256", "0" * 64),
+            ("configuration_identity", "fixture_sha256", "0" * 64),
+            ("record", "raw_stream_sha256", "0" * 64),
+            ("record", "client_reported_cost_usd", Decimal("0")),
+        ):
+            replaced = deepcopy(ledger)
+            replaced["passed_attempts"][0][target][key] = value
+            with self.assertRaises(AssertionError):
+                validate(replaced)
+
+        replaced_session = deepcopy(ledger)
+        replaced_session["passed_attempts"][6]["configuration_identity"][
+            "session_binding"
+        ]["sanitized_session_id_sha256"] = "0" * 64
+        with self.assertRaises(AssertionError):
+            validate(replaced_session)
+
+        collapsed_schema = deepcopy(ledger)
+        collapsed_schema["passed_attempts"].pop(7)
+        collapsed_schema["counts"] = {"attempted": 9, "passed": 9, "failed": 0}
+        with self.assertRaises(AssertionError):
+            validate(collapsed_schema)
+
+        child_inflated = deepcopy(ledger)
+        child_inflated["counts"] = {"attempted": 16, "passed": 16, "failed": 0}
+        with self.assertRaises(AssertionError):
+            validate(child_inflated)
+
+        invented_runtime_digest = deepcopy(ledger)
+        invented_runtime_digest["passed_attempts"][0]["configuration_identity"][
+            "runtime_loaded_sha256"
+        ] = "0" * 64
+        with self.assertRaises(AssertionError):
+            validate(invented_runtime_digest)
+
     def test_spontaneous_dispatch_baseline_is_additive_and_evidence_bound(self) -> None:
         benchmark = ROOT / "benchmarks" / "spontaneous-dispatch"
         results = json.loads((benchmark / "results.json").read_text(encoding="utf-8"))
