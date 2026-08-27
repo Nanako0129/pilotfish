@@ -3440,7 +3440,7 @@ class PolicyContractTests(unittest.TestCase):
             {
                 "id": "verifier-boundary-schema-non-reproduction",
                 "source_pointer": "/failed_attempts/2",
-                "configuration_identity": "current-candidate",
+                "configuration_identity": "compressed-candidate-59f18c6d",
                 "status": "schema_non_reproduction",
                 "boundary": source["failed_attempts"][2]["observed"],
                 "record": non_reproduction,
@@ -3462,7 +3462,7 @@ class PolicyContractTests(unittest.TestCase):
         diagnostic = {
             "id": "verifier-boundary-weekly-limit-diagnostic",
             "source_pointer": "/failed_attempts/2/inconclusive_diagnostic",
-            "configuration_identity": "current-candidate",
+            "configuration_identity": "compressed-candidate-59f18c6d",
             "status": "outcome_unknown",
             "boundary": source["failed_attempts"][2]["inconclusive_diagnostic"][
                 "outcome"
@@ -3496,6 +3496,15 @@ class PolicyContractTests(unittest.TestCase):
                 "inputs": source["inputs"],
                 "route": current["route"],
                 "claim_boundary": current["claim_boundary"],
+            },
+            "compressed-candidate-59f18c6d": {
+                key: source["failed_attempts"][2][key]
+                for key in (
+                    "policy_sha256",
+                    "run_date",
+                    "cell",
+                    "same_bytes_later_reproduced",
+                )
             },
             "uncollected-background-attempt": {
                 key: value
@@ -3574,6 +3583,7 @@ class PolicyContractTests(unittest.TestCase):
                     "not_run",
                 },
             )
+            self.assertEqual(candidate["schema_version"], 1)
             self.assertEqual(
                 candidate["source"],
                 {

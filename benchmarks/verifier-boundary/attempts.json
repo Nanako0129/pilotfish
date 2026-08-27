@@ -142,6 +142,12 @@
       },
       "claim_boundary": "Bounded positive reachability only, one first-party account, explicit agent opt-in, all cells against policy sha b26ef4a6a0e02575... These observations do not establish cue-free behavior, dispatch frequency, or an efficiency improvement. Earlier byte revisions showed two stochastic failure modes in this cell — skipping the approval gate and dispatching verification to the background without collecting it — both recorded under failed_attempts. Neither recurred here, but two clean attempts do not demonstrate they are gone; the cell should be read as reliably reachable, not deterministic."
     },
+    "compressed-candidate-59f18c6d": {
+      "policy_sha256": "59f18c6dd85cd92a6797bf691bb8ee1c372587b08e419991430955877d4e64ba",
+      "run_date": "2026-08-01",
+      "cell": "schema_lifecycle",
+      "same_bytes_later_reproduced": true
+    },
     "uncollected-background-attempt": {
       "name": "uncollected-background-verification",
       "run_date": "2026-08-02",
@@ -551,7 +557,7 @@
     {
       "id": "verifier-boundary-schema-non-reproduction",
       "source_pointer": "/failed_attempts/2",
-      "configuration_identity": "current-candidate",
+      "configuration_identity": "compressed-candidate-59f18c6d",
       "status": "schema_non_reproduction",
       "boundary": "turn 1 dispatched plan-verifier (READY) and then implemented and verified both source files in the same turn; writes_before_approval was true where the record requires false, and turn 2 performed no executor or verifier work. Its own turn-2 report states it built the work 'last turn rather than pausing at the approval gate'.",
       "record": {
@@ -583,7 +589,7 @@
     {
       "id": "verifier-boundary-weekly-limit-diagnostic",
       "source_pointer": "/failed_attempts/2/inconclusive_diagnostic",
-      "configuration_identity": "current-candidate",
+      "configuration_identity": "compressed-candidate-59f18c6d",
       "status": "outcome_unknown",
       "boundary": "terminated by the account weekly usage limit before completing",
       "record": {
