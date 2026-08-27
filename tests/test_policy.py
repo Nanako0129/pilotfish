@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from decimal import Decimal
 import hashlib
 import json
@@ -2388,6 +2389,316 @@ class PolicyContractTests(unittest.TestCase):
             observed_cost,
             evidence["paid_campaign"]["client_reported_cost_usd_so_far"],
         )
+
+    def test_prompt_compression_attempts_are_source_bound(self) -> None:
+        gate = ROOT / "benchmarks" / "prompt-compression"
+        attempts_path = gate / "attempts.json"
+        attempts = json.loads(
+            attempts_path.read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        source_bytes = (gate / "results.json").read_bytes()
+        source = json.loads(source_bytes, parse_float=Decimal)
+
+        expected_gates = {
+            "spontaneous_mechanical_candidate",
+            "spontaneous_mechanical_v1_3_3_control",
+            "spontaneous_bug_candidate",
+            "explicit_lifecycle_turn_1",
+            "explicit_lifecycle_user_continuation",
+            "small_lifecycle",
+            "baton_large",
+            "gap_roles",
+        }
+        passed_pointers = [
+            "/behavioral_gates/spontaneous_bug_candidate",
+            "/behavioral_gates/small_lifecycle/turn_1_plan",
+            "/behavioral_gates/small_lifecycle/turn_2_approved_execution",
+        ]
+        failed_pointers = [
+            "/behavioral_gates/spontaneous_mechanical_candidate",
+            "/behavioral_gates/spontaneous_mechanical_v1_3_3_control",
+            "/behavioral_gates/explicit_lifecycle_turn_1",
+            "/behavioral_gates/explicit_lifecycle_user_continuation",
+        ]
+        not_run_pointers = [
+            "/behavioral_gates/baton_large",
+            "/behavioral_gates/gap_roles",
+        ]
+
+        def resolve(pointer: str) -> dict:
+            self.assertTrue(pointer.startswith("/"))
+            value: object = source
+            for token in pointer[1:].split("/"):
+                self.assertIsInstance(value, dict)
+                self.assertIn(token, value)
+                value = value[token]
+            self.assertIsInstance(value, dict)
+            return value
+
+        def validate(ledger: dict) -> None:
+            self.assertEqual(ledger["schema_version"], 1)
+            source_record = ledger["source"]
+            self.assertEqual(source_record["path"], "results.json")
+            self.assertEqual(
+                source_record["sha256"],
+                hashlib.sha256(source_bytes).hexdigest(),
+            )
+            self.assertEqual(set(source["behavioral_gates"]), expected_gates)
+
+            small_lifecycle = source["behavioral_gates"]["small_lifecycle"]
+            self.assertEqual(
+                {
+                    key for key in small_lifecycle if key.startswith("turn_")
+                },
+                {"turn_1_plan", "turn_2_approved_execution"},
+            )
+            self.assertEqual(
+                ledger["coverage"]["source_pointer"],
+                "/behavioral_gates/small_lifecycle",
+            )
+            self.assertEqual(ledger["coverage"]["status"], "passed")
+            self.assertEqual(
+                ledger["coverage"]["invocation_pointers"],
+                [
+                    "/behavioral_gates/small_lifecycle/turn_1_plan",
+                    "/behavioral_gates/small_lifecycle/turn_2_approved_execution",
+                ],
+            )
+            self.assertEqual(ledger["coverage"]["claim"], small_lifecycle["claim"])
+            self.assertEqual(
+                ledger["coverage"]["claim_boundary"],
+                small_lifecycle["claim_boundary"],
+            )
+
+            passed = ledger["passed_attempts"]
+            failed = ledger["failed_attempts"]
+            not_run = ledger["not_run"]
+            self.assertEqual(len(passed), 3)
+            self.assertEqual(len(failed), 4)
+            self.assertEqual(len(not_run), 2)
+            self.assertEqual(
+                [entry["source_pointer"] for entry in passed], passed_pointers
+            )
+            self.assertEqual(
+                [entry["source_pointer"] for entry in failed], failed_pointers
+            )
+            self.assertEqual(
+                [entry["source_pointer"] for entry in not_run], not_run_pointers
+            )
+            all_attempts = passed + failed
+            self.assertNotIn(
+                "/behavioral_gates/small_lifecycle",
+                [entry["source_pointer"] for entry in all_attempts],
+            )
+            self.assertTrue(
+                all(isinstance(entry["id"], str) and entry["id"] for entry in all_attempts)
+            )
+            self.assertEqual(
+                len({entry["id"] for entry in all_attempts}), len(all_attempts)
+            )
+            self.assertEqual(
+                len({entry["source_pointer"] for entry in all_attempts}),
+                len(all_attempts),
+            )
+            counts = ledger["counts"]
+            self.assertEqual(counts, {"attempted": 7, "passed": 3, "failed": 4})
+            self.assertEqual(counts["attempted"], len(all_attempts))
+            self.assertEqual(counts["attempted"], counts["passed"] + counts["failed"])
+
+            expected_identities = {
+                passed_pointers[0]: {"candidate_version": source["candidate_version"]},
+                passed_pointers[1]: {
+                    "candidate_version": source["candidate_version"],
+                    "policy_file_sha256": small_lifecycle["policy_file_sha256"],
+                },
+                passed_pointers[2]: {
+                    "candidate_version": source["candidate_version"],
+                    "policy_file_sha256": small_lifecycle["policy_file_sha256"],
+                },
+                failed_pointers[0]: {"candidate_version": source["candidate_version"]},
+                failed_pointers[1]: {"candidate_version": "1.3.3"},
+                failed_pointers[2]: {"candidate_version": source["candidate_version"]},
+                failed_pointers[3]: {"candidate_version": source["candidate_version"]},
+            }
+            expected_outcomes = {
+                passed_pointers[0]: {
+                    "agent_call_count": 0,
+                    "only_source_change": "src/reducer.js",
+                    "tests": "2/2 passed",
+                },
+                passed_pointers[1]: {
+                    "readiness_unit": small_lifecycle["turn_1_plan"]["readiness_unit"],
+                    "agent_role": small_lifecycle["turn_1_plan"]["agent_calls"][0][
+                        "role"
+                    ],
+                    "verdict": small_lifecycle["turn_1_plan"]["agent_calls"][0][
+                        "verdict"
+                    ],
+                    "writes_before_approval": small_lifecycle["turn_1_plan"][
+                        "writes_before_approval"
+                    ],
+                },
+                passed_pointers[2]: {
+                    "agent_roles": [
+                        call["role"]
+                        for call in small_lifecycle["turn_2_approved_execution"][
+                            "agent_calls"
+                        ]
+                    ],
+                    "main_source_writes": small_lifecycle["turn_2_approved_execution"][
+                        "main_source_writes"
+                    ],
+                    "changed_paths": small_lifecycle["turn_2_approved_execution"][
+                        "changed_paths"
+                    ],
+                    "tests": small_lifecycle["turn_2_approved_execution"]["tests"],
+                    "independent_post_run_tests": small_lifecycle[
+                        "turn_2_approved_execution"
+                    ]["independent_post_run_tests"],
+                    "verifier_verdict": small_lifecycle["turn_2_approved_execution"][
+                        "agent_calls"
+                    ][1]["verdict"],
+                },
+                failed_pointers[0]: {
+                    "agent_call_count": 0,
+                    "tests": "12/12 passed",
+                    "blocker": source["behavioral_gates"][
+                        "spontaneous_mechanical_candidate"
+                    ]["blocker"],
+                },
+                failed_pointers[1]: {
+                    "agent_call_count": 0,
+                    "tests": "12/12 passed",
+                    "claim_boundary": source["behavioral_gates"][
+                        "spontaneous_mechanical_v1_3_3_control"
+                    ]["claim_boundary"],
+                },
+                failed_pointers[2]: {
+                    "baton_loaded": source["behavioral_gates"][
+                        "explicit_lifecycle_turn_1"
+                    ]["baton_loaded"],
+                    "scout_calls": source["behavioral_gates"][
+                        "explicit_lifecycle_turn_1"
+                    ]["scout_calls"],
+                    "scout_background": source["behavioral_gates"][
+                        "explicit_lifecycle_turn_1"
+                    ]["scout_background"],
+                    "plan_verifier_calls": source["behavioral_gates"][
+                        "explicit_lifecycle_turn_1"
+                    ]["plan_verifier_calls"],
+                    "envelope_verdicts": source["behavioral_gates"][
+                        "explicit_lifecycle_turn_1"
+                    ]["envelope_verdicts"],
+                    "writes_before_approval": source["behavioral_gates"][
+                        "explicit_lifecycle_turn_1"
+                    ]["writes_before_approval"],
+                },
+                failed_pointers[3]: {
+                    "plan_verifier_calls": source["behavioral_gates"][
+                        "explicit_lifecycle_user_continuation"
+                    ]["plan_verifier_calls"],
+                    "verdict": source["behavioral_gates"][
+                        "explicit_lifecycle_user_continuation"
+                    ]["verdict"],
+                    "writes_before_approval": source["behavioral_gates"][
+                        "explicit_lifecycle_user_continuation"
+                    ]["writes_before_approval"],
+                    "open_blocker": source["behavioral_gates"][
+                        "explicit_lifecycle_user_continuation"
+                    ]["open_blocker"],
+                },
+            }
+            expected_boundaries = {
+                passed_pointers[0]: "only_source_change=src/reducer.js; tests=2/2 passed",
+                passed_pointers[1]: small_lifecycle["claim_boundary"],
+                passed_pointers[2]: small_lifecycle["claim_boundary"],
+                failed_pointers[0]: (
+                    "status=correctness_passed_topology_blocked; "
+                    "blocker="
+                    + source["behavioral_gates"]["spontaneous_mechanical_candidate"][
+                        "blocker"
+                    ]
+                ),
+                failed_pointers[1]: source["behavioral_gates"][
+                    "spontaneous_mechanical_v1_3_3_control"
+                ]["claim_boundary"],
+                failed_pointers[2]: "envelope_verdicts=REVISE,REVISE; writes_before_approval=false",
+                failed_pointers[3]: source["behavioral_gates"][
+                    "explicit_lifecycle_user_continuation"
+                ]["open_blocker"],
+            }
+            expected_statuses = {
+                **{pointer: "passed" for pointer in passed_pointers[:1]},
+                passed_pointers[1]: "ready",
+                passed_pointers[2]: "confirmed",
+                failed_pointers[0]: "correctness_passed_topology_blocked",
+                failed_pointers[1]: "correctness_passed_same_topology_blocker",
+                failed_pointers[2]: "stopped_after_two_revise",
+                failed_pointers[3]: "revise",
+            }
+            for entry in all_attempts:
+                pointer = entry["source_pointer"]
+                reviewed = resolve(pointer)
+                self.assertEqual(entry["status"], expected_statuses[pointer])
+                self.assertEqual(entry["status"], reviewed["status"])
+                self.assertEqual(entry["candidate_identity"], expected_identities[pointer])
+                self.assertEqual(entry["outcome"], expected_outcomes[pointer])
+                self.assertEqual(entry["boundary"], expected_boundaries[pointer])
+                self.assertEqual(
+                    entry["client_reported_cost_usd"],
+                    reviewed["client_reported_cost_usd"],
+                )
+                self.assertEqual(entry["raw_stream_sha256"], reviewed["raw_stream_sha256"])
+                self.assertRegex(entry["raw_stream_sha256"], r"^[0-9a-f]{64}$")
+                if "duration_ms" in reviewed:
+                    self.assertEqual(entry["duration_ms"], reviewed["duration_ms"])
+                else:
+                    self.assertNotIn("duration_ms", entry)
+
+            self.assertEqual(
+                source["behavioral_gates"]["small_lifecycle"]["turn_1_plan"][
+                    "agent_calls"
+                ][0]["verdict"],
+                "READY",
+            )
+            self.assertEqual(
+                source["behavioral_gates"]["small_lifecycle"][
+                    "turn_2_approved_execution"
+                ]["agent_calls"][1]["verdict"],
+                "CONFIRMED",
+            )
+            self.assertEqual(
+                source["behavioral_gates"]["explicit_lifecycle_user_continuation"][
+                    "verdict"
+                ],
+                "REVISE",
+            )
+
+            for entry, pointer in zip(not_run, not_run_pointers):
+                reviewed = resolve(pointer)
+                self.assertEqual(entry["status"], "not_run")
+                self.assertEqual(entry["status"], reviewed["status"])
+                self.assertEqual(entry["reason"], reviewed["reason"])
+
+        validate(attempts)
+
+        missing_attempt = deepcopy(attempts)
+        missing_attempt["passed_attempts"].pop()
+        with self.assertRaises(AssertionError):
+            validate(missing_attempt)
+
+        replaced_identity = deepcopy(attempts)
+        replaced_identity["failed_attempts"][1]["candidate_identity"][
+            "candidate_version"
+        ] = "1.3.4"
+        with self.assertRaises(AssertionError):
+            validate(replaced_identity)
+
+        replaced_evidence = deepcopy(attempts)
+        replaced_evidence["failed_attempts"][0]["outcome"]["blocker"] = "different"
+        with self.assertRaises(AssertionError):
+            validate(replaced_evidence)
 
     def test_installer_requires_tool_enforcing_runtime(self) -> None:
         installer = (ROOT / "install/AGENT-INSTALL.md").read_text(encoding="utf-8")

@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "source": {
+    "path": "results.json",
+    "sha256": "7d5b15d20711b1f17b7e4b6ce727d02fb6a513abd3ea3eff8317a28d39e0904a"
+  },
+  "counts": {
+    "attempted": 7,
+    "passed": 3,
+    "failed": 4
+  },
+  "coverage": {
+    "source_pointer": "/behavioral_gates/small_lifecycle",
+    "status": "passed",
+    "invocation_pointers": [
+      "/behavioral_gates/small_lifecycle/turn_1_plan",
+      "/behavioral_gates/small_lifecycle/turn_2_approved_execution"
+    ],
+    "claim": "One explicitly directed small stable Plan reached READY, waited for approval, used one exclusive mechanical writer, passed repository-owned tests, and received a fresh CONFIRMED verdict.",
+    "claim_boundary": "This exact-input compatibility observation does not establish large-Plan convergence, spontaneous activation, security-role behavior, remediation loops, frequency, quality, latency, cost efficiency, or full behavioral parity."
+  },
+  "passed_attempts": [
+    {
+      "id": "prompt-compression-spontaneous-bug-candidate",
+      "source_pointer": "/behavioral_gates/spontaneous_bug_candidate",
+      "status": "passed",
+      "candidate_identity": {
+        "candidate_version": "1.3.4"
+      },
+      "outcome": {
+        "agent_call_count": 0,
+        "only_source_change": "src/reducer.js",
+        "tests": "2/2 passed"
+      },
+      "boundary": "only_source_change=src/reducer.js; tests=2/2 passed",
+      "client_reported_cost_usd": 0.296559,
+      "duration_ms": 42227,
+      "raw_stream_sha256": "647c4393ab3fde599d881ff78c0c652a57f2115830e363eb0559c5177cf9937d"
+    },
+    {
+      "id": "prompt-compression-small-lifecycle-turn-1-plan",
+      "source_pointer": "/behavioral_gates/small_lifecycle/turn_1_plan",
+      "status": "ready",
+      "candidate_identity": {
+        "candidate_version": "1.3.4",
+        "policy_file_sha256": "7657daa38fa23a29d33a0fe994482e9fc1d8512d0d149023b8b2d885fdcbb31e"
+      },
+      "outcome": {
+        "readiness_unit": "ADAPT-NORM-1",
+        "agent_role": "plan-verifier",
+        "verdict": "READY",
+        "writes_before_approval": false
+      },
+      "boundary": "This exact-input compatibility observation does not establish large-Plan convergence, spontaneous activation, security-role behavior, remediation loops, frequency, quality, latency, cost efficiency, or full behavioral parity.",
+      "client_reported_cost_usd": 0.5244245,
+      "duration_ms": 86534,
+      "raw_stream_sha256": "e1c4b1c41075723c60c3b52e580e9f885a3ac2a2ccb1d7665e7358127b7e6d9f"
+    },
+    {
+      "id": "prompt-compression-small-lifecycle-turn-2-approved-execution",
+      "source_pointer": "/behavioral_gates/small_lifecycle/turn_2_approved_execution",
+      "status": "confirmed",
+      "candidate_identity": {
+        "candidate_version": "1.3.4",
+        "policy_file_sha256": "7657daa38fa23a29d33a0fe994482e9fc1d8512d0d149023b8b2d885fdcbb31e"
+      },
+      "outcome": {
+        "agent_roles": [
+          "mech-executor",
+          "verifier"
+        ],
+        "main_source_writes": false,
+        "changed_paths": "src/adapters/*.js (12 files)",
+        "tests": "12/12 passed",
+        "independent_post_run_tests": "12/12 passed",
+        "verifier_verdict": "CONFIRMED"
+      },
+      "boundary": "This exact-input compatibility observation does not establish large-Plan convergence, spontaneous activation, security-role behavior, remediation loops, frequency, quality, latency, cost efficiency, or full behavioral parity.",
+      "client_reported_cost_usd": 0.54710575,
+      "duration_ms": 111853,
+      "raw_stream_sha256": "b8e0b9e4fa04d35e687309b5b77bf706377896723833f96de987e4eab6dfe956"
+    }
+  ],
+  "failed_attempts": [
+    {
+      "id": "prompt-compression-spontaneous-mechanical-candidate",
+      "source_pointer": "/behavioral_gates/spontaneous_mechanical_candidate",
+      "status": "correctness_passed_topology_blocked",
+      "candidate_identity": {
+        "candidate_version": "1.3.4"
+      },
+      "outcome": {
+        "agent_call_count": 0,
+        "tests": "12/12 passed",
+        "blocker": "session guidance prohibited agent spawning unless the user prompt requested it"
+      },
+      "boundary": "status=correctness_passed_topology_blocked; blocker=session guidance prohibited agent spawning unless the user prompt requested it",
+      "client_reported_cost_usd": 0.713846,
+      "duration_ms": 79950,
+      "raw_stream_sha256": "b4bd11e88785a406c99c30f5c96328c7461cc19c0c6bfe8a7d7bc3a1313e55b8"
+    },
+    {
+      "id": "prompt-compression-spontaneous-mechanical-v1-3-3-control",
+      "source_pointer": "/behavioral_gates/spontaneous_mechanical_v1_3_3_control",
+      "status": "correctness_passed_same_topology_blocker",
+      "candidate_identity": {
+        "candidate_version": "1.3.3"
+      },
+      "outcome": {
+        "agent_call_count": 0,
+        "tests": "12/12 passed",
+        "claim_boundary": "The unchanged v1.3.3 control hit the same session-level blocker, so this is not attributed to prompt compression."
+      },
+      "boundary": "The unchanged v1.3.3 control hit the same session-level blocker, so this is not attributed to prompt compression.",
+      "client_reported_cost_usd": 0.5371145,
+      "duration_ms": 62933,
+      "raw_stream_sha256": "c781e5c28409509fba487152f18f299520e7ba2fc55ca4beb4d16353d338a991"
+    },
+    {
+      "id": "prompt-compression-explicit-lifecycle-turn-1",
+      "source_pointer": "/behavioral_gates/explicit_lifecycle_turn_1",
+      "status": "stopped_after_two_revise",
+      "candidate_identity": {
+        "candidate_version": "1.3.4"
+      },
+      "outcome": {
+        "baton_loaded": true,
+        "scout_calls": 2,
+        "scout_background": true,
+        "plan_verifier_calls": 2,
+        "envelope_verdicts": [
+          "REVISE",
+          "REVISE"
+        ],
+        "writes_before_approval": false
+      },
+      "boundary": "envelope_verdicts=REVISE,REVISE; writes_before_approval=false",
+      "client_reported_cost_usd": 1.52310525,
+      "raw_stream_sha256": "e1d80d3dcddb285a41c3eb1a301688463a4aef93c9afc45be6ab6bd5d43fe8c6"
+    },
+    {
+      "id": "prompt-compression-explicit-lifecycle-user-continuation",
+      "source_pointer": "/behavioral_gates/explicit_lifecycle_user_continuation",
+      "status": "revise",
+      "candidate_identity": {
+        "candidate_version": "1.3.4"
+      },
+      "outcome": {
+        "plan_verifier_calls": 1,
+        "verdict": "REVISE",
+        "writes_before_approval": false,
+        "open_blocker": "acceptance verifies completeness and citation attribution but not whether cited evidence entails each derived rule"
+      },
+      "boundary": "acceptance verifies completeness and citation attribution but not whether cited evidence entails each derived rule",
+      "client_reported_cost_usd": 0.418846,
+      "raw_stream_sha256": "177b1ec882daca159529e58130e9a341dc2b54ab5a7e8a34521d99f0d2e01687"
+    }
+  ],
+  "not_run": [
+    {
+      "source_pointer": "/behavioral_gates/baton_large",
+      "status": "not_run",
+      "reason": "The cue-free v1.3.3 control already reproduced the Claude Code 2.1.220 session-level no-spawn blocker."
+    },
+    {
+      "source_pointer": "/behavioral_gates/gap_roles",
+      "status": "not_run",
+      "reason": "The selected claim needs exact small-lifecycle compatibility, not live coverage of every role. Static contracts cover all compressed role bytes; no runtime claim is made for these four roles."
+    }
+  ]
+}
