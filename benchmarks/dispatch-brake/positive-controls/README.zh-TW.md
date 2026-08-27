@@ -1,5 +1,12 @@
 # Positive control 與被淘汰的委派 policy
 
+## 目錄
+
+- [重現](#重現)
+- [Balanced policy 前有哪些失敗](#balanced-policy-前有哪些失敗)
+- [關鍵數據](#關鍵數據)
+- [已揭露限制](#已揭露限制)
+
 原本的 state-clone benchmark 證明「委派可能造成浪費」，但無法證明同樣重要的另一半：加上 brake 後，仍會保留有價值的委派。這組 control 同時驗證兩端。
 
 | Control | 預期決策 | 驗收閘門 |
@@ -46,47 +53,35 @@ Release 決策改成 phase-aware：
 
 ## 重現
 
-要用逐 byte 相同的 policy 與 role inputs 重播公開的 balanced mechanical harness，先 fetch 完整的釘選 commit（shallow release checkout 必須做這一步），再把它掛成暫時 worktree。目前 checkout 只提供通用 JSON builder；policy 與六個角色 definitions 全部來自釘選 snapshot，並明確注入，因此不需要預先全域安裝 pilotfish。Main session 也釘到紀錄中的 Opus 4.8；生成輸出、時間與 cost 仍是單次觀察，不是 deterministic bytes。
+這是安全的 static baseline-contract check。目前 fixture 在 mechanical task 前刻意是 red：fixture-owned `npm test` 必須以 exit status 1 回報精確的 `pass 0` 與 `fail 12`。這不會重現 implementation 後的 acceptance、live model behavior、dispatch／topology、cost 或 latency。歷史 commit `863b117b9da42179c5bb77a05158920fbc092ee2` 沒有已證明可遠端取得的 named ref；任何歷史 live replay 都具備前提且非 turnkey，需要已登入且相容的 account／client／provider、另行批准的 spend authorization 與 disposable fixture。
 
 ```bash
-HARNESS=/path/to/current/pilotfish
-SNAPSHOT=/tmp/pilotfish-dispatch-863b117
-PINNED=863b117b9da42179c5bb77a05158920fbc092ee2
-
-git -C "$HARNESS" fetch --depth 1 origin "$PINNED"
-git -C "$HARNESS" worktree add --detach "$SNAPSHOT" "$PINNED"
-cp -R "$SNAPSHOT/benchmarks/dispatch-brake/positive-controls/mechanical/fixture" \
-  /tmp/pilotfish-mechanical
-cd /tmp/pilotfish-mechanical
-git init -q
-git add .
-git -c user.name=pilotfish-benchmark \
-  -c user.email=pilotfish-benchmark@example.invalid commit -qm baseline
-npm test
-
-TASK="$(sed -n '/^```text$/,/^```$/p' \
-  "$SNAPSHOT/benchmarks/dispatch-brake/positive-controls/mechanical/task.md" \
-  | sed '1d;$d')"
-AGENTS_JSON="$(python3 \
-  "$HARNESS/benchmarks/baton-compatibility/build-agents-json.py" \
-  "$SNAPSHOT/templates/agents")"
-
-/usr/bin/time -p claude -p "$TASK" \
-  --output-format stream-json \
-  --verbose \
-  --no-session-persistence \
-  --dangerously-skip-permissions \
-  --max-budget-usd 3 \
-  --model claude-opus-4-8 \
-  --setting-sources project,local \
-  --strict-mcp-config \
-  --agents "$AGENTS_JSON" \
-  --append-system-prompt-file "$SNAPSHOT/templates/claude-md.orchestration.md"
-
-git -C "$HARNESS" worktree remove "$SNAPSHOT"
+set -eu
+HARNESS="$(git rev-parse --show-toplevel)"
+ROOT="$(mktemp -d "${TMPDIR:-/tmp}/pilotfish-dispatch-static.XXXXXX")"
+case "$ROOT" in "${TMPDIR:-/tmp}"/pilotfish-dispatch-static.*) ;; *) exit 1 ;; esac
+test -d "$ROOT"
+SENTINEL="$ROOT/.sentinel"
+(umask 077 && (set -C; : > "$SENTINEL"))
+test -f "$SENTINEL"
+test -d "$HARNESS/benchmarks/dispatch-brake/positive-controls/mechanical/fixture"
+test ! -e "$ROOT/fixture"
+cp -R "$HARNESS/benchmarks/dispatch-brake/positive-controls/mechanical/fixture" "$ROOT/fixture"
+test -f "$ROOT/fixture/package.json"
+set +e
+NPM_OUTPUT="$(npm --prefix "$ROOT/fixture" test 2>&1)"
+NPM_STATUS=$?
+set -e
+test "$NPM_STATUS" -eq 1
+NORMALIZED_OUTPUT="$(printf '%s\n' "$NPM_OUTPUT" | sed 's/ℹ pass/# pass/; s/ℹ fail/# fail/')"
+printf '%s\n' "$NORMALIZED_OUTPUT"
+printf '%s\n' "$NORMALIZED_OUTPUT" | grep -Fx '# pass 0' >/dev/null
+printf '%s\n' "$NORMALIZED_OUTPUT" | grep -Fx '# fail 12' >/dev/null
+find "$ROOT/fixture" -name '*.js' -type f -print0 | xargs -0 -n 1 node --check
+echo "Static fixture retained at $ROOT; remove manually when authorized."
 ```
 
-> ⚠️ **安全界線：** bypass mode 只用在這些公開 fixture 的可丟棄 copy。不要套用到不可信或有價值的 checkout。
+只能發布審核過的 normalized evidence 與 hashes。若另行授權 raw capture，必須在 checkout／fixture 外、private mode `0600`，且不得 commit 或分享。
 
 ## 已揭露限制
 
