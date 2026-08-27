@@ -1,0 +1,731 @@
+{
+  "schema_version": 1,
+  "source": {
+    "path": "results.json",
+    "sha256": "6bb766753fc98036a92a8e02e0573e87f46e991e22065f6dee962ce90cc45c44"
+  },
+  "counts": {
+    "attempted": 20,
+    "passed": 7,
+    "failed": 3,
+    "unknown": 10
+  },
+  "coverage": {
+    "canonical_record_pointers": [
+      "/runs/0",
+      "/runs/1",
+      "/runs/2",
+      "/runs/3",
+      "/runs/4",
+      "/runs/5",
+      "/v1_3_7_paired_opt_in_matrix/cue_free/pro/evidence/run_keys/0",
+      "/v1_3_7_paired_opt_in_matrix/cue_free/pro/evidence/run_keys/1",
+      "/v1_3_7_paired_opt_in_matrix/cue_free/pro/evidence/run_keys/2",
+      "/v1_3_7_paired_opt_in_matrix/cue_free/pro/evidence/run_keys/3",
+      "/v1_3_7_paired_opt_in_matrix/cue_free/pro/evidence/run_keys/4",
+      "/v1_3_7_paired_opt_in_matrix/cue_free/max/evidence/run_keys/0",
+      "/v1_3_7_paired_opt_in_matrix/cue_free/max/evidence/run_keys/1",
+      "/v1_3_7_paired_opt_in_matrix/cue_free/max/evidence/run_keys/2",
+      "/v1_3_7_paired_opt_in_matrix/cue_free/max/evidence/run_keys/3",
+      "/v1_3_7_paired_opt_in_matrix/cue_free/max/evidence/run_keys/4",
+      "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/0",
+      "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/1",
+      "/v1_3_7_max_prompt_baseline/cells/tightly_coupled_bug/attempts/0",
+      "/v1_3_7_max_prompt_baseline/cells/tightly_coupled_bug/attempts/1",
+      "/v1_3_7_max_prompt_baseline/cells/routine_docs_control/attempts/1"
+    ],
+    "aliases": [
+      {
+        "alias_pointer": "/v1_3_7_max_prompt_baseline/cells/schema_lifecycle/attempts/0",
+        "canonical_pointers": [
+          "/v1_3_7_paired_opt_in_matrix/cue_free/max/evidence/run_keys/0",
+          "/v1_3_7_paired_opt_in_matrix/cue_free/max/evidence/run_keys/1"
+        ]
+      },
+      {
+        "alias_pointer": "/v1_3_7_max_prompt_baseline/cells/schema_lifecycle/attempts/1",
+        "canonical_pointers": [
+          "/v1_3_7_paired_opt_in_matrix/cue_free/max/evidence/run_keys/2",
+          "/v1_3_7_paired_opt_in_matrix/cue_free/max/evidence/run_keys/3"
+        ]
+      },
+      {
+        "alias_pointer": "/v1_3_7_max_prompt_baseline/cells/routine_docs_control/attempts/0",
+        "canonical_pointers": [
+          "/v1_3_7_paired_opt_in_matrix/cue_free/max/evidence/run_keys/4"
+        ]
+      }
+    ],
+    "external_aggregate_exclusions": [
+      {
+        "source_pointer": "/v1_3_7_paired_opt_in_matrix/explicitly_directed",
+        "target": "../verifier-boundary/results.json#passing_gate",
+        "reason": "This is an external aggregate alias, not a source-native invocation record."
+      }
+    ]
+  },
+  "configuration_identities": {
+    "policy_inputs": {
+      "v1.3.0-baseline": {
+        "policy_sha256": "d41a9d41db21e97176e82614dcfd4d80cba670ec28136666cc96906dd5efda35",
+        "agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61"
+      },
+      "v1.3.1-candidate-1": {
+        "policy_sha256": "7ff86564cd4cd8469cf3d24646fd395c57be09dc1fc7e1efa9d0d77c61ecfb21",
+        "agents_json_sha256": "e901e16abdca03ea5f55e3d86f8726fcfa984488305e304c7a382426cd6b7c61"
+      },
+      "v1.3.1-release-payload": {
+        "policy_sha256": "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf",
+        "agents_json_sha256": "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
+        "note": "Exact current policy and generated role payload after PR #19 and PR #20 merged into the release branch."
+      },
+      "v1.3.7-paired-opt-in-matrix": {
+        "policy_sha256": "b26ef4a6a0e02575a39ecc8d3303a8cd7f9e9180548311de399fff527efb3b75",
+        "agents_json_sha256": "e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f",
+        "agents_json_runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc",
+        "note": "Shipped v1.3.7 policy and the gate-snapshot-v2 role payload used by every cell of `v1_3_7_paired_opt_in_matrix` on client 2.1.220. `agents_json_sha256` is the committed snapshot file; `agents_json_runtime_sha256` is the string the client received on `--agents`."
+      }
+    },
+    "paired-matrix": {
+      "environment": {
+        "account_plans_observed": [
+          "pro",
+          "max"
+        ],
+        "account_plan_note": "The Pro cells ran before the account was upgraded; the Max cells ran after, on the same machine and client build. Plan at Max-run time is recorded locally as organizationType `claude_max`, organizationRateLimitTier `default_claude_max_5x`, profile fetched 2026-08-02T11:59:49Z, minutes before the Max cells.",
+        "auth_method": "claude.ai",
+        "api_provider": "firstParty",
+        "client_version": "2.1.220",
+        "requested_model": "opus",
+        "observed_main_model": "claude-opus-5",
+        "setting_sources": [
+          "project",
+          "local"
+        ],
+        "policy_version": "1.3.7",
+        "policy_sha256": "b26ef4a6a0e02575a39ecc8d3303a8cd7f9e9180548311de399fff527efb3b75",
+        "agents_json_runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc"
+      },
+      "input_contract": {
+        "fixture": "../verifier-boundary/fixture",
+        "fixture_digest": "de591dbbad4fa72c2f86e1e33543ade9bfa2269dc295f449a51f94f58e66d9b4",
+        "fixture_digest_method": "sha256 over a manifest of one line per file, sorted by POSIX-relative path, each line being the file's sha256, two spaces, and the path. Recomputable with the snippet in the matrix note.",
+        "cue_vocabulary": "agent|subagent|worker|\\brole\\b|policy|baton|parallel|independent|delegat|orchestrat|fan-out",
+        "cue_scan_scope": "the three cue-free prompt files and every file in the fixture",
+        "cue_scan_result": "no matches",
+        "why": "A cue-free classification is about the whole task context, not only the prompt. Prompt hashes alone would stay unchanged if a fixture copy carried a delegation cue, so the fixture is bound by digest and scanned with the same vocabulary the existing spontaneous-dispatch contract uses.",
+        "tree_binding": {
+          "why": "The scan above covers the pristine fixture. What each run actually saw is the committed baseline tree, so that tree is bound separately.",
+          "max_cells_baseline_tree": "d31e20963655d0e8d08ec94e15395b0a0fc6e582",
+          "max_cells_tracked_files": [
+            "CLAUDE.md",
+            "README.md",
+            "package.json",
+            "store.mjs",
+            "store.test.mjs"
+          ],
+          "max_cells_scan_result": "The four fixture files scan clean against the cue vocabulary. `CLAUDE.md` is the shipped policy under test and necessarily contains the vocabulary; it is identical in both arms and on both plans, so it is not a differentiating cue.",
+          "pro_cells_baseline_tree": "fd81141c7bb17fdf9c688150b7dde2cb9f4afd40",
+          "pro_cells_scan_result": "The same four fixture files plus a tracked `agents.json`, which names all five roles and does not scan clean. The Pro cells' task context therefore contained in-repository delegation vocabulary that the Max cells' did not; see `cue_free.tree_difference_between_plans`.",
+          "untracked_stream_captures": {
+            "what": "Every run in this matrix, on both plans and in both arms, wrote its own `--output-format stream-json` capture into the run directory: `t1.jsonl` and `t2.jsonl` for the two-turn schema cells, `stream.jsonl` for the routine controls. They were untracked, so they are outside the committed baseline tree and outside the fixture digest, but they were present in the working directory the session could see.",
+            "why_it_matters": "A raw stream contains the session initialization event, which lists every role name, and — in turn 2 of a schema cell — the previous turn's Agent call. Their bytes are a delegation cue. The cue-free classification therefore has to say whether those bytes entered the session's context, not only whether the tracked tree scans clean.",
+            "what_the_evidence_shows": "In the sole dispatching run, `mx-schema-a`, no captured tool call read them. Turn 1 ran `ls -la` and `cat` limited to `CLAUDE.md` and `README.md`, then read `store.mjs`, `store.test.mjs` and `package.json`; the `plan-verifier` dispatch follows those three reads. Turn 2 wrote the two source files, then ran `npm test`, `git status --porcelain`, `git diff`, `ls -la`, `git ls-files --others` and an inline `node --input-type=module` probe. Every one of those surfaces the capture filenames; none reads their contents.",
+            "residual_limit": "The `plan-verifier` subagent's own tool calls are not captured in the parent stream. Its brief named `store.mjs`, `store.test.mjs` and `package.json`, and its usage block reports three tool uses, which is consistent with reading exactly those files — consistent with, not proof of. So the record can state that no capture entered the main session's context and cannot state the same for the subagent.",
+            "symmetry": "Filename and placement are symmetric: every recorded schema run had `t1.jsonl` and `t2.jsonl` in its run directory and every routine control had `stream.jsonl`, on both plans and in both arms. The contents are not. Each run's capture holds that run's own prompts, responses and Agent calls, so the explicit arm's captures contain delegation instructions and role dispatches that the prompt-cue-free arms' do not, and every recorded raw-stream digest differs. Taken with the residual limit above — the subagent's reads are not observable — this means the captures cannot be treated as a shared constant and cannot be shown not to bias a comparison. What is established is that no capture entered the main session's context in the dispatching run; the contents remain unresolved run-specific context.",
+            "fix_for_future_runs": "Write captures outside the disposable repository. This is recorded rather than re-run because the evidence above shows the bytes never reached the main session, and a re-run costs another full arm."
+          }
+        }
+      },
+      "arms": {
+        "pro": {
+          "account_plan": "pro",
+          "run_date": "2026-08-02",
+          "prompts": {
+            "schema_turn_1": {
+              "file_sha256": "2ed1a9c607d40b7c868bbe376611fb1b2e7e3ed7f6e3a0c1a86d98cef006f3f8",
+              "runtime_sha256": "da95fa74388bc97cc889a2ea2e70fc0897055152d42174c548632a0e415a1adc"
+            },
+            "schema_turn_2": {
+              "file_sha256": "4840a3a008489b7f3f1a2895854ca0375c4ac8276c59e76b454571a95c4dd7da",
+              "runtime_sha256": "24d18dc9f819eaf5b510eb82b2981cd0e22b5fe46470ab7f939613db20f8ca80"
+            },
+            "routine_docs": {
+              "file_sha256": "b95cc5994c10a9b1d2669ca2020d6cde175b8199953dd3b40261575a3136d52d",
+              "runtime_sha256": "6705e52a14500be2d03be1b7f08a72d09670acc43261b69471a546f9ffcc5fb9"
+            }
+          }
+        },
+        "max": {
+          "account_plan": "max",
+          "run_date": "2026-08-02",
+          "prompts": {
+            "schema_turn_1": {
+              "file_sha256": "2ed1a9c607d40b7c868bbe376611fb1b2e7e3ed7f6e3a0c1a86d98cef006f3f8",
+              "runtime_sha256": "da95fa74388bc97cc889a2ea2e70fc0897055152d42174c548632a0e415a1adc"
+            },
+            "schema_turn_2": {
+              "file_sha256": "4840a3a008489b7f3f1a2895854ca0375c4ac8276c59e76b454571a95c4dd7da",
+              "runtime_sha256": "24d18dc9f819eaf5b510eb82b2981cd0e22b5fe46470ab7f939613db20f8ca80"
+            },
+            "routine_docs": {
+              "file_sha256": "b95cc5994c10a9b1d2669ca2020d6cde175b8199953dd3b40261575a3136d52d",
+              "runtime_sha256": "6705e52a14500be2d03be1b7f08a72d09670acc43261b69471a546f9ffcc5fb9"
+            }
+          }
+        }
+      }
+    },
+    "max-prompt-baseline": {
+      "environment": {
+        "account_plan": "max",
+        "auth_method": "claude.ai",
+        "api_provider": "firstParty",
+        "client_version": "2.1.220",
+        "requested_model": "opus",
+        "observed_main_model": "claude-opus-5",
+        "effort": "high",
+        "setting_sources": [
+          "project",
+          "local"
+        ],
+        "policy_version": "1.3.7",
+        "policy_sha256": "b26ef4a6a0e02575a39ecc8d3303a8cd7f9e9180548311de399fff527efb3b75",
+        "policy_source": "`templates/claude-md.orchestration.md` at v1.3.7, byte-identical to `../verifier-boundary/gate-snapshot-v2/CLAUDE.md`",
+        "agents_json_sha256": "e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f",
+        "agents_json_runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc",
+        "agents_json_digest_note": "`agents_json_sha256` is the committed snapshot file. `agents_json_runtime_sha256` is what the client actually received: the runner passes `\"$(<\"$G/agents.json\")\"`, and command substitution strips the trailing newline, so the payload hash differs from the file hash. The exercised payload is the runtime one."
+      },
+      "claim_boundary": "One account, one machine, one client build, one model. Two attempts per cell. Establishes the shipped policy's behaviour under these exact conditions as a comparison point; it is not a dispatch rate and does not generalise across workloads, models or plans.",
+      "cells": {
+        "mechanical": {
+          "expected_topology": "Exactly one foreground `mech-executor`; the main session performs no source mutation; 12 adapter files change; 12/12 tests pass.",
+          "baseline_tree": "7d671f5f3f8bf372e9caecd21bbc4a7cba224b90"
+        },
+        "tightly_coupled_bug": {
+          "expected_topology": "Negative cell. Main session owns diagnosis and the first minimal fix; no discovery or implementation agent before the fix and the focused pass.",
+          "baseline_tree": "3f4f36922824ebff00775d2ab4cb72e6ee87ec4c"
+        },
+        "schema_lifecycle": {
+          "expected_topology": "`plan-verifier` before approval, implementation, then an outcome `verifier`.",
+          "baseline_tree": "d31e20963655d0e8d08ec94e15395b0a0fc6e582"
+        },
+        "routine_docs_control": {
+          "expected_topology": "Negative cell. Zero Agent calls.",
+          "baseline_tree": "d31e20963655d0e8d08ec94e15395b0a0fc6e582"
+        }
+      }
+    }
+  },
+  "passed_attempts": [
+    {
+      "id": "spontaneous-opus-v1.3.1-candidate-1-mechanical",
+      "source_pointer": "/runs/2",
+      "configuration_identity": "v1.3.1-candidate-1",
+      "status": "passed",
+      "record": {
+        "name": "opus-v1.3.1-candidate-1-mechanical",
+        "fixture": "stable-mechanical-12-file",
+        "policy_version": "1.3.1",
+        "requested_model": "opus",
+        "observed_main_model": "claude-opus-4-8",
+        "status": "passed",
+        "wall_seconds": 70.07,
+        "duration_ms": 68618,
+        "duration_api_ms": 71438,
+        "num_turns": 5,
+        "reported_cost_usd": 0.39226725,
+        "tests_before": "0/12 passed",
+        "tests_after": "12/12 passed",
+        "agent_call_count": 1,
+        "agent_type": "mech-executor",
+        "agent_run_in_background": false,
+        "agent_invocation_model_present": false,
+        "main_source_mutation_observed": false,
+        "worker_is_sole_source_mutation_path": true,
+        "changed_paths": "src/adapters/*.js (12 files)",
+        "diff_stat": "72 insertions, 12 deletions",
+        "raw_stream_sha256": "c454562a5fd7368588c62f8f1aec5f60b554677c60f849f6a41c376c91fdcb07",
+        "model_usage": {
+          "claude-haiku-4-5-20251001": {
+            "input_tokens": 593,
+            "output_tokens": 18,
+            "cost_usd": 0.000683
+          },
+          "claude-opus-4-8": {
+            "input_tokens": 10,
+            "output_tokens": 2373,
+            "cache_read_input_tokens": 85480,
+            "cache_creation_input_tokens": 15093,
+            "cost_usd": 0.253045
+          },
+          "claude-sonnet-5": {
+            "input_tokens": 14,
+            "output_tokens": 1920,
+            "cache_read_input_tokens": 110895,
+            "cache_creation_input_tokens": 20381,
+            "cost_usd": 0.13853925
+          }
+        },
+        "claim": "The mechanical positive cell passed: exactly one named mech-executor owned every source mutation, the main session performed read-only triage and acceptance, and the expected 12-file diff passed 12/12 tests."
+      }
+    },
+    {
+      "id": "spontaneous-opus-v1.3.1-candidate-1-bug",
+      "source_pointer": "/runs/3",
+      "configuration_identity": "v1.3.1-candidate-1",
+      "status": "passed",
+      "record": {
+        "name": "opus-v1.3.1-candidate-1-bug",
+        "fixture": "tightly-coupled-state-clone",
+        "policy_version": "1.3.1",
+        "requested_model": "opus",
+        "observed_main_model": "claude-opus-4-8",
+        "status": "passed",
+        "wall_seconds": 32.71,
+        "duration_ms": 31275,
+        "duration_api_ms": 32506,
+        "num_turns": 11,
+        "reported_cost_usd": 0.272897,
+        "tests_before": "0/2 passed",
+        "tests_after": "2/2 passed",
+        "agent_call_count": 0,
+        "main_owned_first_minimal_fix": true,
+        "main_observed_post_fix_pass": true,
+        "changed_paths": "src/reducer.js",
+        "diff_stat": "14 insertions, 2 deletions",
+        "raw_stream_sha256": "527574982172db5373fe532d08dd70da14c8b69915b03e4aa87a80726fb7a049",
+        "model_usage": {
+          "claude-haiku-4-5-20251001": {
+            "input_tokens": 573,
+            "output_tokens": 15,
+            "cost_usd": 0.000648
+          },
+          "claude-opus-4-8": {
+            "input_tokens": 16,
+            "output_tokens": 1946,
+            "cache_read_input_tokens": 147518,
+            "cache_creation_input_tokens": 14976,
+            "cost_usd": 0.272249
+          }
+        },
+        "claim": "The tightly coupled negative cell passed: the main session diagnosed and made the first minimal fix, observed 2/2 passing tests, and invoked no discovery or implementation agent."
+      }
+    },
+    {
+      "id": "spontaneous-opus-v1.3.1-release-payload-mechanical",
+      "source_pointer": "/runs/4",
+      "configuration_identity": "v1.3.1-release-payload",
+      "status": "passed",
+      "record": {
+        "name": "opus-v1.3.1-release-payload-mechanical",
+        "run_date": "2026-07-23",
+        "fixture": "stable-mechanical-12-file",
+        "fixture_baseline_commit": "ccb9e312867f63e2a9c4f6cedefb399d830b472d",
+        "fixture_baseline_tree": "4ff6b44f24cc09f2b3f184433093adeb3d7ea592",
+        "policy_version": "1.3.1",
+        "policy_sha256": "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf",
+        "agents_json_sha256": "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
+        "client_version": "2.1.218",
+        "requested_model": "opus",
+        "observed_main_model": "claude-opus-4-8",
+        "status": "passed",
+        "duration_ms": 52680,
+        "duration_api_ms": 52862,
+        "num_turns": 4,
+        "reported_cost_usd": 0.34736595000000003,
+        "tests_after": "12/12 passed",
+        "independent_post_run_test": {
+          "verification_recorded_at_utc": "2026-07-23T03:36:58Z",
+          "command": "npm test",
+          "exit_code": 0,
+          "tests_passed": 12,
+          "tests_failed": 0
+        },
+        "agent_call_count": 1,
+        "agent_type": "mech-executor",
+        "agent_run_in_background": false,
+        "agent_invocation_model_present": false,
+        "observed_agent_model": "claude-sonnet-5",
+        "main_source_mutation_observed": false,
+        "worker_is_sole_source_mutation_path": true,
+        "changed_paths": "src/adapters/*.js (12 files)",
+        "diff_stat": "60 insertions, 12 deletions",
+        "raw_stream_sha256": "bd3aee266492a71526e7a7275734ca16a5973c4e4c78df5c7f3abb32bad19ce9",
+        "model_usage": {
+          "claude-haiku-4-5-20251001": {
+            "input_tokens": 593,
+            "output_tokens": 14,
+            "cost_usd": 0.000663
+          },
+          "claude-opus-4-8": {
+            "input_tokens": 8,
+            "output_tokens": 2399,
+            "cache_read_input_tokens": 63951,
+            "cache_creation_input_tokens": 14508,
+            "cost_usd": 0.2370705
+          },
+          "claude-sonnet-5": {
+            "input_tokens": 10,
+            "output_tokens": 1107,
+            "cache_read_input_tokens": 71629,
+            "cache_creation_input_tokens": 19069,
+            "cost_usd": 0.10963245
+          }
+        },
+        "claim": "The exact release payload passed the mechanical cell: one foreground mech-executor resolved to Sonnet 5, owned all 12 source mutations, and produced a 12/12 passing result while the Opus main session remained read-only."
+      }
+    },
+    {
+      "id": "spontaneous-opus-v1.3.1-release-payload-bug",
+      "source_pointer": "/runs/5",
+      "configuration_identity": "v1.3.1-release-payload",
+      "status": "passed",
+      "record": {
+        "name": "opus-v1.3.1-release-payload-bug",
+        "run_date": "2026-07-23",
+        "fixture": "tightly-coupled-state-clone",
+        "fixture_baseline_commit": "18f870fa1417278cb94646d33414653ad294af3e",
+        "fixture_baseline_tree": "9ef6bef332fa6f7376bfe31b15e25f5aa54e230a",
+        "policy_version": "1.3.1",
+        "policy_sha256": "17d272b6ddd6d95a749a802f5e29dfd4625c884f8a84bf817ffc20bfca6b39bf",
+        "agents_json_sha256": "0b42c137daf4006a9c85b201c9434e13640fce69fb10fcf0fba6ba2b1379723c",
+        "client_version": "2.1.218",
+        "requested_model": "opus",
+        "observed_main_model": "claude-opus-4-8",
+        "status": "passed",
+        "duration_ms": 50909,
+        "duration_api_ms": 51862,
+        "num_turns": 12,
+        "reported_cost_usd": 0.3142015,
+        "tests_before": "0/2 passed",
+        "tests_after": "2/2 passed",
+        "independent_post_run_test": {
+          "verification_recorded_at_utc": "2026-07-23T03:36:58Z",
+          "command": "npm test",
+          "exit_code": 0,
+          "tests_passed": 2,
+          "tests_failed": 0
+        },
+        "agent_call_count": 0,
+        "main_owned_first_minimal_fix": true,
+        "main_observed_post_fix_pass": true,
+        "changed_paths": "src/reducer.js",
+        "diff_stat": "12 insertions, 1 deletion",
+        "raw_stream_sha256": "dcefdaa00f325a5f374f4815aae0af3b0a134f28633c5be527fcb2f8d96f22ac",
+        "model_usage": {
+          "claude-haiku-4-5-20251001": {
+            "input_tokens": 573,
+            "output_tokens": 15,
+            "cost_usd": 0.000648
+          },
+          "claude-opus-4-8": {
+            "input_tokens": 14,
+            "output_tokens": 3406,
+            "cache_read_input_tokens": 130027,
+            "cache_creation_input_tokens": 16332,
+            "cost_usd": 0.3135535
+          }
+        },
+        "claim": "The exact release payload passed the tightly coupled bug cell: Opus retained the contiguous diagnosis, first minimal fix, and 2/2 post-fix test with zero Agent calls."
+      }
+    },
+    {
+      "id": "spontaneous-max-baseline-tightly-coupled-bug-a",
+      "source_pointer": "/v1_3_7_max_prompt_baseline/cells/tightly_coupled_bug/attempts/0",
+      "configuration_identity": "max-prompt-baseline",
+      "cell": "tightly_coupled_bug",
+      "status": "passed",
+      "record": {
+        "id": "a",
+        "agent_calls": 0,
+        "topology": "PASS",
+        "observed": "Three Bash triage commands, five reads, one `Edit` to `src/reducer.js`, then the tests. No Agent call before or after the fix.",
+        "tests_after": "2 passed, 0 failed",
+        "changed_paths_count": 1,
+        "client_reported_cost_usd": 0.370751,
+        "raw_stream_sha256": "623cf6aabcc248e68b73daa4cb8e61e160d726183ca07c6c7151be9736f7ae32"
+      }
+    },
+    {
+      "id": "spontaneous-max-baseline-tightly-coupled-bug-b",
+      "source_pointer": "/v1_3_7_max_prompt_baseline/cells/tightly_coupled_bug/attempts/1",
+      "configuration_identity": "max-prompt-baseline",
+      "cell": "tightly_coupled_bug",
+      "status": "passed",
+      "record": {
+        "id": "b",
+        "agent_calls": 0,
+        "topology": "PASS",
+        "observed": "Same shape with one extra triage command: four Bash calls, five reads, one `Edit` to `src/reducer.js`, then the tests. No Agent call.",
+        "tests_after": "2 passed, 0 failed",
+        "changed_paths_count": 1,
+        "client_reported_cost_usd": 0.3730545,
+        "raw_stream_sha256": "d5c318079f30a828bc97d1078343b60cc2ab2fc79bd0c8b232cc2329c03921b6"
+      }
+    },
+    {
+      "id": "spontaneous-max-baseline-routine-docs-control-b",
+      "source_pointer": "/v1_3_7_max_prompt_baseline/cells/routine_docs_control/attempts/1",
+      "configuration_identity": "max-prompt-baseline",
+      "cell": "routine_docs_control",
+      "status": "passed",
+      "record": {
+        "id": "b",
+        "agent_calls": 0,
+        "topology": "PASS",
+        "observed": "Listed files, read and edited `README.md`, ran the suite. No Agent call.",
+        "tests_after": "1 passed, 0 failed",
+        "changed_paths_count": 1,
+        "client_reported_cost_usd": 0.219294,
+        "raw_stream_sha256": "76686e6a6ffa00de04b86acabd7443cf2b3f17f302b4fc20823926961e6ef8ab"
+      }
+    }
+  ],
+  "failed_attempts": [
+    {
+      "id": "spontaneous-opus-v1.3.0-mechanical-baseline",
+      "source_pointer": "/runs/1",
+      "configuration_identity": "v1.3.0-baseline",
+      "status": "topology_failed",
+      "boundary": "Correctness passed, but spontaneous-dispatch topology failed because the main session made every source mutation and invoked no named worker.",
+      "record": {
+        "name": "opus-v1.3.0-mechanical-baseline",
+        "fixture": "stable-mechanical-12-file",
+        "policy_version": "1.3.0",
+        "requested_model": "opus",
+        "observed_main_model": "claude-opus-4-8",
+        "status": "success_topology_fail",
+        "duration_ms": 44938,
+        "duration_api_ms": 45775,
+        "num_turns": 7,
+        "reported_cost_usd": 0.375402,
+        "tests_passed": 12,
+        "tests_failed": 0,
+        "agent_call_count": 0,
+        "source_mutation_observed": true,
+        "changed_paths": "src/adapters/*.js (12 files)",
+        "diff_stat": "72 insertions, 12 deletions",
+        "raw_stream_sha256": "59e576004c8eae9e2d833307c4785f9b67013bf327f9c0d17b52a6e5a801dd23",
+        "model_usage": {
+          "claude-haiku-4-5-20251001": {
+            "input_tokens": 593,
+            "output_tokens": 15,
+            "cost_usd": 0.000668
+          },
+          "claude-opus-4-8": {
+            "input_tokens": 14,
+            "output_tokens": 2840,
+            "cache_read_input_tokens": 112768,
+            "cache_creation_input_tokens": 24728,
+            "cost_usd": 0.374734
+          }
+        },
+        "claim": "Correctness passed, but spontaneous-dispatch topology failed because the main session made every source mutation and invoked no named worker."
+      }
+    },
+    {
+      "id": "spontaneous-max-baseline-mechanical-a",
+      "source_pointer": "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/0",
+      "configuration_identity": "max-prompt-baseline",
+      "cell": "mechanical",
+      "status": "topology_failed",
+      "boundary": "Main session enumerated and catted the adapters, rewrote all twelve with a `cat > \"$f\"` heredoc loop, read them back, rewrote each again with a `Write` call, then ran the suite. Both mutation paths were the main session's. No Agent call.",
+      "record": {
+        "id": "a",
+        "agent_calls": 0,
+        "topology": "FAIL",
+        "observed": "Main session enumerated and catted the adapters, rewrote all twelve with a `cat > \"$f\"` heredoc loop, read them back, rewrote each again with a `Write` call, then ran the suite. Both mutation paths were the main session's. No Agent call.",
+        "tests_after": "12 passed, 0 failed",
+        "changed_paths_count": 12,
+        "client_reported_cost_usd": 0.931978,
+        "raw_stream_sha256": "567577c4cce8bca9fccf84945c3f2d0cf4f77379cbfbc8e7949a31e0b8524d12"
+      }
+    },
+    {
+      "id": "spontaneous-max-baseline-mechanical-b",
+      "source_pointer": "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/1",
+      "configuration_identity": "max-prompt-baseline",
+      "cell": "mechanical",
+      "status": "topology_failed",
+      "boundary": "Main session listed and catted the adapters, then rewrote all twelve with `cat > \"$f\"` and `cat >| \"$f\"` heredoc loops, and ran the suite. No Agent call and no `Write` tool use at all — the mutation path was shell redirection, which this benchmark's input contract rejects outright.",
+      "record": {
+        "id": "b",
+        "agent_calls": 0,
+        "topology": "FAIL",
+        "observed": "Main session listed and catted the adapters, then rewrote all twelve with `cat > \"$f\"` and `cat >| \"$f\"` heredoc loops, and ran the suite. No Agent call and no `Write` tool use at all — the mutation path was shell redirection, which this benchmark's input contract rejects outright.",
+        "tests_after": "12 passed, 0 failed",
+        "changed_paths_count": 12,
+        "client_reported_cost_usd": 0.3240865,
+        "raw_stream_sha256": "806c11e6564b1f5799a869de6be587603f68e6b91df231b6079da29e71d22171"
+      }
+    }
+  ],
+  "unknown_attempts": [
+    {
+      "id": "spontaneous-paired-pro-schema-a-turn-1",
+      "source_pointer": "/v1_3_7_paired_opt_in_matrix/cue_free/pro/evidence/run_keys/0",
+      "configuration_identity": "paired-matrix",
+      "arm": "pro",
+      "stream": "schema_a_turn_1",
+      "status": "outcome_unknown",
+      "boundary": "The source binds this CLI stream by run key, raw hash, and cost but does not record a per-invocation outcome. Aggregate arm and later alias summaries are not substituted.",
+      "record": {
+        "run_key": "v1.3.7-pro-cue-free-schema-a-turn-1",
+        "raw_stream_sha256": "251aeca4474963ebc36026e57c1bad559599470f1e0cdb9f3736703b9f94f1f4",
+        "client_reported_cost_usd": 0.291079
+      }
+    },
+    {
+      "id": "spontaneous-paired-pro-schema-a-turn-2",
+      "source_pointer": "/v1_3_7_paired_opt_in_matrix/cue_free/pro/evidence/run_keys/1",
+      "configuration_identity": "paired-matrix",
+      "arm": "pro",
+      "stream": "schema_a_turn_2",
+      "status": "outcome_unknown",
+      "boundary": "The source binds this CLI stream by run key, raw hash, and cost but does not record a per-invocation outcome. Aggregate arm and later alias summaries are not substituted.",
+      "record": {
+        "run_key": "v1.3.7-pro-cue-free-schema-a-turn-2",
+        "raw_stream_sha256": "bcdd2bcdb5aff7c4395c6e6bb3f0f9d8d41bb2bee24c4160b78b62404ca2ed01",
+        "client_reported_cost_usd": 0.2269245
+      }
+    },
+    {
+      "id": "spontaneous-paired-pro-schema-b-turn-1",
+      "source_pointer": "/v1_3_7_paired_opt_in_matrix/cue_free/pro/evidence/run_keys/2",
+      "configuration_identity": "paired-matrix",
+      "arm": "pro",
+      "stream": "schema_b_turn_1",
+      "status": "outcome_unknown",
+      "boundary": "The source binds this CLI stream by run key, raw hash, and cost but does not record a per-invocation outcome. Aggregate arm and later alias summaries are not substituted.",
+      "record": {
+        "run_key": "v1.3.7-pro-cue-free-schema-b-turn-1",
+        "raw_stream_sha256": "4c3a486df2b4de138ecd7e9e3fd7f8c5f33c64aa89bdc6b81f7d26b7a0515811",
+        "client_reported_cost_usd": 0.3039965
+      }
+    },
+    {
+      "id": "spontaneous-paired-pro-schema-b-turn-2",
+      "source_pointer": "/v1_3_7_paired_opt_in_matrix/cue_free/pro/evidence/run_keys/3",
+      "configuration_identity": "paired-matrix",
+      "arm": "pro",
+      "stream": "schema_b_turn_2",
+      "status": "outcome_unknown",
+      "boundary": "The source binds this CLI stream by run key, raw hash, and cost but does not record a per-invocation outcome. Aggregate arm and later alias summaries are not substituted.",
+      "record": {
+        "run_key": "v1.3.7-pro-cue-free-schema-b-turn-2",
+        "raw_stream_sha256": "bbe8c3e69607ea01777511c74c1df70d4a1212c80c8ebfbb7f43214c803a2604",
+        "client_reported_cost_usd": 0.2314485
+      }
+    },
+    {
+      "id": "spontaneous-paired-pro-routine",
+      "source_pointer": "/v1_3_7_paired_opt_in_matrix/cue_free/pro/evidence/run_keys/4",
+      "configuration_identity": "paired-matrix",
+      "arm": "pro",
+      "stream": "routine",
+      "status": "outcome_unknown",
+      "boundary": "The source binds this CLI stream by run key, raw hash, and cost but does not record a per-invocation outcome. Aggregate arm and later alias summaries are not substituted.",
+      "record": {
+        "run_key": "v1.3.7-pro-cue-free-routine-docs",
+        "raw_stream_sha256": "245bda5c6ac8f4f22fb112cfa0cd8dfbc43e275487703bbfed245209c185d1d4",
+        "client_reported_cost_usd": 0.2001385
+      }
+    },
+    {
+      "id": "spontaneous-paired-max-schema-a-turn-1",
+      "source_pointer": "/v1_3_7_paired_opt_in_matrix/cue_free/max/evidence/run_keys/0",
+      "configuration_identity": "paired-matrix",
+      "arm": "max",
+      "stream": "schema_a_turn_1",
+      "status": "outcome_unknown",
+      "boundary": "The source binds this CLI stream by run key, raw hash, and cost but does not record a per-invocation outcome. Aggregate arm and later alias summaries are not substituted.",
+      "record": {
+        "run_key": "v1.3.7-max-cue-free-schema-a-turn-1",
+        "raw_stream_sha256": "5482878287b198fb239baeff9676a0322c79cf4fe2f625a866294dfefc00846d",
+        "client_reported_cost_usd": 0.412807
+      }
+    },
+    {
+      "id": "spontaneous-paired-max-schema-a-turn-2",
+      "source_pointer": "/v1_3_7_paired_opt_in_matrix/cue_free/max/evidence/run_keys/1",
+      "configuration_identity": "paired-matrix",
+      "arm": "max",
+      "stream": "schema_a_turn_2",
+      "status": "outcome_unknown",
+      "boundary": "The source binds this CLI stream by run key, raw hash, and cost but does not record a per-invocation outcome. Aggregate arm and later alias summaries are not substituted.",
+      "record": {
+        "run_key": "v1.3.7-max-cue-free-schema-a-turn-2",
+        "raw_stream_sha256": "69222191e295af46882c4dd56b7a8e00791c99f2d93c7c0302e62927b30681de",
+        "client_reported_cost_usd": 0.5946085
+      }
+    },
+    {
+      "id": "spontaneous-paired-max-schema-b-turn-1",
+      "source_pointer": "/v1_3_7_paired_opt_in_matrix/cue_free/max/evidence/run_keys/2",
+      "configuration_identity": "paired-matrix",
+      "arm": "max",
+      "stream": "schema_b_turn_1",
+      "status": "outcome_unknown",
+      "boundary": "The source binds this CLI stream by run key, raw hash, and cost but does not record a per-invocation outcome. Aggregate arm and later alias summaries are not substituted.",
+      "record": {
+        "run_key": "v1.3.7-max-cue-free-schema-b-turn-1",
+        "raw_stream_sha256": "e4631afb24b9447a50a410c3d7ee8cc4b65b1cf8551d9fa6c1bfd3553eebc939",
+        "client_reported_cost_usd": 0.2897485
+      }
+    },
+    {
+      "id": "spontaneous-paired-max-schema-b-turn-2",
+      "source_pointer": "/v1_3_7_paired_opt_in_matrix/cue_free/max/evidence/run_keys/3",
+      "configuration_identity": "paired-matrix",
+      "arm": "max",
+      "stream": "schema_b_turn_2",
+      "status": "outcome_unknown",
+      "boundary": "The source binds this CLI stream by run key, raw hash, and cost but does not record a per-invocation outcome. Aggregate arm and later alias summaries are not substituted.",
+      "record": {
+        "run_key": "v1.3.7-max-cue-free-schema-b-turn-2",
+        "raw_stream_sha256": "dfa4070e2158ee5ec5300d5d09b793f1c26d965365133262485030360e784ea1",
+        "client_reported_cost_usd": 0.219255
+      }
+    },
+    {
+      "id": "spontaneous-paired-max-routine",
+      "source_pointer": "/v1_3_7_paired_opt_in_matrix/cue_free/max/evidence/run_keys/4",
+      "configuration_identity": "paired-matrix",
+      "arm": "max",
+      "stream": "routine",
+      "status": "outcome_unknown",
+      "boundary": "The source binds this CLI stream by run key, raw hash, and cost but does not record a per-invocation outcome. Aggregate arm and later alias summaries are not substituted.",
+      "record": {
+        "run_key": "v1.3.7-max-cue-free-routine-docs",
+        "raw_stream_sha256": "3c30f53fff46642d3b56fd072d573dbedacace924515163e14735c5142454c4a",
+        "client_reported_cost_usd": 0.239896
+      }
+    }
+  ],
+  "not_run": [
+    {
+      "id": "spontaneous-fable-v1.3.0-mechanical-baseline",
+      "source_pointer": "/runs/0",
+      "configuration_identity": "v1.3.0-baseline",
+      "status": "not_run",
+      "reason": "No behavior, cost-efficiency, or delegation conclusion is drawn because execution stopped at the usage-credit gate.",
+      "record": {
+        "name": "fable-v1.3.0-mechanical-baseline",
+        "fixture": "stable-mechanical-12-file",
+        "policy_version": "1.3.0",
+        "requested_model": "fable",
+        "observed_main_model": "claude-fable-5",
+        "status": "usage_credits_required",
+        "duration_ms": 615,
+        "duration_api_ms": 0,
+        "num_turns": 1,
+        "reported_cost_usd": 0,
+        "agent_call_count": 0,
+        "source_mutation_observed": false,
+        "raw_stream_sha256": "e51f29427f6919ee7503b9c1370bc287f8a3c9ef0b41b261016235c8c1f609ab",
+        "claim": "No behavior, cost-efficiency, or delegation conclusion is drawn because execution stopped at the usage-credit gate."
+      }
+    }
+  ]
+}
