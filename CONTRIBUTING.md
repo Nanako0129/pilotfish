@@ -84,12 +84,13 @@ PR evidence must record the exact base revision, every changed template path, an
 the identity of an independent semantic reader who did not author the template
 change.
 
-The independent record must also include the exact final candidate revision
-identity (commit and tree) and a SHA-256 for every changed prompt-template file:
+The independent record must also include the exact reviewed template candidate
+revision identity (commit and tree) and a SHA-256 for every changed prompt-template
+file:
 
 ```text
-final candidate revision: <commit SHA>
-candidate tree: <Git tree SHA>
+reviewed template candidate commit: <commit SHA>
+reviewed template candidate tree: <Git tree SHA>
 changed-template SHA-256:
   <changed prompt-template path>: <SHA-256>
 ```
@@ -117,14 +118,23 @@ main-owned `FIX`, `DEFER`, or `REJECT` disposition and rationale. Additions and
 deletions require an explicit semantic disposition. All dispositions must be
 complete before release readiness.
 
-Any template edit after the reading invalidates the record. The independent
-reader must repeat or update affected pair readings and record the new final
-candidate identity and hashes; completed dispositions alone are insufficient.
-Release readiness requires current changed-template SHA-256 values and candidate
-tree/bytes to match the independent record. If they differ, stop before
-renderer/tag and rerun/update the reading. A tree-identical squash merge may map
-the reviewed PR head to a new commit SHA only when recorded tree equality and
-every changed-template byte hash are identical; record both commit identities.
+Any prompt-template edit after the reading invalidates the record. The independent
+reader must repeat or update affected pair readings and record the new reviewed
+template candidate identity and hashes; completed dispositions alone are
+insufficient.
+
+Generated non-template artifact changes from the renderer do not invalidate the
+independent reading when recorded changed-template SHA-256 values remain
+identical. Do not require the final release tree to equal the reviewed template
+candidate tree when only those generated artifacts changed.
+
+After renderer/tests and the final release commit, record the final release
+candidate commit and tree separately and prove every changed prompt-template
+SHA-256 equals the independent record. If any changed-template SHA-256 differs,
+stop before the tag and repeat or update the reading. A tree-identical squash
+merge may map the reviewed PR head to a new commit SHA only when recorded tree
+equality and every changed-template byte hash are identical; record both commit
+identities.
 
 Phrase assertions, byte/hash checks, renderer checks, and live behavioral Gates
 are supporting evidence; none substitutes for independent semantic reading.
