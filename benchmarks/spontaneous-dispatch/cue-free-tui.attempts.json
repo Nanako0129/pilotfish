@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "source": {
+    "path": "cue-free-tui.json",
+    "sha256": "0e8eae3338f2ee0e913ffc22c39770403ef4d49081d865bdd296b4b7a9854b81"
+  },
+  "counts": {
+    "attempted": 4,
+    "passed": 0,
+    "failed": 4
+  },
+  "coverage": {
+    "source_pointer": "",
+    "status": "stopped_after_failed_topology",
+    "invocation_pointers": [
+      "/campaign/cells/0",
+      "/campaign/cells/1",
+      "/campaign/cells/2",
+      "/campaign/cells/3"
+    ],
+    "claim": "A persistent Calico TUI run exposed four readable thinking blocks. The model treated a higher-priority client instruction as preventing AgentTool use, then independently selected direct work under the coordination-cost escape. It made no Agent call, changed all twelve adapters in the main session, and passed 12/12 tests.",
+    "claim_boundary": "This is one diagnostic run on one account, client build, model, prompt, fixture, and policy candidate. The thinking text is a model self-report, not a capture of the request's system-prompt bytes, so it identifies the model's stated decision basis but does not prove the exact active instruction text. The raw transcript is not committed because it contains local paths, session identifiers, plugin inventory, and chain-of-thought. The four-cell campaign disproves this candidate's required 2/2 mechanical topology; it is not a dispatch rate and does not establish that cue-free delegation is impossible."
+  },
+  "passed_attempts": [],
+  "failed_attempts": [
+    {
+      "id": "cue-free-tui-cell-0",
+      "source_pointer": "/campaign/cells/0",
+      "status": "correctness_passed_topology_blocked",
+      "candidate_identity": {
+        "candidate_sha256": "5ecbbe9a797ba1269a20ac9a1aa3ba5182bf7d9da887ea889263ef9ee64c0564"
+      },
+      "boundary": "topology_pass=false",
+      "surface": "Claude Code print, no persistence",
+      "route": {
+        "client_binary": "claude",
+        "client_version": "2.1.223",
+        "observed_main_model": "claude-opus-5",
+        "effort": "high",
+        "setting_sources": ["user", "project", "local"]
+      },
+      "cost_usd": 0.3896815,
+      "agent_calls": 0,
+      "main_session_mutated_source": true,
+      "changed_adapter_files": 12,
+      "tests": "12 passed, 0 failed",
+      "topology_pass": false,
+      "raw_stream_sha256": "1450396041edf779d74783d275214ee396fc8d0723af305b26bae875470c27ce"
+    },
+    {
+      "id": "cue-free-tui-cell-1",
+      "source_pointer": "/campaign/cells/1",
+      "status": "correctness_passed_topology_blocked",
+      "candidate_identity": {
+        "candidate_sha256": "5ecbbe9a797ba1269a20ac9a1aa3ba5182bf7d9da887ea889263ef9ee64c0564"
+      },
+      "boundary": "topology_pass=false",
+      "surface": "Claude Code print, persistent",
+      "route": {
+        "client_binary": "claude",
+        "client_version": "2.1.223",
+        "observed_main_model": "claude-opus-5",
+        "effort": "high",
+        "setting_sources": ["user", "project", "local"]
+      },
+      "cost_usd": 0.9816195,
+      "agent_calls": 0,
+      "main_session_mutated_source": true,
+      "changed_adapter_files": 12,
+      "tests": "12 passed, 0 failed",
+      "topology_pass": false,
+      "raw_stream_sha256": "84a6344cbb2864db20f3b0f00cdea680822c951c0d18dfec08db83e1420d6646"
+    },
+    {
+      "id": "cue-free-tui-cell-2",
+      "source_pointer": "/campaign/cells/2",
+      "status": "correctness_passed_topology_blocked",
+      "candidate_identity": {
+        "candidate_sha256": "5ecbbe9a797ba1269a20ac9a1aa3ba5182bf7d9da887ea889263ef9ee64c0564"
+      },
+      "boundary": "topology_pass=false",
+      "surface": "Calico print, persistent",
+      "route": {
+        "client_binary": "calico",
+        "client_version": "2.1.223",
+        "observed_main_model": "claude-opus-5",
+        "effort": "high",
+        "setting_sources": ["user", "project", "local"]
+      },
+      "cost_usd": 0.4468695,
+      "agent_calls": 0,
+      "main_session_mutated_source": true,
+      "changed_adapter_files": 12,
+      "tests": "12 passed, 0 failed",
+      "topology_pass": false,
+      "raw_stream_sha256": "dec95adb7fb773d552223e23e32b1bcd03c3f7ba8475e44bcf6de606f25f7d83"
+    },
+    {
+      "id": "cue-free-tui-cell-3",
+      "source_pointer": "/campaign/cells/3",
+      "status": "correctness_passed_topology_blocked",
+      "candidate_identity": {
+        "candidate_sha256": "5ecbbe9a797ba1269a20ac9a1aa3ba5182bf7d9da887ea889263ef9ee64c0564"
+      },
+      "boundary": "topology_pass=false",
+      "surface": "Calico interactive TUI, persistent",
+      "route": {
+        "client_binary": "calico",
+        "client_version": "2.1.223",
+        "observed_main_model": "claude-opus-5",
+        "effort": "high",
+        "setting_sources": ["user", "project", "local"],
+        "calico_source_base_commit": "fc2adbccd39c3502668421b4c89cdd5f4390a31d",
+        "calico_installed_binary_sha256": "163fddf37ac558c45346dee6d819c87bd96f3f6f1ee5610aef9451cfec46f9f5",
+        "calico_patch_modules_verified": 17,
+        "tool_call_verbose_enabled": true
+      },
+      "cost_usd": 0.82,
+      "cost_is_rounded": true,
+      "agent_calls": 0,
+      "main_session_mutated_source": true,
+      "changed_adapter_files": 12,
+      "tests": "12 passed, 0 failed",
+      "topology_pass": false,
+      "transcript_sha256": "a61987f9409683e9cb07262d8df0e6e9b1f30e693ac12fa9c226855eb79f48ad",
+      "tui_observation": {
+        "transcript_sha256": "a61987f9409683e9cb07262d8df0e6e9b1f30e693ac12fa9c226855eb79f48ad",
+        "thinking_blocks": 4,
+        "readable_thinking_blocks": 4,
+        "reasoning_summary": "The model treated a higher-priority system instruction as overriding the candidate policy's standing permission to call AgentTool. Separately, it judged the worker briefing cost greater than the twelve identical edits.",
+        "reasoning_verbatim_published": false,
+        "visible_dispatch_reason": "12 identical one-shot edits, mechanical but faster inline than briefing a worker.",
+        "top_level_tools": {
+          "Bash": 6
+        },
+        "agent_calls": 0,
+        "main_session_mutated_source": true,
+        "modified_paths": [
+          "src/adapters/alpha.js",
+          "src/adapters/bravo.js",
+          "src/adapters/charlie.js",
+          "src/adapters/delta.js",
+          "src/adapters/echo.js",
+          "src/adapters/foxtrot.js",
+          "src/adapters/golf.js",
+          "src/adapters/hotel.js",
+          "src/adapters/india.js",
+          "src/adapters/juliet.js",
+          "src/adapters/kilo.js",
+          "src/adapters/lima.js"
+        ],
+        "tests": "12 passed, 0 failed",
+        "full_tool_commands_and_output_visible": true,
+        "topology_pass": false,
+        "tui_displayed_cost_usd": 0.82,
+        "cost_is_rounded": true
+      }
+    }
+  ],
+  "not_run": []
+}
