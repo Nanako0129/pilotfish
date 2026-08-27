@@ -169,6 +169,35 @@ ATTEMPT_ACCOUNTING_REVIEWED_IDENTITIES = {
         "benchmarks/prompt-compression/results.json",
         "/behavioral_gates/spontaneous_mechanical_v1_3_3_control",
     ): {"version": "1.3.3"},
+    **{
+        (
+            "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+            f"/campaign/cells/{index}",
+        ): {
+            "hash": "5ecbbe9a797ba1269a20ac9a1aa3ba5182bf7d9da887ea889263ef9ee64c0564"
+        }
+        for index in range(4)
+    },
+}
+ATTEMPT_ACCOUNTING_REVIEWED_EVIDENCE_OWNERS = {
+    (
+        "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+        "",
+        0,
+    ): (
+        "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+        "/campaign/cells/3",
+        0,
+    ),
+    (
+        "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+        "/tui_observation",
+        0,
+    ): (
+        "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+        "/campaign/cells/3",
+        0,
+    ),
 }
 
 
@@ -669,6 +698,9 @@ def _attempt_accounting_validate(ledger: dict) -> None:
             key = _attempt_accounting_pointer_key(evidence_item)
             assert key in failure_oracle
             assert key not in evidence_by_pointer
+            reviewed_owner = ATTEMPT_ACCOUNTING_REVIEWED_EVIDENCE_OWNERS.get(key)
+            if reviewed_owner is not None:
+                assert attempt_key == reviewed_owner
             claim_key = (key[0], key[1])
             owner = owner_by_pointer.get(claim_key, attempt_owner_by_pointer.get(key))
             assert owner == cell_id
@@ -4552,6 +4584,65 @@ class PolicyContractTests(unittest.TestCase):
         }
         with self.assertRaises(AssertionError):
             _attempt_accounting_validate(control_limitation)
+
+        cue_free_failures = [
+            entry
+            for entry in ledger["failed_attempts"]
+            if entry["attempt_pointer"]["source"]
+            == "benchmarks/spontaneous-dispatch/cue-free-tui.json"
+        ]
+        self.assertEqual(len(cue_free_failures), 4)
+        self.assertTrue(
+            all(
+                entry["candidate_identity"]
+                == {
+                    "hash": "5ecbbe9a797ba1269a20ac9a1aa3ba5182bf7d9da887ea889263ef9ee64c0564"
+                }
+                for entry in cue_free_failures
+            )
+        )
+        cue_free_identity = deepcopy(ledger)
+        cue_free_entry = next(
+            entry
+            for entry in cue_free_identity["failed_attempts"]
+            if entry["attempt_pointer"]["source"]
+            == "benchmarks/spontaneous-dispatch/cue-free-tui.json"
+        )
+        cue_free_entry["candidate_identity"] = {
+            "limitation": "identity intentionally removed"
+        }
+        with self.assertRaises(AssertionError):
+            _attempt_accounting_validate(cue_free_identity)
+
+        tui_entry = next(
+            entry
+            for entry in cue_free_failures
+            if entry["attempt_pointer"]["json_pointer"] == "/campaign/cells/3"
+        )
+        self.assertEqual(
+            [item["json_pointer"] for item in tui_entry["evidence"]],
+            ["", "/tui_observation", "/campaign/cells/3"],
+        )
+        wrong_tui_owner = deepcopy(ledger)
+        wrong_tui_failures = [
+            entry
+            for entry in wrong_tui_owner["failed_attempts"]
+            if entry["attempt_pointer"]["source"]
+            == "benchmarks/spontaneous-dispatch/cue-free-tui.json"
+        ]
+        wrong_cell_zero = next(
+            entry
+            for entry in wrong_tui_failures
+            if entry["attempt_pointer"]["json_pointer"] == "/campaign/cells/0"
+        )
+        wrong_cell_three = next(
+            entry
+            for entry in wrong_tui_failures
+            if entry["attempt_pointer"]["json_pointer"] == "/campaign/cells/3"
+        )
+        wrong_cell_zero["evidence"].append(wrong_cell_three["evidence"].pop(1))
+        with self.assertRaises(AssertionError):
+            _attempt_accounting_validate(wrong_tui_owner)
 
         missing_cell_mapping = deepcopy(ledger)
         cell = next(

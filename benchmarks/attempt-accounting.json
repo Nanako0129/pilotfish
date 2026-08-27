@@ -1983,19 +1983,10 @@
         "json_pointer": "/campaign/cells/0"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "hash": "5ecbbe9a797ba1269a20ac9a1aa3ba5182bf7d9da887ea889263ef9ee64c0564"
       },
       "failure_boundary": "topology_pass=false",
       "evidence": [
-        {
-          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
-          "json_pointer": ""
-        },
-        {
-          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
-          "json_pointer": "/tui_observation",
-          "transcript_sha256": "a61987f9409683e9cb07262d8df0e6e9b1f30e693ac12fa9c226855eb79f48ad"
-        },
         {
           "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
           "json_pointer": "/campaign/cells/0",
@@ -2011,7 +2002,7 @@
         "json_pointer": "/campaign/cells/1"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "hash": "5ecbbe9a797ba1269a20ac9a1aa3ba5182bf7d9da887ea889263ef9ee64c0564"
       },
       "failure_boundary": "topology_pass=false",
       "evidence": [
@@ -2030,7 +2021,7 @@
         "json_pointer": "/campaign/cells/2"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "hash": "5ecbbe9a797ba1269a20ac9a1aa3ba5182bf7d9da887ea889263ef9ee64c0564"
       },
       "failure_boundary": "topology_pass=false",
       "evidence": [
@@ -2049,10 +2040,19 @@
         "json_pointer": "/campaign/cells/3"
       },
       "candidate_identity": {
-        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+        "hash": "5ecbbe9a797ba1269a20ac9a1aa3ba5182bf7d9da887ea889263ef9ee64c0564"
       },
       "failure_boundary": "topology_pass=false",
       "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+          "json_pointer": ""
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+          "json_pointer": "/tui_observation",
+          "transcript_sha256": "a61987f9409683e9cb07262d8df0e6e9b1f30e693ac12fa9c226855eb79f48ad"
+        },
         {
           "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
           "json_pointer": "/campaign/cells/3",
