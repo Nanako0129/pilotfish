@@ -1724,6 +1724,355 @@ class PolicyContractTests(unittest.TestCase):
         }
         self.assertEqual(len(post_hashes), 10)
 
+    def test_issue_29_recovery_attempts_are_source_bound(self) -> None:
+        benchmark = ROOT / "benchmarks" / "spontaneous-dispatch"
+        ledger = json.loads(
+            (benchmark / "issue-29-recovery.attempts.json").read_text(
+                encoding="utf-8"
+            ),
+            parse_float=Decimal,
+        )
+        source_bytes = (benchmark / "issue-29-recovery.json").read_bytes()
+        source = json.loads(source_bytes, parse_float=Decimal)
+        campaign_data = [
+            ("qualified", "/results", source["results"]),
+            (
+                "release-replay",
+                "/release_replay/results",
+                source["release_replay"]["results"],
+            ),
+            (
+                "adaptive",
+                "/adaptive_interaction_routing_gate/results",
+                source["adaptive_interaction_routing_gate"]["results"],
+            ),
+            (
+                "adaptive-post-review",
+                "/adaptive_interaction_routing_post_review_gate/results",
+                source["adaptive_interaction_routing_post_review_gate"]["results"],
+            ),
+        ]
+
+        def build_entries(campaign: str, prefix: str, results: dict) -> list[dict]:
+            entries = []
+            for cell in (
+                "routine_docs",
+                "single_unknown_bug",
+                "mechanical_repetition",
+            ):
+                for index, record in enumerate(results[cell]["attempts"]):
+                    entries.append(
+                        {
+                            "id": f"{campaign}-{cell.replace('_', '-')}-{record['id']}",
+                            "campaign": campaign,
+                            "source_pointer": f"{prefix}/{cell}/attempts/{index}",
+                            "cell": cell,
+                            "attempt_id": record["id"],
+                            "turn": None,
+                            "status": "passed",
+                            "record": record,
+                        }
+                    )
+            for index, attempt in enumerate(results["schema_lifecycle"]["attempts"]):
+                for turn in ("turn_1", "turn_2"):
+                    entries.append(
+                        {
+                            "id": (
+                                f"{campaign}-schema-lifecycle-{attempt['id']}-"
+                                f"{turn.replace('_', '-')}"
+                            ),
+                            "campaign": campaign,
+                            "source_pointer": (
+                                f"{prefix}/schema_lifecycle/attempts/{index}/{turn}"
+                            ),
+                            "cell": "schema_lifecycle",
+                            "attempt_id": attempt["id"],
+                            "turn": turn,
+                            "status": "passed",
+                            "record": attempt[turn],
+                            "session_binding": attempt["session_binding"],
+                        }
+                    )
+            return entries
+
+        expected_by_campaign = {
+            campaign: build_entries(campaign, prefix, results)
+            for campaign, prefix, results in campaign_data
+        }
+        passed = [
+            entry
+            for campaign, _, _ in campaign_data
+            for entry in expected_by_campaign[campaign]
+        ]
+        diagnostic = source["results"]["mechanical_repetition"][
+            "budget_incomplete_diagnostic"
+        ]
+        failed = {
+            "id": "qualified-mechanical-budget-incomplete-diagnostic",
+            "campaign": "qualified",
+            "source_pointer": "/results/mechanical_repetition/budget_incomplete_diagnostic",
+            "cell": "mechanical_repetition",
+            "attempt_id": "diagnostic",
+            "turn": None,
+            "status": "budget_incomplete_collection_failed",
+            "boundary": diagnostic["disposition"],
+            "record": diagnostic,
+        }
+        root_entries = expected_by_campaign["qualified"]
+        invocation_pointers = (
+            [entry["source_pointer"] for entry in root_entries[:6]]
+            + [failed["source_pointer"]]
+            + [entry["source_pointer"] for entry in root_entries[6:]]
+            + [entry["source_pointer"] for entry in passed[10:]]
+        )
+        identities = {
+            "qualified": {
+                "status": source["status"],
+                "run_date": source["run_date"],
+                "claim_boundary": source["claim_boundary"],
+                "inputs": source["inputs"],
+                "route": source["route"],
+                "gate_contract": source["gate_contract"],
+            },
+            "release-replay": {
+                key: source["release_replay"][key]
+                for key in (
+                    "status",
+                    "run_date",
+                    "policy",
+                    "agents",
+                    "route",
+                )
+            },
+            "adaptive": {
+                key: source["adaptive_interaction_routing_gate"][key]
+                for key in (
+                    "status",
+                    "run_date",
+                    "claim_boundary",
+                    "candidate",
+                    "agents",
+                    "prompt_set",
+                    "fixture_set",
+                    "route",
+                )
+            },
+            "adaptive-post-review": {
+                key: source["adaptive_interaction_routing_post_review_gate"][key]
+                for key in (
+                    "status",
+                    "run_date",
+                    "claim_boundary",
+                    "candidate",
+                    "agents",
+                    "prompt_set",
+                    "fixture_set",
+                    "route",
+                )
+            },
+        }
+
+        def validate(candidate: dict) -> None:
+            self.assertEqual(
+                set(source),
+                {
+                    "schema_version",
+                    "issue",
+                    "status",
+                    "run_date",
+                    "claim",
+                    "claim_boundary",
+                    "route",
+                    "inputs",
+                    "gate_contract",
+                    "results",
+                    "release_replay",
+                    "adaptive_interaction_routing_gate",
+                    "adaptive_interaction_routing_post_review_gate",
+                    "cost",
+                },
+            )
+            for _, _, results in campaign_data:
+                self.assertEqual(
+                    list(results),
+                    [
+                        "routine_docs",
+                        "single_unknown_bug",
+                        "mechanical_repetition",
+                        "schema_lifecycle",
+                    ],
+                )
+                for cell in results.values():
+                    if "attempts" in cell:
+                        self.assertEqual(len(cell["attempts"]), 2)
+            self.assertEqual(
+                set(candidate),
+                {
+                    "schema_version",
+                    "source",
+                    "counts",
+                    "coverage",
+                    "campaign_identities",
+                    "passed_attempts",
+                    "failed_attempts",
+                    "not_run",
+                },
+            )
+            self.assertEqual(candidate["schema_version"], 1)
+            self.assertEqual(
+                candidate["source"],
+                {
+                    "path": "issue-29-recovery.json",
+                    "sha256": hashlib.sha256(source_bytes).hexdigest(),
+                },
+            )
+            self.assertEqual(
+                candidate["counts"], {"attempted": 41, "passed": 40, "failed": 1}
+            )
+            self.assertEqual(
+                candidate["coverage"],
+                {
+                    "campaign_pointers": [prefix for _, prefix, _ in campaign_data],
+                    "invocation_pointers": invocation_pointers,
+                },
+            )
+            self.assertEqual(candidate["campaign_identities"], identities)
+            self.assertEqual(candidate["passed_attempts"], passed)
+            self.assertEqual(candidate["failed_attempts"], [failed])
+            self.assertEqual(candidate["not_run"], [])
+            all_entries = candidate["passed_attempts"] + candidate["failed_attempts"]
+            self.assertEqual(len(all_entries), 41)
+            self.assertEqual(len({entry["id"] for entry in all_entries}), 41)
+            self.assertEqual(
+                len({entry["source_pointer"] for entry in all_entries}), 41
+            )
+            self.assertEqual(
+                len({entry["record"]["raw_stream_sha256"] for entry in all_entries}),
+                41,
+            )
+            self.assertFalse(failed["record"]["collected"])
+            self.assertEqual(failed["record"]["tests"], "12 passed, 0 failed")
+            self.assertIn("exhausted its budget", failed["boundary"])
+            root_cost = sum(
+                entry["record"]["client_reported_cost_usd"]
+                for entry in expected_by_campaign["qualified"]
+            )
+            self.assertEqual(
+                root_cost, source["cost"]["qualifying_completed_cells_usd"]
+            )
+            self.assertEqual(
+                failed["record"]["client_reported_cost_usd"],
+                source["cost"]["budget_incomplete_diagnostic_usd"],
+            )
+            self.assertEqual(
+                root_cost + failed["record"]["client_reported_cost_usd"],
+                source["cost"]["campaign_total_usd"],
+            )
+            for campaign, parent in (
+                ("release-replay", source["release_replay"]),
+                ("adaptive", source["adaptive_interaction_routing_gate"]),
+                (
+                    "adaptive-post-review",
+                    source["adaptive_interaction_routing_post_review_gate"],
+                ),
+            ):
+                self.assertEqual(
+                    sum(
+                        entry["record"]["client_reported_cost_usd"]
+                        for entry in expected_by_campaign[campaign]
+                    ),
+                    parent["budget"]["actual_usd"],
+                )
+            self.assertTrue(
+                all(
+                    "/agent_calls/" not in pointer
+                    and "/plan_verifier_calls/" not in pointer
+                    and "/verifier_calls/" not in pointer
+                    for pointer in invocation_pointers
+                )
+            )
+            for campaign in expected_by_campaign:
+                entries = expected_by_campaign[campaign]
+                for index in (0, 1):
+                    first = entries[6 + 2 * index]
+                    second = entries[7 + 2 * index]
+                    self.assertEqual(first["turn"], "turn_1")
+                    self.assertEqual(second["turn"], "turn_2")
+                    self.assertEqual(
+                        first["session_binding"], second["session_binding"]
+                    )
+            self.assertNotEqual(
+                identities["release-replay"]["policy"]["sha256"],
+                identities["adaptive"]["candidate"]["sha256"],
+            )
+            self.assertNotEqual(
+                identities["adaptive"]["candidate"]["sha256"],
+                identities["adaptive-post-review"]["candidate"]["sha256"],
+            )
+
+        validate(ledger)
+
+        missing = deepcopy(ledger)
+        missing["passed_attempts"].pop()
+        with self.assertRaises(AssertionError):
+            validate(missing)
+
+        duplicate = deepcopy(ledger)
+        duplicate["passed_attempts"][-1]["source_pointer"] = duplicate[
+            "passed_attempts"
+        ][0]["source_pointer"]
+        with self.assertRaises(AssertionError):
+            validate(duplicate)
+
+        aggregate = deepcopy(ledger)
+        aggregate["coverage"]["invocation_pointers"][0] = "/results/routine_docs"
+        with self.assertRaises(AssertionError):
+            validate(aggregate)
+
+        flipped = deepcopy(ledger)
+        flipped["failed_attempts"][0]["status"] = "passed"
+        with self.assertRaises(AssertionError):
+            validate(flipped)
+
+        for target, key, value in (
+            ("record", "collected", True),
+            ("record", "tests", "different"),
+            ("record", "client_reported_cost_usd", Decimal("0")),
+            (None, "boundary", "different"),
+        ):
+            changed = deepcopy(ledger)
+            container = changed["failed_attempts"][0]
+            if target is not None:
+                container = container[target]
+            container[key] = value
+            with self.assertRaises(AssertionError):
+                validate(changed)
+
+        changed_identity = deepcopy(ledger)
+        changed_identity["campaign_identities"]["adaptive"]["candidate"][
+            "sha256"
+        ] = "0" * 64
+        with self.assertRaises(AssertionError):
+            validate(changed_identity)
+
+        cross_session = deepcopy(ledger)
+        cross_session["passed_attempts"][7]["session_binding"] = cross_session[
+            "passed_attempts"
+        ][9]["session_binding"]
+        with self.assertRaises(AssertionError):
+            validate(cross_session)
+
+        collapsed = deepcopy(ledger)
+        collapsed["passed_attempts"].pop(7)
+        collapsed["counts"] = {"attempted": 40, "passed": 39, "failed": 1}
+        with self.assertRaises(AssertionError):
+            validate(collapsed)
+
+        child_inflated = deepcopy(ledger)
+        child_inflated["counts"]["attempted"] += 1
+        with self.assertRaises(AssertionError):
+            validate(child_inflated)
+
     def test_compact_policy_full_matrix_is_exact_and_complete(self) -> None:
         path = ROOT / "benchmarks" / "spontaneous-dispatch"
         evidence = json.loads(

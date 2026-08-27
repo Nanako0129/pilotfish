@@ -1,0 +1,1357 @@
+{
+  "schema_version": 1,
+  "source": {
+    "path": "issue-29-recovery.json",
+    "sha256": "032685e4b9f928f1e92f1b99d9c3739352860f7c4d84dc4d8f2f4f402b5d126c"
+  },
+  "counts": {
+    "attempted": 41,
+    "passed": 40,
+    "failed": 1
+  },
+  "coverage": {
+    "campaign_pointers": [
+      "/results",
+      "/release_replay/results",
+      "/adaptive_interaction_routing_gate/results",
+      "/adaptive_interaction_routing_post_review_gate/results"
+    ],
+    "invocation_pointers": [
+      "/results/routine_docs/attempts/0",
+      "/results/routine_docs/attempts/1",
+      "/results/single_unknown_bug/attempts/0",
+      "/results/single_unknown_bug/attempts/1",
+      "/results/mechanical_repetition/attempts/0",
+      "/results/mechanical_repetition/attempts/1",
+      "/results/mechanical_repetition/budget_incomplete_diagnostic",
+      "/results/schema_lifecycle/attempts/0/turn_1",
+      "/results/schema_lifecycle/attempts/0/turn_2",
+      "/results/schema_lifecycle/attempts/1/turn_1",
+      "/results/schema_lifecycle/attempts/1/turn_2",
+      "/release_replay/results/routine_docs/attempts/0",
+      "/release_replay/results/routine_docs/attempts/1",
+      "/release_replay/results/single_unknown_bug/attempts/0",
+      "/release_replay/results/single_unknown_bug/attempts/1",
+      "/release_replay/results/mechanical_repetition/attempts/0",
+      "/release_replay/results/mechanical_repetition/attempts/1",
+      "/release_replay/results/schema_lifecycle/attempts/0/turn_1",
+      "/release_replay/results/schema_lifecycle/attempts/0/turn_2",
+      "/release_replay/results/schema_lifecycle/attempts/1/turn_1",
+      "/release_replay/results/schema_lifecycle/attempts/1/turn_2",
+      "/adaptive_interaction_routing_gate/results/routine_docs/attempts/0",
+      "/adaptive_interaction_routing_gate/results/routine_docs/attempts/1",
+      "/adaptive_interaction_routing_gate/results/single_unknown_bug/attempts/0",
+      "/adaptive_interaction_routing_gate/results/single_unknown_bug/attempts/1",
+      "/adaptive_interaction_routing_gate/results/mechanical_repetition/attempts/0",
+      "/adaptive_interaction_routing_gate/results/mechanical_repetition/attempts/1",
+      "/adaptive_interaction_routing_gate/results/schema_lifecycle/attempts/0/turn_1",
+      "/adaptive_interaction_routing_gate/results/schema_lifecycle/attempts/0/turn_2",
+      "/adaptive_interaction_routing_gate/results/schema_lifecycle/attempts/1/turn_1",
+      "/adaptive_interaction_routing_gate/results/schema_lifecycle/attempts/1/turn_2",
+      "/adaptive_interaction_routing_post_review_gate/results/routine_docs/attempts/0",
+      "/adaptive_interaction_routing_post_review_gate/results/routine_docs/attempts/1",
+      "/adaptive_interaction_routing_post_review_gate/results/single_unknown_bug/attempts/0",
+      "/adaptive_interaction_routing_post_review_gate/results/single_unknown_bug/attempts/1",
+      "/adaptive_interaction_routing_post_review_gate/results/mechanical_repetition/attempts/0",
+      "/adaptive_interaction_routing_post_review_gate/results/mechanical_repetition/attempts/1",
+      "/adaptive_interaction_routing_post_review_gate/results/schema_lifecycle/attempts/0/turn_1",
+      "/adaptive_interaction_routing_post_review_gate/results/schema_lifecycle/attempts/0/turn_2",
+      "/adaptive_interaction_routing_post_review_gate/results/schema_lifecycle/attempts/1/turn_1",
+      "/adaptive_interaction_routing_post_review_gate/results/schema_lifecycle/attempts/1/turn_2"
+    ]
+  },
+  "campaign_identities": {
+    "qualified": {
+      "status": "release_qualified",
+      "run_date": "2026-08-04",
+      "claim_boundary": "Bounded reachability on one first-party Claude Code account. Two attempts per cell are not dispatch rates and do not establish behavior for another model, account, prompt, or client build. Claude Code updated from 2.1.220 to 2.1.221 between the two mechanical attempts; both passed and later cells used 2.1.221. Tool calls, final modified paths, and test results are separate observations and do not establish causal filesystem ownership. Schema implementation routing is observed but non-blocking. The fixture injection method and on-disk policy size are recorded, but the client transcripts expose no digest of the policy bytes actually incorporated into the runtime system prompt; no exact-loaded-policy causal claim is made.",
+      "inputs": {
+        "policy": {
+          "path": "v1.3.8-policy-snapshot/CLAUDE.md",
+          "gate_version": "1.3.7",
+          "gate_bytes": 17996,
+          "gate_sha256": "7ea1c7126b7699160188eab97957b87b7d9f0b82e2c671460b6f6a6e36a28f13",
+          "gate_source_commit": "ad01cbc41c074f19eeea27fd7a7e731edd3414cf",
+          "injection_method": "copied the repository template to the disposable fixture as ./CLAUDE.md before git init and invocation",
+          "observed_runtime_path": "./CLAUDE.md at the session cwd",
+          "observed_runtime_bytes": 17996,
+          "runtime_loaded_sha256": null,
+          "runtime_loaded_digest_status": "not captured by the historical Claude Code transcript",
+          "release_version": "1.3.8",
+          "release_bytes": 17998,
+          "release_sha256": "ad621212462d26257a6438c40fd2d110dd68f6aeb0cd775bde3220e99cbd3060",
+          "post_gate_delta": "version stamp plus post-review independent-review and long-mechanical routing corrections",
+          "release_gate_status": "passed; fresh exact-byte replay on 2026-08-04"
+        },
+        "agents": {
+          "path": "../verifier-boundary/gate-snapshot-v2/agents.json",
+          "file_sha256": "e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f",
+          "runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc"
+        },
+        "prompt_invocation": "double-quoted shell command substitution $(<file); trailing newlines stripped",
+        "fixture_digest_method": "SHA-256 of sorted '<file_sha256>  <repo-relative path>\\n' entries",
+        "fixtures": {
+          "routine_and_schema": {
+            "path": "../verifier-boundary/fixture",
+            "sha256": "a94d2327102ca46ac35fe0af1a57ef17855910e205cb619d43f62b852ee9b46f"
+          },
+          "single_unknown_bug": {
+            "path": "../dispatch-brake/fixture",
+            "sha256": "d5e0e35b96f25317750e28a495e249c745049eb9ffc7d0fcb6d51287c03f49eb"
+          },
+          "mechanical_repetition": {
+            "path": "../dispatch-brake/positive-controls/mechanical/fixture",
+            "sha256": "4dffc6efd10a630fd1e5842c133252f857314bb564d98bb7dac92bb1c315ea7b"
+          }
+        },
+        "prompts": {
+          "routine": {
+            "path": "prompts/issue-29-narrow-routine.txt",
+            "file_sha256": "5f4d752986bff73d144950fde17a15c85e44266b862e8f2246f0378b7b066fa0",
+            "runtime_sha256": "120ecc6c51894e6977dc2ac955827d5476d3ea83b2a7c610646598f1687f8ac7"
+          },
+          "bug": {
+            "path": "prompts/issue-29-narrow-bug.txt",
+            "file_sha256": "b13fcc6407b56ff3da55f356d83dd985342d034b25044f21f76afaaa921a7da8",
+            "runtime_sha256": "ea238854c4d7dbb4421f368e9893db0c967a760b01fd15af057ed74e36156f90"
+          },
+          "mechanical": {
+            "path": "prompts/issue-29-narrow-mechanical.txt",
+            "file_sha256": "6da2aab4f1aae077984de16d2132601766be81056f2e1557be610468be84dd0a",
+            "runtime_sha256": "a0a13600fbea1f927b97baacf095f48a265e38cf305adc75cc85f88d559a6dc6"
+          },
+          "schema_turn_1": {
+            "path": "prompts/issue-29-narrow-schema-turn-1.txt",
+            "file_sha256": "d2a74db6acf5fab0c31d4aafcbb041446c478607ce01c124c6364b9193cc4ac9",
+            "runtime_sha256": "0045951f4199f3d3d7285ce4d5780921141863df9a4ac1ac91729c23b6d22155"
+          },
+          "schema_turn_2": {
+            "path": "prompts/issue-29-narrow-schema-turn-2.txt",
+            "file_sha256": "ca84acc4791688971566360ccd00ed87e662584ee93961b99458fa529330805e",
+            "runtime_sha256": "9fe70e6276b2d5cb26b29d4d23cdbfb62dd7f229788307d1c9794b1ff55813a7"
+          }
+        }
+      },
+      "route": {
+        "claude_code": [
+          "2.1.220",
+          "2.1.221"
+        ],
+        "requested_main_model": "opus",
+        "observed_main_model": "claude-opus-5",
+        "effort": "high",
+        "setting_sources": [
+          "project",
+          "local"
+        ],
+        "provider_route": "native Claude first-party authentication"
+      },
+      "gate_contract": {
+        "routine_docs": "Direct main-session edit, zero Agent calls, only README.md changes, and 1/1 test passes.",
+        "single_unknown_bug": "Main session owns diagnosis and the first minimal fix, no Agent call is made, only src/reducer.js changes, and 2/2 tests pass.",
+        "mechanical_repetition": "Exactly one foreground, collected mech-executor is observed; exactly twelve adapters are modified in the final state and 12/12 tests pass.",
+        "schema_lifecycle": "A foreground, collected plan-verifier returns READY; no write occurs before explicit approval; implementation routing follows the dispatch brake; primary tests pass; a foreground, collected verifier returns CONFIRMED. An execution-agent call is observed evidence, not a blocking requirement."
+      }
+    },
+    "release-replay": {
+      "status": "passed",
+      "run_date": "2026-08-04",
+      "policy": {
+        "version": "1.3.8",
+        "bytes": 17998,
+        "sha256": "ad621212462d26257a6438c40fd2d110dd68f6aeb0cd775bde3220e99cbd3060",
+        "source_commit": "334a7677d523eca1e4440480f391b6f5013486be"
+      },
+      "agents": {
+        "file_sha256": "e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f",
+        "runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc"
+      },
+      "route": {
+        "requested_main_model": "opus",
+        "observed_main_model": "claude-opus-5",
+        "effort": "high",
+        "client_versions": [
+          "2.1.220",
+          "2.1.221"
+        ],
+        "client_drift": "Claude Code updated between mechanical attempts a and b; both passed, and all later attempts used 2.1.221.",
+        "setting_sources": [
+          "project",
+          "local"
+        ],
+        "provider_route": "native Claude first-party authentication"
+      }
+    },
+    "adaptive": {
+      "status": "passed",
+      "run_date": "2026-08-07",
+      "claim_boundary": "Two attempts per cell establish bounded reachability, not a dispatch rate or behavior on another model, account, prompt, or client. Claude Code updated from 2.1.223 to 2.1.224 between Schema B turns; the resumed lifecycle still completed. Tool calls, final modified paths, and tests are separate observations. The client exposed the fixture CLAUDE.md path and size but no digest of the bytes incorporated into its runtime system prompt, so this is not an exact-loaded-policy causal claim.",
+      "candidate": {
+        "path": "adaptive-interaction-gate-snapshot/CLAUDE.md",
+        "source_head": "99caa562385f30b86fe427d28ef87fa0df996b7c",
+        "bytes": 18500,
+        "sha256": "322d22186b8a4756a221c6c217225ba68f41fa377b831401ff4ba8eedb45caeb",
+        "injection_method": "copied the repository template to each disposable fixture as ./CLAUDE.md before git init and invocation",
+        "runtime_loaded_sha256": null,
+        "change": "one interaction-shape rule defining execute, explore_then_plan, and co_discover before existing risk, lifecycle, and worker routing"
+      },
+      "agents": {
+        "path": "../verifier-boundary/gate-snapshot-v2/agents.json",
+        "file_sha256": "e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f",
+        "runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc"
+      },
+      "prompt_set": "inputs.prompts",
+      "fixture_set": "inputs.fixtures",
+      "route": {
+        "requested_main_model": "opus",
+        "observed_main_model": "claude-opus-5",
+        "effort": "high",
+        "client_versions": [
+          "2.1.223",
+          "2.1.224"
+        ],
+        "client_drift": "Claude Code updated from 2.1.223 to 2.1.224 between Schema B Turn 1 and its resumed Turn 2; both turns passed their boundary.",
+        "setting_sources": [
+          "project",
+          "local"
+        ],
+        "provider_route": "native Claude first-party authentication"
+      }
+    },
+    "adaptive-post-review": {
+      "status": "passed",
+      "run_date": "2026-08-07",
+      "claim_boundary": "Two attempts per cell establish bounded reachability, not a dispatch rate, interaction-mode quality gain, or behavior on another model, account, prompt, or client. All ten invocations used Claude Code 2.1.224, Opus 5, and high effort. Tool calls, final modified paths, and tests are separate observations. The client exposed the fixture CLAUDE.md path and size but no digest of the bytes incorporated into its runtime system prompt, so this is not an exact-loaded-policy causal claim.",
+      "candidate": {
+        "path": "adaptive-interaction-post-review-gate-snapshot/CLAUDE.md",
+        "source_head": "8adf8329e4a8600161b3af48c02f58168de90919",
+        "bytes": 18477,
+        "sha256": "1748073214f839c43cddfa194baa2106ec1347a72822eeef98270a948e92fbdc",
+        "injection_method": "copied the repository template to each disposable fixture as ./CLAUDE.md before git init and invocation",
+        "runtime_loaded_sha256": null,
+        "change": "first-match interaction-shape selection moved before Baton and worker routing so co_discover, explore_then_plan, and execute do not overlap"
+      },
+      "agents": {
+        "path": "../verifier-boundary/gate-snapshot-v2/agents.json",
+        "file_sha256": "e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f",
+        "runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc"
+      },
+      "prompt_set": "inputs.prompts",
+      "fixture_set": "inputs.fixtures",
+      "route": {
+        "requested_main_model": "opus",
+        "observed_main_model": "claude-opus-5",
+        "effort": "high",
+        "client_versions": [
+          "2.1.224"
+        ],
+        "setting_sources": [
+          "project",
+          "local"
+        ],
+        "provider_route": "native Claude first-party authentication"
+      }
+    }
+  },
+  "passed_attempts": [
+    {
+      "id": "qualified-routine-docs-a",
+      "campaign": "qualified",
+      "source_pointer": "/results/routine_docs/attempts/0",
+      "cell": "routine_docs",
+      "attempt_id": "a",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "a",
+        "agent_calls": 0,
+        "modified_paths": [
+          "README.md"
+        ],
+        "tests": "1 passed, 0 failed",
+        "client_reported_cost_usd": 0.231451,
+        "raw_stream_sha256": "c37ec7b424ffe264ef74bae2b751a73b2f6ab0be14ee69087f4171b1be478bc7"
+      }
+    },
+    {
+      "id": "qualified-routine-docs-b",
+      "campaign": "qualified",
+      "source_pointer": "/results/routine_docs/attempts/1",
+      "cell": "routine_docs",
+      "attempt_id": "b",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "b",
+        "agent_calls": 0,
+        "modified_paths": [
+          "README.md"
+        ],
+        "tests": "1 passed, 0 failed",
+        "client_reported_cost_usd": 0.234778,
+        "raw_stream_sha256": "fbf0339cad0a25e5abae7a4a9ddc154f68f57ff4cac825d48310b7848642aba3"
+      }
+    },
+    {
+      "id": "qualified-single-unknown-bug-a",
+      "campaign": "qualified",
+      "source_pointer": "/results/single_unknown_bug/attempts/0",
+      "cell": "single_unknown_bug",
+      "attempt_id": "a",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "a",
+        "agent_calls": 0,
+        "modified_paths": [
+          "src/reducer.js"
+        ],
+        "tests": "2 passed, 0 failed",
+        "client_reported_cost_usd": 0.4155135,
+        "raw_stream_sha256": "d169a2dbe803352cec6b29cc80606df2a766a47d53959a7aaeb7188a013c735b"
+      }
+    },
+    {
+      "id": "qualified-single-unknown-bug-b",
+      "campaign": "qualified",
+      "source_pointer": "/results/single_unknown_bug/attempts/1",
+      "cell": "single_unknown_bug",
+      "attempt_id": "b",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "b",
+        "agent_calls": 0,
+        "modified_paths": [
+          "src/reducer.js"
+        ],
+        "tests": "2 passed, 0 failed",
+        "client_reported_cost_usd": 0.409499,
+        "raw_stream_sha256": "eb6caf4a02e217c947391f9846607e461fe60a2338d930bd19d711b2b27c5cc3"
+      }
+    },
+    {
+      "id": "qualified-mechanical-repetition-a",
+      "campaign": "qualified",
+      "source_pointer": "/results/mechanical_repetition/attempts/0",
+      "cell": "mechanical_repetition",
+      "attempt_id": "a",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "a",
+        "agent_calls": 1,
+        "agent_role": "mech-executor",
+        "invocation_model_present": false,
+        "foreground": true,
+        "collected": true,
+        "modified_paths": [
+          "src/adapters/alpha.js",
+          "src/adapters/bravo.js",
+          "src/adapters/charlie.js",
+          "src/adapters/delta.js",
+          "src/adapters/echo.js",
+          "src/adapters/foxtrot.js",
+          "src/adapters/golf.js",
+          "src/adapters/hotel.js",
+          "src/adapters/india.js",
+          "src/adapters/juliet.js",
+          "src/adapters/kilo.js",
+          "src/adapters/lima.js"
+        ],
+        "tests": "12 passed, 0 failed",
+        "client_reported_cost_usd": 0.43028845,
+        "raw_stream_sha256": "0cf9098a13e03d2348211378a2c2a1326ef294dce64b40affaa75837e253dd87"
+      }
+    },
+    {
+      "id": "qualified-mechanical-repetition-b",
+      "campaign": "qualified",
+      "source_pointer": "/results/mechanical_repetition/attempts/1",
+      "cell": "mechanical_repetition",
+      "attempt_id": "b",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "b",
+        "agent_calls": 1,
+        "agent_role": "mech-executor",
+        "invocation_model_present": false,
+        "foreground": true,
+        "collected": true,
+        "modified_paths": [
+          "src/adapters/alpha.js",
+          "src/adapters/bravo.js",
+          "src/adapters/charlie.js",
+          "src/adapters/delta.js",
+          "src/adapters/echo.js",
+          "src/adapters/foxtrot.js",
+          "src/adapters/golf.js",
+          "src/adapters/hotel.js",
+          "src/adapters/india.js",
+          "src/adapters/juliet.js",
+          "src/adapters/kilo.js",
+          "src/adapters/lima.js"
+        ],
+        "tests": "12 passed, 0 failed",
+        "client_reported_cost_usd": 0.44560135,
+        "raw_stream_sha256": "f0059254b87975e072d4ceabcca1a35db461f3a4f32bf79f22b1814e0b948b90"
+      }
+    },
+    {
+      "id": "qualified-schema-lifecycle-a-turn-1",
+      "campaign": "qualified",
+      "source_pointer": "/results/schema_lifecycle/attempts/0/turn_1",
+      "cell": "schema_lifecycle",
+      "attempt_id": "a",
+      "turn": "turn_1",
+      "status": "passed",
+      "record": {
+        "plan_verifier_calls": 1,
+        "invocation_model_present": false,
+        "foreground": true,
+        "collected": true,
+        "verdict": "READY",
+        "writes_before_approval": false,
+        "stopped_for_approval": true,
+        "client_reported_cost_usd": 0.41050975,
+        "raw_stream_sha256": "9fff5f276f06db9436786dc7cbbf5e0fba60d2ac2d3a338831636ac344f45916"
+      },
+      "session_binding": {
+        "sanitized_session_id_sha256": "6a469ba4ca28f321722ef1d914d17bc642dba461ce8e6b905da456ae320e813e",
+        "event_index_source": "persisted Claude session transcript JSONL zero-based line index",
+        "turn_1_invocation": "--session-id",
+        "turn_2_invocation": "--resume"
+      }
+    },
+    {
+      "id": "qualified-schema-lifecycle-a-turn-2",
+      "campaign": "qualified",
+      "source_pointer": "/results/schema_lifecycle/attempts/0/turn_2",
+      "cell": "schema_lifecycle",
+      "attempt_id": "a",
+      "turn": "turn_2",
+      "status": "passed",
+      "record": {
+        "implementation_route": "main_session_direct",
+        "execution_agent_calls": 0,
+        "primary_tests": "5 passed, 0 failed",
+        "primary_test_call_event_index": 39,
+        "primary_test_result_event_index": 40,
+        "verifier_calls": 1,
+        "verifier_call_event_index": 44,
+        "verifier_result_event_index": 45,
+        "verifier_invocation_model_present": false,
+        "verifier_foreground": true,
+        "verifier_collected": true,
+        "verifier_verdict": "CONFIRMED",
+        "modified_paths": [
+          "store.mjs",
+          "store.test.mjs"
+        ],
+        "client_reported_cost_usd": 0.405346,
+        "raw_stream_sha256": "512fe9028d9a478f03a585231c1599f99ebc3de895534e3bede273f07b7d9d73"
+      },
+      "session_binding": {
+        "sanitized_session_id_sha256": "6a469ba4ca28f321722ef1d914d17bc642dba461ce8e6b905da456ae320e813e",
+        "event_index_source": "persisted Claude session transcript JSONL zero-based line index",
+        "turn_1_invocation": "--session-id",
+        "turn_2_invocation": "--resume"
+      }
+    },
+    {
+      "id": "qualified-schema-lifecycle-b-turn-1",
+      "campaign": "qualified",
+      "source_pointer": "/results/schema_lifecycle/attempts/1/turn_1",
+      "cell": "schema_lifecycle",
+      "attempt_id": "b",
+      "turn": "turn_1",
+      "status": "passed",
+      "record": {
+        "plan_verifier_calls": 1,
+        "invocation_model_present": false,
+        "foreground": true,
+        "collected": true,
+        "verdict": "READY",
+        "writes_before_approval": false,
+        "stopped_for_approval": true,
+        "client_reported_cost_usd": 0.421592,
+        "raw_stream_sha256": "6e4cee9a7324985372967edb57afed61ee142d7751a9de97066e237d9c78cf60"
+      },
+      "session_binding": {
+        "sanitized_session_id_sha256": "777a5725926b1e012a91489baff5dfdb236458559cb9e374b229b395d6ba61c4",
+        "event_index_source": "persisted Claude session transcript JSONL zero-based line index",
+        "turn_1_invocation": "--session-id",
+        "turn_2_invocation": "--resume"
+      }
+    },
+    {
+      "id": "qualified-schema-lifecycle-b-turn-2",
+      "campaign": "qualified",
+      "source_pointer": "/results/schema_lifecycle/attempts/1/turn_2",
+      "cell": "schema_lifecycle",
+      "attempt_id": "b",
+      "turn": "turn_2",
+      "status": "passed",
+      "record": {
+        "implementation_route": "main_session_direct",
+        "execution_agent_calls": 0,
+        "primary_tests": "4 passed, 0 failed",
+        "primary_test_call_event_index": 44,
+        "primary_test_result_event_index": 45,
+        "verifier_calls": 1,
+        "verifier_call_event_index": 49,
+        "verifier_result_event_index": 50,
+        "verifier_invocation_model_present": false,
+        "verifier_foreground": true,
+        "verifier_collected": true,
+        "verifier_verdict": "CONFIRMED",
+        "modified_paths": [
+          "store.mjs",
+          "store.test.mjs"
+        ],
+        "client_reported_cost_usd": 0.5117095,
+        "raw_stream_sha256": "3182e506d2ea0f79cf0713b59223f5f75453d07fdbe57e69bc01a4fb2cadb3cf"
+      },
+      "session_binding": {
+        "sanitized_session_id_sha256": "777a5725926b1e012a91489baff5dfdb236458559cb9e374b229b395d6ba61c4",
+        "event_index_source": "persisted Claude session transcript JSONL zero-based line index",
+        "turn_1_invocation": "--session-id",
+        "turn_2_invocation": "--resume"
+      }
+    },
+    {
+      "id": "release-replay-routine-docs-a",
+      "campaign": "release-replay",
+      "source_pointer": "/release_replay/results/routine_docs/attempts/0",
+      "cell": "routine_docs",
+      "attempt_id": "a",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "a",
+        "client_version": "2.1.221",
+        "agent_calls": 0,
+        "modified_paths": [
+          "README.md"
+        ],
+        "tests": "1 passed, 0 failed",
+        "client_reported_cost_usd": 0.233658,
+        "raw_stream_sha256": "d29d409284a6207f3e6d0b5c670c41ee943343b515d087a2d60d4d4d64f263e9"
+      }
+    },
+    {
+      "id": "release-replay-routine-docs-b",
+      "campaign": "release-replay",
+      "source_pointer": "/release_replay/results/routine_docs/attempts/1",
+      "cell": "routine_docs",
+      "attempt_id": "b",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "b",
+        "client_version": "2.1.221",
+        "agent_calls": 0,
+        "modified_paths": [
+          "README.md"
+        ],
+        "tests": "1 passed, 0 failed",
+        "client_reported_cost_usd": 0.235725,
+        "raw_stream_sha256": "b95d132c59d4c9bd2741328a35335b52766027b99ec9b8db3cc06afd4e9ad4b6"
+      }
+    },
+    {
+      "id": "release-replay-single-unknown-bug-a",
+      "campaign": "release-replay",
+      "source_pointer": "/release_replay/results/single_unknown_bug/attempts/0",
+      "cell": "single_unknown_bug",
+      "attempt_id": "a",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "a",
+        "client_version": "2.1.221",
+        "agent_calls": 0,
+        "modified_paths": [
+          "src/reducer.js"
+        ],
+        "tests": "2 passed, 0 failed",
+        "client_reported_cost_usd": 0.3903635,
+        "raw_stream_sha256": "91da5a0a97944818090d65ab26723b873e4a515c69548d724b32bac2a469ec49"
+      }
+    },
+    {
+      "id": "release-replay-single-unknown-bug-b",
+      "campaign": "release-replay",
+      "source_pointer": "/release_replay/results/single_unknown_bug/attempts/1",
+      "cell": "single_unknown_bug",
+      "attempt_id": "b",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "b",
+        "client_version": "2.1.221",
+        "agent_calls": 0,
+        "modified_paths": [
+          "src/reducer.js"
+        ],
+        "tests": "2 passed, 0 failed",
+        "client_reported_cost_usd": 0.396683,
+        "raw_stream_sha256": "0c613cb37e8fa8f89c57c6c9a49355dacf7e00672ea417d0f76b7d4c791235d1"
+      }
+    },
+    {
+      "id": "release-replay-mechanical-repetition-a",
+      "campaign": "release-replay",
+      "source_pointer": "/release_replay/results/mechanical_repetition/attempts/0",
+      "cell": "mechanical_repetition",
+      "attempt_id": "a",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "a",
+        "client_version": "2.1.220",
+        "agent_calls": 1,
+        "agent_role": "mech-executor",
+        "invocation_model_present": false,
+        "foreground": true,
+        "collected": true,
+        "modified_paths": [
+          "src/adapters/alpha.js",
+          "src/adapters/bravo.js",
+          "src/adapters/charlie.js",
+          "src/adapters/delta.js",
+          "src/adapters/echo.js",
+          "src/adapters/foxtrot.js",
+          "src/adapters/golf.js",
+          "src/adapters/hotel.js",
+          "src/adapters/india.js",
+          "src/adapters/juliet.js",
+          "src/adapters/kilo.js",
+          "src/adapters/lima.js"
+        ],
+        "tests": "12 passed, 0 failed",
+        "client_reported_cost_usd": 0.5129834,
+        "raw_stream_sha256": "4e9e0cfc57a25189f63612a6fa6fa6b761910267ad4f57ff0b59e98912493633"
+      }
+    },
+    {
+      "id": "release-replay-mechanical-repetition-b",
+      "campaign": "release-replay",
+      "source_pointer": "/release_replay/results/mechanical_repetition/attempts/1",
+      "cell": "mechanical_repetition",
+      "attempt_id": "b",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "b",
+        "client_version": "2.1.221",
+        "agent_calls": 1,
+        "agent_role": "mech-executor",
+        "invocation_model_present": false,
+        "foreground": true,
+        "collected": true,
+        "modified_paths": [
+          "src/adapters/alpha.js",
+          "src/adapters/bravo.js",
+          "src/adapters/charlie.js",
+          "src/adapters/delta.js",
+          "src/adapters/echo.js",
+          "src/adapters/foxtrot.js",
+          "src/adapters/golf.js",
+          "src/adapters/hotel.js",
+          "src/adapters/india.js",
+          "src/adapters/juliet.js",
+          "src/adapters/kilo.js",
+          "src/adapters/lima.js"
+        ],
+        "tests": "12 passed, 0 failed",
+        "client_reported_cost_usd": 0.4171462,
+        "raw_stream_sha256": "05ecfbd5a614904e8183641f4478c2d9d4777b2e01605956c949438e145634e9"
+      }
+    },
+    {
+      "id": "release-replay-schema-lifecycle-a-turn-1",
+      "campaign": "release-replay",
+      "source_pointer": "/release_replay/results/schema_lifecycle/attempts/0/turn_1",
+      "cell": "schema_lifecycle",
+      "attempt_id": "a",
+      "turn": "turn_1",
+      "status": "passed",
+      "record": {
+        "client_version": "2.1.221",
+        "plan_verifier_calls": 1,
+        "invocation_model_present": false,
+        "foreground": true,
+        "collected": true,
+        "verdict": "READY",
+        "writes_before_approval": false,
+        "stopped_for_approval": true,
+        "client_reported_cost_usd": 0.440768,
+        "raw_stream_sha256": "3ea237bfb6205b271b39ecbf57eaff9a435a959d9daf80291677e6817e35fa0c"
+      },
+      "session_binding": {
+        "sanitized_session_id_sha256": "df9f76f44acdf4272f78f77dac6aa0ae2306be9b7973471a38df2436907c2074",
+        "turn_1_invocation": "--session-id",
+        "turn_2_invocation": "--resume"
+      }
+    },
+    {
+      "id": "release-replay-schema-lifecycle-a-turn-2",
+      "campaign": "release-replay",
+      "source_pointer": "/release_replay/results/schema_lifecycle/attempts/0/turn_2",
+      "cell": "schema_lifecycle",
+      "attempt_id": "a",
+      "turn": "turn_2",
+      "status": "passed",
+      "record": {
+        "client_version": "2.1.221",
+        "implementation_route": "main_session_direct",
+        "execution_agent_calls": 0,
+        "primary_tests": "5 passed, 0 failed",
+        "primary_test_call_event_index": 8,
+        "primary_test_result_event_index": 9,
+        "verifier_calls": 1,
+        "verifier_call_event_index": 14,
+        "verifier_result_event_index": 41,
+        "verifier_invocation_model_present": false,
+        "verifier_foreground": true,
+        "verifier_collected": true,
+        "verifier_verdict": "CONFIRMED",
+        "modified_paths": [
+          "store.mjs",
+          "store.test.mjs"
+        ],
+        "client_reported_cost_usd": 0.41254,
+        "raw_stream_sha256": "81289931ee03f25c6208f1e2132d7e99aad61246e46290360a7a628cf880470f"
+      },
+      "session_binding": {
+        "sanitized_session_id_sha256": "df9f76f44acdf4272f78f77dac6aa0ae2306be9b7973471a38df2436907c2074",
+        "turn_1_invocation": "--session-id",
+        "turn_2_invocation": "--resume"
+      }
+    },
+    {
+      "id": "release-replay-schema-lifecycle-b-turn-1",
+      "campaign": "release-replay",
+      "source_pointer": "/release_replay/results/schema_lifecycle/attempts/1/turn_1",
+      "cell": "schema_lifecycle",
+      "attempt_id": "b",
+      "turn": "turn_1",
+      "status": "passed",
+      "record": {
+        "client_version": "2.1.221",
+        "plan_verifier_calls": 1,
+        "invocation_model_present": false,
+        "foreground": true,
+        "collected": true,
+        "verdict": "READY",
+        "writes_before_approval": false,
+        "stopped_for_approval": true,
+        "client_reported_cost_usd": 0.44307825,
+        "raw_stream_sha256": "9952dd8143395a8bbb303199a8134a80034e7f2d33e70a993bf248b6bf9fbc8c"
+      },
+      "session_binding": {
+        "sanitized_session_id_sha256": "75969de9e126e3cf45e5aee7e308f0009944ccf9d5ee163ac25982cb12d229d3",
+        "turn_1_invocation": "--session-id",
+        "turn_2_invocation": "--resume"
+      }
+    },
+    {
+      "id": "release-replay-schema-lifecycle-b-turn-2",
+      "campaign": "release-replay",
+      "source_pointer": "/release_replay/results/schema_lifecycle/attempts/1/turn_2",
+      "cell": "schema_lifecycle",
+      "attempt_id": "b",
+      "turn": "turn_2",
+      "status": "passed",
+      "record": {
+        "client_version": "2.1.221",
+        "implementation_route": "main_session_direct",
+        "execution_agent_calls": 0,
+        "primary_tests": "4 passed, 0 failed",
+        "primary_test_call_event_index": 10,
+        "primary_test_result_event_index": 11,
+        "verifier_calls": 1,
+        "verifier_call_event_index": 14,
+        "verifier_result_event_index": 37,
+        "verifier_invocation_model_present": false,
+        "verifier_foreground": true,
+        "verifier_collected": true,
+        "verifier_verdict": "CONFIRMED",
+        "modified_paths": [
+          "store.mjs",
+          "store.test.mjs"
+        ],
+        "client_reported_cost_usd": 0.4127095,
+        "raw_stream_sha256": "067b7fe07a5007de1bfe149b178243f9ea759585ffdf68f6eb820288f846aa4f"
+      },
+      "session_binding": {
+        "sanitized_session_id_sha256": "75969de9e126e3cf45e5aee7e308f0009944ccf9d5ee163ac25982cb12d229d3",
+        "turn_1_invocation": "--session-id",
+        "turn_2_invocation": "--resume"
+      }
+    },
+    {
+      "id": "adaptive-routine-docs-a",
+      "campaign": "adaptive",
+      "source_pointer": "/adaptive_interaction_routing_gate/results/routine_docs/attempts/0",
+      "cell": "routine_docs",
+      "attempt_id": "a",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "a",
+        "client_version": "2.1.223",
+        "agent_calls": 0,
+        "modified_paths": [
+          "README.md"
+        ],
+        "tests": "1 passed, 0 failed",
+        "client_reported_cost_usd": 0.236106,
+        "raw_stream_sha256": "d248b7f4d6d33a88b8ccc2a82954a4fd0f6bcd587b50e8b44283c755a575a47d"
+      }
+    },
+    {
+      "id": "adaptive-routine-docs-b",
+      "campaign": "adaptive",
+      "source_pointer": "/adaptive_interaction_routing_gate/results/routine_docs/attempts/1",
+      "cell": "routine_docs",
+      "attempt_id": "b",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "b",
+        "client_version": "2.1.223",
+        "agent_calls": 0,
+        "modified_paths": [
+          "README.md"
+        ],
+        "tests": "1 passed, 0 failed",
+        "client_reported_cost_usd": 0.242503,
+        "raw_stream_sha256": "447df7251a28dfa47a96ee3ad567209b1fd8e6d9b51bca9292b5d4c8ec31008f"
+      }
+    },
+    {
+      "id": "adaptive-single-unknown-bug-a",
+      "campaign": "adaptive",
+      "source_pointer": "/adaptive_interaction_routing_gate/results/single_unknown_bug/attempts/0",
+      "cell": "single_unknown_bug",
+      "attempt_id": "a",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "a",
+        "client_version": "2.1.223",
+        "agent_calls": 0,
+        "modified_paths": [
+          "src/reducer.js"
+        ],
+        "tests": "2 passed, 0 failed",
+        "client_reported_cost_usd": 0.379174,
+        "raw_stream_sha256": "1fbb69db9a68bfff62627d31659300b2729cc4a495c7f7c74a7fab1a106949e5"
+      }
+    },
+    {
+      "id": "adaptive-single-unknown-bug-b",
+      "campaign": "adaptive",
+      "source_pointer": "/adaptive_interaction_routing_gate/results/single_unknown_bug/attempts/1",
+      "cell": "single_unknown_bug",
+      "attempt_id": "b",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "b",
+        "client_version": "2.1.223",
+        "agent_calls": 0,
+        "modified_paths": [
+          "src/reducer.js"
+        ],
+        "tests": "2 passed, 0 failed",
+        "client_reported_cost_usd": 0.377249,
+        "raw_stream_sha256": "96f50ff403def9adc5fbb894ac73a2e103ee4ad16553e9ee2505b62890af3bac"
+      }
+    },
+    {
+      "id": "adaptive-mechanical-repetition-a",
+      "campaign": "adaptive",
+      "source_pointer": "/adaptive_interaction_routing_gate/results/mechanical_repetition/attempts/0",
+      "cell": "mechanical_repetition",
+      "attempt_id": "a",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "a",
+        "client_version": "2.1.223",
+        "agent_calls": 1,
+        "agent_role": "mech-executor",
+        "invocation_model_present": false,
+        "foreground": true,
+        "collected": true,
+        "main_session_source_mutation": false,
+        "modified_paths": [
+          "src/adapters/alpha.js",
+          "src/adapters/bravo.js",
+          "src/adapters/charlie.js",
+          "src/adapters/delta.js",
+          "src/adapters/echo.js",
+          "src/adapters/foxtrot.js",
+          "src/adapters/golf.js",
+          "src/adapters/hotel.js",
+          "src/adapters/india.js",
+          "src/adapters/juliet.js",
+          "src/adapters/kilo.js",
+          "src/adapters/lima.js"
+        ],
+        "tests": "12 passed, 0 failed",
+        "client_reported_cost_usd": 0.45045945,
+        "raw_stream_sha256": "5f4265dfd19c9a0ddc6e0b419c65eab6e9aea3bd3c0913467993a31f9abaecd8"
+      }
+    },
+    {
+      "id": "adaptive-mechanical-repetition-b",
+      "campaign": "adaptive",
+      "source_pointer": "/adaptive_interaction_routing_gate/results/mechanical_repetition/attempts/1",
+      "cell": "mechanical_repetition",
+      "attempt_id": "b",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "b",
+        "client_version": "2.1.223",
+        "agent_calls": 1,
+        "agent_role": "mech-executor",
+        "invocation_model_present": false,
+        "foreground": true,
+        "collected": true,
+        "main_session_source_mutation": false,
+        "modified_paths": [
+          "src/adapters/alpha.js",
+          "src/adapters/bravo.js",
+          "src/adapters/charlie.js",
+          "src/adapters/delta.js",
+          "src/adapters/echo.js",
+          "src/adapters/foxtrot.js",
+          "src/adapters/golf.js",
+          "src/adapters/hotel.js",
+          "src/adapters/india.js",
+          "src/adapters/juliet.js",
+          "src/adapters/kilo.js",
+          "src/adapters/lima.js"
+        ],
+        "tests": "12 passed, 0 failed",
+        "client_reported_cost_usd": 0.4567383,
+        "raw_stream_sha256": "1e30cc894aa0d53f20c6b0f6b0caacb761ee39f1c6fad7b4e86d20714085e92f"
+      }
+    },
+    {
+      "id": "adaptive-schema-lifecycle-a-turn-1",
+      "campaign": "adaptive",
+      "source_pointer": "/adaptive_interaction_routing_gate/results/schema_lifecycle/attempts/0/turn_1",
+      "cell": "schema_lifecycle",
+      "attempt_id": "a",
+      "turn": "turn_1",
+      "status": "passed",
+      "record": {
+        "client_version": "2.1.223",
+        "plan_verifier_calls": 1,
+        "invocation_model_present": false,
+        "foreground": true,
+        "collected": true,
+        "verdict": "READY",
+        "writes_before_approval": false,
+        "stopped_for_approval": true,
+        "client_reported_cost_usd": 0.413187,
+        "raw_stream_sha256": "207c9f366f3609d4af82a313fc1c7e8551af3bf96bef57de3af079920e0ade56"
+      },
+      "session_binding": {
+        "sanitized_session_id_sha256": "8ccedd483da94d3163db66e1a160c972b8f04b5f2a637b2d3938acc1b403d6f0",
+        "turn_1_invocation": "--session-id",
+        "turn_2_invocation": "--resume"
+      }
+    },
+    {
+      "id": "adaptive-schema-lifecycle-a-turn-2",
+      "campaign": "adaptive",
+      "source_pointer": "/adaptive_interaction_routing_gate/results/schema_lifecycle/attempts/0/turn_2",
+      "cell": "schema_lifecycle",
+      "attempt_id": "a",
+      "turn": "turn_2",
+      "status": "passed",
+      "record": {
+        "client_version": "2.1.223",
+        "implementation_route": "main_session_direct",
+        "execution_agent_calls": 0,
+        "primary_tests": "4 passed, 0 failed",
+        "primary_tests_before_verifier": true,
+        "verifier_calls": 1,
+        "verifier_invocation_model_present": false,
+        "verifier_foreground": true,
+        "verifier_collected": true,
+        "verifier_verdict": "CONFIRMED",
+        "modified_paths": [
+          "store.mjs",
+          "store.test.mjs"
+        ],
+        "client_reported_cost_usd": 0.48701575,
+        "raw_stream_sha256": "70287d0655f646e64c1c4104459522cc9a6d8d336d99a3baa4475b47909da940"
+      },
+      "session_binding": {
+        "sanitized_session_id_sha256": "8ccedd483da94d3163db66e1a160c972b8f04b5f2a637b2d3938acc1b403d6f0",
+        "turn_1_invocation": "--session-id",
+        "turn_2_invocation": "--resume"
+      }
+    },
+    {
+      "id": "adaptive-schema-lifecycle-b-turn-1",
+      "campaign": "adaptive",
+      "source_pointer": "/adaptive_interaction_routing_gate/results/schema_lifecycle/attempts/1/turn_1",
+      "cell": "schema_lifecycle",
+      "attempt_id": "b",
+      "turn": "turn_1",
+      "status": "passed",
+      "record": {
+        "client_version": "2.1.223",
+        "plan_verifier_calls": 1,
+        "invocation_model_present": false,
+        "foreground": true,
+        "collected": true,
+        "verdict": "READY",
+        "writes_before_approval": false,
+        "stopped_for_approval": true,
+        "client_reported_cost_usd": 0.4224905,
+        "raw_stream_sha256": "0a4045004daaa32295545cc8c533f848cf50cd58477ec5a3441822fa19c06546"
+      },
+      "session_binding": {
+        "sanitized_session_id_sha256": "567bf59fb236273a787cc1d0081297c6a75560dcf85264a83cb1278a08972433",
+        "turn_1_invocation": "--session-id",
+        "turn_2_invocation": "--resume"
+      }
+    },
+    {
+      "id": "adaptive-schema-lifecycle-b-turn-2",
+      "campaign": "adaptive",
+      "source_pointer": "/adaptive_interaction_routing_gate/results/schema_lifecycle/attempts/1/turn_2",
+      "cell": "schema_lifecycle",
+      "attempt_id": "b",
+      "turn": "turn_2",
+      "status": "passed",
+      "record": {
+        "client_version": "2.1.224",
+        "implementation_route": "main_session_direct",
+        "execution_agent_calls": 0,
+        "primary_tests": "5 passed, 0 failed",
+        "primary_tests_before_verifier": true,
+        "verifier_calls": 1,
+        "verifier_invocation_model_present": false,
+        "verifier_foreground": true,
+        "verifier_collected": true,
+        "verifier_verdict": "CONFIRMED",
+        "modified_paths": [
+          "store.mjs",
+          "store.test.mjs"
+        ],
+        "client_reported_cost_usd": 0.636172,
+        "raw_stream_sha256": "0533c0b133ad5463df566131070904132f95e7f011c6e3e1445bdd85575e4f65"
+      },
+      "session_binding": {
+        "sanitized_session_id_sha256": "567bf59fb236273a787cc1d0081297c6a75560dcf85264a83cb1278a08972433",
+        "turn_1_invocation": "--session-id",
+        "turn_2_invocation": "--resume"
+      }
+    },
+    {
+      "id": "adaptive-post-review-routine-docs-a",
+      "campaign": "adaptive-post-review",
+      "source_pointer": "/adaptive_interaction_routing_post_review_gate/results/routine_docs/attempts/0",
+      "cell": "routine_docs",
+      "attempt_id": "a",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "a",
+        "client_version": "2.1.224",
+        "agent_calls": 0,
+        "modified_paths": [
+          "README.md"
+        ],
+        "tests": "1 passed, 0 failed",
+        "client_reported_cost_usd": 0.2195475,
+        "raw_stream_sha256": "6ce22bede7e9bc5036c41b115abda3de376a4875478a9447b7aeed3c3de8a7f4"
+      }
+    },
+    {
+      "id": "adaptive-post-review-routine-docs-b",
+      "campaign": "adaptive-post-review",
+      "source_pointer": "/adaptive_interaction_routing_post_review_gate/results/routine_docs/attempts/1",
+      "cell": "routine_docs",
+      "attempt_id": "b",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "b",
+        "client_version": "2.1.224",
+        "agent_calls": 0,
+        "modified_paths": [
+          "README.md"
+        ],
+        "tests": "1 passed, 0 failed",
+        "client_reported_cost_usd": 0.2398305,
+        "raw_stream_sha256": "214cf9b95a576d6b6a3ebaa863d79831ace223b92a432702121b45462bb3fdf8"
+      }
+    },
+    {
+      "id": "adaptive-post-review-single-unknown-bug-a",
+      "campaign": "adaptive-post-review",
+      "source_pointer": "/adaptive_interaction_routing_post_review_gate/results/single_unknown_bug/attempts/0",
+      "cell": "single_unknown_bug",
+      "attempt_id": "a",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "a",
+        "client_version": "2.1.224",
+        "agent_calls": 0,
+        "modified_paths": [
+          "src/reducer.js"
+        ],
+        "tests": "2 passed, 0 failed",
+        "client_reported_cost_usd": 0.394882,
+        "raw_stream_sha256": "3bd891469d57cbc12963ae309bbf8eb6b36fb72b600d475bf53cd94760654d78"
+      }
+    },
+    {
+      "id": "adaptive-post-review-single-unknown-bug-b",
+      "campaign": "adaptive-post-review",
+      "source_pointer": "/adaptive_interaction_routing_post_review_gate/results/single_unknown_bug/attempts/1",
+      "cell": "single_unknown_bug",
+      "attempt_id": "b",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "b",
+        "client_version": "2.1.224",
+        "agent_calls": 0,
+        "modified_paths": [
+          "src/reducer.js"
+        ],
+        "tests": "2 passed, 0 failed",
+        "client_reported_cost_usd": 0.3764255,
+        "raw_stream_sha256": "833c231b4749a5b5e82849e975456d0758255e7037eeefb8e105b85eec5aa54f"
+      }
+    },
+    {
+      "id": "adaptive-post-review-mechanical-repetition-a",
+      "campaign": "adaptive-post-review",
+      "source_pointer": "/adaptive_interaction_routing_post_review_gate/results/mechanical_repetition/attempts/0",
+      "cell": "mechanical_repetition",
+      "attempt_id": "a",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "a",
+        "client_version": "2.1.224",
+        "agent_calls": 1,
+        "agent_role": "mech-executor",
+        "invocation_model_present": false,
+        "foreground": true,
+        "collected": true,
+        "main_session_source_mutation": false,
+        "modified_paths": [
+          "src/adapters/alpha.js",
+          "src/adapters/bravo.js",
+          "src/adapters/charlie.js",
+          "src/adapters/delta.js",
+          "src/adapters/echo.js",
+          "src/adapters/foxtrot.js",
+          "src/adapters/golf.js",
+          "src/adapters/hotel.js",
+          "src/adapters/india.js",
+          "src/adapters/juliet.js",
+          "src/adapters/kilo.js",
+          "src/adapters/lima.js"
+        ],
+        "tests": "12 passed, 0 failed",
+        "client_reported_cost_usd": 0.51981685,
+        "raw_stream_sha256": "4ba2ebf4d45212b17923184c97ad5f364bfb4652a9b2f741db43ddb4fbf539d4"
+      }
+    },
+    {
+      "id": "adaptive-post-review-mechanical-repetition-b",
+      "campaign": "adaptive-post-review",
+      "source_pointer": "/adaptive_interaction_routing_post_review_gate/results/mechanical_repetition/attempts/1",
+      "cell": "mechanical_repetition",
+      "attempt_id": "b",
+      "turn": null,
+      "status": "passed",
+      "record": {
+        "id": "b",
+        "client_version": "2.1.224",
+        "agent_calls": 1,
+        "agent_role": "mech-executor",
+        "invocation_model_present": false,
+        "foreground": true,
+        "collected": true,
+        "main_session_source_mutation": false,
+        "modified_paths": [
+          "src/adapters/alpha.js",
+          "src/adapters/bravo.js",
+          "src/adapters/charlie.js",
+          "src/adapters/delta.js",
+          "src/adapters/echo.js",
+          "src/adapters/foxtrot.js",
+          "src/adapters/golf.js",
+          "src/adapters/hotel.js",
+          "src/adapters/india.js",
+          "src/adapters/juliet.js",
+          "src/adapters/kilo.js",
+          "src/adapters/lima.js"
+        ],
+        "tests": "12 passed, 0 failed",
+        "client_reported_cost_usd": 0.65231695,
+        "raw_stream_sha256": "93d595c4185c3f707ecbfd63c8527aa9a61f6571b19425a17e9b985896f52358"
+      }
+    },
+    {
+      "id": "adaptive-post-review-schema-lifecycle-a-turn-1",
+      "campaign": "adaptive-post-review",
+      "source_pointer": "/adaptive_interaction_routing_post_review_gate/results/schema_lifecycle/attempts/0/turn_1",
+      "cell": "schema_lifecycle",
+      "attempt_id": "a",
+      "turn": "turn_1",
+      "status": "passed",
+      "record": {
+        "client_version": "2.1.224",
+        "plan_verifier_calls": 1,
+        "invocation_model_present": false,
+        "foreground": true,
+        "collected": true,
+        "verdict": "READY",
+        "writes_before_approval": false,
+        "stopped_for_approval": true,
+        "client_reported_cost_usd": 0.42846925,
+        "raw_stream_sha256": "cd86649fab348b6f59d9a60ebed1e999107ebb4f6ef154d6cbe7732b83ec3524"
+      },
+      "session_binding": {
+        "sanitized_session_id_sha256": "75f233968718bd70602c8b20a8d53a9d273c1efca7ee1c8e7c759f6442fa7cdf",
+        "turn_1_invocation": "--session-id",
+        "turn_2_invocation": "--resume"
+      }
+    },
+    {
+      "id": "adaptive-post-review-schema-lifecycle-a-turn-2",
+      "campaign": "adaptive-post-review",
+      "source_pointer": "/adaptive_interaction_routing_post_review_gate/results/schema_lifecycle/attempts/0/turn_2",
+      "cell": "schema_lifecycle",
+      "attempt_id": "a",
+      "turn": "turn_2",
+      "status": "passed",
+      "record": {
+        "client_version": "2.1.224",
+        "implementation_route": "main_session_direct",
+        "execution_agent_calls": 0,
+        "primary_tests": "5 passed, 0 failed",
+        "primary_tests_before_verifier": true,
+        "verifier_calls": 1,
+        "verifier_invocation_model_present": false,
+        "verifier_foreground": true,
+        "verifier_collected": true,
+        "verifier_verdict": "CONFIRMED",
+        "modified_paths": [
+          "store.mjs",
+          "store.test.mjs"
+        ],
+        "client_reported_cost_usd": 0.486957,
+        "raw_stream_sha256": "8b39e9717b87632cfed07825fd9f25cdf92bd422148a977514aaf64ab6fa8c8e"
+      },
+      "session_binding": {
+        "sanitized_session_id_sha256": "75f233968718bd70602c8b20a8d53a9d273c1efca7ee1c8e7c759f6442fa7cdf",
+        "turn_1_invocation": "--session-id",
+        "turn_2_invocation": "--resume"
+      }
+    },
+    {
+      "id": "adaptive-post-review-schema-lifecycle-b-turn-1",
+      "campaign": "adaptive-post-review",
+      "source_pointer": "/adaptive_interaction_routing_post_review_gate/results/schema_lifecycle/attempts/1/turn_1",
+      "cell": "schema_lifecycle",
+      "attempt_id": "b",
+      "turn": "turn_1",
+      "status": "passed",
+      "record": {
+        "client_version": "2.1.224",
+        "plan_verifier_calls": 1,
+        "invocation_model_present": false,
+        "foreground": true,
+        "collected": true,
+        "verdict": "READY",
+        "writes_before_approval": false,
+        "stopped_for_approval": true,
+        "client_reported_cost_usd": 0.4293515,
+        "raw_stream_sha256": "80bc5d6626fda29133ff54b49cb3463ff17c04e57cc36a787610822a83fd0f27"
+      },
+      "session_binding": {
+        "sanitized_session_id_sha256": "1a641cae83e01afe2a53681be025ea5ee6dc4c18a323afe291a9368a7e2e25df",
+        "turn_1_invocation": "--session-id",
+        "turn_2_invocation": "--resume"
+      }
+    },
+    {
+      "id": "adaptive-post-review-schema-lifecycle-b-turn-2",
+      "campaign": "adaptive-post-review",
+      "source_pointer": "/adaptive_interaction_routing_post_review_gate/results/schema_lifecycle/attempts/1/turn_2",
+      "cell": "schema_lifecycle",
+      "attempt_id": "b",
+      "turn": "turn_2",
+      "status": "passed",
+      "record": {
+        "client_version": "2.1.224",
+        "implementation_route": "main_session_direct",
+        "execution_agent_calls": 0,
+        "primary_tests": "4 passed, 0 failed",
+        "primary_tests_before_verifier": true,
+        "verifier_calls": 1,
+        "verifier_invocation_model_present": false,
+        "verifier_foreground": true,
+        "verifier_collected": true,
+        "verifier_verdict": "CONFIRMED",
+        "modified_paths": [
+          "store.mjs",
+          "store.test.mjs"
+        ],
+        "client_reported_cost_usd": 0.491292,
+        "raw_stream_sha256": "19d1bfe05554ce9f1e4adc6ae4b65ba98aed15ba4708f1ab57b6177daf36cb92"
+      },
+      "session_binding": {
+        "sanitized_session_id_sha256": "1a641cae83e01afe2a53681be025ea5ee6dc4c18a323afe291a9368a7e2e25df",
+        "turn_1_invocation": "--session-id",
+        "turn_2_invocation": "--resume"
+      }
+    }
+  ],
+  "failed_attempts": [
+    {
+      "id": "qualified-mechanical-budget-incomplete-diagnostic",
+      "campaign": "qualified",
+      "source_pointer": "/results/mechanical_repetition/budget_incomplete_diagnostic",
+      "cell": "mechanical_repetition",
+      "attempt_id": "diagnostic",
+      "turn": null,
+      "status": "budget_incomplete_collection_failed",
+      "boundary": "excluded from the two passing attempts because the invocation exhausted its budget before child-result collection",
+      "record": {
+        "agent_calls": 1,
+        "agent_role": "mech-executor",
+        "invocation_model_present": false,
+        "foreground": true,
+        "collected": false,
+        "modified_adapter_count": 12,
+        "tests": "12 passed, 0 failed",
+        "client_reported_cost_usd": 0.6147647,
+        "raw_stream_sha256": "b53ce678afeb48d7717eb644703ba3a922d744a1bc2bb431aec8b0fdbd9f5334",
+        "disposition": "excluded from the two passing attempts because the invocation exhausted its budget before child-result collection"
+      }
+    }
+  ],
+  "not_run": []
+}
