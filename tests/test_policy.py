@@ -1815,6 +1815,150 @@ class PolicyContractTests(unittest.TestCase):
             passing["client_reported_cost_usd"],
         )
 
+    def test_prompt_template_semantic_equivalence_gate_is_documented(self) -> None:
+        contributing = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
+        release = (ROOT / "RELEASING.md").read_text(encoding="utf-8")
+        contributing_text = " ".join(contributing.split())
+        release_text = " ".join(release.split())
+
+        procedure = "## Independent semantic-equivalence reading"
+        self.assertIn(procedure, contributing_text)
+        self.assertLess(
+            contributing_text.index(procedure),
+            contributing_text.index("## Verify the change"),
+        )
+        for clause in (
+            "The independent record must also include the exact reviewed template candidate revision identity (commit and tree) and a SHA-256 for every changed prompt-template file:",
+            "Any prompt-template edit after the reading invalidates the record. The independent reader must repeat or update affected pair readings and record the new reviewed template candidate identity and hashes",
+            "For a present or added changed prompt-template, record its current SHA-256 and verify that final current bytes match it.",
+            "For a deleted prompt-template, record its prior SHA-256 plus exact `current: absent`; no current hash is required, and the final pre-tag gate verifies the path remains absent.",
+            "A rename is exactly two records: deletion of the old path with its prior SHA-256 and `current: absent`, plus addition of the new path with `prior: absent` and its current SHA-256; there is no magical rename equivalence.",
+            "Any reappearance of a deleted old path or missing/changed added path stops before the tag and requires a reread/update.",
+            "Generated non-template artifact changes from the renderer do not invalidate the independent reading when recorded changed-template SHA-256 values remain identical",
+            "Do not require the final release tree to equal the reviewed template candidate tree when only those generated artifacts changed",
+            "After renderer/tests and the final release commit, record the final release candidate commit and tree separately.",
+            "For every present or added changed prompt-template, prove its current SHA-256 equals the independent record and its final current bytes match it; for every deleted path, prove it remains absent.",
+            "If any added path is missing or changed, or any deleted path reappears, stop before the tag and repeat or update the reading.",
+            "A tree-identical squash merge may map the reviewed PR head to a new commit SHA only when recorded tree equality and every changed-template byte hash are identical",
+        ):
+            with self.subTest(document="CONTRIBUTING.md", clause=clause):
+                self.assertIn(clause, contributing_text)
+        for anchor in (
+            "behavior-bearing prompt templates",
+            "prompt-bearing templates",
+            "policy/agent templates",
+            "`templates/claude-md.orchestration.md`",
+            "`templates/agents/*.md`",
+            "`templates/settings.snippet.json`",
+            "exact base revision",
+            "changed template path",
+            "identity of an independent semantic reader",
+            "did not author",
+            "reviewed template candidate revision",
+            "reviewed template candidate tree",
+            "SHA-256 for every changed prompt-template file",
+            "changed-template SHA-256",
+            "changed-template records: present or added: path: <changed prompt-template path> current SHA-256: <SHA-256> deleted: path: <deleted prompt-template path> prior SHA-256: <SHA-256> current: absent",
+            "present or added changed prompt-template",
+            "deleted prompt-template",
+            "prior SHA-256",
+            "current hash is required",
+            "final pre-tag gate",
+            "deleted old path",
+            "missing/changed added path",
+            "reread/update",
+            "prior counterpart",
+            "`prior: absent`",
+            "`current: absent`",
+            "changes what an agent would do",
+            "`behaviorally unchanged`",
+            "semantic difference",
+            "main-owned `FIX`, `DEFER`, or `REJECT`",
+            "rationale",
+            "Additions and deletions require an explicit semantic disposition",
+            "complete before release readiness",
+            "Any prompt-template edit after the reading invalidates the record",
+            "repeat or update affected pair readings",
+            "new reviewed template candidate identity and hashes",
+            "completed dispositions alone are insufficient",
+            "final release candidate commit and tree",
+            "final current bytes",
+            "deleted path",
+            "equals the independent record",
+            "stop before the tag",
+            "repeat or update the reading",
+            "tree-identical squash merge",
+            "reviewed PR head",
+            "new commit SHA",
+            "recorded tree equality",
+            "Phrase assertions",
+            "byte/hash checks",
+            "renderer checks",
+            "live behavioral Gates",
+            "supporting evidence",
+            "none substitutes for independent semantic reading",
+            "Issue #40",
+            "phrase checks missed behavior changes",
+        ):
+            with self.subTest(document="CONTRIBUTING.md", anchor=anchor):
+                self.assertIn(anchor, contributing_text)
+
+        release_gate = "Before rendering, prompt-bearing template changes require"
+        self.assertIn(release_gate, release_text)
+        for anchor in (
+            "prompt-bearing template changes",
+            "`templates/claude-md.orchestration.md`",
+            "`templates/agents/*.md`",
+            "`templates/settings.snippet.json`",
+            "[Independent semantic-equivalence reading](CONTRIBUTING.md#independent-semantic-equivalence-reading)",
+            "exact base revision",
+            "changed template paths",
+            "independent reader identity",
+            "did not author",
+            "prior/current pair records",
+            "`prior: absent`",
+            "`current: absent`",
+            "reviewed template candidate commit/tree",
+            "current SHA-256 for every present or added path",
+            "prior SHA-256 plus `current: absent` for every deleted path",
+            "Represent a rename as separate deletion and addition records",
+            "`FIX`",
+            "`DEFER`",
+            "`REJECT`",
+            "before release readiness",
+            "final release candidate commit/tree separately",
+            "Verify every present or added changed prompt-template's final current bytes and current SHA-256 match the independent reading record",
+            "verify every deleted path remains absent",
+            "no current hash is required",
+            "missing or changed added path",
+            "reappeared deleted path",
+            "stops before the tag",
+            "requires a reread/update",
+            "tree-identical squash merge",
+            "reviewed PR head",
+            "new commit SHA",
+            "recorded tree equality",
+        ):
+            with self.subTest(document="RELEASING.md", anchor=anchor):
+                self.assertIn(anchor, release_text)
+        for clause in (
+            "After rendering and tests pass, review the complete diff and commit the release candidate. Before `claude plugin tag --dry-run plugin`, record the final release candidate commit/tree separately.",
+            "Verify every present or added changed prompt-template's final current bytes and current SHA-256 match the independent reading record; verify every deleted path remains absent (no current hash is required).",
+            "Any missing or changed added path, or reappeared deleted path, stops before the tag and requires a reread/update.",
+            "A tree-identical squash merge may map the reviewed PR head to a new commit SHA only when recorded tree equality and every changed-template byte hash are identical",
+        ):
+            with self.subTest(document="RELEASING.md", clause=clause):
+                self.assertIn(clause, release_text)
+        gate_index = release_text.index(release_gate)
+        render_index = release_text.index("python3 tools/render_plugin_spike.py --write")
+        tests_index = release_text.index("python3 -m unittest discover -s tests -v")
+        final_candidate_index = release_text.index("After rendering and tests pass")
+        tag_index = release_text.index("claude plugin tag --dry-run plugin")
+        self.assertLess(gate_index, render_index)
+        self.assertLess(render_index, tests_index)
+        self.assertLess(tests_index, final_candidate_index)
+        self.assertLess(final_candidate_index, tag_index)
+
     def test_release_pin_and_candidate_stamp_are_explicit(self) -> None:
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(

@@ -72,6 +72,91 @@ Use LF line endings. A CRLF conversion or an extra newline changes exact-byte
 hashes even when rendered content looks identical. The policy contract tests
 rebuild the current candidate and verify the recorded evidence contract.
 
+## Independent semantic-equivalence reading
+
+For changes to behavior-bearing prompt templates—`templates/claude-md.orchestration.md`
+and `templates/agents/*.md`—complete an independent semantic-equivalence reading
+before release readiness. This procedure applies only to those prompt-bearing
+templates (the policy/agent templates above); it excludes the configuration file
+`templates/settings.snippet.json`.
+
+PR evidence must record the exact base revision, every changed template path, and
+the identity of an independent semantic reader who did not author the template
+change.
+
+The independent record must also include the exact reviewed template candidate
+revision identity (commit and tree) and a SHA-256 for every changed prompt-template
+file:
+
+```text
+reviewed template candidate commit: <commit SHA>
+reviewed template candidate tree: <Git tree SHA>
+changed-template records:
+  present or added:
+    path: <changed prompt-template path>
+    current SHA-256: <SHA-256>
+  deleted:
+    path: <deleted prompt-template path>
+    prior SHA-256: <SHA-256>
+    current: absent
+```
+
+Pair every modified rule or role section with its prior counterpart. Copy the
+exact text on each side; never invent a counterpart. For an addition, record the
+current text and the exact marker `prior: absent`. For a deletion, record the
+prior text and the exact marker `current: absent`. A compact pair record is:
+
+```text
+base revision: <exact commit SHA>
+changed template paths: <every changed prompt-template path>
+independent semantic reader: <identity>; did not author the template change
+pair: <rule or role section>
+prior: <exact prior text | absent>
+current: <exact current text | absent>
+semantic result: behaviorally unchanged | changes what an agent would do
+disposition: FIX | DEFER | REJECT
+rationale: <why the disposition is correct>
+```
+
+For a present or added changed prompt-template, record its current SHA-256 and
+verify that final current bytes match it. For a deleted prompt-template, record
+its prior SHA-256 plus exact `current: absent`; no current hash is required, and
+the final pre-tag gate verifies the path remains absent.
+
+A rename is exactly two records: deletion of the old path with its prior
+SHA-256 and `current: absent`, plus addition of the new path with `prior: absent`
+and its current SHA-256; there is no magical rename equivalence.
+
+The reader reports only differences that change what an agent would do. Mark
+each pair `behaviorally unchanged`, or record the semantic difference with a
+main-owned `FIX`, `DEFER`, or `REJECT` disposition and rationale. Additions and
+deletions require an explicit semantic disposition. All dispositions must be
+complete before release readiness.
+
+Any prompt-template edit after the reading invalidates the record. The independent
+reader must repeat or update affected pair readings and record the new reviewed
+template candidate identity and hashes; completed dispositions alone are
+insufficient. Any reappearance of a deleted old path or missing/changed added
+path stops before the tag and requires a reread/update.
+
+Generated non-template artifact changes from the renderer do not invalidate the
+independent reading when recorded changed-template SHA-256 values remain
+identical. Do not require the final release tree to equal the reviewed template
+candidate tree when only those generated artifacts changed.
+
+After renderer/tests and the final release commit, record the final release
+candidate commit and tree separately. For every present or added changed
+prompt-template, prove its current SHA-256 equals the independent record and its
+final current bytes match it; for every deleted path, prove it remains absent. If
+any added path is missing or changed, or any deleted path reappears, stop before
+the tag and repeat or update the reading. A tree-identical squash merge may map
+the reviewed PR head to a new commit SHA only when recorded tree equality and
+every changed-template byte hash are identical; record both commit identities.
+
+Phrase assertions, byte/hash checks, renderer checks, and live behavioral Gates
+are supporting evidence; none substitutes for independent semantic reading.
+Issue #40 is evidence that phrase checks missed behavior changes.
+
 ## Verify the change
 
 Run the narrowest relevant test while editing, then the complete suite before
