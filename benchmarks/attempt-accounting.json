@@ -649,6 +649,26 @@
         {
           "source": "benchmarks/spontaneous-dispatch/results.json",
           "json_pointer": "/runs/5"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/tightly_coupled_bug/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/tightly_coupled_bug/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/schema_lifecycle/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/routine_docs_control/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/routine_docs_control/attempts/1"
         }
       ],
       "attempt_pointers": [
@@ -667,11 +687,31 @@
         {
           "source": "benchmarks/spontaneous-dispatch/results.json",
           "json_pointer": "/runs/5"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/tightly_coupled_bug/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/tightly_coupled_bug/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/schema_lifecycle/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/routine_docs_control/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/routine_docs_control/attempts/1"
         }
       ],
       "count_status": "known",
-      "attempted": 4,
-      "passed": 4,
+      "attempted": 9,
+      "passed": 9,
       "failed": 0
     },
     {
@@ -681,18 +721,42 @@
         {
           "source": "benchmarks/spontaneous-dispatch/results.json",
           "json_pointer": "/runs/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/schema_lifecycle/attempts/1"
         }
       ],
       "attempt_pointers": [
         {
           "source": "benchmarks/spontaneous-dispatch/results.json",
           "json_pointer": "/runs/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/schema_lifecycle/attempts/1"
         }
       ],
       "count_status": "known",
-      "attempted": 1,
+      "attempted": 4,
       "passed": 0,
-      "failed": 1
+      "failed": 4
     },
     {
       "id": "cell:benchmarks/spontaneous-dispatch/results.json#not_run",
@@ -730,62 +794,9 @@
         {
           "source": "benchmarks/spontaneous-dispatch/results.json",
           "json_pointer": "/v1_3_7_paired_opt_in_matrix/cue_free/max"
-        },
-        {
-          "source": "benchmarks/spontaneous-dispatch/results.json",
-          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/0"
-        },
-        {
-          "source": "benchmarks/spontaneous-dispatch/results.json",
-          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/1"
-        },
-        {
-          "source": "benchmarks/spontaneous-dispatch/results.json",
-          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/tightly_coupled_bug/attempts/0"
-        },
-        {
-          "source": "benchmarks/spontaneous-dispatch/results.json",
-          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/tightly_coupled_bug/attempts/1"
-        },
-        {
-          "source": "benchmarks/spontaneous-dispatch/results.json",
-          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/routine_docs_control/attempts/1"
         }
       ],
-      "attempt_pointers": [
-        {
-          "source": "benchmarks/spontaneous-dispatch/results.json",
-          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/0"
-        },
-        {
-          "source": "benchmarks/spontaneous-dispatch/results.json",
-          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/1"
-        },
-        {
-          "source": "benchmarks/spontaneous-dispatch/results.json",
-          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/tightly_coupled_bug/attempts/0"
-        },
-        {
-          "source": "benchmarks/spontaneous-dispatch/results.json",
-          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/tightly_coupled_bug/attempts/1"
-        },
-        {
-          "source": "benchmarks/spontaneous-dispatch/results.json",
-          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/schema_lifecycle/attempts/0"
-        },
-        {
-          "source": "benchmarks/spontaneous-dispatch/results.json",
-          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/schema_lifecycle/attempts/1"
-        },
-        {
-          "source": "benchmarks/spontaneous-dispatch/results.json",
-          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/routine_docs_control/attempts/0"
-        },
-        {
-          "source": "benchmarks/spontaneous-dispatch/results.json",
-          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/routine_docs_control/attempts/1"
-        }
-      ],
+      "attempt_pointers": [],
       "count_status": "unknown",
       "attempted": null,
       "passed": null,
@@ -1972,6 +1983,65 @@
           "source": "benchmarks/spontaneous-dispatch/results.json",
           "json_pointer": "/runs/1",
           "raw_stream_sha256": "59e576004c8eae9e2d833307c4785f9b67013bf327f9c0d17b52a6e5a801dd23"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/results.json#/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/0",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/results.json",
+        "json_pointer": "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/0"
+      },
+      "candidate_identity": {
+        "hash": "b26ef4a6a0e02575a39ecc8d3303a8cd7f9e9180548311de399fff527efb3b75",
+        "version": "1.3.7"
+      },
+      "failure_boundary": "topology=FAIL",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/0",
+          "raw_stream_sha256": "567577c4cce8bca9fccf84945c3f2d0cf4f77379cbfbc8e7949a31e0b8524d12"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/results.json#/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/1",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/results.json",
+        "json_pointer": "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/1"
+      },
+      "candidate_identity": {
+        "hash": "b26ef4a6a0e02575a39ecc8d3303a8cd7f9e9180548311de399fff527efb3b75",
+        "version": "1.3.7"
+      },
+      "failure_boundary": "topology=FAIL",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/1",
+          "raw_stream_sha256": "806c11e6564b1f5799a869de6be587603f68e6b91df231b6079da29e71d22171"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/results.json#/v1_3_7_max_prompt_baseline/cells/schema_lifecycle/attempts/1",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/results.json",
+        "json_pointer": "/v1_3_7_max_prompt_baseline/cells/schema_lifecycle/attempts/1"
+      },
+      "candidate_identity": {
+        "hash": "b26ef4a6a0e02575a39ecc8d3303a8cd7f9e9180548311de399fff527efb3b75",
+        "version": "1.3.7"
+      },
+      "failure_boundary": "topology=FAIL",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/schema_lifecycle/attempts/1"
         }
       ]
     },

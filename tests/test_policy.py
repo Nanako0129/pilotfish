@@ -44,6 +44,7 @@ ATTEMPT_ACCOUNTING_MARKERS = frozenset(
         "status",
         "passed",
         "test_passed",
+        "topology",
         "topology_pass",
         "reachability",
         "raw_stream_sha256",
@@ -178,6 +179,20 @@ ATTEMPT_ACCOUNTING_REVIEWED_IDENTITIES = {
         }
         for index in range(4)
     },
+    **{
+        (
+            "benchmarks/spontaneous-dispatch/results.json",
+            pointer,
+        ): {
+            "hash": "b26ef4a6a0e02575a39ecc8d3303a8cd7f9e9180548311de399fff527efb3b75",
+            "version": "1.3.7",
+        }
+        for pointer in (
+            "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/0",
+            "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/1",
+            "/v1_3_7_max_prompt_baseline/cells/schema_lifecycle/attempts/1",
+        )
+    },
 }
 ATTEMPT_ACCOUNTING_REVIEWED_EVIDENCE_OWNERS = {
     (
@@ -305,6 +320,8 @@ def _attempt_accounting_outcome(
             boundaries.append(f"{key}=false")
     if record.get("reachability") == "FAIL":
         boundaries.append("reachability=FAIL")
+    if record.get("topology") == "FAIL":
+        boundaries.append("topology=FAIL")
     status = record.get("status")
     if status in ATTEMPT_ACCOUNTING_FAILURE_STATUSES:
         boundaries.append(f"status={status}")
@@ -318,6 +335,8 @@ def _attempt_accounting_outcome(
             return "passed", (f"{key}=true",)
     if record.get("reachability") == "PASS":
         return "passed", ("reachability=PASS",)
+    if record.get("topology") == "PASS":
+        return "passed", ("topology=PASS",)
     if status in ATTEMPT_ACCOUNTING_PASS_STATUSES:
         return "passed", (f"status={status}",)
     if status in ATTEMPT_ACCOUNTING_NOT_RUN_STATUSES:
@@ -4477,7 +4496,7 @@ class PolicyContractTests(unittest.TestCase):
 
         self.assertEqual(len(ledger["sources"]), 11)
         self.assertEqual(
-            sum(len(cell["claim_pointers"]) for cell in ledger["cells"]), 193
+            sum(len(cell["claim_pointers"]) for cell in ledger["cells"]), 196
         )
         self.assertEqual(
             sum(len(cell["attempt_pointers"]) for cell in ledger["cells"]), 137
@@ -4488,7 +4507,33 @@ class PolicyContractTests(unittest.TestCase):
                 for cell in ledger["cells"]
                 if cell["count_status"] == "known"
             ),
-            37,
+            40,
+        )
+
+        spontaneous_cells = {
+            cell["claim_status"]: cell
+            for cell in ledger["cells"]
+            if cell["id"].startswith(
+                "cell:benchmarks/spontaneous-dispatch/results.json#"
+            )
+        }
+        self.assertEqual(
+            (
+                spontaneous_cells["passed"]["attempted"],
+                spontaneous_cells["passed"]["passed"],
+                spontaneous_cells["failed"]["attempted"],
+                spontaneous_cells["failed"]["failed"],
+            ),
+            (9, 9, 4, 4),
+        )
+        self.assertEqual(spontaneous_cells["unknown"]["attempt_pointers"], [])
+        self.assertEqual(
+            _attempt_accounting_outcome({"topology": "PASS"}),
+            ("passed", ("topology=PASS",)),
+        )
+        self.assertEqual(
+            _attempt_accounting_outcome({"topology": "FAIL"}),
+            ("failed", ("topology=FAIL",)),
         )
 
         verifier_failed = next(
