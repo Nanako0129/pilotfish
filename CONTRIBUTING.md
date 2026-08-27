@@ -72,6 +72,45 @@ Use LF line endings. A CRLF conversion or an extra newline changes exact-byte
 hashes even when rendered content looks identical. The policy contract tests
 rebuild the current candidate and verify the recorded evidence contract.
 
+## Independent semantic-equivalence reading
+
+For changes to behavior-bearing prompt templates—`templates/claude-md.orchestration.md`
+and `templates/agents/*.md`—complete an independent semantic-equivalence reading
+before release readiness. This procedure applies only to those prompt-bearing
+templates (the policy/agent templates above); it excludes the configuration file
+`templates/settings.snippet.json`.
+
+PR evidence must record the exact base revision, every changed template path, and
+the identity of an independent semantic reader who did not author the template
+change.
+
+Pair every modified rule or role section with its prior counterpart. Copy the
+exact text on each side; never invent a counterpart. For an addition, record the
+current text and the exact marker `prior: absent`. For a deletion, record the
+prior text and the exact marker `current: absent`. A compact pair record is:
+
+```text
+base revision: <exact commit SHA>
+changed template paths: <every changed prompt-template path>
+independent semantic reader: <identity>; did not author the template change
+pair: <rule or role section>
+prior: <exact prior text | absent>
+current: <exact current text | absent>
+semantic result: behaviorally unchanged | changes what an agent would do
+disposition: FIX | DEFER | REJECT
+rationale: <why the disposition is correct>
+```
+
+The reader reports only differences that change what an agent would do. Mark
+each pair `behaviorally unchanged`, or record the semantic difference with a
+main-owned `FIX`, `DEFER`, or `REJECT` disposition and rationale. Additions and
+deletions require an explicit semantic disposition. All dispositions must be
+complete before release readiness.
+
+Phrase assertions, byte/hash checks, renderer checks, and live behavioral Gates
+are supporting evidence; none substitutes for independent semantic reading.
+Issue #40 is evidence that phrase checks missed behavior changes.
+
 ## Verify the change
 
 Run the narrowest relevant test while editing, then the complete suite before

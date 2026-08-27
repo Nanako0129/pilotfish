@@ -3,14 +3,15 @@
 `VERSION` is the single release-version source. The renderer writes that exact value to both `plugin/.claude-plugin/plugin.json` and the Plugin entry in `.claude-plugin/marketplace.json`; never edit either generated version by hand.
 
 1. Set `VERSION`, update the matching version comment in `templates/claude-md.orchestration.md`, and add the release entry to `CHANGELOG.md`.
-2. Regenerate Plugin artifacts, then prove they are current:
+2. Before any render or tag work, prompt-bearing template changes require the [Independent semantic-equivalence reading](CONTRIBUTING.md#independent-semantic-equivalence-reading). This applies only to `templates/claude-md.orchestration.md` and `templates/agents/*.md`, not the configuration `templates/settings.snippet.json`. Record the exact base revision, changed template paths, independent reader identity who did not author the change, complete prior/current pair records including exact `prior: absent` and `current: absent` markers, and complete all `FIX`, `DEFER`, or `REJECT` dispositions before release readiness.
+3. Regenerate Plugin artifacts, then prove they are current:
 
    ```bash
    python3 tools/render_plugin_spike.py --write
    python3 tools/render_plugin_spike.py --check
    ```
 
-3. Run strict manifest validation and the full dependency-free test suite:
+4. Run strict manifest validation and the full dependency-free test suite:
 
    ```bash
    claude plugin validate --strict .claude-plugin/marketplace.json
@@ -19,7 +20,7 @@
    git diff --check
    ```
 
-4. Review the complete diff, commit the release candidate, require a clean worktree, and dry-run the matching Plugin tag:
+5. Review the complete diff, commit the release candidate, require a clean worktree, and dry-run the matching Plugin tag:
 
    ```bash
    claude plugin tag --dry-run plugin
@@ -27,7 +28,7 @@
 
    The dry-run must report `pilotfish--vX.Y.Z`, where `X.Y.Z` equals `VERSION`. An existing tag or version mismatch is a stop condition; never use `--force` to bypass it.
 
-5. After review and separate release authorization, push the release commit to the repository's default branch and verify the remote branch before creating either tag:
+6. After review and separate release authorization, push the release commit to the repository's default branch and verify the remote branch before creating either tag:
 
    ```bash
    (

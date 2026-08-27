@@ -1815,6 +1815,81 @@ class PolicyContractTests(unittest.TestCase):
             passing["client_reported_cost_usd"],
         )
 
+    def test_prompt_template_semantic_equivalence_gate_is_documented(self) -> None:
+        contributing = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
+        release = (ROOT / "RELEASING.md").read_text(encoding="utf-8")
+        contributing_text = " ".join(contributing.split())
+        release_text = " ".join(release.split())
+
+        procedure = "## Independent semantic-equivalence reading"
+        self.assertIn(procedure, contributing_text)
+        self.assertLess(
+            contributing_text.index(procedure),
+            contributing_text.index("## Verify the change"),
+        )
+        for anchor in (
+            "behavior-bearing prompt templates",
+            "prompt-bearing templates",
+            "policy/agent templates",
+            "`templates/claude-md.orchestration.md`",
+            "`templates/agents/*.md`",
+            "`templates/settings.snippet.json`",
+            "exact base revision",
+            "changed template path",
+            "identity of an independent semantic reader",
+            "did not author",
+            "prior counterpart",
+            "`prior: absent`",
+            "`current: absent`",
+            "changes what an agent would do",
+            "`behaviorally unchanged`",
+            "semantic difference",
+            "main-owned `FIX`, `DEFER`, or `REJECT`",
+            "rationale",
+            "Additions and deletions require an explicit semantic disposition",
+            "complete before release readiness",
+            "Phrase assertions",
+            "byte/hash checks",
+            "renderer checks",
+            "live behavioral Gates",
+            "supporting evidence",
+            "none substitutes for independent semantic reading",
+            "Issue #40",
+            "phrase checks missed behavior changes",
+        ):
+            with self.subTest(document="CONTRIBUTING.md", anchor=anchor):
+                self.assertIn(anchor, contributing_text)
+
+        release_gate = "Before any render or tag work"
+        self.assertIn(release_gate, release_text)
+        for anchor in (
+            "prompt-bearing template changes",
+            "`templates/claude-md.orchestration.md`",
+            "`templates/agents/*.md`",
+            "`templates/settings.snippet.json`",
+            "[Independent semantic-equivalence reading](CONTRIBUTING.md#independent-semantic-equivalence-reading)",
+            "exact base revision",
+            "changed template paths",
+            "independent reader identity",
+            "did not author",
+            "prior/current pair records",
+            "`prior: absent`",
+            "`current: absent`",
+            "`FIX`",
+            "`DEFER`",
+            "`REJECT`",
+            "before release readiness",
+        ):
+            with self.subTest(document="RELEASING.md", anchor=anchor):
+                self.assertIn(anchor, release_text)
+        gate_index = release_text.index(release_gate)
+        self.assertLess(
+            gate_index, release_text.index("python3 tools/render_plugin_spike.py --write")
+        )
+        self.assertLess(
+            gate_index, release_text.index("claude plugin tag --dry-run plugin")
+        )
+
     def test_release_pin_and_candidate_stamp_are_explicit(self) -> None:
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
