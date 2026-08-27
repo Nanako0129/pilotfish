@@ -3,7 +3,7 @@
 `VERSION` is the single release-version source. The renderer writes that exact value to both `plugin/.claude-plugin/plugin.json` and the Plugin entry in `.claude-plugin/marketplace.json`; never edit either generated version by hand.
 
 1. Set `VERSION`, update the matching version comment in `templates/claude-md.orchestration.md`, and add the release entry to `CHANGELOG.md`.
-2. Before rendering, prompt-bearing template changes require the [Independent semantic-equivalence reading](CONTRIBUTING.md#independent-semantic-equivalence-reading). This applies only to `templates/claude-md.orchestration.md` and `templates/agents/*.md`, not the configuration `templates/settings.snippet.json`. Record the exact base revision, changed template paths, independent reader identity who did not author the change, complete prior/current pair records including exact `prior: absent` and `current: absent` markers, the reviewed template candidate commit/tree and per-file changed-template SHA-256 values, and complete all `FIX`, `DEFER`, or `REJECT` dispositions before release readiness.
+2. Before rendering, prompt-bearing template changes require the [Independent semantic-equivalence reading](CONTRIBUTING.md#independent-semantic-equivalence-reading). This applies only to `templates/claude-md.orchestration.md` and `templates/agents/*.md`, not the configuration `templates/settings.snippet.json`. Record the exact base revision, changed template paths, independent reader identity who did not author the change, complete prior/current pair records including exact `prior: absent` and `current: absent` markers, the reviewed template candidate commit/tree, current SHA-256 for every present or added path, prior SHA-256 plus `current: absent` for every deleted path, and complete all `FIX`, `DEFER`, or `REJECT` dispositions before release readiness. Represent a rename as separate deletion and addition records.
 3. Regenerate Plugin artifacts, then prove they are current:
 
    ```bash
@@ -20,7 +20,7 @@
    git diff --check
    ```
 
-5. After rendering and tests pass, review the complete diff and commit the release candidate. Before `claude plugin tag --dry-run plugin`, record the final release candidate commit/tree separately and verify every changed prompt-template SHA-256 equals the independent reading record. If any changed-template SHA-256 differs, stop before the tag and repeat or update the reading. A tree-identical squash merge may map the reviewed PR head to a new commit SHA only when recorded tree equality and every changed-template byte hash are identical. Require a clean worktree, then dry-run the matching Plugin tag:
+5. After rendering and tests pass, review the complete diff and commit the release candidate. Before `claude plugin tag --dry-run plugin`, record the final release candidate commit/tree separately. Verify every present or added changed prompt-template's final current bytes and current SHA-256 match the independent reading record; verify every deleted path remains absent (no current hash is required). Any missing or changed added path, or reappeared deleted path, stops before the tag and requires a reread/update. A tree-identical squash merge may map the reviewed PR head to a new commit SHA only when recorded tree equality and every changed-template byte hash are identical. Require a clean worktree, then dry-run the matching Plugin tag:
 
    ```bash
    claude plugin tag --dry-run plugin

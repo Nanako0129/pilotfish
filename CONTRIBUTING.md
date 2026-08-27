@@ -91,8 +91,14 @@ file:
 ```text
 reviewed template candidate commit: <commit SHA>
 reviewed template candidate tree: <Git tree SHA>
-changed-template SHA-256:
-  <changed prompt-template path>: <SHA-256>
+changed-template records:
+  present or added:
+    path: <changed prompt-template path>
+    current SHA-256: <SHA-256>
+  deleted:
+    path: <deleted prompt-template path>
+    prior SHA-256: <SHA-256>
+    current: absent
 ```
 
 Pair every modified rule or role section with its prior counterpart. Copy the
@@ -112,6 +118,15 @@ disposition: FIX | DEFER | REJECT
 rationale: <why the disposition is correct>
 ```
 
+For a present or added changed prompt-template, record its current SHA-256 and
+verify that final current bytes match it. For a deleted prompt-template, record
+its prior SHA-256 plus exact `current: absent`; no current hash is required, and
+the final pre-tag gate verifies the path remains absent.
+
+A rename is exactly two records: deletion of the old path with its prior
+SHA-256 and `current: absent`, plus addition of the new path with `prior: absent`
+and its current SHA-256; there is no magical rename equivalence.
+
 The reader reports only differences that change what an agent would do. Mark
 each pair `behaviorally unchanged`, or record the semantic difference with a
 main-owned `FIX`, `DEFER`, or `REJECT` disposition and rationale. Additions and
@@ -121,7 +136,8 @@ complete before release readiness.
 Any prompt-template edit after the reading invalidates the record. The independent
 reader must repeat or update affected pair readings and record the new reviewed
 template candidate identity and hashes; completed dispositions alone are
-insufficient.
+insufficient. Any reappearance of a deleted old path or missing/changed added
+path stops before the tag and requires a reread/update.
 
 Generated non-template artifact changes from the renderer do not invalidate the
 independent reading when recorded changed-template SHA-256 values remain
@@ -129,12 +145,13 @@ identical. Do not require the final release tree to equal the reviewed template
 candidate tree when only those generated artifacts changed.
 
 After renderer/tests and the final release commit, record the final release
-candidate commit and tree separately and prove every changed prompt-template
-SHA-256 equals the independent record. If any changed-template SHA-256 differs,
-stop before the tag and repeat or update the reading. A tree-identical squash
-merge may map the reviewed PR head to a new commit SHA only when recorded tree
-equality and every changed-template byte hash are identical; record both commit
-identities.
+candidate commit and tree separately. For every present or added changed
+prompt-template, prove its current SHA-256 equals the independent record and its
+final current bytes match it; for every deleted path, prove it remains absent. If
+any added path is missing or changed, or any deleted path reappears, stop before
+the tag and repeat or update the reading. A tree-identical squash merge may map
+the reviewed PR head to a new commit SHA only when recorded tree equality and
+every changed-template byte hash are identical; record both commit identities.
 
 Phrase assertions, byte/hash checks, renderer checks, and live behavioral Gates
 are supporting evidence; none substitutes for independent semantic reading.
