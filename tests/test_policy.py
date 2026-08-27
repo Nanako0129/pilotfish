@@ -3117,6 +3117,264 @@ class PolicyContractTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             validate(replaced_cost)
 
+    def test_dispatch_brake_positive_control_attempts_are_source_bound(self) -> None:
+        gate = ROOT / "benchmarks" / "dispatch-brake" / "positive-controls"
+        attempts = json.loads(
+            (gate / "attempts.json").read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        source_bytes = (gate / "results.json").read_bytes()
+        source = json.loads(source_bytes, parse_float=Decimal)
+        expected_source_keys = {
+            "schema_version",
+            "run_date",
+            "timezone",
+            "environment_reference",
+            "metric_note",
+            "complete_runs",
+            "interrupted_policy_probes",
+            "comparisons",
+        }
+        expected_complete_names = [
+            "research-pilotfish-hard-brake",
+            "research-remora-hard-brake",
+            "mechanical-pilotfish-hard-brake",
+            "mechanical-remora-hard-brake",
+            "research-pilotfish-broad-net-benefit",
+            "mechanical-pilotfish-balanced",
+            "negative-pilotfish-balanced",
+            "negative-remora-balanced",
+            "research-pilotfish-sized-gate",
+        ]
+        expected_interrupted_names = [
+            "negative-remora-broad-net-benefit",
+            "research-pilotfish-size-wording-rejected",
+            "research-remora-sized-gate-with-baton",
+            "research-remora-precedence-probe-unshipped",
+        ]
+        expected_passed_names = [
+            name
+            for name in expected_complete_names
+            if name != "research-remora-hard-brake"
+        ]
+        expected_failed_names = [
+            "research-remora-hard-brake",
+            *expected_interrupted_names,
+        ]
+        expected_invocation_pointers = [
+            *(f"/complete_runs/{index}" for index in range(9)),
+            *(f"/interrupted_policy_probes/{index}" for index in range(4)),
+        ]
+        expected_passed_pointers = [
+            f"/complete_runs/{index}"
+            for index in range(9)
+            if index != 1
+        ]
+        expected_failed_pointers = [
+            "/complete_runs/1",
+            *(f"/interrupted_policy_probes/{index}" for index in range(4)),
+        ]
+        expected_ledger_keys = {
+            "schema_version",
+            "source",
+            "counts",
+            "coverage",
+            "passed_attempts",
+            "failed_attempts",
+            "not_run",
+        }
+
+        def resolve(pointer: str) -> dict:
+            self.assertTrue(pointer.startswith("/"))
+            self.assertNotEqual(pointer, "/")
+            value: object = source
+            for token in pointer[1:].split("/"):
+                if isinstance(value, dict):
+                    self.assertIn(token, value)
+                    value = value[token]
+                elif isinstance(value, list):
+                    self.assertTrue(token.isdigit())
+                    index = int(token)
+                    self.assertLess(index, len(value))
+                    value = value[index]
+                else:
+                    self.fail(f"cannot resolve {pointer!r}")
+            self.assertIsInstance(value, dict)
+            return value
+
+        def expected_entry(pointer: str, run: dict) -> dict:
+            entry = {
+                "id": f"dispatch-brake-positive-control-{run['name']}",
+                "source_pointer": pointer,
+                "name": run["name"],
+                "configuration_identity": {
+                    key: run[key]
+                    for key in ("fixture", "surface", "policy_iteration")
+                },
+            }
+            entry.update(
+                {
+                    key: value
+                    for key, value in run.items()
+                    if key
+                    not in {"name", "fixture", "surface", "policy_iteration"}
+                }
+            )
+            return entry
+
+        def validate(ledger: dict) -> None:
+            self.assertEqual(set(ledger), expected_ledger_keys)
+            self.assertEqual(set(source), expected_source_keys)
+            self.assertEqual(source["schema_version"], 1)
+            self.assertEqual(source["run_date"], "2026-07-13")
+            self.assertEqual(source["timezone"], "Asia/Taipei")
+            self.assertEqual(
+                source["environment_reference"],
+                "../results.json",
+            )
+            self.assertIsInstance(source["metric_note"], str)
+            self.assertIsInstance(source["comparisons"], dict)
+            self.assertEqual(len(source["complete_runs"]), 9)
+            self.assertEqual(len(source["interrupted_policy_probes"]), 4)
+            self.assertEqual(
+                [run["name"] for run in source["complete_runs"]],
+                expected_complete_names,
+            )
+            self.assertEqual(
+                [run["name"] for run in source["interrupted_policy_probes"]],
+                expected_interrupted_names,
+            )
+            self.assertEqual(ledger["schema_version"], 1)
+            self.assertEqual(
+                ledger["source"],
+                {
+                    "path": "results.json",
+                    "sha256": hashlib.sha256(source_bytes).hexdigest(),
+                },
+            )
+            self.assertEqual(
+                ledger["coverage"],
+                {
+                    "source_pointers": [
+                        "/complete_runs",
+                        "/interrupted_policy_probes",
+                    ],
+                    "invocation_pointers": expected_invocation_pointers,
+                },
+            )
+
+            passed = ledger["passed_attempts"]
+            failed = ledger["failed_attempts"]
+            not_run = ledger["not_run"]
+            self.assertEqual(len(passed), 8)
+            self.assertEqual(len(failed), 5)
+            self.assertEqual(not_run, [])
+            self.assertEqual(
+                ledger["counts"],
+                {"attempted": 13, "passed": 8, "failed": 5},
+            )
+            self.assertEqual(
+                ledger["counts"]["attempted"], len(passed) + len(failed)
+            )
+            self.assertEqual(
+                ledger["counts"]["attempted"],
+                ledger["counts"]["passed"] + ledger["counts"]["failed"],
+            )
+            self.assertEqual(
+                [entry["name"] for entry in passed], expected_passed_names
+            )
+            self.assertEqual(
+                [entry["name"] for entry in failed], expected_failed_names
+            )
+            self.assertEqual(
+                [entry["source_pointer"] for entry in passed],
+                expected_passed_pointers,
+            )
+            self.assertEqual(
+                [entry["source_pointer"] for entry in failed],
+                expected_failed_pointers,
+            )
+
+            all_attempts = passed + failed
+            all_pointers = [entry["source_pointer"] for entry in all_attempts]
+            self.assertEqual(len(all_attempts), 13)
+            self.assertEqual(len({entry["id"] for entry in all_attempts}), 13)
+            self.assertEqual(len(set(all_pointers)), 13)
+            self.assertEqual(set(all_pointers), set(expected_invocation_pointers))
+            self.assertNotIn("/", all_pointers)
+            self.assertNotIn("/comparisons", all_pointers)
+
+            source_agent_call_count = sum(
+                len(run["agent_calls"])
+                for section in ("complete_runs", "interrupted_policy_probes")
+                for run in source[section]
+            )
+            self.assertEqual(
+                sum(len(entry["agent_calls"]) for entry in all_attempts),
+                source_agent_call_count,
+            )
+            self.assertGreater(source_agent_call_count, len(all_attempts))
+
+            for entry in all_attempts:
+                pointer = entry["source_pointer"]
+                run = resolve(pointer)
+                self.assertEqual(entry, expected_entry(pointer, run))
+                self.assertRegex(
+                    entry["raw_stream_sha256"],
+                    r"^[0-9a-f]{64}$",
+                )
+
+            self.assertEqual(failed[0]["status"], "error_max_budget_usd")
+            self.assertEqual(failed[0]["tests_passed"], 1)
+            self.assertEqual(failed[0]["tests_failed"], 0)
+            for entry in failed[1:]:
+                self.assertEqual(entry["status"], "error_during_execution")
+                self.assertIsNone(entry["tests_passed"])
+                self.assertIsNone(entry["tests_failed"])
+
+        validate(attempts)
+
+        missing_success = deepcopy(attempts)
+        missing_success["passed_attempts"].pop()
+        with self.assertRaises(AssertionError):
+            validate(missing_success)
+
+        missing_interrupted = deepcopy(attempts)
+        missing_interrupted["failed_attempts"].pop()
+        with self.assertRaises(AssertionError):
+            validate(missing_interrupted)
+
+        for invalid_pointer in ("/", "/comparisons"):
+            invalid_pointer_ledger = deepcopy(attempts)
+            aggregate_attempt = deepcopy(attempts["passed_attempts"][0])
+            aggregate_attempt["id"] = f"aggregate-{invalid_pointer}"
+            aggregate_attempt["source_pointer"] = invalid_pointer
+            invalid_pointer_ledger["passed_attempts"].append(aggregate_attempt)
+            invalid_pointer_ledger["counts"]["attempted"] += 1
+            invalid_pointer_ledger["counts"]["passed"] += 1
+            with self.assertRaises(AssertionError):
+                validate(invalid_pointer_ledger)
+
+        flipped_budget_status = deepcopy(attempts)
+        flipped_budget_status["failed_attempts"][0]["status"] = "success"
+        with self.assertRaises(AssertionError):
+            validate(flipped_budget_status)
+
+        replaced_stop_reason = deepcopy(attempts)
+        replaced_stop_reason["failed_attempts"][1]["stop_reason"] = "different"
+        with self.assertRaises(AssertionError):
+            validate(replaced_stop_reason)
+
+        replaced_hash = deepcopy(attempts)
+        replaced_hash["passed_attempts"][0]["raw_stream_sha256"] = "0" * 64
+        with self.assertRaises(AssertionError):
+            validate(replaced_hash)
+
+        replaced_cost = deepcopy(attempts)
+        replaced_cost["passed_attempts"][0]["reported_cost_usd"] = Decimal("0")
+        with self.assertRaises(AssertionError):
+            validate(replaced_cost)
+
     def test_installer_requires_tool_enforcing_runtime(self) -> None:
         installer = (ROOT / "install/AGENT-INSTALL.md").read_text(encoding="utf-8")
         self.assertIn("claude --version", installer)
