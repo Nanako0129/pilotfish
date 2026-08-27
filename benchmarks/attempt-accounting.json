@@ -1,0 +1,2371 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "path": "benchmarks/baton-compatibility/results.json",
+      "sha256": "fd4c9271035f3f43aad8f7b51b69a831e7a62709c2d255a9c987b040308ac170"
+    },
+    {
+      "path": "benchmarks/baton-dispatch-effect/results.json",
+      "sha256": "d5ef8cef7956cb0a0cdf84582f900c130ebfef32228fc1fb3e9fa91d9fdce713"
+    },
+    {
+      "path": "benchmarks/dispatch-brake/results.json",
+      "sha256": "4db849669b49386911ded403352b857d2341fe147f0223f262d34d1d04bc17df"
+    },
+    {
+      "path": "benchmarks/dispatch-brake/positive-controls/results.json",
+      "sha256": "f8bb489168cc387b9f51db4d5a4095316e0714e7b7fd328fcbbd691c060b269b"
+    },
+    {
+      "path": "benchmarks/prompt-compression/results.json",
+      "sha256": "7d5b15d20711b1f17b7e4b6ce727d02fb6a513abd3ea3eff8317a28d39e0904a"
+    },
+    {
+      "path": "benchmarks/spontaneous-dispatch/results.json",
+      "sha256": "6bb766753fc98036a92a8e02e0573e87f46e991e22065f6dee962ce90cc45c44"
+    },
+    {
+      "path": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+      "sha256": "ac3f4dabaabb17f3519d27f7841b1c144de347854df2efdd6746016668ca41a2"
+    },
+    {
+      "path": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+      "sha256": "0e8eae3338f2ee0e913ffc22c39770403ef4d49081d865bdd296b4b7a9854b81"
+    },
+    {
+      "path": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+      "sha256": "032685e4b9f928f1e92f1b99d9c3739352860f7c4d84dc4d8f2f4f402b5d126c"
+    },
+    {
+      "path": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+      "sha256": "bf9e493f21f46a60ad7ba416fd57a361e6733aba2f6607fbbf75d0cbca0b36d8"
+    },
+    {
+      "path": "benchmarks/verifier-boundary/results.json",
+      "sha256": "574fe0dcc78e0abf4faf4fb6895ecc7cf5fba964f3fbb0b6987f5d4779f87430"
+    }
+  ],
+  "coverage_exclusions": [
+    {
+      "source": "benchmarks/prompt-compression/results.json",
+      "json_pointer": "/context_census",
+      "reason": "static context census, not a behavioral invocation"
+    },
+    {
+      "source": "benchmarks/prompt-compression/results.json",
+      "json_pointer": "/paid_campaign",
+      "reason": "campaign bookkeeping, not a behavioral invocation"
+    },
+    {
+      "source": "benchmarks/prompt-compression/results.json",
+      "json_pointer": "/static_gate",
+      "reason": "static byte/policy gate, not a behavioral invocation"
+    }
+  ],
+  "cells": [
+    {
+      "id": "cell:benchmarks/baton-compatibility/results.json#passed",
+      "claim_status": "passed",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/previous_final_gate"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/previous_final_gate/turns/1"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/final_gate"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/final_gate/turns/1"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/v1_3_2_release_gate"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/v1_3_2_release_gate/turns/1"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/v1_3_2_opus5_release_gate"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/v1_3_2_opus5_release_gate/turns/1"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/v1_3_2_opus5_release_gate/turns/2"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/superseded_candidate_gate"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/superseded_candidate_gate/turns/2"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/previous_final_gate/turns/1"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/final_gate/turns/1"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/v1_3_2_release_gate/turns/1"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/v1_3_2_opus5_release_gate/turns/1"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/v1_3_2_opus5_release_gate/turns/2"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/superseded_candidate_gate/turns/2"
+        }
+      ],
+      "count_status": "known",
+      "attempted": 6,
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "id": "cell:benchmarks/baton-compatibility/results.json#failed",
+      "claim_status": "failed",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/v1_3_2_opus5_rejected_user_source_attempt"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/failed_candidate_gate"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/v1_3_2_opus5_rejected_user_source_attempt"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/failed_candidate_gate/turns/0"
+        }
+      ],
+      "count_status": "known",
+      "attempted": 2,
+      "passed": 0,
+      "failed": 2
+    },
+    {
+      "id": "cell:benchmarks/baton-compatibility/results.json#unknown",
+      "claim_status": "unknown",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/v1_3_2_opus5_rejected_user_source_attempt/turn_1"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/previous_release_gate"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/historical_release_gate"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/superseded_gate"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/rejected_harness_run"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/previous_final_gate/turns/0"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/final_gate/turns/0"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/v1_3_2_release_gate/turns/0"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/v1_3_2_opus5_release_gate/turns/0"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/superseded_candidate_gate/turns/0"
+        },
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/superseded_candidate_gate/turns/1"
+        }
+      ],
+      "count_status": "unknown",
+      "attempted": null,
+      "passed": null,
+      "failed": null,
+      "reason": "Attempt pointers are absent or include records without an explicit per-attempt outcome; counts are not inferred from aggregate evidence."
+    },
+    {
+      "id": "cell:benchmarks/baton-dispatch-effect/results.json#passed",
+      "claim_status": "passed",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/small_availability_observation/cells/0"
+        },
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/small_availability_observation/cells/1"
+        },
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/small_availability_observation/gate"
+        },
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/large_policy_activation_gate/attempts/3"
+        },
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/large_policy_activation_gate/attempts/3/in_session_test"
+        },
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/large_policy_activation_gate/effect_gate"
+        },
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/release_payload_replay"
+        },
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/release_payload_replay/in_session_test"
+        },
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/release_payload_replay/effect_gate"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/small_availability_observation/cells/0"
+        },
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/small_availability_observation/cells/1"
+        },
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/large_policy_activation_gate/attempts/3"
+        },
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/release_payload_replay"
+        }
+      ],
+      "count_status": "known",
+      "attempted": 4,
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "id": "cell:benchmarks/baton-dispatch-effect/results.json#failed",
+      "claim_status": "failed",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/large_policy_activation_gate/attempts/0"
+        },
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/large_policy_activation_gate/attempts/1"
+        },
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/large_policy_activation_gate/attempts/2"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/large_policy_activation_gate/attempts/0"
+        },
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/large_policy_activation_gate/attempts/1"
+        },
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/large_policy_activation_gate/attempts/2"
+        }
+      ],
+      "count_status": "known",
+      "attempted": 3,
+      "passed": 0,
+      "failed": 3
+    },
+    {
+      "id": "cell:benchmarks/dispatch-brake/results.json#passed",
+      "claim_status": "passed",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/dispatch-brake/results.json",
+          "json_pointer": "/runs/0"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/results.json",
+          "json_pointer": "/runs/1"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/results.json",
+          "json_pointer": "/runs/2"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/results.json",
+          "json_pointer": "/runs/3"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/results.json",
+          "json_pointer": "/runs/4"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/results.json",
+          "json_pointer": "/runs/5"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/dispatch-brake/results.json",
+          "json_pointer": "/runs/0"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/results.json",
+          "json_pointer": "/runs/1"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/results.json",
+          "json_pointer": "/runs/2"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/results.json",
+          "json_pointer": "/runs/3"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/results.json",
+          "json_pointer": "/runs/4"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/results.json",
+          "json_pointer": "/runs/5"
+        }
+      ],
+      "count_status": "known",
+      "attempted": 6,
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "id": "cell:benchmarks/dispatch-brake/positive-controls/results.json#passed",
+      "claim_status": "passed",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/complete_runs/0"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/complete_runs/2"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/complete_runs/3"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/complete_runs/4"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/complete_runs/5"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/complete_runs/6"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/complete_runs/7"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/complete_runs/8"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/complete_runs/0"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/complete_runs/2"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/complete_runs/3"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/complete_runs/4"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/complete_runs/5"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/complete_runs/6"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/complete_runs/7"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/complete_runs/8"
+        }
+      ],
+      "count_status": "known",
+      "attempted": 8,
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "id": "cell:benchmarks/dispatch-brake/positive-controls/results.json#failed",
+      "claim_status": "failed",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/complete_runs/1"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/interrupted_policy_probes/0"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/interrupted_policy_probes/1"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/interrupted_policy_probes/2"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/interrupted_policy_probes/3"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/complete_runs/1"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/interrupted_policy_probes/0"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/interrupted_policy_probes/1"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/interrupted_policy_probes/2"
+        },
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/interrupted_policy_probes/3"
+        }
+      ],
+      "count_status": "known",
+      "attempted": 5,
+      "passed": 0,
+      "failed": 5
+    },
+    {
+      "id": "cell:benchmarks/prompt-compression/results.json#passed",
+      "claim_status": "passed",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/spontaneous_bug_candidate"
+        },
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/small_lifecycle"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/spontaneous_bug_candidate"
+        },
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/small_lifecycle"
+        }
+      ],
+      "count_status": "known",
+      "attempted": 2,
+      "passed": 2,
+      "failed": 0
+    },
+    {
+      "id": "cell:benchmarks/prompt-compression/results.json#failed",
+      "claim_status": "failed",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/spontaneous_mechanical_candidate"
+        },
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/spontaneous_mechanical_v1_3_3_control"
+        },
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/explicit_lifecycle_turn_1"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/spontaneous_mechanical_candidate"
+        },
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/spontaneous_mechanical_v1_3_3_control"
+        },
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/explicit_lifecycle_turn_1"
+        }
+      ],
+      "count_status": "known",
+      "attempted": 3,
+      "passed": 0,
+      "failed": 3
+    },
+    {
+      "id": "cell:benchmarks/prompt-compression/results.json#not_run",
+      "claim_status": "not_run",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/baton_large"
+        },
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/gap_roles"
+        }
+      ],
+      "attempt_pointers": [],
+      "count_status": "known",
+      "attempted": 0,
+      "passed": 0,
+      "failed": 0,
+      "reason": "Source explicitly records no behavioral invocation ran for these records."
+    },
+    {
+      "id": "cell:benchmarks/prompt-compression/results.json#unknown",
+      "claim_status": "unknown",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/explicit_lifecycle_user_continuation"
+        },
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/small_lifecycle/turn_1_plan"
+        },
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/small_lifecycle/turn_2_approved_execution"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/explicit_lifecycle_user_continuation"
+        }
+      ],
+      "count_status": "unknown",
+      "attempted": null,
+      "passed": null,
+      "failed": null,
+      "reason": "Attempt pointers are absent or include records without an explicit per-attempt outcome; counts are not inferred from aggregate evidence."
+    },
+    {
+      "id": "cell:benchmarks/spontaneous-dispatch/results.json#passed",
+      "claim_status": "passed",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/runs/2"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/runs/3"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/runs/4"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/runs/5"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/runs/2"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/runs/3"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/runs/4"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/runs/5"
+        }
+      ],
+      "count_status": "known",
+      "attempted": 4,
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "id": "cell:benchmarks/spontaneous-dispatch/results.json#failed",
+      "claim_status": "failed",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/runs/1"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/runs/1"
+        }
+      ],
+      "count_status": "known",
+      "attempted": 1,
+      "passed": 0,
+      "failed": 1
+    },
+    {
+      "id": "cell:benchmarks/spontaneous-dispatch/results.json#not_run",
+      "claim_status": "not_run",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/runs/0"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/runs/0"
+        }
+      ],
+      "count_status": "known",
+      "attempted": 0,
+      "passed": 0,
+      "failed": 0,
+      "reason": "Source explicitly records no behavioral invocation ran for these records."
+    },
+    {
+      "id": "cell:benchmarks/spontaneous-dispatch/results.json#unknown",
+      "claim_status": "unknown",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_paired_opt_in_matrix"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_paired_opt_in_matrix/cue_free/pro"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_paired_opt_in_matrix/cue_free/max"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/tightly_coupled_bug/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/tightly_coupled_bug/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/routine_docs_control/attempts/1"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/tightly_coupled_bug/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/tightly_coupled_bug/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/schema_lifecycle/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/schema_lifecycle/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/routine_docs_control/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/v1_3_7_max_prompt_baseline/cells/routine_docs_control/attempts/1"
+        }
+      ],
+      "count_status": "unknown",
+      "attempted": null,
+      "passed": null,
+      "failed": null,
+      "reason": "Attempt pointers are absent or include records without an explicit per-attempt outcome; counts are not inferred from aggregate evidence."
+    },
+    {
+      "id": "cell:benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json#passed",
+      "claim_status": "passed",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": ""
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/routine_docs"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/single_unknown_bug"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/mechanical_repetition"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/schema_lifecycle"
+        }
+      ],
+      "attempt_pointers": [],
+      "count_status": "unknown",
+      "attempted": null,
+      "passed": null,
+      "failed": null,
+      "reason": "Attempt pointers are absent or include records without an explicit per-attempt outcome; counts are not inferred from aggregate evidence."
+    },
+    {
+      "id": "cell:benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json#unknown",
+      "claim_status": "unknown",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/routine_docs/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/routine_docs/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/single_unknown_bug/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/single_unknown_bug/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/mechanical_repetition/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/mechanical_repetition/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/schema_lifecycle/attempts/0/turn_1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/schema_lifecycle/attempts/0/turn_2"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/schema_lifecycle/attempts/1/turn_1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/schema_lifecycle/attempts/1/turn_2"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/routine_docs/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/routine_docs/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/single_unknown_bug/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/single_unknown_bug/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/mechanical_repetition/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/mechanical_repetition/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/schema_lifecycle/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+          "json_pointer": "/results/schema_lifecycle/attempts/1"
+        }
+      ],
+      "count_status": "unknown",
+      "attempted": null,
+      "passed": null,
+      "failed": null,
+      "reason": "Attempt pointers are absent or include records without an explicit per-attempt outcome; counts are not inferred from aggregate evidence."
+    },
+    {
+      "id": "cell:benchmarks/spontaneous-dispatch/cue-free-tui.json#failed",
+      "claim_status": "failed",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+          "json_pointer": ""
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+          "json_pointer": "/tui_observation"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+          "json_pointer": "/campaign/cells/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+          "json_pointer": "/campaign/cells/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+          "json_pointer": "/campaign/cells/2"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+          "json_pointer": "/campaign/cells/3"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+          "json_pointer": "/campaign/cells/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+          "json_pointer": "/campaign/cells/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+          "json_pointer": "/campaign/cells/2"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+          "json_pointer": "/campaign/cells/3"
+        }
+      ],
+      "count_status": "known",
+      "attempted": 4,
+      "passed": 0,
+      "failed": 4
+    },
+    {
+      "id": "cell:benchmarks/spontaneous-dispatch/issue-29-recovery.json#passed",
+      "claim_status": "passed",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": ""
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/routine_docs"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/single_unknown_bug"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/mechanical_repetition"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/schema_lifecycle"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/routine_docs"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/single_unknown_bug"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/mechanical_repetition"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/schema_lifecycle"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/routine_docs"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/single_unknown_bug"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/mechanical_repetition"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/schema_lifecycle"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/routine_docs"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/single_unknown_bug"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/mechanical_repetition"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/schema_lifecycle"
+        }
+      ],
+      "attempt_pointers": [],
+      "count_status": "unknown",
+      "attempted": null,
+      "passed": null,
+      "failed": null,
+      "reason": "Attempt pointers are absent or include records without an explicit per-attempt outcome; counts are not inferred from aggregate evidence."
+    },
+    {
+      "id": "cell:benchmarks/spontaneous-dispatch/issue-29-recovery.json#unknown",
+      "claim_status": "unknown",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/routine_docs/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/routine_docs/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/single_unknown_bug/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/single_unknown_bug/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/mechanical_repetition/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/mechanical_repetition/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/mechanical_repetition/budget_incomplete_diagnostic"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/schema_lifecycle/attempts/0/turn_1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/schema_lifecycle/attempts/0/turn_2"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/schema_lifecycle/attempts/1/turn_1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/schema_lifecycle/attempts/1/turn_2"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/routine_docs/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/routine_docs/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/single_unknown_bug/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/single_unknown_bug/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/mechanical_repetition/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/mechanical_repetition/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/schema_lifecycle/attempts/0/turn_1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/schema_lifecycle/attempts/0/turn_2"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/schema_lifecycle/attempts/1/turn_1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/schema_lifecycle/attempts/1/turn_2"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/routine_docs/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/routine_docs/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/single_unknown_bug/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/single_unknown_bug/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/mechanical_repetition/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/mechanical_repetition/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/schema_lifecycle/attempts/0/turn_1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/schema_lifecycle/attempts/0/turn_2"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/schema_lifecycle/attempts/1/turn_1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/schema_lifecycle/attempts/1/turn_2"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/routine_docs/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/routine_docs/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/single_unknown_bug/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/single_unknown_bug/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/mechanical_repetition/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/mechanical_repetition/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/schema_lifecycle/attempts/0/turn_1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/schema_lifecycle/attempts/0/turn_2"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/schema_lifecycle/attempts/1/turn_1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/schema_lifecycle/attempts/1/turn_2"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/routine_docs/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/routine_docs/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/single_unknown_bug/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/single_unknown_bug/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/mechanical_repetition/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/mechanical_repetition/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/schema_lifecycle/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/results/schema_lifecycle/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/routine_docs/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/routine_docs/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/single_unknown_bug/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/single_unknown_bug/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/mechanical_repetition/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/mechanical_repetition/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/schema_lifecycle/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/release_replay/results/schema_lifecycle/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/routine_docs/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/routine_docs/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/single_unknown_bug/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/single_unknown_bug/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/mechanical_repetition/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/mechanical_repetition/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/schema_lifecycle/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_gate/results/schema_lifecycle/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/routine_docs/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/routine_docs/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/single_unknown_bug/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/single_unknown_bug/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/mechanical_repetition/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/mechanical_repetition/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/schema_lifecycle/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+          "json_pointer": "/adaptive_interaction_routing_post_review_gate/results/schema_lifecycle/attempts/1"
+        }
+      ],
+      "count_status": "unknown",
+      "attempted": null,
+      "passed": null,
+      "failed": null,
+      "reason": "Attempt pointers are absent or include records without an explicit per-attempt outcome; counts are not inferred from aggregate evidence."
+    },
+    {
+      "id": "cell:benchmarks/spontaneous-dispatch/issue-29-topology.json#passed",
+      "claim_status": "passed",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/6"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/7"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/14"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/15"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/16"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/17"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/18"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/6"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/7"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/14"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/15"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/16"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/17"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/18"
+        }
+      ],
+      "count_status": "known",
+      "attempted": 7,
+      "passed": 7,
+      "failed": 0
+    },
+    {
+      "id": "cell:benchmarks/spontaneous-dispatch/issue-29-topology.json#failed",
+      "claim_status": "failed",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/2"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/3"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/4"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/5"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/8"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/9"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/10"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/11"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/12"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/13"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/19"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/0"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/1"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/2"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/3"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/4"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/5"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/8"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/9"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/10"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/11"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/12"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/13"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/19"
+        }
+      ],
+      "count_status": "known",
+      "attempted": 13,
+      "passed": 0,
+      "failed": 13
+    },
+    {
+      "id": "cell:benchmarks/verifier-boundary/results.json#passed",
+      "claim_status": "passed",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/passing_gate"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/superseded_v1_3_6_passing_gate"
+        }
+      ],
+      "attempt_pointers": [],
+      "count_status": "unknown",
+      "attempted": null,
+      "passed": null,
+      "failed": null,
+      "reason": "Attempt pointers are absent or include records without an explicit per-attempt outcome; counts are not inferred from aggregate evidence."
+    },
+    {
+      "id": "cell:benchmarks/verifier-boundary/results.json#failed",
+      "claim_status": "failed",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/failed_attempts/0"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/failed_attempts/1"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/failed_attempts/3"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/failed_attempts/0"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/failed_attempts/1"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/failed_attempts/2"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/failed_attempts/3"
+        }
+      ],
+      "count_status": "known",
+      "attempted": 4,
+      "passed": 0,
+      "failed": 4
+    },
+    {
+      "id": "cell:benchmarks/verifier-boundary/results.json#unknown",
+      "claim_status": "unknown",
+      "claim_pointers": [
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/historical_candidate_gate"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/passing_gate/schema_lifecycle/attempt_a/turn_1"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/passing_gate/schema_lifecycle/attempt_a/turn_2"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/passing_gate/schema_lifecycle/attempt_b/turn_1"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/passing_gate/schema_lifecycle/attempt_b/turn_2"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/passing_gate/routine_docs_control"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/passing_gate/post_cap_plan_control"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/superseded_v1_3_6_passing_gate/schema_lifecycle/turn_1"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/superseded_v1_3_6_passing_gate/schema_lifecycle/turn_2"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/superseded_v1_3_6_passing_gate/routine_docs_control"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/superseded_v1_3_6_passing_gate/post_cap_plan_control/turns/0"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/superseded_v1_3_6_passing_gate/post_cap_plan_control/turns/1"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/superseded_v1_3_6_passing_gate/post_cap_plan_control/turns/2"
+        }
+      ],
+      "attempt_pointers": [
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/passing_gate/schema_lifecycle/attempt_a"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/passing_gate/schema_lifecycle/attempt_b"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/passing_gate/routine_docs_control"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/passing_gate/post_cap_plan_control"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/superseded_v1_3_6_passing_gate/schema_lifecycle"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/superseded_v1_3_6_passing_gate/routine_docs_control"
+        },
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/superseded_v1_3_6_passing_gate/post_cap_plan_control"
+        }
+      ],
+      "count_status": "unknown",
+      "attempted": null,
+      "passed": null,
+      "failed": null,
+      "reason": "Attempt pointers are absent or include records without an explicit per-attempt outcome; counts are not inferred from aggregate evidence."
+    }
+  ],
+  "failed_attempts": [
+    {
+      "id": "failure:benchmarks/baton-compatibility/results.json#/v1_3_2_opus5_rejected_user_source_attempt",
+      "cell_id": "cell:benchmarks/baton-compatibility/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/baton-compatibility/results.json",
+        "json_pointer": "/v1_3_2_opus5_rejected_user_source_attempt"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "passed=false; status=rejected",
+      "evidence": [
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/v1_3_2_opus5_rejected_user_source_attempt"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/baton-compatibility/results.json#/failed_candidate_gate/turns/0",
+      "cell_id": "cell:benchmarks/baton-compatibility/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/baton-compatibility/results.json",
+        "json_pointer": "/failed_candidate_gate/turns/0"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "failure_reasons=nonempty; failure_summary=nonempty",
+      "evidence": [
+        {
+          "source": "benchmarks/baton-compatibility/results.json",
+          "json_pointer": "/failed_candidate_gate",
+          "transcript_sha256": "250b8cd8b53e758299b233d16c2753890a46c6284a99a8d21ba5d5e907bf7ebc"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/baton-dispatch-effect/results.json#/large_policy_activation_gate/attempts/0",
+      "cell_id": "cell:benchmarks/baton-dispatch-effect/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/baton-dispatch-effect/results.json",
+        "json_pointer": "/large_policy_activation_gate/attempts/0"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "status=activation_dispatch_pass_ownership_fail; failure=nonempty",
+      "evidence": [
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/large_policy_activation_gate/attempts/0",
+          "raw_stream_sha256": "c9a275036928636ec0c1887ac718fc38744571caf1001b410e5e7aa5511266f0"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/baton-dispatch-effect/results.json#/large_policy_activation_gate/attempts/1",
+      "cell_id": "cell:benchmarks/baton-dispatch-effect/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/baton-dispatch-effect/results.json",
+        "json_pointer": "/large_policy_activation_gate/attempts/1"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "status=activation_dispatch_parallel_launch_pass_ownership_fail; failure=nonempty",
+      "evidence": [
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/large_policy_activation_gate/attempts/1",
+          "raw_stream_sha256": "281aeef1943de2f0696afd6a0ff85234a53462ca1653ec80932403cf4a8e0f60"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/baton-dispatch-effect/results.json#/large_policy_activation_gate/attempts/2",
+      "cell_id": "cell:benchmarks/baton-dispatch-effect/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/baton-dispatch-effect/results.json",
+        "json_pointer": "/large_policy_activation_gate/attempts/2"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "test_passed=false; status=topology_pass_runtime_limit_outcome_incomplete; failure=nonempty",
+      "evidence": [
+        {
+          "source": "benchmarks/baton-dispatch-effect/results.json",
+          "json_pointer": "/large_policy_activation_gate/attempts/2",
+          "raw_stream_sha256": "f7315489c29509dc31f8a5403a50ba28c1e84966a5ccb74bd8aca222fed4c8ed"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/dispatch-brake/positive-controls/results.json#/complete_runs/1",
+      "cell_id": "cell:benchmarks/dispatch-brake/positive-controls/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+        "json_pointer": "/complete_runs/1"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "status=error_max_budget_usd",
+      "evidence": [
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/complete_runs/1",
+          "raw_stream_sha256": "461dc2b7595384ef425276193a3fd3a73261f2f69353cc9254fecfc7af0edab9"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/dispatch-brake/positive-controls/results.json#/interrupted_policy_probes/0",
+      "cell_id": "cell:benchmarks/dispatch-brake/positive-controls/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+        "json_pointer": "/interrupted_policy_probes/0"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "status=error_during_execution",
+      "evidence": [
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/interrupted_policy_probes/0",
+          "raw_stream_sha256": "b342e11e090df2594717c3029ef93692386d3ff984435c71da2331df85e5b7f3"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/dispatch-brake/positive-controls/results.json#/interrupted_policy_probes/1",
+      "cell_id": "cell:benchmarks/dispatch-brake/positive-controls/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+        "json_pointer": "/interrupted_policy_probes/1"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "status=error_during_execution",
+      "evidence": [
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/interrupted_policy_probes/1",
+          "raw_stream_sha256": "d915599c1b34429610e19040789b71affeb40626ad5a402392cc36843848c026"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/dispatch-brake/positive-controls/results.json#/interrupted_policy_probes/2",
+      "cell_id": "cell:benchmarks/dispatch-brake/positive-controls/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+        "json_pointer": "/interrupted_policy_probes/2"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "status=error_during_execution",
+      "evidence": [
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/interrupted_policy_probes/2",
+          "raw_stream_sha256": "3f16c74b56292f0f2f384537622cabdea82508a3fcf0444486c0f38b8006d90d"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/dispatch-brake/positive-controls/results.json#/interrupted_policy_probes/3",
+      "cell_id": "cell:benchmarks/dispatch-brake/positive-controls/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+        "json_pointer": "/interrupted_policy_probes/3"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "status=error_during_execution",
+      "evidence": [
+        {
+          "source": "benchmarks/dispatch-brake/positive-controls/results.json",
+          "json_pointer": "/interrupted_policy_probes/3",
+          "raw_stream_sha256": "084bcdfa3b2597a7e0526d53db05c24a771958c8727ed9720f19348e846495da"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/prompt-compression/results.json#/behavioral_gates/spontaneous_mechanical_candidate",
+      "cell_id": "cell:benchmarks/prompt-compression/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/prompt-compression/results.json",
+        "json_pointer": "/behavioral_gates/spontaneous_mechanical_candidate"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "status=correctness_passed_topology_blocked",
+      "evidence": [
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/spontaneous_mechanical_candidate",
+          "raw_stream_sha256": "b4bd11e88785a406c99c30f5c96328c7461cc19c0c6bfe8a7d7bc3a1313e55b8"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/prompt-compression/results.json#/behavioral_gates/spontaneous_mechanical_v1_3_3_control",
+      "cell_id": "cell:benchmarks/prompt-compression/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/prompt-compression/results.json",
+        "json_pointer": "/behavioral_gates/spontaneous_mechanical_v1_3_3_control"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "status=correctness_passed_same_topology_blocker",
+      "evidence": [
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/spontaneous_mechanical_v1_3_3_control",
+          "raw_stream_sha256": "c781e5c28409509fba487152f18f299520e7ba2fc55ca4beb4d16353d338a991"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/prompt-compression/results.json#/behavioral_gates/explicit_lifecycle_turn_1",
+      "cell_id": "cell:benchmarks/prompt-compression/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/prompt-compression/results.json",
+        "json_pointer": "/behavioral_gates/explicit_lifecycle_turn_1"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "status=stopped_after_two_revise",
+      "evidence": [
+        {
+          "source": "benchmarks/prompt-compression/results.json",
+          "json_pointer": "/behavioral_gates/explicit_lifecycle_turn_1",
+          "raw_stream_sha256": "e1d80d3dcddb285a41c3eb1a301688463a4aef93c9afc45be6ab6bd5d43fe8c6"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/results.json#/runs/1",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/results.json",
+        "json_pointer": "/runs/1"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "status=success_topology_fail",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/results.json",
+          "json_pointer": "/runs/1",
+          "raw_stream_sha256": "59e576004c8eae9e2d833307c4785f9b67013bf327f9c0d17b52a6e5a801dd23"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/cue-free-tui.json#/campaign/cells/0",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/cue-free-tui.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+        "json_pointer": "/campaign/cells/0"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "topology_pass=false",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+          "json_pointer": ""
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+          "json_pointer": "/tui_observation",
+          "transcript_sha256": "a61987f9409683e9cb07262d8df0e6e9b1f30e693ac12fa9c226855eb79f48ad"
+        },
+        {
+          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+          "json_pointer": "/campaign/cells/0",
+          "raw_stream_sha256": "1450396041edf779d74783d275214ee396fc8d0723af305b26bae875470c27ce"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/cue-free-tui.json#/campaign/cells/1",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/cue-free-tui.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+        "json_pointer": "/campaign/cells/1"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "topology_pass=false",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+          "json_pointer": "/campaign/cells/1",
+          "raw_stream_sha256": "84a6344cbb2864db20f3b0f00cdea680822c951c0d18dfec08db83e1420d6646"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/cue-free-tui.json#/campaign/cells/2",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/cue-free-tui.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+        "json_pointer": "/campaign/cells/2"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "topology_pass=false",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+          "json_pointer": "/campaign/cells/2",
+          "raw_stream_sha256": "dec95adb7fb773d552223e23e32b1bcd03c3f7ba8475e44bcf6de606f25f7d83"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/cue-free-tui.json#/campaign/cells/3",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/cue-free-tui.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+        "json_pointer": "/campaign/cells/3"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "topology_pass=false",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+          "json_pointer": "/campaign/cells/3",
+          "transcript_sha256": "a61987f9409683e9cb07262d8df0e6e9b1f30e693ac12fa9c226855eb79f48ad"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/issue-29-topology.json#/attempts/0",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/issue-29-topology.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+        "json_pointer": "/attempts/0"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "reachability=FAIL",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/0",
+          "raw_stream_sha256": "567577c4cce8bca9fccf84945c3f2d0cf4f77379cbfbc8e7949a31e0b8524d12"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/issue-29-topology.json#/attempts/1",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/issue-29-topology.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+        "json_pointer": "/attempts/1"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "reachability=FAIL",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/1",
+          "raw_stream_sha256": "806c11e6564b1f5799a869de6be587603f68e6b91df231b6079da29e71d22171"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/issue-29-topology.json#/attempts/2",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/issue-29-topology.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+        "json_pointer": "/attempts/2"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "reachability=FAIL",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/2",
+          "raw_stream_sha256": "68a5fb449755583a6ab44473f53b12540f78e7fc2b9f569f6d46556b48debc37"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/issue-29-topology.json#/attempts/3",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/issue-29-topology.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+        "json_pointer": "/attempts/3"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "reachability=FAIL",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/3",
+          "raw_stream_sha256": "c2298a0d2e427d2a6b16f42bcdb56c58deefb65742cc49a79dd368deefe802bb"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/issue-29-topology.json#/attempts/4",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/issue-29-topology.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+        "json_pointer": "/attempts/4"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "reachability=FAIL",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/4",
+          "raw_stream_sha256": "a41e3497606027ec0a8ea82cea54e763840c59b09a1f91ecc07e26fde0fac920"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/issue-29-topology.json#/attempts/5",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/issue-29-topology.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+        "json_pointer": "/attempts/5"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "reachability=FAIL",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/5",
+          "raw_stream_sha256": "675a924566c7ae8dd43b9ff43f038e0db42de53145909d8ff79140d7d0535b52"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/issue-29-topology.json#/attempts/8",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/issue-29-topology.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+        "json_pointer": "/attempts/8"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "reachability=FAIL",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/8",
+          "raw_stream_sha256": "5075874b6a7476839abd04c40b8f43417017eb74e32250e55b4fb3de3788308b"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/issue-29-topology.json#/attempts/9",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/issue-29-topology.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+        "json_pointer": "/attempts/9"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "reachability=FAIL",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/9",
+          "raw_stream_sha256": "db5a747ee8c6c072149d14e0a52c0c4253968da652948861b31e2a6a3b181e5d"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/issue-29-topology.json#/attempts/10",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/issue-29-topology.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+        "json_pointer": "/attempts/10"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "reachability=FAIL",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/10",
+          "raw_stream_sha256": "e5c0ad4abc4a626f77200b49bd00881ee6d83e5193a0db70927c069c22e044d6"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/issue-29-topology.json#/attempts/11",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/issue-29-topology.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+        "json_pointer": "/attempts/11"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "reachability=FAIL",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/11",
+          "raw_stream_sha256": "b36831c30be48590880879a7a150ac79a8cfdf8cf0028aec2786179e78f6137c"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/issue-29-topology.json#/attempts/12",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/issue-29-topology.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+        "json_pointer": "/attempts/12"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "reachability=FAIL",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/12",
+          "raw_stream_sha256": "e7b35ac2e426a7a722159f3f6450f93a795592faabd530b431c8e27a7a48b3c6"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/issue-29-topology.json#/attempts/13",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/issue-29-topology.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+        "json_pointer": "/attempts/13"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "reachability=FAIL",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/13",
+          "raw_stream_sha256": "4902a5b163dfb5c185d266f7195178467f2c7c28822ba948fdcedf02d3ca145b"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/spontaneous-dispatch/issue-29-topology.json#/attempts/19",
+      "cell_id": "cell:benchmarks/spontaneous-dispatch/issue-29-topology.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+        "json_pointer": "/attempts/19"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "reachability=FAIL",
+      "evidence": [
+        {
+          "source": "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+          "json_pointer": "/attempts/19",
+          "raw_stream_sha256": "9861393a16a128470651d8f2f64fe6a207eec4451d315c320693e4a6545e0d20"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/verifier-boundary/results.json#/failed_attempts/0",
+      "cell_id": "cell:benchmarks/verifier-boundary/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/verifier-boundary/results.json",
+        "json_pointer": "/failed_attempts/0"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "status=rejected_quota_exhausted",
+      "evidence": [
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/failed_attempts/0"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/verifier-boundary/results.json#/failed_attempts/1",
+      "cell_id": "cell:benchmarks/verifier-boundary/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/verifier-boundary/results.json",
+        "json_pointer": "/failed_attempts/1"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "status=rejected_operator_contract_blocked_agents",
+      "evidence": [
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/failed_attempts/1",
+          "raw_stream_sha256": "9a6eaaa7f439ede5f4b2eb54856ea7446a3eeb18aef12a698362f399cd70b07e"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/verifier-boundary/results.json#/failed_attempts/2",
+      "cell_id": "cell:benchmarks/verifier-boundary/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/verifier-boundary/results.json",
+        "json_pointer": "/failed_attempts/2"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "reviewed_failure=compressed-candidate-schema-non-reproduction",
+      "evidence": [
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/failed_attempts/2"
+        }
+      ]
+    },
+    {
+      "id": "failure:benchmarks/verifier-boundary/results.json#/failed_attempts/3",
+      "cell_id": "cell:benchmarks/verifier-boundary/results.json#failed",
+      "attempt_pointer": {
+        "source": "benchmarks/verifier-boundary/results.json",
+        "json_pointer": "/failed_attempts/3"
+      },
+      "candidate_identity": {
+        "limitation": "This historical record does not expose a complete version/hash/config identity at the failure pointer."
+      },
+      "failure_boundary": "reviewed_failure=uncollected-background-verification",
+      "evidence": [
+        {
+          "source": "benchmarks/verifier-boundary/results.json",
+          "json_pointer": "/failed_attempts/3"
+        }
+      ]
+    }
+  ]
+}

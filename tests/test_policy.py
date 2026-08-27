@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from decimal import Decimal
 import hashlib
 import json
@@ -23,6 +24,571 @@ ROLES = (
     "verifier",
     "security-executor",
 )
+
+ATTEMPT_ACCOUNTING_SOURCES = (
+    "benchmarks/baton-compatibility/results.json",
+    "benchmarks/baton-dispatch-effect/results.json",
+    "benchmarks/dispatch-brake/results.json",
+    "benchmarks/dispatch-brake/positive-controls/results.json",
+    "benchmarks/prompt-compression/results.json",
+    "benchmarks/spontaneous-dispatch/results.json",
+    "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json",
+    "benchmarks/spontaneous-dispatch/cue-free-tui.json",
+    "benchmarks/spontaneous-dispatch/issue-29-recovery.json",
+    "benchmarks/spontaneous-dispatch/issue-29-topology.json",
+    "benchmarks/verifier-boundary/results.json",
+)
+ATTEMPT_ACCOUNTING_MARKERS = frozenset(
+    {
+        "claim",
+        "status",
+        "passed",
+        "test_passed",
+        "topology_pass",
+        "reachability",
+        "raw_stream_sha256",
+        "transcript_sha256",
+    }
+)
+ATTEMPT_ACCOUNTING_COVERAGE_EXCLUSIONS = {
+    (
+        "benchmarks/prompt-compression/results.json",
+        "/static_gate",
+    ): "static byte/policy gate, not a behavioral invocation",
+    (
+        "benchmarks/prompt-compression/results.json",
+        "/context_census",
+    ): "static context census, not a behavioral invocation",
+    (
+        "benchmarks/prompt-compression/results.json",
+        "/paid_campaign",
+    ): "campaign bookkeeping, not a behavioral invocation",
+}
+ATTEMPT_ACCOUNTING_PASS_STATUSES = frozenset(
+    {
+        "passed",
+        "passed_with_corrective_verification",
+        "success",
+        "release_qualified",
+        "correctness_pass",
+        "correctness_pass_no_activation",
+        "no_activation_observed_for_bounded_task",
+        "passed_activation_dispatch_ownership_collection_correctness",
+        "passed_activation_dispatch_ownership_collection_final_byte_correctness",
+        "passed_before_final_edit",
+        "passed_after_final_write",
+    }
+)
+ATTEMPT_ACCOUNTING_FAILURE_STATUSES = frozenset(
+    {
+        "rejected",
+        "failed",
+        "error_max_budget_usd",
+        "error_during_execution",
+        "success_topology_fail",
+        "activation_dispatch_pass_ownership_fail",
+        "activation_dispatch_parallel_launch_pass_ownership_fail",
+        "topology_pass_runtime_limit_outcome_incomplete",
+        "correctness_passed_topology_blocked",
+        "correctness_passed_same_topology_blocker",
+        "stopped_after_two_revise",
+        "stopped_after_failed_topology",
+        "rejected_quota_exhausted",
+        "rejected_operator_contract_blocked_agents",
+    }
+)
+ATTEMPT_ACCOUNTING_NOT_RUN_STATUSES = frozenset(
+    {"not_run", "usage_credits_required"}
+)
+ATTEMPT_ACCOUNTING_FAILURE_FIELDS = (
+    "failure",
+    "failures",
+    "failure_reason",
+    "failure_reasons",
+    "failure_summary",
+)
+ATTEMPT_ACCOUNTING_ATTEMPT_ARRAY_KEYS = frozenset(
+    {
+        "runs",
+        "attempts",
+        "cells",
+        "complete_runs",
+        "interrupted_policy_probes",
+        "failed_attempts",
+    }
+)
+ATTEMPT_ACCOUNTING_SINGULAR_ATTEMPTS = {
+    "benchmarks/baton-dispatch-effect/results.json": (
+        "/release_payload_replay",
+    ),
+    "benchmarks/prompt-compression/results.json": (
+        "/behavioral_gates/spontaneous_mechanical_candidate",
+        "/behavioral_gates/spontaneous_mechanical_v1_3_3_control",
+        "/behavioral_gates/spontaneous_bug_candidate",
+        "/behavioral_gates/explicit_lifecycle_turn_1",
+        "/behavioral_gates/explicit_lifecycle_user_continuation",
+        "/behavioral_gates/small_lifecycle",
+    ),
+    "benchmarks/verifier-boundary/results.json": (
+        "/passing_gate/schema_lifecycle/attempt_a",
+        "/passing_gate/schema_lifecycle/attempt_b",
+        "/passing_gate/routine_docs_control",
+        "/passing_gate/post_cap_plan_control",
+        "/superseded_v1_3_6_passing_gate/schema_lifecycle",
+        "/superseded_v1_3_6_passing_gate/routine_docs_control",
+        "/superseded_v1_3_6_passing_gate/post_cap_plan_control",
+    ),
+}
+ATTEMPT_ACCOUNTING_REVIEWED_FAILURES = {
+    (
+        "benchmarks/verifier-boundary/results.json",
+        "/failed_attempts/2",
+    ): {
+        "name": "compressed-candidate-schema-non-reproduction",
+        "outcome": "did not reproduce",
+    },
+    (
+        "benchmarks/verifier-boundary/results.json",
+        "/failed_attempts/3",
+    ): {
+        "name": "uncollected-background-verification",
+        "outcome": "approval gate held; acceptance not met",
+    },
+}
+
+
+def _attempt_accounting_pointer_part(value: object) -> str:
+    return str(value).replace("~", "~0").replace("/", "~1")
+
+
+def _attempt_accounting_marked_records(
+    value: object, pointer: str = ""
+) -> list[tuple[str, dict]]:
+    records: list[tuple[str, dict]] = []
+    if isinstance(value, dict):
+        if ATTEMPT_ACCOUNTING_MARKERS.intersection(value):
+            records.append((pointer, value))
+        for key, child in value.items():
+            records.extend(
+                _attempt_accounting_marked_records(
+                    child, pointer + "/" + _attempt_accounting_pointer_part(key)
+                )
+            )
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            records.extend(
+                _attempt_accounting_marked_records(child, pointer + "/" + str(index))
+            )
+    return records
+
+
+def _attempt_accounting_nonempty(value: object) -> bool:
+    return value not in (None, "", [], {})
+
+
+def _attempt_accounting_outcome(
+    record: dict, source: str | None = None, pointer: str | None = None
+) -> tuple[str, tuple[str, ...]]:
+    if source is not None and pointer is not None:
+        reviewed_failure = ATTEMPT_ACCOUNTING_REVIEWED_FAILURES.get(
+            (source, pointer)
+        )
+        if reviewed_failure is not None and all(
+            record.get(field) == expected
+            for field, expected in reviewed_failure.items()
+        ):
+            return "failed", (f"reviewed_failure={reviewed_failure['name']}",)
+
+    boundaries: list[str] = []
+    for key in ("passed", "test_passed", "topology_pass"):
+        if record.get(key) is False:
+            boundaries.append(f"{key}=false")
+    if record.get("reachability") == "FAIL":
+        boundaries.append("reachability=FAIL")
+    status = record.get("status")
+    if status in ATTEMPT_ACCOUNTING_FAILURE_STATUSES:
+        boundaries.append(f"status={status}")
+    for key in ATTEMPT_ACCOUNTING_FAILURE_FIELDS:
+        if key in record and _attempt_accounting_nonempty(record[key]):
+            boundaries.append(f"{key}=nonempty")
+    if boundaries:
+        return "failed", tuple(boundaries)
+    for key in ("passed", "test_passed", "topology_pass"):
+        if record.get(key) is True:
+            return "passed", (f"{key}=true",)
+    if record.get("reachability") == "PASS":
+        return "passed", ("reachability=PASS",)
+    if status in ATTEMPT_ACCOUNTING_PASS_STATUSES:
+        return "passed", (f"status={status}",)
+    if status in ATTEMPT_ACCOUNTING_NOT_RUN_STATUSES:
+        return "not_run", (f"status={status}",)
+    return "unknown", ()
+
+
+def _attempt_accounting_attempt_pointers(
+    source: str, document: object
+) -> list[str]:
+    pointers: list[str] = []
+
+    def add(pointer: str) -> None:
+        if pointer not in pointers:
+            pointers.append(pointer)
+
+    def walk(value: object, pointer: str = "") -> None:
+        if isinstance(value, dict):
+            for key, child in value.items():
+                child_pointer = pointer + "/" + _attempt_accounting_pointer_part(key)
+                if key in ATTEMPT_ACCOUNTING_ATTEMPT_ARRAY_KEYS and isinstance(
+                    child, list
+                ):
+                    for index in range(len(child)):
+                        add(child_pointer + "/" + str(index))
+                walk(child, child_pointer)
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                walk(child, pointer + "/" + str(index))
+
+    walk(document)
+    if source == "benchmarks/baton-compatibility/results.json":
+        for pointer, record in _attempt_accounting_marked_records(document):
+            if record.get("granularity") != "invocation":
+                continue
+            turns = record.get("turns")
+            if isinstance(turns, list):
+                for index in range(len(turns)):
+                    add(pointer + "/turns/" + str(index))
+            else:
+                add(pointer)
+    for pointer in ATTEMPT_ACCOUNTING_SINGULAR_ATTEMPTS.get(source, ()):
+        add(pointer)
+    return pointers
+
+
+def _attempt_accounting_attempt_outcome(
+    source: str, pointer: str, record: dict, document: object
+) -> tuple[str, tuple[str, ...]]:
+    outcome = _attempt_accounting_outcome(record, source, pointer)
+    if outcome[0] != "unknown":
+        return outcome
+    if (
+        source == "benchmarks/baton-compatibility/results.json"
+        and pointer.startswith("/failed_candidate_gate/turns/")
+    ):
+        parent = _attempt_accounting_resolve_pointer(
+            document, "/failed_candidate_gate"
+        )
+        parent_outcome = _attempt_accounting_outcome(
+            parent,
+            source,
+            "/failed_candidate_gate",
+        )
+        if parent_outcome[0] == "failed":
+            return parent_outcome
+    return outcome
+
+
+def _attempt_accounting_discover_public_json() -> tuple[str, ...]:
+    excluded_names = {
+        "agent-calls",
+        "agent-calls.json",
+        "traces",
+        "traces.json",
+        "budget",
+        "budget.json",
+        "package",
+        "package.json",
+        "agents",
+        "agents.json",
+        "settings.snippet",
+        "settings.snippet.json",
+    }
+    found: list[str] = []
+    for path in sorted((ROOT / "benchmarks").rglob("*.json")):
+        relative = path.relative_to(ROOT).as_posix()
+        parts = relative.split("/")
+        if relative == "benchmarks/attempt-accounting.json":
+            continue
+        if any(part in excluded_names for part in parts):
+            continue
+        if any(part == "fixture" or "snapshot" in part for part in parts):
+            continue
+        found.append(relative)
+    return tuple(found)
+
+
+def _attempt_accounting_resolve_pointer(document: object, pointer: str) -> object:
+    if pointer == "":
+        return document
+    if not pointer.startswith("/"):
+        raise AssertionError(f"invalid JSON Pointer: {pointer!r}")
+    value = document
+    for token in pointer[1:].split("/"):
+        token = token.replace("~1", "/").replace("~0", "~")
+        if isinstance(value, list):
+            if token == "0":
+                index = 0
+            else:
+                try:
+                    index = int(token)
+                except ValueError as error:
+                    raise AssertionError(
+                        f"non-index token {token!r} for list pointer {pointer!r}"
+                    ) from error
+            if index < 0 or index >= len(value):
+                raise AssertionError(f"missing list pointer {pointer!r}")
+            value = value[index]
+        elif isinstance(value, dict) and token in value:
+            value = value[token]
+        else:
+            raise AssertionError(f"missing JSON Pointer {pointer!r}")
+    return value
+
+
+def _attempt_accounting_validate(ledger: dict) -> None:
+    assert isinstance(ledger, dict)
+    assert ledger.get("schema_version") == 1
+    source_entries = ledger.get("sources")
+    assert isinstance(source_entries, list)
+    source_paths = [entry.get("path") for entry in source_entries]
+    assert source_paths == list(ATTEMPT_ACCOUNTING_SOURCES)
+    assert len(source_paths) == len(set(source_paths))
+    discovered_sources = _attempt_accounting_discover_public_json()
+    assert len(discovered_sources) == len(set(discovered_sources))
+    assert set(discovered_sources) == set(ATTEMPT_ACCOUNTING_SOURCES)
+
+    for entry, source in zip(source_entries, ATTEMPT_ACCOUNTING_SOURCES):
+        assert isinstance(entry, dict)
+        assert entry.get("path") == source
+        digest = entry.get("sha256")
+        assert isinstance(digest, str)
+        assert re.fullmatch(r"[0-9a-f]{64}", digest)
+        assert digest == hashlib.sha256((ROOT / source).read_bytes()).hexdigest()
+
+    exclusions = ledger.get("coverage_exclusions")
+    assert isinstance(exclusions, list)
+    actual_exclusions = {}
+    for exclusion in exclusions:
+        assert isinstance(exclusion, dict)
+        key = (exclusion.get("source"), exclusion.get("json_pointer"))
+        assert key not in actual_exclusions
+        reason = exclusion.get("reason")
+        assert isinstance(reason, str) and reason
+        actual_exclusions[key] = reason
+    assert actual_exclusions == ATTEMPT_ACCOUNTING_COVERAGE_EXCLUSIONS
+
+    documents = {
+        source: json.loads((ROOT / source).read_text(encoding="utf-8"))
+        for source in ATTEMPT_ACCOUNTING_SOURCES
+    }
+    oracle = {}
+    outcomes = {}
+    for source, document in documents.items():
+        for pointer, record in _attempt_accounting_marked_records(document):
+            key = (source, pointer)
+            if key in ATTEMPT_ACCOUNTING_COVERAGE_EXCLUSIONS:
+                continue
+            oracle[key] = record
+            outcomes[key] = _attempt_accounting_outcome(record, source, pointer)
+
+    attempt_oracle = {}
+    attempt_outcomes = {}
+    attempt_order = []
+    for source, document in documents.items():
+        for pointer in _attempt_accounting_attempt_pointers(source, document):
+            key = (source, pointer)
+            assert key not in attempt_oracle
+            record = _attempt_accounting_resolve_pointer(document, pointer)
+            assert isinstance(record, dict)
+            attempt_oracle[key] = record
+            attempt_outcomes[key] = _attempt_accounting_attempt_outcome(
+                source, pointer, record, document
+            )
+            attempt_order.append(key)
+    assert attempt_order
+
+    cells = ledger.get("cells")
+    assert isinstance(cells, list) and cells
+    cell_by_id = {}
+    owner_by_pointer = {}
+    for cell in cells:
+        assert isinstance(cell, dict)
+        cell_id = cell.get("id")
+        assert isinstance(cell_id, str) and cell_id
+        assert cell_id not in cell_by_id
+        cell_by_id[cell_id] = cell
+        pointers = cell.get("claim_pointers")
+        assert isinstance(pointers, list) and pointers
+        for claim_pointer in pointers:
+            assert isinstance(claim_pointer, dict)
+            source = claim_pointer.get("source")
+            pointer = claim_pointer.get("json_pointer")
+            key = (source, pointer)
+            assert key in oracle
+            assert key not in owner_by_pointer
+            assert isinstance(
+                _attempt_accounting_resolve_pointer(documents[source], pointer), dict
+            )
+            owner_by_pointer[key] = cell_id
+    assert set(owner_by_pointer) == set(oracle)
+    assert {source for source, _ in owner_by_pointer} == set(
+        ATTEMPT_ACCOUNTING_SOURCES
+    )
+
+    attempt_owner_by_pointer = {}
+    for cell in cells:
+        attempt_pointers = cell.get("attempt_pointers")
+        assert isinstance(attempt_pointers, list)
+        for attempt_pointer in attempt_pointers:
+            assert isinstance(attempt_pointer, dict)
+            source = attempt_pointer.get("source")
+            pointer = attempt_pointer.get("json_pointer")
+            key = (source, pointer)
+            assert key in attempt_oracle
+            assert key not in attempt_owner_by_pointer
+            attempt_owner_by_pointer[key] = cell["id"]
+    assert set(attempt_owner_by_pointer) == set(attempt_oracle)
+
+    failure_oracle = {}
+    for key, (state, boundaries) in outcomes.items():
+        if state == "failed":
+            failure_oracle[key] = boundaries
+    for key, reviewed_failure in ATTEMPT_ACCOUNTING_REVIEWED_FAILURES.items():
+        assert key in attempt_oracle
+        source, pointer = key
+        record = attempt_oracle[key]
+        assert all(
+            record.get(field) == expected
+            for field, expected in reviewed_failure.items()
+        )
+        failure_oracle[key] = (
+            f"reviewed_failure={reviewed_failure['name']}",
+        )
+    attempt_failure_oracle = {
+        key: boundaries
+        for key, (state, boundaries) in attempt_outcomes.items()
+        if state == "failed"
+    }
+
+    owned_failures = {cell_id: 0 for cell_id in cell_by_id}
+    for cell in cells:
+        cell_id = cell["id"]
+        claim_pointers = [
+            (claim_pointer["source"], claim_pointer["json_pointer"])
+            for claim_pointer in cell["claim_pointers"]
+        ]
+        claim_states = {outcomes[key][0] for key in claim_pointers}
+        assert len(claim_states) == 1
+        assert cell.get("claim_status") == next(iter(claim_states))
+
+        attempt_pointers = [
+            (attempt_pointer["source"], attempt_pointer["json_pointer"])
+            for attempt_pointer in cell["attempt_pointers"]
+        ]
+        attempt_states = [attempt_outcomes[key][0] for key in attempt_pointers]
+        if not attempt_pointers:
+            if next(iter(claim_states)) == "not_run":
+                expected_state = "known"
+                expected_attempted = expected_passed = expected_failed = 0
+            else:
+                expected_state = "unknown"
+                expected_attempted = expected_passed = expected_failed = None
+        elif "unknown" in attempt_states:
+            expected_state = "unknown"
+            expected_attempted = expected_passed = expected_failed = None
+        else:
+            expected_state = "known"
+            expected_attempted = sum(
+                state in ("passed", "failed") for state in attempt_states
+            )
+            expected_passed = attempt_states.count("passed")
+            expected_failed = attempt_states.count("failed")
+            if all(state == "not_run" for state in attempt_states):
+                expected_attempted = expected_passed = expected_failed = 0
+
+        assert cell.get("count_status") == expected_state
+        if expected_state == "unknown":
+            assert cell.get("attempted") is None
+            assert cell.get("passed") is None
+            assert cell.get("failed") is None
+            reason = cell.get("reason")
+            assert isinstance(reason, str) and reason
+        else:
+            for field, expected in (
+                ("attempted", expected_attempted),
+                ("passed", expected_passed),
+                ("failed", expected_failed),
+            ):
+                value = cell.get(field)
+                assert type(value) is int and value >= 0
+                assert value == expected
+            assert cell["attempted"] == cell["passed"] + cell["failed"]
+            if expected_attempted == 0:
+                reason = cell.get("reason")
+                assert isinstance(reason, str) and reason
+        for key in attempt_pointers:
+            if key in attempt_failure_oracle:
+                owned_failures[cell_id] += 1
+
+    failure_entries = ledger.get("failed_attempts")
+    assert isinstance(failure_entries, list)
+    failure_ids = set()
+    attempt_failures_by_pointer = {}
+    evidence_by_pointer = {}
+    for entry in failure_entries:
+        assert isinstance(entry, dict)
+        failure_id = entry.get("id")
+        assert (
+            isinstance(failure_id, str)
+            and failure_id
+            and failure_id not in failure_ids
+        )
+        failure_ids.add(failure_id)
+        cell_id = entry.get("cell_id")
+        assert cell_id in cell_by_id
+        attempt_pointer = entry.get("attempt_pointer")
+        assert isinstance(attempt_pointer, dict)
+        attempt_key = (
+            attempt_pointer.get("source"),
+            attempt_pointer.get("json_pointer"),
+        )
+        assert attempt_key in attempt_failure_oracle
+        assert attempt_key not in attempt_failures_by_pointer
+        assert attempt_owner_by_pointer[attempt_key] == cell_id
+        identity = entry.get("candidate_identity")
+        assert isinstance(identity, dict)
+        assert any(
+            key in identity and _attempt_accounting_nonempty(identity[key])
+            for key in ("version", "hash", "config", "limitation")
+        )
+        boundary = entry.get("failure_boundary")
+        assert isinstance(boundary, str) and boundary
+        evidence = entry.get("evidence")
+        assert isinstance(evidence, list) and evidence
+        assert boundary == "; ".join(attempt_failure_oracle[attempt_key])
+        for evidence_item in evidence:
+            assert isinstance(evidence_item, dict)
+            key = (
+                evidence_item.get("source"),
+                evidence_item.get("json_pointer"),
+            )
+            assert key in failure_oracle
+            assert key not in evidence_by_pointer
+            owner = owner_by_pointer.get(key, attempt_owner_by_pointer.get(key))
+            assert owner == cell_id
+            record = oracle.get(key, attempt_oracle.get(key))
+            assert isinstance(record, dict)
+            for hash_key in ("raw_stream_sha256", "transcript_sha256"):
+                if isinstance(record.get(hash_key), str):
+                    assert evidence_item.get(hash_key) == record[hash_key]
+            evidence_by_pointer[key] = entry
+        attempt_failures_by_pointer[attempt_key] = entry
+
+    assert set(attempt_failures_by_pointer) == set(attempt_failure_oracle)
+    assert set(evidence_by_pointer) == set(failure_oracle)
+    for cell_id, count in owned_failures.items():
+        assert count == sum(
+            entry.get("cell_id") == cell_id for entry in failure_entries
+        )
 
 
 class PolicyContractTests(unittest.TestCase):
@@ -3770,6 +4336,36 @@ class PolicyContractTests(unittest.TestCase):
                 )
             )
         self.assertNotIn("interrupted_invocation", json.dumps(results, default=str))
+
+    def test_attempt_accounting_ledger_is_complete_and_tamper_evident(self) -> None:
+        ledger_path = ROOT / "benchmarks" / "attempt-accounting.json"
+        ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+        _attempt_accounting_validate(ledger)
+
+        missing_cell_mapping = deepcopy(ledger)
+        cell = next(
+            cell
+            for cell in missing_cell_mapping["cells"]
+            if len(cell["claim_pointers"]) > 1
+        )
+        cell["claim_pointers"].pop()
+        with self.assertRaises(AssertionError):
+            _attempt_accounting_validate(missing_cell_mapping)
+
+        missing_attempt_mapping = deepcopy(ledger)
+        attempt_cell = next(
+            cell
+            for cell in missing_attempt_mapping["cells"]
+            if cell["attempt_pointers"]
+        )
+        attempt_cell["attempt_pointers"].pop()
+        with self.assertRaises(AssertionError):
+            _attempt_accounting_validate(missing_attempt_mapping)
+
+        missing_failure_mapping = deepcopy(ledger)
+        missing_failure_mapping["failed_attempts"].pop()
+        with self.assertRaises(AssertionError):
+            _attempt_accounting_validate(missing_failure_mapping)
 
 
 if __name__ == "__main__":
