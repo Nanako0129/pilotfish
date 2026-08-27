@@ -3282,6 +3282,421 @@ class PolicyContractTests(unittest.TestCase):
             passing["client_reported_cost_usd"],
         )
 
+    def test_verifier_boundary_attempts_are_source_bound(self) -> None:
+        gate = ROOT / "benchmarks" / "verifier-boundary"
+        ledger = json.loads(
+            (gate / "attempts.json").read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        source_bytes = (gate / "results.json").read_bytes()
+        source = json.loads(source_bytes, parse_float=Decimal)
+        historical_fields = [
+            "schema_turn_1_raw_stream_sha256",
+            "schema_turn_2_raw_stream_sha256",
+            "routine_raw_stream_sha256",
+        ]
+        historical = [
+            {
+                "id": f"verifier-boundary-historical-{name}",
+                "source_pointer": f"/historical_candidate_gate/{field}",
+                "configuration_identity": "historical-candidate",
+                "status": "passed_at_time_superseded",
+                "boundary": source["historical_candidate_gate"]["reason"],
+                "record": {
+                    "raw_stream_sha256": source["historical_candidate_gate"][field]
+                },
+            }
+            for name, field in zip(
+                ("schema-turn-1", "schema-turn-2", "routine"), historical_fields
+            )
+        ]
+        approval_pass = {
+            "id": "verifier-boundary-uncollected-turn-1",
+            "source_pointer": "/failed_attempts/3/raw_stream_sha256/0",
+            "configuration_identity": "uncollected-background-attempt",
+            "status": "passed_phase",
+            "boundary": "Turn 1 stopped at the approval gate with no writes.",
+            "record": {
+                "phase": "approval_wait",
+                "raw_stream_sha256": source["failed_attempts"][3][
+                    "raw_stream_sha256"
+                ][0],
+            },
+        }
+        current = source["passing_gate"]
+        current_schema = [
+            {
+                "id": (
+                    f"verifier-boundary-current-schema-{attempt.replace('_', '-')}-"
+                    f"{turn.replace('_', '-')}"
+                ),
+                "source_pointer": f"/passing_gate/schema_lifecycle/{attempt}/{turn}",
+                "configuration_identity": "current-candidate",
+                "status": "passed_phase",
+                "record": current["schema_lifecycle"][attempt][turn],
+            }
+            for attempt in ("attempt_a", "attempt_b")
+            for turn in ("turn_1", "turn_2")
+        ]
+        current_routine = {
+            "id": "verifier-boundary-current-routine",
+            "source_pointer": "/passing_gate/routine_docs_control",
+            "configuration_identity": "current-candidate",
+            "status": "passed",
+            "record": current["routine_docs_control"],
+        }
+        current_post = [
+            {
+                "id": f"verifier-boundary-current-post-cap-turn-{index + 1}",
+                "source_pointer": (
+                    f"/passing_gate/post_cap_plan_control/raw_stream_sha256/{index}"
+                ),
+                "configuration_identity": "current-candidate",
+                "status": "passed_phase",
+                "record": {
+                    "turn": index + 1,
+                    "verdict": current["post_cap_plan_control"]["verdicts"][index],
+                    "plan_verifier_calls": current["post_cap_plan_control"][
+                        "plan_verifier_calls_per_turn"
+                    ][index],
+                    "plan_verifier_background": current["post_cap_plan_control"][
+                        "plan_verifier_background"
+                    ][index],
+                    "plan_verifier_invocation_model_present": current[
+                        "post_cap_plan_control"
+                    ]["plan_verifier_invocation_model_present"][index],
+                    "writes": current["post_cap_plan_control"]["writes"],
+                    "raw_stream_sha256": current["post_cap_plan_control"][
+                        "raw_stream_sha256"
+                    ][index],
+                },
+            }
+            for index in range(3)
+        ]
+        old = source["superseded_v1_3_6_passing_gate"]
+        old_schema = [
+            {
+                "id": f"verifier-boundary-superseded-schema-{turn.replace('_', '-')}",
+                "source_pointer": (
+                    f"/superseded_v1_3_6_passing_gate/schema_lifecycle/{turn}"
+                ),
+                "configuration_identity": "superseded-v1.3.6",
+                "status": "passed_phase",
+                "record": old["schema_lifecycle"][turn],
+            }
+            for turn in ("turn_1", "turn_2")
+        ]
+        old_routine = {
+            "id": "verifier-boundary-superseded-routine",
+            "source_pointer": "/superseded_v1_3_6_passing_gate/routine_docs_control",
+            "configuration_identity": "superseded-v1.3.6",
+            "status": "passed",
+            "record": old["routine_docs_control"],
+        }
+        old_post = [
+            {
+                "id": f"verifier-boundary-superseded-post-cap-turn-{index + 1}",
+                "source_pointer": (
+                    f"/superseded_v1_3_6_passing_gate/post_cap_plan_control/turns/{index}"
+                ),
+                "configuration_identity": "superseded-v1.3.6",
+                "status": "passed_phase",
+                "record": old["post_cap_plan_control"]["turns"][index],
+            }
+            for index in range(3)
+        ]
+        passed = (
+            historical
+            + [approval_pass]
+            + current_schema
+            + [current_routine]
+            + current_post
+            + old_schema
+            + [old_routine]
+            + old_post
+        )
+        non_reproduction = {
+            key: value
+            for key, value in source["failed_attempts"][2].items()
+            if key != "inconclusive_diagnostic"
+        }
+        failed = [
+            {
+                "id": "verifier-boundary-quota-rejected",
+                "source_pointer": "/failed_attempts/0",
+                "configuration_identity": "current-candidate",
+                "status": "quota_rejected",
+                "boundary": source["failed_attempts"][0]["reason"],
+                "record": source["failed_attempts"][0],
+            },
+            {
+                "id": "verifier-boundary-operator-contract-rejected",
+                "source_pointer": "/failed_attempts/1",
+                "configuration_identity": "current-candidate",
+                "status": "operator_contract_blocked_agents",
+                "boundary": source["failed_attempts"][1]["reason"],
+                "record": source["failed_attempts"][1],
+            },
+            {
+                "id": "verifier-boundary-schema-non-reproduction",
+                "source_pointer": "/failed_attempts/2",
+                "configuration_identity": "current-candidate",
+                "status": "schema_non_reproduction",
+                "boundary": source["failed_attempts"][2]["observed"],
+                "record": non_reproduction,
+            },
+            {
+                "id": "verifier-boundary-uncollected-turn-2",
+                "source_pointer": "/failed_attempts/3/raw_stream_sha256/1",
+                "configuration_identity": "uncollected-background-attempt",
+                "status": "uncollected_background_failure",
+                "boundary": source["failed_attempts"][3]["observed"],
+                "record": {
+                    "phase": "execution_verification",
+                    "raw_stream_sha256": source["failed_attempts"][3][
+                        "raw_stream_sha256"
+                    ][1],
+                },
+            },
+        ]
+        diagnostic = {
+            "id": "verifier-boundary-weekly-limit-diagnostic",
+            "source_pointer": "/failed_attempts/2/inconclusive_diagnostic",
+            "configuration_identity": "current-candidate",
+            "status": "outcome_unknown",
+            "boundary": source["failed_attempts"][2]["inconclusive_diagnostic"][
+                "outcome"
+            ],
+            "record": source["failed_attempts"][2]["inconclusive_diagnostic"],
+        }
+        unknown_counts = [
+            {
+                "id": f"verifier-boundary-paid-group-{index}",
+                "source_pointer": f"/paid_campaign/attempt_log/{index}",
+                "status": "attempt_count_unknown",
+                "reason": (
+                    "This paid-campaign entry is a policy-byte cost aggregate and "
+                    "does not retain invocation cardinality or outcome."
+                ),
+                "record": record,
+            }
+            for index, record in enumerate(source["paid_campaign"]["attempt_log"])
+        ]
+        identities = {
+            "historical-candidate": source["historical_candidate_gate"],
+            "current-candidate": {
+                "candidate_source_base_commit": source[
+                    "candidate_source_base_commit"
+                ],
+                "candidate_version": source["candidate_version"],
+                "claude_code": source["claude_code"],
+                "requested_main_model": source["requested_main_model"],
+                "observed_main_model": source["observed_main_model"],
+                "setting_sources": source["setting_sources"],
+                "inputs": source["inputs"],
+                "route": current["route"],
+                "claim_boundary": current["claim_boundary"],
+            },
+            "uncollected-background-attempt": {
+                key: value
+                for key, value in source["failed_attempts"][3].items()
+                if key != "raw_stream_sha256"
+            },
+            "superseded-v1.3.6": {
+                "inputs": source["superseded_v1_3_6_inputs"],
+                "status": old["status"],
+                "claim_boundary": old["claim_boundary"],
+                "explicit_opt_in": old["explicit_opt_in"],
+                "superseded_reason": old["superseded_reason"],
+            },
+        }
+        detailed_pointers = (
+            [entry["source_pointer"] for entry in historical]
+            + [
+                "/failed_attempts/0",
+                "/failed_attempts/1",
+                "/failed_attempts/2",
+                "/failed_attempts/2/inconclusive_diagnostic",
+                "/failed_attempts/3/raw_stream_sha256/0",
+                "/failed_attempts/3/raw_stream_sha256/1",
+            ]
+            + [entry["source_pointer"] for entry in current_schema]
+            + [current_routine["source_pointer"]]
+            + [entry["source_pointer"] for entry in current_post]
+            + [entry["source_pointer"] for entry in old_schema]
+            + [old_routine["source_pointer"]]
+            + [entry["source_pointer"] for entry in old_post]
+        )
+        aggregate_exclusions = [
+            "/historical_candidate_gate",
+            "/passing_gate",
+            "/passing_gate/schema_lifecycle",
+            "/passing_gate/post_cap_plan_control",
+            "/paid_campaign",
+            "/superseded_v1_3_6_passing_gate",
+            "/superseded_v1_3_6_passing_gate/schema_lifecycle",
+            "/superseded_v1_3_6_passing_gate/post_cap_plan_control",
+        ]
+
+        def validate(candidate: dict) -> None:
+            self.assertEqual(
+                set(source),
+                {
+                    "schema_version",
+                    "run_date",
+                    "candidate_source_base_commit",
+                    "candidate_version",
+                    "claude_code",
+                    "requested_main_model",
+                    "observed_main_model",
+                    "setting_sources",
+                    "inputs",
+                    "historical_candidate_gate",
+                    "failed_attempts",
+                    "passing_gate",
+                    "paid_campaign",
+                    "superseded_v1_3_6_passing_gate",
+                    "superseded_v1_3_6_inputs",
+                },
+            )
+            self.assertEqual(
+                set(candidate),
+                {
+                    "schema_version",
+                    "source",
+                    "counts",
+                    "coverage",
+                    "configuration_identities",
+                    "passed_attempts",
+                    "failed_attempts",
+                    "unknown_attempts",
+                    "unknown_attempt_counts",
+                    "not_run",
+                },
+            )
+            self.assertEqual(
+                candidate["source"],
+                {
+                    "path": "results.json",
+                    "sha256": hashlib.sha256(source_bytes).hexdigest(),
+                },
+            )
+            self.assertEqual(
+                candidate["counts"],
+                {
+                    "attempted": 23,
+                    "passed": 18,
+                    "failed": 4,
+                    "unknown": 1,
+                    "unknown_invocation_count_records": 10,
+                },
+            )
+            self.assertEqual(
+                candidate["coverage"]["detailed_attempt_pointers"],
+                detailed_pointers,
+            )
+            self.assertEqual(
+                candidate["coverage"]["unknown_invocation_count_pointers"],
+                [f"/paid_campaign/attempt_log/{index}" for index in range(10)],
+            )
+            self.assertEqual(
+                candidate["coverage"]["aggregate_exclusions"],
+                aggregate_exclusions,
+            )
+            self.assertEqual(candidate["configuration_identities"], identities)
+            self.assertEqual(candidate["passed_attempts"], passed)
+            self.assertEqual(candidate["failed_attempts"], failed)
+            self.assertEqual(candidate["unknown_attempts"], [diagnostic])
+            self.assertEqual(candidate["unknown_attempt_counts"], unknown_counts)
+            self.assertEqual(candidate["not_run"], [])
+            entries = passed + failed + [diagnostic]
+            self.assertEqual(len(entries), 23)
+            self.assertEqual(len({entry["id"] for entry in entries}), 23)
+            self.assertEqual(len({entry["source_pointer"] for entry in entries}), 23)
+            hashes = {
+                entry["record"].get("raw_stream_sha256")
+                or entry["record"].get("raw_result_sha256")
+                for entry in entries
+                if entry["record"].get("raw_stream_sha256")
+                or entry["record"].get("raw_result_sha256")
+            }
+            self.assertEqual(len(hashes), 21)
+            self.assertEqual(approval_pass["status"], "passed_phase")
+            self.assertEqual(failed[-1]["status"], "uncollected_background_failure")
+            self.assertNotIn("inconclusive_diagnostic", failed[2]["record"])
+            self.assertEqual(diagnostic["status"], "outcome_unknown")
+            self.assertEqual(
+                sum(item["client_reported_cost_usd"] for item in source["paid_campaign"]["attempt_log"]),
+                source["paid_campaign"]["client_reported_cost_usd"],
+            )
+            self.assertEqual(
+                current["schema_lifecycle"]["client_reported_cost_usd"]
+                + current["routine_docs_control"]["client_reported_cost_usd"]
+                + current["post_cap_plan_control"]["client_reported_cost_usd"],
+                current["client_reported_cost_usd"],
+            )
+            self.assertEqual(
+                old["schema_lifecycle"]["client_reported_cost_usd"]
+                + old["routine_docs_control"]["client_reported_cost_usd"]
+                + old["post_cap_plan_control"]["client_reported_cost_usd"],
+                old["client_reported_cost_usd"],
+            )
+            for aggregate in candidate["coverage"]["aggregate_exclusions"]:
+                self.assertNotIn(aggregate, detailed_pointers)
+
+        validate(ledger)
+
+        missing = deepcopy(ledger)
+        missing["passed_attempts"].pop()
+        with self.assertRaises(AssertionError):
+            validate(missing)
+
+        folded_diagnostic = deepcopy(ledger)
+        folded_diagnostic["failed_attempts"][2]["record"][
+            "inconclusive_diagnostic"
+        ] = deepcopy(folded_diagnostic["unknown_attempts"][0]["record"])
+        with self.assertRaises(AssertionError):
+            validate(folded_diagnostic)
+
+        phase_flipped = deepcopy(ledger)
+        phase_flipped["passed_attempts"][3]["status"] = "failed"
+        with self.assertRaises(AssertionError):
+            validate(phase_flipped)
+
+        uncollected_passed = deepcopy(ledger)
+        uncollected_passed["failed_attempts"][-1]["status"] = "passed_phase"
+        with self.assertRaises(AssertionError):
+            validate(uncollected_passed)
+
+        counted_group = deepcopy(ledger)
+        counted_group["counts"]["attempted"] += 1
+        with self.assertRaises(AssertionError):
+            validate(counted_group)
+
+        for target, key, value in (
+            ("configuration_identities", "historical-candidate", {}),
+            ("record", "raw_stream_sha256", "0" * 64),
+            (None, "source_pointer", "/different"),
+        ):
+            changed = deepcopy(ledger)
+            if target == "configuration_identities":
+                changed[target][key] = value
+            else:
+                container = changed["passed_attempts"][0]
+                if target is not None:
+                    container = container[target]
+                container[key] = value
+            with self.assertRaises(AssertionError):
+                validate(changed)
+
+        reordered = deepcopy(ledger)
+        reordered["passed_attempts"][9], reordered["passed_attempts"][10] = (
+            reordered["passed_attempts"][10],
+            reordered["passed_attempts"][9],
+        )
+        with self.assertRaises(AssertionError):
+            validate(reordered)
+
     def test_prompt_template_semantic_equivalence_gate_is_documented(self) -> None:
         contributing = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
         release = (ROOT / "RELEASING.md").read_text(encoding="utf-8")

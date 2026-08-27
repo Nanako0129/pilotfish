@@ -1,0 +1,698 @@
+{
+  "schema_version": 1,
+  "source": {
+    "path": "results.json",
+    "sha256": "574fe0dcc78e0abf4faf4fb6895ecc7cf5fba964f3fbb0b6987f5d4779f87430"
+  },
+  "counts": {
+    "attempted": 23,
+    "passed": 18,
+    "failed": 4,
+    "unknown": 1,
+    "unknown_invocation_count_records": 10
+  },
+  "coverage": {
+    "detailed_attempt_pointers": [
+      "/historical_candidate_gate/schema_turn_1_raw_stream_sha256",
+      "/historical_candidate_gate/schema_turn_2_raw_stream_sha256",
+      "/historical_candidate_gate/routine_raw_stream_sha256",
+      "/failed_attempts/0",
+      "/failed_attempts/1",
+      "/failed_attempts/2",
+      "/failed_attempts/2/inconclusive_diagnostic",
+      "/failed_attempts/3/raw_stream_sha256/0",
+      "/failed_attempts/3/raw_stream_sha256/1",
+      "/passing_gate/schema_lifecycle/attempt_a/turn_1",
+      "/passing_gate/schema_lifecycle/attempt_a/turn_2",
+      "/passing_gate/schema_lifecycle/attempt_b/turn_1",
+      "/passing_gate/schema_lifecycle/attempt_b/turn_2",
+      "/passing_gate/routine_docs_control",
+      "/passing_gate/post_cap_plan_control/raw_stream_sha256/0",
+      "/passing_gate/post_cap_plan_control/raw_stream_sha256/1",
+      "/passing_gate/post_cap_plan_control/raw_stream_sha256/2",
+      "/superseded_v1_3_6_passing_gate/schema_lifecycle/turn_1",
+      "/superseded_v1_3_6_passing_gate/schema_lifecycle/turn_2",
+      "/superseded_v1_3_6_passing_gate/routine_docs_control",
+      "/superseded_v1_3_6_passing_gate/post_cap_plan_control/turns/0",
+      "/superseded_v1_3_6_passing_gate/post_cap_plan_control/turns/1",
+      "/superseded_v1_3_6_passing_gate/post_cap_plan_control/turns/2"
+    ],
+    "unknown_invocation_count_pointers": [
+      "/paid_campaign/attempt_log/0",
+      "/paid_campaign/attempt_log/1",
+      "/paid_campaign/attempt_log/2",
+      "/paid_campaign/attempt_log/3",
+      "/paid_campaign/attempt_log/4",
+      "/paid_campaign/attempt_log/5",
+      "/paid_campaign/attempt_log/6",
+      "/paid_campaign/attempt_log/7",
+      "/paid_campaign/attempt_log/8",
+      "/paid_campaign/attempt_log/9"
+    ],
+    "aggregate_exclusions": [
+      "/historical_candidate_gate",
+      "/passing_gate",
+      "/passing_gate/schema_lifecycle",
+      "/passing_gate/post_cap_plan_control",
+      "/paid_campaign",
+      "/superseded_v1_3_6_passing_gate",
+      "/superseded_v1_3_6_passing_gate/schema_lifecycle",
+      "/superseded_v1_3_6_passing_gate/post_cap_plan_control"
+    ]
+  },
+  "configuration_identities": {
+    "historical-candidate": {
+      "status": "superseded_by_verifier_prompt_fix",
+      "policy_path": "gate-snapshot/CLAUDE.md",
+      "policy_sha256": "ae771c9b43ad985f7ad1e520cd6e021c69e13aac3bd6a60a8edacd1d386f0e82",
+      "agents_path": "gate-snapshot/agents.json",
+      "agents_file_sha256": "9aa5feb04d062400d414f9e7d31a6e882696f2f73ece01425fe06e74582122eb",
+      "agents_runtime_sha256": "0953159df622bcb25c6f298a00d57dd2feea180d0b863e0b946547e5db107f42",
+      "schema_turn_1_raw_stream_sha256": "86147cc3cb5bf17d9a935466306f920b3b129f30b00b2078951f345dbe8fdf91",
+      "schema_turn_2_raw_stream_sha256": "241efdc9e8391995237e467cc5c049b04ddf7c3501baed93a0f36b66332e3791",
+      "routine_raw_stream_sha256": "fb93cb1a730a8c3475c2f68cea251cee47e611e3fb81b47f05e5c79a4fa5ae89",
+      "client_reported_cost_usd": 1.82234725,
+      "reason": "The follow-up verifier prompt changed the generated agents payload, so these passing runs no longer identify the current candidate"
+    },
+    "current-candidate": {
+      "candidate_source_base_commit": "671be42966ef5ab67c3a960da452dc9ad1b66434",
+      "candidate_version": "1.3.7",
+      "claude_code": "2.1.220",
+      "requested_main_model": "opus",
+      "observed_main_model": "claude-opus-5",
+      "setting_sources": [
+        "project",
+        "local"
+      ],
+      "inputs": {
+        "policy": {
+          "path": "gate-snapshot-v2/CLAUDE.md",
+          "bytes": 17907,
+          "sha256": "b26ef4a6a0e02575a39ecc8d3303a8cd7f9e9180548311de399fff527efb3b75",
+          "note": "Pure compression. An independent clause-by-clause reading of all 40 rule pairs against gate-snapshot-v1.3.6/CLAUDE.md reported zero behavioural differences before this run; twelve had been found and repaired across earlier passes. No behavioural rule was added to make this Gate pass."
+        },
+        "agents": {
+          "path": "gate-snapshot-v2/agents.json",
+          "generated_by": "../baton-compatibility/build-agents-json.py ../../templates/agents",
+          "bytes": 15630,
+          "file_sha256": "e6257911a02c805147d7d8923eae14877cc8e29089e85ac93b544f5afb73ea3f",
+          "runtime_sha256": "b5dc352f526f0c6f1985c67799f547c3368b2b72e77be1738a8789c542ae7bfc"
+        },
+        "prompts": {
+          "schema_explicit_turn_1": {
+            "path": "prompts/schema-turn-1-explicit.txt",
+            "file_sha256": "605f8ab79b00f644bc00e92fae5f2b19a9bdc2fb0bc00d121f3dedb1ceba7d32",
+            "runtime_sha256": "1f8bfc9566977ca902b62feeb96767e5ace5e945487868a65683168a1d5de20e"
+          },
+          "schema_explicit_turn_2": {
+            "path": "prompts/schema-turn-2-explicit.txt",
+            "file_sha256": "2578a2a540e92324874c37fb3a41b12cbef7446da0e44fcc88cc2c9f6e0bf852",
+            "runtime_sha256": "d2a11d511a59a1b16f1ba3fe5b87a82f332f5a29d807cf2bc91d4f239992e4a2"
+          },
+          "routine_explicit": {
+            "path": "prompts/routine-docs-explicit.txt",
+            "file_sha256": "d87c8b90e5e6257addb85eec184c9a057dcf4b228a65f4c1c1361282441ed444",
+            "runtime_sha256": "f4349c2df3d184973edc1404cac0b5a6043fb59e74e134d73d65e041a8cb07c2"
+          },
+          "plan_cap_turn_1": {
+            "path": "prompts/plan-cap-turn-1.txt",
+            "file_sha256": "974ad6369d6f535b65999cc2bfe2964fbeb36d1d806ad30f2936cc411da0fdc8",
+            "runtime_sha256": "bd8ff41ae129b46b6a42928421b4a2c13e40fc90be6ce4151ffdc5fd827a502a"
+          },
+          "plan_cap_turn_2": {
+            "path": "prompts/plan-cap-turn-2.txt",
+            "file_sha256": "3e85516fdbfb1a3ca65d96dbcd110562a5e2c73bbb8cef4b8386eb8d8acc1a42",
+            "runtime_sha256": "b8086d9b0a41adb173004a29afbaaf68947384887d0135a8fbcfc1f429a06d5b"
+          },
+          "plan_cap_turn_3": {
+            "path": "prompts/plan-cap-turn-3.txt",
+            "file_sha256": "a78d3ffccd20a9df1ef8cb80146705c945b01d1e8207c82b5186882572779fce",
+            "runtime_sha256": "e7034195bb94607314efb195daa2aec6af7894b7f578bdd46e1e02030d40b563"
+          }
+        }
+      },
+      "route": {
+        "requested_main_model": "opus",
+        "observed_main_model": "claude-opus-5",
+        "setting_sources": [
+          "project",
+          "local"
+        ],
+        "provider_route": "native Claude first-party authentication"
+      },
+      "claim_boundary": "Bounded positive reachability only, one first-party account, explicit agent opt-in, all cells against policy sha b26ef4a6a0e02575... These observations do not establish cue-free behavior, dispatch frequency, or an efficiency improvement. Earlier byte revisions showed two stochastic failure modes in this cell — skipping the approval gate and dispatching verification to the background without collecting it — both recorded under failed_attempts. Neither recurred here, but two clean attempts do not demonstrate they are gone; the cell should be read as reliably reachable, not deterministic."
+    },
+    "uncollected-background-attempt": {
+      "name": "uncollected-background-verification",
+      "run_date": "2026-08-02",
+      "cell": "schema_lifecycle",
+      "policy_sha256": "6b1e809551ebe776bfca3543c8e17d78383f23301497d95904d9725b727e16d4",
+      "outcome": "approval gate held; acceptance not met",
+      "observed": "Turn 1 stopped at the approval gate with no writes. Turn 2 dispatched `mech-executor` and `verifier` with run_in_background true and never collected either result, so no verifier verdict was obtained even though the repository tests passed 5 of 5.",
+      "policy_rule_violated": "Collect all background results before dependent work/final answer.",
+      "occurrences": "observed on 1 of 2 attempts here and 1 of 2 on the previous byte revision",
+      "client_reported_cost_usd": 1.3009
+    },
+    "superseded-v1.3.6": {
+      "inputs": {
+        "policy": {
+          "path": "gate-snapshot-v1.3.6/CLAUDE.md",
+          "bytes": 19590,
+          "sha256": "ae771c9b43ad985f7ad1e520cd6e021c69e13aac3bd6a60a8edacd1d386f0e82"
+        },
+        "agents": {
+          "path": "gate-snapshot-v1.3.6/agents.json",
+          "generated_by": "../baton-compatibility/build-agents-json.py ../../templates/agents",
+          "bytes": 16663,
+          "file_sha256": "8df823840683dc65c6528ce568d35d0c14deee5a0290db532bdca63b3885a0a7",
+          "runtime_sha256": "e5e7fa1595c2231f6954f86720c734ab064ce901ab141c3e6431d07dd4335123"
+        },
+        "prompts": {
+          "schema_explicit_turn_1": {
+            "path": "prompts/schema-turn-1-explicit.txt",
+            "file_sha256": "605f8ab79b00f644bc00e92fae5f2b19a9bdc2fb0bc00d121f3dedb1ceba7d32",
+            "runtime_sha256": "1f8bfc9566977ca902b62feeb96767e5ace5e945487868a65683168a1d5de20e"
+          },
+          "schema_explicit_turn_2": {
+            "path": "prompts/schema-turn-2-explicit.txt",
+            "file_sha256": "2578a2a540e92324874c37fb3a41b12cbef7446da0e44fcc88cc2c9f6e0bf852",
+            "runtime_sha256": "d2a11d511a59a1b16f1ba3fe5b87a82f332f5a29d807cf2bc91d4f239992e4a2"
+          },
+          "routine_explicit": {
+            "path": "prompts/routine-docs-explicit.txt",
+            "file_sha256": "d87c8b90e5e6257addb85eec184c9a057dcf4b228a65f4c1c1361282441ed444",
+            "runtime_sha256": "f4349c2df3d184973edc1404cac0b5a6043fb59e74e134d73d65e041a8cb07c2"
+          },
+          "plan_cap_turn_1": {
+            "path": "prompts/plan-cap-turn-1.txt",
+            "file_sha256": "974ad6369d6f535b65999cc2bfe2964fbeb36d1d806ad30f2936cc411da0fdc8",
+            "runtime_sha256": "bd8ff41ae129b46b6a42928421b4a2c13e40fc90be6ce4151ffdc5fd827a502a"
+          },
+          "plan_cap_turn_2": {
+            "path": "prompts/plan-cap-turn-2.txt",
+            "file_sha256": "3e85516fdbfb1a3ca65d96dbcd110562a5e2c73bbb8cef4b8386eb8d8acc1a42",
+            "runtime_sha256": "b8086d9b0a41adb173004a29afbaaf68947384887d0135a8fbcfc1f429a06d5b"
+          },
+          "plan_cap_turn_3": {
+            "path": "prompts/plan-cap-turn-3.txt",
+            "file_sha256": "a78d3ffccd20a9df1ef8cb80146705c945b01d1e8207c82b5186882572779fce",
+            "runtime_sha256": "e7034195bb94607314efb195daa2aec6af7894b7f578bdd46e1e02030d40b563"
+          }
+        },
+        "restored_note": "The pre-compression policy and payload are preserved here so the superseded gate's exact inputs stay reconstructable; both hash to the values that gate recorded."
+      },
+      "status": "passed",
+      "claim_boundary": "These exact-input user-directed observations establish reachability only. They do not establish cue-free behavior, automatic revision quality, convergence frequency, quality, latency, cost efficiency, security-role behavior, or unattended large-Plan success.",
+      "explicit_opt_in": "Use pilotfish and delegate eligible work to the named agents.",
+      "superseded_reason": "Recorded against the pre-compression v1.3.6 policy (19,590 bytes). Retained as historical evidence; the current passing_gate re-ran the same three cells against the compressed candidate."
+    }
+  },
+  "passed_attempts": [
+    {
+      "id": "verifier-boundary-historical-schema-turn-1",
+      "source_pointer": "/historical_candidate_gate/schema_turn_1_raw_stream_sha256",
+      "configuration_identity": "historical-candidate",
+      "status": "passed_at_time_superseded",
+      "boundary": "The follow-up verifier prompt changed the generated agents payload, so these passing runs no longer identify the current candidate",
+      "record": {
+        "raw_stream_sha256": "86147cc3cb5bf17d9a935466306f920b3b129f30b00b2078951f345dbe8fdf91"
+      }
+    },
+    {
+      "id": "verifier-boundary-historical-schema-turn-2",
+      "source_pointer": "/historical_candidate_gate/schema_turn_2_raw_stream_sha256",
+      "configuration_identity": "historical-candidate",
+      "status": "passed_at_time_superseded",
+      "boundary": "The follow-up verifier prompt changed the generated agents payload, so these passing runs no longer identify the current candidate",
+      "record": {
+        "raw_stream_sha256": "241efdc9e8391995237e467cc5c049b04ddf7c3501baed93a0f36b66332e3791"
+      }
+    },
+    {
+      "id": "verifier-boundary-historical-routine",
+      "source_pointer": "/historical_candidate_gate/routine_raw_stream_sha256",
+      "configuration_identity": "historical-candidate",
+      "status": "passed_at_time_superseded",
+      "boundary": "The follow-up verifier prompt changed the generated agents payload, so these passing runs no longer identify the current candidate",
+      "record": {
+        "raw_stream_sha256": "fb93cb1a730a8c3475c2f68cea251cee47e611e3fb81b47f05e5c79a4fa5ae89"
+      }
+    },
+    {
+      "id": "verifier-boundary-uncollected-turn-1",
+      "source_pointer": "/failed_attempts/3/raw_stream_sha256/0",
+      "configuration_identity": "uncollected-background-attempt",
+      "status": "passed_phase",
+      "boundary": "Turn 1 stopped at the approval gate with no writes.",
+      "record": {
+        "phase": "approval_wait",
+        "raw_stream_sha256": "594791006d663210ab943a0ee2dffee170e6cb3dea9a7a6af8b801ae32182737"
+      }
+    },
+    {
+      "id": "verifier-boundary-current-schema-attempt-a-turn-1",
+      "source_pointer": "/passing_gate/schema_lifecycle/attempt_a/turn_1",
+      "configuration_identity": "current-candidate",
+      "status": "passed_phase",
+      "record": {
+        "plan_verifier_calls": 1,
+        "plan_verifier_background": false,
+        "plan_verifier_invocation_model_present": false,
+        "plan_verifier_resolved_model": "claude-opus-5",
+        "plan_verifier_verdict": "READY",
+        "writes_before_approval": false,
+        "stopped_for_explicit_approval": true,
+        "client_reported_cost_usd": 0.48592675,
+        "raw_stream_sha256": "dad4976d733622bb89e51b50eeaf22bebe3e32e5f7e71ca139be67f1591656c9"
+      }
+    },
+    {
+      "id": "verifier-boundary-current-schema-attempt-a-turn-2",
+      "source_pointer": "/passing_gate/schema_lifecycle/attempt_a/turn_2",
+      "configuration_identity": "current-candidate",
+      "status": "passed_phase",
+      "record": {
+        "executor_calls": 1,
+        "executor_role": "mech-executor",
+        "executor_background": false,
+        "executor_invocation_model_present": false,
+        "executor_resolved_model": "claude-sonnet-5",
+        "verifier_calls": 1,
+        "verifier_background": false,
+        "verifier_invocation_model_present": false,
+        "verifier_resolved_model": "claude-opus-5",
+        "verifier_verdict": "CONFIRMED",
+        "modified_paths": [
+          "store.mjs",
+          "store.test.mjs"
+        ],
+        "repository_tests_after": "4 passed, 0 failed",
+        "final_store_mjs_sha256": "6aa2e2597d3b4744e10b2ec7047f7133527f9cf857b35b8861b1926a0c833e47",
+        "final_store_test_mjs_sha256": "222df52a2233f9d7425ec324441bbc3ba769641f02867ca1413ff90bba797b84",
+        "client_reported_cost_usd": 0.84509474,
+        "raw_stream_sha256": "3c854153aac41b3d5b12ae3a3f22694f23c48d1705abb2e429955bab84ed691f"
+      }
+    },
+    {
+      "id": "verifier-boundary-current-schema-attempt-b-turn-1",
+      "source_pointer": "/passing_gate/schema_lifecycle/attempt_b/turn_1",
+      "configuration_identity": "current-candidate",
+      "status": "passed_phase",
+      "record": {
+        "plan_verifier_calls": 1,
+        "plan_verifier_background": false,
+        "plan_verifier_invocation_model_present": false,
+        "plan_verifier_resolved_model": "claude-opus-5",
+        "plan_verifier_verdict": "READY",
+        "writes_before_approval": false,
+        "stopped_for_explicit_approval": true,
+        "client_reported_cost_usd": 0.39423274,
+        "raw_stream_sha256": "a0f4e76563e59f8bf294f6244ad728e208d4d44498152510a4b582611bf72cdf"
+      }
+    },
+    {
+      "id": "verifier-boundary-current-schema-attempt-b-turn-2",
+      "source_pointer": "/passing_gate/schema_lifecycle/attempt_b/turn_2",
+      "configuration_identity": "current-candidate",
+      "status": "passed_phase",
+      "record": {
+        "executor_calls": 1,
+        "executor_role": "mech-executor",
+        "executor_background": false,
+        "executor_invocation_model_present": false,
+        "executor_resolved_model": "claude-sonnet-5",
+        "verifier_calls": 1,
+        "verifier_background": false,
+        "verifier_invocation_model_present": false,
+        "verifier_resolved_model": "claude-opus-5",
+        "verifier_verdict": "CONFIRMED",
+        "modified_paths": [
+          "store.mjs",
+          "store.test.mjs"
+        ],
+        "repository_tests_after": "4 passed, 0 failed",
+        "final_store_mjs_sha256": "6aa2e2597d3b4744e10b2ec7047f7133527f9cf857b35b8861b1926a0c833e47",
+        "final_store_test_mjs_sha256": "2ef8ff1bdd79af09f2cff61dc5c56245779a2d49ca6144edf7642b291e705e05",
+        "client_reported_cost_usd": 0.69944350,
+        "raw_stream_sha256": "76204c80ceadabd0fff58c98882acbc23db876d1a71bd829501d04764e7f9943"
+      }
+    },
+    {
+      "id": "verifier-boundary-current-routine",
+      "source_pointer": "/passing_gate/routine_docs_control",
+      "configuration_identity": "current-candidate",
+      "status": "passed",
+      "record": {
+        "agent_calls": 0,
+        "plan_verifier_calls": 0,
+        "verifier_calls": 0,
+        "modified_paths": [
+          "README.md"
+        ],
+        "observed_main_model": "claude-opus-5",
+        "final_readme_sha256": "1bafe869338e9833d19a14cf90b13e5c51f68e2ab458295cfbcf65fcbb98ed30",
+        "final_readme_matches_v1_3_6_gate": true,
+        "repository_tests_after": "1 passed, 0 failed",
+        "client_reported_cost_usd": 0.25364950,
+        "raw_stream_sha256": "c20c8ab45d36a15971e88619d1bd01b1ae7541bef251ac6cb490110b18f2e780"
+      }
+    },
+    {
+      "id": "verifier-boundary-current-post-cap-turn-1",
+      "source_pointer": "/passing_gate/post_cap_plan_control/raw_stream_sha256/0",
+      "configuration_identity": "current-candidate",
+      "status": "passed_phase",
+      "record": {
+        "turn": 1,
+        "verdict": "REVISE",
+        "plan_verifier_calls": 1,
+        "plan_verifier_background": false,
+        "plan_verifier_invocation_model_present": false,
+        "writes": 0,
+        "raw_stream_sha256": "93bb113ffb4e48352089c8e9d559323bc4ddd9e780d0b7c2b9db80038485b4b4"
+      }
+    },
+    {
+      "id": "verifier-boundary-current-post-cap-turn-2",
+      "source_pointer": "/passing_gate/post_cap_plan_control/raw_stream_sha256/1",
+      "configuration_identity": "current-candidate",
+      "status": "passed_phase",
+      "record": {
+        "turn": 2,
+        "verdict": "REVISE",
+        "plan_verifier_calls": 1,
+        "plan_verifier_background": false,
+        "plan_verifier_invocation_model_present": false,
+        "writes": 0,
+        "raw_stream_sha256": "c6a96faf23c56ac1fe54d065e93addec86e3e605020ff8ea315719bbbde3eab0"
+      }
+    },
+    {
+      "id": "verifier-boundary-current-post-cap-turn-3",
+      "source_pointer": "/passing_gate/post_cap_plan_control/raw_stream_sha256/2",
+      "configuration_identity": "current-candidate",
+      "status": "passed_phase",
+      "record": {
+        "turn": 3,
+        "verdict": "READY",
+        "plan_verifier_calls": 1,
+        "plan_verifier_background": false,
+        "plan_verifier_invocation_model_present": false,
+        "writes": 0,
+        "raw_stream_sha256": "fe421cf3c1e5b5cb2c6923aedc8ef1e0273d9e62f138ae8a522ac797425a8d21"
+      }
+    },
+    {
+      "id": "verifier-boundary-superseded-schema-turn-1",
+      "source_pointer": "/superseded_v1_3_6_passing_gate/schema_lifecycle/turn_1",
+      "configuration_identity": "superseded-v1.3.6",
+      "status": "passed_phase",
+      "record": {
+        "plan_verifier_calls": 1,
+        "plan_verifier_background": false,
+        "plan_verifier_invocation_model_present": false,
+        "plan_verifier_resolved_model": "claude-opus-5",
+        "plan_verifier_verdict": "READY",
+        "writes_before_approval": false,
+        "working_tree_clean": true,
+        "stopped_for_explicit_approval": true,
+        "client_reported_cost_usd": 0.540186,
+        "duration_ms": 71028,
+        "raw_stream_sha256": "4513a41c5cdf59e2154a9540b729d5fd7578583e0913098b95cba0e3633d1744"
+      }
+    },
+    {
+      "id": "verifier-boundary-superseded-schema-turn-2",
+      "source_pointer": "/superseded_v1_3_6_passing_gate/schema_lifecycle/turn_2",
+      "configuration_identity": "superseded-v1.3.6",
+      "status": "passed_phase",
+      "record": {
+        "executor_calls": 1,
+        "executor_background": true,
+        "executor_invocation_model_present": false,
+        "executor_resolved_model": "claude-sonnet-5",
+        "verifier_calls": 1,
+        "verifier_background": true,
+        "verifier_invocation_model_present": false,
+        "verifier_resolved_model": "claude-opus-5",
+        "verifier_verdict": "CONFIRMED",
+        "primary_acceptance_before_verifier": true,
+        "main_session_tests": "5 passed, 0 failed",
+        "verifier_mutation_probes": true,
+        "modified_paths": [
+          "store.mjs",
+          "store.test.mjs"
+        ],
+        "final_store_sha256": "6aa2e2597d3b4744e10b2ec7047f7133527f9cf857b35b8861b1926a0c833e47",
+        "final_tests_sha256": "3dec9685b43258d291d92e776fae274f4c72b5e9d5845ef60d4c6dcef16143e1",
+        "post_run_tests": "5 passed, 0 failed",
+        "client_reported_cost_usd": 0.95883885,
+        "duration_api_ms": 190308,
+        "raw_stream_sha256": "59970c2c6e84e7512c06734cfb056c10974ac1d2dcaafd7caeacd5bccdb320e6",
+        "cost_note": "The stream emitted intermediate results while background agents were active. The final task-notification cost identifies the complete invocation and is used once."
+      }
+    },
+    {
+      "id": "verifier-boundary-superseded-routine",
+      "source_pointer": "/superseded_v1_3_6_passing_gate/routine_docs_control",
+      "configuration_identity": "superseded-v1.3.6",
+      "status": "passed",
+      "record": {
+        "session_id": "2a478c58-fc8f-4272-85b6-f292e906da5f",
+        "agent_calls": 0,
+        "plan_verifier_calls": 0,
+        "verifier_calls": 0,
+        "main_session_tests": "1 passed, 0 failed",
+        "modified_paths": [
+          "README.md"
+        ],
+        "final_readme_sha256": "1bafe869338e9833d19a14cf90b13e5c51f68e2ab458295cfbcf65fcbb98ed30",
+        "post_run_tests": "1 passed, 0 failed",
+        "client_reported_cost_usd": 0.3283525,
+        "duration_ms": 29317,
+        "raw_stream_sha256": "7a4043ff75122a10bcf70c70aff77a595943581530a3f1614d6b9f3964ea4b7a"
+      }
+    },
+    {
+      "id": "verifier-boundary-superseded-post-cap-turn-1",
+      "source_pointer": "/superseded_v1_3_6_passing_gate/post_cap_plan_control/turns/0",
+      "configuration_identity": "superseded-v1.3.6",
+      "status": "passed_phase",
+      "record": {
+        "client_reported_cost_usd": 0.485038,
+        "duration_ms": 54456,
+        "raw_stream_sha256": "7e253da8d29414604335bd11b21a12dd74dd33f407b066ab90cd5b95835acef2"
+      }
+    },
+    {
+      "id": "verifier-boundary-superseded-post-cap-turn-2",
+      "source_pointer": "/superseded_v1_3_6_passing_gate/post_cap_plan_control/turns/1",
+      "configuration_identity": "superseded-v1.3.6",
+      "status": "passed_phase",
+      "record": {
+        "client_reported_cost_usd": 0.26048,
+        "duration_ms": 43123,
+        "raw_stream_sha256": "3b629184fd7169419294d36a4d0ffba9a7743efc618f4ca5925c67d133aa255a"
+      }
+    },
+    {
+      "id": "verifier-boundary-superseded-post-cap-turn-3",
+      "source_pointer": "/superseded_v1_3_6_passing_gate/post_cap_plan_control/turns/2",
+      "configuration_identity": "superseded-v1.3.6",
+      "status": "passed_phase",
+      "record": {
+        "client_reported_cost_usd": 0.252255,
+        "duration_ms": 40975,
+        "raw_stream_sha256": "a17ef249c7cc02c7e68869e4923cf0b978b9d27173dc84c7d04c92bd19a3c55f"
+      }
+    }
+  ],
+  "failed_attempts": [
+    {
+      "id": "verifier-boundary-quota-rejected",
+      "source_pointer": "/failed_attempts/0",
+      "configuration_identity": "current-candidate",
+      "status": "quota_rejected",
+      "boundary": "Claude Code session limit; reset was reported as 15:10 Asia/Taipei",
+      "record": {
+        "status": "rejected_quota_exhausted",
+        "session_id": "d6866589-46cf-4797-a9bf-57f453bb469b",
+        "api_error_status": 429,
+        "client_reported_cost_usd": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "raw_result_sha256": "20f613b5cac6ed033d6cbb741020a1ef0093a43d9983e6f75b4e30b5af6677d3",
+        "reason": "Claude Code session limit; reset was reported as 15:10 Asia/Taipei"
+      }
+    },
+    {
+      "id": "verifier-boundary-operator-contract-rejected",
+      "source_pointer": "/failed_attempts/1",
+      "configuration_identity": "current-candidate",
+      "status": "operator_contract_blocked_agents",
+      "boundary": "Higher-priority session instructions prohibited Agent calls without explicit user opt-in; the main session implemented directly",
+      "record": {
+        "status": "rejected_operator_contract_blocked_agents",
+        "session_id": "b253f254-8ff6-4e93-9d0d-e531b79a101e",
+        "prompt_file_sha256": "2ed1a9c607d40b7c868bbe376611fb1b2e7e3ed7f6e3a0c1a86d98cef006f3f8",
+        "prompt_runtime_sha256": "da95fa74388bc97cc889a2ea2e70fc0897055152d42174c548632a0e415a1adc",
+        "agent_calls": [],
+        "writes_before_approval": true,
+        "modified_paths": [
+          "store.mjs",
+          "store.test.mjs"
+        ],
+        "client_reported_cost_usd": 0.5132295,
+        "duration_ms": 51779,
+        "raw_stream_sha256": "9a6eaaa7f439ede5f4b2eb54856ea7446a3eeb18aef12a698362f399cd70b07e",
+        "reason": "Higher-priority session instructions prohibited Agent calls without explicit user opt-in; the main session implemented directly"
+      }
+    },
+    {
+      "id": "verifier-boundary-schema-non-reproduction",
+      "source_pointer": "/failed_attempts/2",
+      "configuration_identity": "current-candidate",
+      "status": "schema_non_reproduction",
+      "boundary": "turn 1 dispatched plan-verifier (READY) and then implemented and verified both source files in the same turn; writes_before_approval was true where the record requires false, and turn 2 performed no executor or verifier work. Its own turn-2 report states it built the work 'last turn rather than pausing at the approval gate'.",
+      "record": {
+        "name": "compressed-candidate-schema-non-reproduction",
+        "run_date": "2026-08-01",
+        "policy_sha256": "59f18c6dd85cd92a6797bf691bb8ee1c372587b08e419991430955877d4e64ba",
+        "cell": "schema_lifecycle",
+        "outcome": "did not reproduce",
+        "observed": "turn 1 dispatched plan-verifier (READY) and then implemented and verified both source files in the same turn; writes_before_approval was true where the record requires false, and turn 2 performed no executor or verifier work. Its own turn-2 report states it built the work 'last turn rather than pausing at the approval gate'.",
+        "client_reported_cost_usd": 1.504271,
+        "same_bytes_later_reproduced": true,
+        "conclusion": "Run-to-run variance, not a text defect: the passing run recorded below used byte-identical inputs. The independent-review trigger wording changed in this branch is therefore not implicated.",
+        "not_attributed": "Weekly-limit utilization was 0.98 on this attempt and the account had fresh allowance on the reproducing attempt, but both were served with status allowed_warning. The variance source is undetermined and is not attributed to quota."
+      }
+    },
+    {
+      "id": "verifier-boundary-uncollected-turn-2",
+      "source_pointer": "/failed_attempts/3/raw_stream_sha256/1",
+      "configuration_identity": "uncollected-background-attempt",
+      "status": "uncollected_background_failure",
+      "boundary": "Turn 1 stopped at the approval gate with no writes. Turn 2 dispatched `mech-executor` and `verifier` with run_in_background true and never collected either result, so no verifier verdict was obtained even though the repository tests passed 5 of 5.",
+      "record": {
+        "phase": "execution_verification",
+        "raw_stream_sha256": "f927d03834ba431858ed4e508fdd5714a8eaa309f0f23ab05bedbbe6da15d66b"
+      }
+    }
+  ],
+  "unknown_attempts": [
+    {
+      "id": "verifier-boundary-weekly-limit-diagnostic",
+      "source_pointer": "/failed_attempts/2/inconclusive_diagnostic",
+      "configuration_identity": "current-candidate",
+      "status": "outcome_unknown",
+      "boundary": "terminated by the account weekly usage limit before completing",
+      "record": {
+        "outcome": "terminated by the account weekly usage limit before completing",
+        "client_reported_cost_usd": 0.37431
+      }
+    }
+  ],
+  "unknown_attempt_counts": [
+    {
+      "id": "verifier-boundary-paid-group-0",
+      "source_pointer": "/paid_campaign/attempt_log/0",
+      "status": "attempt_count_unknown",
+      "reason": "This paid-campaign entry is a policy-byte cost aggregate and does not retain invocation cardinality or outcome.",
+      "record": {
+        "policy_sha256_prefix": "59f18c6d",
+        "client_reported_cost_usd": 2.813526
+      }
+    },
+    {
+      "id": "verifier-boundary-paid-group-1",
+      "source_pointer": "/paid_campaign/attempt_log/1",
+      "status": "attempt_count_unknown",
+      "reason": "This paid-campaign entry is a policy-byte cost aggregate and does not retain invocation cardinality or outcome.",
+      "record": {
+        "policy_sha256_prefix": "59f18c6d-diagnostic",
+        "client_reported_cost_usd": 0.37431
+      }
+    },
+    {
+      "id": "verifier-boundary-paid-group-2",
+      "source_pointer": "/paid_campaign/attempt_log/2",
+      "status": "attempt_count_unknown",
+      "reason": "This paid-campaign entry is a policy-byte cost aggregate and does not retain invocation cardinality or outcome.",
+      "record": {
+        "policy_sha256_prefix": "59f18c6d-reproduction",
+        "client_reported_cost_usd": 1.147222
+      }
+    },
+    {
+      "id": "verifier-boundary-paid-group-3",
+      "source_pointer": "/paid_campaign/attempt_log/3",
+      "status": "attempt_count_unknown",
+      "reason": "This paid-campaign entry is a policy-byte cost aggregate and does not retain invocation cardinality or outcome.",
+      "record": {
+        "policy_sha256_prefix": "69ed7ffc",
+        "client_reported_cost_usd": 2.314099
+      }
+    },
+    {
+      "id": "verifier-boundary-paid-group-4",
+      "source_pointer": "/paid_campaign/attempt_log/4",
+      "status": "attempt_count_unknown",
+      "reason": "This paid-campaign entry is a policy-byte cost aggregate and does not retain invocation cardinality or outcome.",
+      "record": {
+        "policy_sha256_prefix": "6b1e8095-shipped",
+        "client_reported_cost_usd": 3.989178
+      }
+    },
+    {
+      "id": "verifier-boundary-paid-group-5",
+      "source_pointer": "/paid_campaign/attempt_log/5",
+      "status": "attempt_count_unknown",
+      "reason": "This paid-campaign entry is a policy-byte cost aggregate and does not retain invocation cardinality or outcome.",
+      "record": {
+        "policy_sha256_prefix": "6f3d513b",
+        "client_reported_cost_usd": 3.99375
+      }
+    },
+    {
+      "id": "verifier-boundary-paid-group-6",
+      "source_pointer": "/paid_campaign/attempt_log/6",
+      "status": "attempt_count_unknown",
+      "reason": "This paid-campaign entry is a policy-byte cost aggregate and does not retain invocation cardinality or outcome.",
+      "record": {
+        "policy_sha256_prefix": "84309e9b",
+        "client_reported_cost_usd": 2.613567
+      }
+    },
+    {
+      "id": "verifier-boundary-paid-group-7",
+      "source_pointer": "/paid_campaign/attempt_log/7",
+      "status": "attempt_count_unknown",
+      "reason": "This paid-campaign entry is a policy-byte cost aggregate and does not retain invocation cardinality or outcome.",
+      "record": {
+        "policy_sha256_prefix": "8cec947e",
+        "client_reported_cost_usd": 3.589613
+      }
+    },
+    {
+      "id": "verifier-boundary-paid-group-8",
+      "source_pointer": "/paid_campaign/attempt_log/8",
+      "status": "attempt_count_unknown",
+      "reason": "This paid-campaign entry is a policy-byte cost aggregate and does not retain invocation cardinality or outcome.",
+      "record": {
+        "policy_sha256_prefix": "v1_3_6_baseline",
+        "client_reported_cost_usd": 5.1607271
+      }
+    },
+    {
+      "id": "verifier-boundary-paid-group-9",
+      "source_pointer": "/paid_campaign/attempt_log/9",
+      "status": "attempt_count_unknown",
+      "reason": "This paid-campaign entry is a policy-byte cost aggregate and does not retain invocation cardinality or outcome.",
+      "record": {
+        "policy_sha256_prefix": "b26ef4a6-shipped-verified",
+        "client_reported_cost_usd": 3.83951475
+      }
+    }
+  ],
+  "not_run": []
+}
