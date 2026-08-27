@@ -1827,6 +1827,14 @@ class PolicyContractTests(unittest.TestCase):
             contributing_text.index(procedure),
             contributing_text.index("## Verify the change"),
         )
+        for clause in (
+            "The independent record must also include the exact final candidate revision identity (commit and tree) and a SHA-256 for every changed prompt-template file:",
+            "Any template edit after the reading invalidates the record. The independent reader must repeat or update affected pair readings and record the new final candidate identity and hashes",
+            "Release readiness requires current changed-template SHA-256 values and candidate tree/bytes to match the independent record. If they differ, stop before renderer/tag and rerun/update the reading",
+            "A tree-identical squash merge may map the reviewed PR head to a new commit SHA only when recorded tree equality and every changed-template byte hash are identical",
+        ):
+            with self.subTest(document="CONTRIBUTING.md", clause=clause):
+                self.assertIn(clause, contributing_text)
         for anchor in (
             "behavior-bearing prompt templates",
             "prompt-bearing templates",
@@ -1838,6 +1846,10 @@ class PolicyContractTests(unittest.TestCase):
             "changed template path",
             "identity of an independent semantic reader",
             "did not author",
+            "final candidate revision",
+            "candidate tree",
+            "SHA-256 for every changed prompt-template file",
+            "changed-template SHA-256",
             "prior counterpart",
             "`prior: absent`",
             "`current: absent`",
@@ -1848,6 +1860,19 @@ class PolicyContractTests(unittest.TestCase):
             "rationale",
             "Additions and deletions require an explicit semantic disposition",
             "complete before release readiness",
+            "Any template edit after the reading invalidates the record",
+            "repeat or update affected pair readings",
+            "new final candidate identity and hashes",
+            "completed dispositions alone are insufficient",
+            "current changed-template SHA-256 values",
+            "candidate tree/bytes",
+            "match the independent record",
+            "stop before renderer/tag",
+            "rerun/update the reading",
+            "tree-identical squash merge",
+            "reviewed PR head",
+            "new commit SHA",
+            "recorded tree equality",
             "Phrase assertions",
             "byte/hash checks",
             "renderer checks",
@@ -1860,7 +1885,7 @@ class PolicyContractTests(unittest.TestCase):
             with self.subTest(document="CONTRIBUTING.md", anchor=anchor):
                 self.assertIn(anchor, contributing_text)
 
-        release_gate = "Before any render or tag work"
+        release_gate = "Before render/tag work"
         self.assertIn(release_gate, release_text)
         for anchor in (
             "prompt-bearing template changes",
@@ -1879,9 +1904,25 @@ class PolicyContractTests(unittest.TestCase):
             "`DEFER`",
             "`REJECT`",
             "before release readiness",
+            "final candidate/tree/template-hash match",
+            "current changed-template SHA-256 values",
+            "candidate tree/bytes",
+            "match the independent record",
+            "stop before renderer/tag",
+            "rerun/update the reading",
+            "tree-identical squash merge",
+            "reviewed PR head",
+            "new commit SHA",
+            "recorded tree equality",
         ):
             with self.subTest(document="RELEASING.md", anchor=anchor):
                 self.assertIn(anchor, release_text)
+        for clause in (
+            "Require a final candidate/tree/template-hash match: current changed-template SHA-256 values and candidate tree/bytes must match the independent record; if they differ, stop before renderer/tag and rerun/update the reading",
+            "A tree-identical squash merge may map the reviewed PR head to a new commit SHA only when recorded tree equality and every changed-template byte hash are identical",
+        ):
+            with self.subTest(document="RELEASING.md", clause=clause):
+                self.assertIn(clause, release_text)
         gate_index = release_text.index(release_gate)
         self.assertLess(
             gate_index, release_text.index("python3 tools/render_plugin_spike.py --write")
