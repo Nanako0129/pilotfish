@@ -602,6 +602,215 @@ class PolicyContractTests(unittest.TestCase):
             content = (ROOT / readme).read_text(encoding="utf-8")
             self.assertIn("cue-free-tui.json", content)
 
+    def test_cue_free_tui_attempts_are_source_bound(self) -> None:
+        benchmark = ROOT / "benchmarks" / "spontaneous-dispatch"
+        attempts = json.loads(
+            (benchmark / "cue-free-tui.attempts.json").read_text(
+                encoding="utf-8"
+            ),
+            parse_float=Decimal,
+        )
+        source_bytes = (benchmark / "cue-free-tui.json").read_bytes()
+        source = json.loads(source_bytes, parse_float=Decimal)
+
+        expected_source_keys = {
+            "campaign",
+            "claim",
+            "claim_boundary",
+            "disposition",
+            "inputs",
+            "run_date",
+            "schema_version",
+            "status",
+            "tui_observation",
+        }
+        expected_campaign_keys = {
+            "approximate_total_usd",
+            "authorized_cap_usd",
+            "cells",
+            "stopped_before_explicit_cue_cells",
+        }
+        expected_surfaces = [
+            "Claude Code print, no persistence",
+            "Claude Code print, persistent",
+            "Calico print, persistent",
+            "Calico interactive TUI, persistent",
+        ]
+        expected_pointers = [f"/campaign/cells/{index}" for index in range(4)]
+        expected_candidate_sha = source["inputs"]["policy"]["candidate_sha256"]
+        expected_behavior_keys = (
+            "agent_calls",
+            "main_session_mutated_source",
+            "changed_adapter_files",
+            "tests",
+            "topology_pass",
+        )
+
+        def resolve(pointer: str) -> dict:
+            self.assertTrue(pointer.startswith("/"))
+            value: object = source
+            for token in pointer[1:].split("/"):
+                if isinstance(value, dict):
+                    self.assertIn(token, value)
+                    value = value[token]
+                else:
+                    self.assertIsInstance(value, list)
+                    self.assertTrue(token.isdigit())
+                    value = value[int(token)]
+            self.assertIsInstance(value, dict)
+            return value
+
+        def validate(ledger: dict) -> None:
+            self.assertEqual(
+                set(ledger),
+                {
+                    "schema_version",
+                    "source",
+                    "counts",
+                    "coverage",
+                    "passed_attempts",
+                    "failed_attempts",
+                    "not_run",
+                },
+            )
+            self.assertEqual(set(source), expected_source_keys)
+            self.assertEqual(set(source["campaign"]), expected_campaign_keys)
+            self.assertEqual(
+                ledger["source"],
+                {
+                    "path": "cue-free-tui.json",
+                    "sha256": hashlib.sha256(source_bytes).hexdigest(),
+                },
+            )
+            self.assertEqual(ledger["schema_version"], 1)
+            self.assertEqual(ledger["coverage"]["source_pointer"], "")
+            self.assertEqual(ledger["coverage"]["status"], source["status"])
+            self.assertEqual(ledger["coverage"]["claim"], source["claim"])
+            self.assertEqual(
+                ledger["coverage"]["claim_boundary"], source["claim_boundary"]
+            )
+            self.assertEqual(
+                ledger["coverage"]["invocation_pointers"], expected_pointers
+            )
+            self.assertEqual(
+                [cell["surface"] for cell in source["campaign"]["cells"]],
+                expected_surfaces,
+            )
+            self.assertEqual(
+                [cell["surface"] for cell in source["campaign"]["cells"]],
+                [
+                    resolve(pointer)["surface"] for pointer in expected_pointers
+                ],
+            )
+
+            passed = ledger["passed_attempts"]
+            failed = ledger["failed_attempts"]
+            not_run = ledger["not_run"]
+            self.assertEqual(passed, [])
+            self.assertEqual(not_run, [])
+            self.assertEqual(len(failed), 4)
+            self.assertEqual(
+                ledger["counts"], {"attempted": 4, "passed": 0, "failed": 4}
+            )
+            self.assertEqual(ledger["counts"]["attempted"], len(failed))
+            self.assertEqual(
+                ledger["counts"]["attempted"],
+                ledger["counts"]["passed"] + ledger["counts"]["failed"],
+            )
+            self.assertEqual(
+                [entry["source_pointer"] for entry in failed], expected_pointers
+            )
+            self.assertNotIn("", [entry["source_pointer"] for entry in failed])
+            self.assertEqual(
+                len({entry["id"] for entry in failed}), len(failed)
+            )
+            self.assertEqual(
+                len({entry["source_pointer"] for entry in failed}), len(failed)
+            )
+
+            for index, (entry, pointer) in enumerate(zip(failed, expected_pointers)):
+                cell = resolve(pointer)
+                self.assertEqual(entry["id"], f"cue-free-tui-cell-{index}")
+                self.assertEqual(entry["status"], "correctness_passed_topology_blocked")
+                self.assertEqual(
+                    entry["candidate_identity"],
+                    {"candidate_sha256": expected_candidate_sha},
+                )
+                self.assertEqual(entry["boundary"], "topology_pass=false")
+                self.assertEqual(entry["surface"], cell["surface"])
+                self.assertEqual(entry["route"], cell["route"])
+                self.assertEqual(entry["cost_usd"], cell["cost_usd"])
+                for key in expected_behavior_keys:
+                    self.assertEqual(entry[key], cell[key])
+                self.assertRegex(entry["status"], r"topology")
+                self.assertNotIn("client_reported_cost_usd", entry)
+
+                if index < 3:
+                    self.assertEqual(
+                        entry["raw_stream_sha256"], cell["raw_stream_sha256"]
+                    )
+                    self.assertRegex(
+                        entry["raw_stream_sha256"], r"^[0-9a-f]{64}$"
+                    )
+                    self.assertNotIn("transcript_sha256", entry)
+                    self.assertNotIn("tui_observation", entry)
+                    self.assertNotIn("cost_is_rounded", entry)
+                else:
+                    self.assertTrue(entry["cost_is_rounded"])
+                    self.assertEqual(
+                        entry["transcript_sha256"], cell["transcript_sha256"]
+                    )
+                    self.assertEqual(
+                        entry["transcript_sha256"],
+                        source["tui_observation"]["transcript_sha256"],
+                    )
+                    self.assertRegex(
+                        entry["transcript_sha256"], r"^[0-9a-f]{64}$"
+                    )
+                    self.assertEqual(
+                        entry["tui_observation"], source["tui_observation"]
+                    )
+                    self.assertNotIn("raw_stream_sha256", entry)
+                    self.assertEqual(
+                        entry["tui_observation"]["cost_is_rounded"],
+                        entry["cost_is_rounded"],
+                    )
+
+            self.assertEqual(
+                sum((cell["cost_usd"] for cell in source["campaign"]["cells"]), Decimal("0")),
+                source["campaign"]["approximate_total_usd"],
+            )
+
+        validate(attempts)
+
+        missing_cell = deepcopy(attempts)
+        missing_cell["failed_attempts"].pop()
+        with self.assertRaises(AssertionError):
+            validate(missing_cell)
+
+        root_attempt = deepcopy(attempts)
+        root_attempt["failed_attempts"].append(
+            deepcopy(root_attempt["failed_attempts"][0])
+        )
+        root_attempt["failed_attempts"][-1]["id"] = "cue-free-tui-root"
+        root_attempt["failed_attempts"][-1]["source_pointer"] = ""
+        with self.assertRaises(AssertionError):
+            validate(root_attempt)
+
+        replaced_candidate = deepcopy(attempts)
+        replaced_candidate["failed_attempts"][0]["candidate_identity"][
+            "candidate_sha256"
+        ] = "0" * 64
+        with self.assertRaises(AssertionError):
+            validate(replaced_candidate)
+
+        misplaced_transcript = deepcopy(attempts)
+        misplaced_transcript["failed_attempts"][0]["transcript_sha256"] = (
+            source["tui_observation"]["transcript_sha256"]
+        )
+        with self.assertRaises(AssertionError):
+            validate(misplaced_transcript)
+
     def test_issue_29_reachability_correction_is_self_consistent(self) -> None:
         path = ROOT / "benchmarks" / "spontaneous-dispatch"
         evidence = json.loads(
