@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "source": {
+    "path": "results.json",
+    "sha256": "4db849669b49386911ded403352b857d2341fe147f0223f262d34d1d04bc17df"
+  },
+  "counts": {
+    "attempted": 6,
+    "passed": 6,
+    "failed": 0
+  },
+  "coverage": {
+    "source_pointer": "/runs",
+    "invocation_pointers": [
+      "/runs/0",
+      "/runs/1",
+      "/runs/2",
+      "/runs/3",
+      "/runs/4",
+      "/runs/5"
+    ]
+  },
+  "passed_attempts": [
+    {
+      "id": "dispatch-brake-pilotfish-current",
+      "source_pointer": "/runs/0",
+      "name": "pilotfish-current",
+      "configuration_identity": "installed pilotfish v1.1.5 baseline",
+      "status": "success",
+      "wall_seconds": 101.21,
+      "duration_ms": 99480,
+      "num_turns": 17,
+      "reported_cost_usd": 0.460236,
+      "tests_passed": 2,
+      "tests_failed": 0,
+      "agent_calls": [],
+      "model_usage": {
+        "claude-opus-4-8": {
+          "input_tokens": 22,
+          "output_tokens": 5891,
+          "cache_read_input_tokens": 233062,
+          "cache_creation_input_tokens": 19632,
+          "reported_cost_usd": 0.460236
+        }
+      },
+      "raw_stream_sha256": "761e94c099ebe5566c43667135722dc8c5abd856585eaf8ef0f4a78b78b8b169"
+    },
+    {
+      "id": "dispatch-brake-remora-current",
+      "source_pointer": "/runs/1",
+      "name": "remora-current",
+      "configuration_identity": "remora v0.1.6 baseline",
+      "status": "success",
+      "wall_seconds": 322.90,
+      "duration_ms": 321616,
+      "num_turns": 17,
+      "reported_cost_usd": 1.316911,
+      "tests_passed": 2,
+      "tests_failed": 0,
+      "agent_calls": [
+        {
+          "role": "scout",
+          "run_in_background": false,
+          "description": "Diagnose status-line failure"
+        },
+        {
+          "role": "executor",
+          "run_in_background": false,
+          "description": "Fix status-line reducer"
+        },
+        {
+          "role": "verifier",
+          "run_in_background": true,
+          "description": "Verify status-line fix"
+        }
+      ],
+      "model_usage": {
+        "gpt-5.6-sol": {
+          "input_tokens": 80342,
+          "output_tokens": 8482,
+          "cache_read_input_tokens": 461824,
+          "cache_creation_input_tokens": 0,
+          "reported_cost_usd": 0.844672
+        },
+        "gpt-5.6-luna": {
+          "input_tokens": 47145,
+          "output_tokens": 5426,
+          "cache_read_input_tokens": 201728,
+          "cache_creation_input_tokens": 0,
+          "reported_cost_usd": 0.472239
+        }
+      },
+      "raw_stream_sha256": "45d2eb9b83220e522c817b53d498ad004ddd1ac1b6ca2d9166c1ed222777d3c3"
+    },
+    {
+      "id": "dispatch-brake-pilotfish-candidate",
+      "source_pointer": "/runs/2",
+      "name": "pilotfish-candidate",
+      "configuration_identity": "development dispatch-brake candidate",
+      "status": "success",
+      "wall_seconds": 83.99,
+      "duration_ms": 82371,
+      "num_turns": 13,
+      "reported_cost_usd": 0.439315,
+      "tests_passed": 2,
+      "tests_failed": 0,
+      "agent_calls": [],
+      "model_usage": {
+        "claude-opus-4-8": {
+          "input_tokens": 12,
+          "output_tokens": 5167,
+          "cache_read_input_tokens": 105020,
+          "cache_creation_input_tokens": 25757,
+          "reported_cost_usd": 0.439315
+        }
+      },
+      "raw_stream_sha256": "28ec9eb5f7f2d7222f2b7933faa2cf0185225f19300ece65a3dcdc9965125d02"
+    },
+    {
+      "id": "dispatch-brake-remora-candidate",
+      "source_pointer": "/runs/3",
+      "name": "remora-candidate",
+      "configuration_identity": "development dispatch-brake candidate without the final verifier rule",
+      "status": "success",
+      "wall_seconds": 89.76,
+      "duration_ms": 88295,
+      "num_turns": 22,
+      "reported_cost_usd": 0.455722,
+      "tests_passed": 2,
+      "tests_failed": 0,
+      "agent_calls": [],
+      "model_usage": {
+        "gpt-5.6-sol": {
+          "input_tokens": 39875,
+          "output_tokens": 2451,
+          "cache_read_input_tokens": 390144,
+          "cache_creation_input_tokens": 0,
+          "reported_cost_usd": 0.455722
+        }
+      },
+      "raw_stream_sha256": "fd674113376254b00f861fae38e1c6dab242eb6db483723f0f4023276cd30148"
+    },
+    {
+      "id": "dispatch-brake-pilotfish-postpatch",
+      "source_pointer": "/runs/4",
+      "name": "pilotfish-postpatch",
+      "configuration_identity": "exact repository policy with dispatch brake",
+      "status": "success",
+      "wall_seconds": 83.70,
+      "duration_ms": 82067,
+      "num_turns": 11,
+      "reported_cost_usd": 0.401433,
+      "tests_passed": 2,
+      "tests_failed": 0,
+      "agent_calls": [],
+      "model_usage": {
+        "claude-opus-4-8": {
+          "input_tokens": 14,
+          "output_tokens": 5212,
+          "cache_read_input_tokens": 142246,
+          "cache_creation_input_tokens": 19994,
+          "reported_cost_usd": 0.401433
+        }
+      },
+      "raw_stream_sha256": "3e4e226969b0973a3baa53ae2d2f00971d3bcb143b058c48172bd5978372f640"
+    },
+    {
+      "id": "dispatch-brake-remora-postpatch",
+      "source_pointer": "/runs/5",
+      "name": "remora-postpatch",
+      "configuration_identity": "exact repository policy with dispatch brake and verifier gate",
+      "status": "success",
+      "wall_seconds": 244.24,
+      "duration_ms": 242638,
+      "num_turns": 33,
+      "reported_cost_usd": 0.790973,
+      "tests_passed": 2,
+      "tests_failed": 0,
+      "agent_calls": [
+        {
+          "role": "verifier",
+          "run_in_background": true,
+          "description": "Verify status-line fix"
+        }
+      ],
+      "model_usage": {
+        "gpt-5.6-sol": {
+          "input_tokens": 48594,
+          "output_tokens": 10779,
+          "cache_read_input_tokens": 557056,
+          "cache_creation_input_tokens": 0,
+          "reported_cost_usd": 0.790973
+        }
+      },
+      "raw_stream_sha256": "f50e1b2241b13a3aad2ea101d8731258cd694bef0e88f54f68673630d0a1764e"
+    }
+  ],
+  "failed_attempts": [],
+  "not_run": []
+}
