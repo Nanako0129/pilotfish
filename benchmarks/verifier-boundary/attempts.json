@@ -141,6 +141,40 @@
         ],
         "provider_route": "native Claude first-party authentication"
       },
+      "post_cap_context": {
+        "verdicts": [
+          "REVISE",
+          "REVISE",
+          "READY"
+        ],
+        "writes": 0,
+        "plan_verifier_calls_per_turn": [
+          1,
+          1,
+          1
+        ],
+        "plan_verifier_background": [
+          false,
+          false,
+          false
+        ],
+        "plan_verifier_invocation_model_present": [
+          false,
+          false,
+          false
+        ],
+        "plan_verifier_resolved_model": "claude-opus-5",
+        "second_turn_stopped_automatic_resubmission": true,
+        "third_turn_recorded_new_readiness_epoch": true,
+        "third_turn_was_single_closing_check": true,
+        "closing_ready_was_not_approval": true,
+        "client_reported_cost_usd": 1.16116750,
+        "raw_stream_sha256": [
+          "93bb113ffb4e48352089c8e9d559323bc4ddd9e780d0b7c2b9db80038485b4b4",
+          "c6a96faf23c56ac1fe54d065e93addec86e3e605020ff8ea315719bbbde3eab0",
+          "fe421cf3c1e5b5cb2c6923aedc8ef1e0273d9e62f138ae8a522ac797425a8d21"
+        ]
+      },
       "claim_boundary": "Bounded positive reachability only, one first-party account, explicit agent opt-in, all cells against policy sha b26ef4a6a0e02575... These observations do not establish cue-free behavior, dispatch frequency, or an efficiency improvement. Earlier byte revisions showed two stochastic failure modes in this cell — skipping the approval gate and dispatching verification to the background without collecting it — both recorded under failed_attempts. Neither recurred here, but two clean attempts do not demonstrate they are gone; the cell should be read as reliably reachable, not deterministic."
     },
     "compressed-candidate-59f18c6d": {
@@ -164,6 +198,25 @@
     "unidentified-candidate": {
       "status": "configuration_unknown",
       "reason": "The quota-rejected source record retains no policy or agents identity."
+    },
+    "operator-non-opt-in-v1.3.6": {
+      "policy": {
+        "path": "gate-snapshot-v1.3.6/CLAUDE.md",
+        "bytes": 19590,
+        "sha256": "ae771c9b43ad985f7ad1e520cd6e021c69e13aac3bd6a60a8edacd1d386f0e82"
+      },
+      "agents": {
+        "path": "gate-snapshot-v1.3.6/agents.json",
+        "generated_by": "../baton-compatibility/build-agents-json.py ../../templates/agents",
+        "bytes": 16663,
+        "file_sha256": "8df823840683dc65c6528ce568d35d0c14deee5a0290db532bdca63b3885a0a7",
+        "runtime_sha256": "e5e7fa1595c2231f6954f86720c734ab064ce901ab141c3e6431d07dd4335123"
+      },
+      "prompt": {
+        "file_sha256": "2ed1a9c607d40b7c868bbe376611fb1b2e7e3ed7f6e3a0c1a86d98cef006f3f8",
+        "runtime_sha256": "da95fa74388bc97cc889a2ea2e70fc0897055152d42174c548632a0e415a1adc"
+      },
+      "explicit_opt_in": false
     },
     "uncollected-background-attempt": {
       "name": "uncollected-background-verification",
@@ -227,6 +280,28 @@
       "status": "passed",
       "claim_boundary": "These exact-input user-directed observations establish reachability only. They do not establish cue-free behavior, automatic revision quality, convergence frequency, quality, latency, cost efficiency, security-role behavior, or unattended large-Plan success.",
       "explicit_opt_in": "Use pilotfish and delegate eligible work to the named agents.",
+      "post_cap_context": {
+        "session_id": "7415c6c1-646d-49f7-b71a-4c866fa2da9e",
+        "user_directed_three_turn_sequence": true,
+        "readiness_unit_id": "C1",
+        "plan_verifier_calls": 3,
+        "all_calls_background": false,
+        "all_invocations_omit_model": true,
+        "resolved_model": "claude-opus-5",
+        "verdicts": [
+          "REVISE",
+          "REVISE",
+          "READY"
+        ],
+        "second_turn_stopped_automatic_resubmission": true,
+        "third_turn_material_revision": "removed overlapping ownership of store.test.mjs and assigned both scoped files exclusively to one executor",
+        "third_turn_recorded_new_readiness_epoch": true,
+        "third_turn_was_single_closing_check": true,
+        "closing_ready_was_not_approval": true,
+        "writes": 0,
+        "working_tree_clean": true,
+        "client_reported_cost_usd": 0.997773
+      },
       "superseded_reason": "Recorded against the pre-compression v1.3.6 policy (19,590 bytes). Retained as historical evidence; the current passing_gate re-ran the same three cells against the compressed candidate."
     }
   },
@@ -554,7 +629,7 @@
     {
       "id": "verifier-boundary-operator-contract-rejected",
       "source_pointer": "/failed_attempts/1",
-      "configuration_identity": "superseded-v1.3.6",
+      "configuration_identity": "operator-non-opt-in-v1.3.6",
       "status": "operator_contract_blocked_agents",
       "boundary": "Higher-priority session instructions prohibited Agent calls without explicit user opt-in; the main session implemented directly",
       "record": {

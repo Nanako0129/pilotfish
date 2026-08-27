@@ -3435,7 +3435,7 @@ class PolicyContractTests(unittest.TestCase):
             {
                 "id": "verifier-boundary-operator-contract-rejected",
                 "source_pointer": "/failed_attempts/1",
-                "configuration_identity": "superseded-v1.3.6",
+                "configuration_identity": "operator-non-opt-in-v1.3.6",
                 "status": "operator_contract_blocked_agents",
                 "boundary": source["failed_attempts"][1]["reason"],
                 "record": source["failed_attempts"][1],
@@ -3508,6 +3508,7 @@ class PolicyContractTests(unittest.TestCase):
                 "setting_sources": source["setting_sources"],
                 "inputs": source["inputs"],
                 "route": current["route"],
+                "post_cap_context": current["post_cap_plan_control"],
                 "claim_boundary": current["claim_boundary"],
             },
             "compressed-candidate-59f18c6d": {
@@ -3526,6 +3527,19 @@ class PolicyContractTests(unittest.TestCase):
                     "identity."
                 ),
             },
+            "operator-non-opt-in-v1.3.6": {
+                "policy": source["superseded_v1_3_6_inputs"]["policy"],
+                "agents": source["superseded_v1_3_6_inputs"]["agents"],
+                "prompt": {
+                    "file_sha256": source["failed_attempts"][1][
+                        "prompt_file_sha256"
+                    ],
+                    "runtime_sha256": source["failed_attempts"][1][
+                        "prompt_runtime_sha256"
+                    ],
+                },
+                "explicit_opt_in": False,
+            },
             "uncollected-background-attempt": {
                 key: value
                 for key, value in source["failed_attempts"][3].items()
@@ -3536,6 +3550,11 @@ class PolicyContractTests(unittest.TestCase):
                 "status": old["status"],
                 "claim_boundary": old["claim_boundary"],
                 "explicit_opt_in": old["explicit_opt_in"],
+                "post_cap_context": {
+                    key: value
+                    for key, value in old["post_cap_plan_control"].items()
+                    if key != "turns"
+                },
                 "superseded_reason": old["superseded_reason"],
             },
         }
