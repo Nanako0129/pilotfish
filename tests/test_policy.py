@@ -2549,6 +2549,343 @@ class PolicyContractTests(unittest.TestCase):
             release_bug_trace["post_fix_passing_test_tool_index"],
         )
 
+    def test_spontaneous_dispatch_attempts_are_source_bound(self) -> None:
+        benchmark = ROOT / "benchmarks" / "spontaneous-dispatch"
+        ledger = json.loads(
+            (benchmark / "results.attempts.json").read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        source_bytes = (benchmark / "results.json").read_bytes()
+        source = json.loads(source_bytes, parse_float=Decimal)
+        streams = [
+            "schema_a_turn_1",
+            "schema_a_turn_2",
+            "schema_b_turn_1",
+            "schema_b_turn_2",
+            "routine",
+        ]
+        paired = source["v1_3_7_paired_opt_in_matrix"]
+        baseline = source["v1_3_7_max_prompt_baseline"]
+        unknown = []
+        for arm in ("pro", "max"):
+            arm_record = paired["cue_free"][arm]
+            for index, stream in enumerate(streams):
+                unknown.append(
+                    {
+                        "id": f"spontaneous-paired-{arm}-{stream.replace('_', '-')}",
+                        "source_pointer": (
+                            f"/v1_3_7_paired_opt_in_matrix/cue_free/{arm}/"
+                            f"evidence/run_keys/{index}"
+                        ),
+                        "configuration_identity": "paired-matrix",
+                        "arm": arm,
+                        "stream": stream,
+                        "status": "outcome_unknown",
+                        "boundary": (
+                            "The source binds this CLI stream by run key, raw hash, "
+                            "and cost but does not record a per-invocation outcome. "
+                            "Aggregate arm and later alias summaries are not substituted."
+                        ),
+                        "record": {
+                            "run_key": arm_record["evidence"]["run_keys"][index],
+                            "raw_stream_sha256": arm_record["raw_stream_sha256"][
+                                stream
+                            ],
+                            "client_reported_cost_usd": arm_record[
+                                "per_stream_reported_cost_usd"
+                            ][stream],
+                        },
+                    }
+                )
+        aliases = [
+            {
+                "alias_pointer": "/v1_3_7_max_prompt_baseline/cells/schema_lifecycle/attempts/0",
+                "canonical_pointers": [unknown[5]["source_pointer"], unknown[6]["source_pointer"]],
+            },
+            {
+                "alias_pointer": "/v1_3_7_max_prompt_baseline/cells/schema_lifecycle/attempts/1",
+                "canonical_pointers": [unknown[7]["source_pointer"], unknown[8]["source_pointer"]],
+            },
+            {
+                "alias_pointer": "/v1_3_7_max_prompt_baseline/cells/routine_docs_control/attempts/0",
+                "canonical_pointers": [unknown[9]["source_pointer"]],
+            },
+        ]
+        passed = [
+            {
+                "id": f"spontaneous-{source['runs'][index]['name']}",
+                "source_pointer": f"/runs/{index}",
+                "configuration_identity": (
+                    "v1.3.1-candidate-1"
+                    if index < 4
+                    else "v1.3.1-release-payload"
+                ),
+                "status": "passed",
+                "record": source["runs"][index],
+            }
+            for index in range(2, 6)
+        ]
+        for cell in ("tightly_coupled_bug",):
+            for index, record in enumerate(baseline["cells"][cell]["attempts"]):
+                passed.append(
+                    {
+                        "id": f"spontaneous-max-baseline-{cell.replace('_', '-')}-{record['id']}",
+                        "source_pointer": (
+                            f"/v1_3_7_max_prompt_baseline/cells/{cell}/attempts/{index}"
+                        ),
+                        "configuration_identity": "max-prompt-baseline",
+                        "cell": cell,
+                        "status": "passed",
+                        "record": record,
+                    }
+                )
+        routine_b = baseline["cells"]["routine_docs_control"]["attempts"][1]
+        passed.append(
+            {
+                "id": "spontaneous-max-baseline-routine-docs-control-b",
+                "source_pointer": "/v1_3_7_max_prompt_baseline/cells/routine_docs_control/attempts/1",
+                "configuration_identity": "max-prompt-baseline",
+                "cell": "routine_docs_control",
+                "status": "passed",
+                "record": routine_b,
+            }
+        )
+        failed = [
+            {
+                "id": f"spontaneous-{source['runs'][1]['name']}",
+                "source_pointer": "/runs/1",
+                "configuration_identity": "v1.3.0-baseline",
+                "status": "topology_failed",
+                "boundary": source["runs"][1]["claim"],
+                "record": source["runs"][1],
+            }
+        ]
+        for index, record in enumerate(baseline["cells"]["mechanical"]["attempts"]):
+            failed.append(
+                {
+                    "id": f"spontaneous-max-baseline-mechanical-{record['id']}",
+                    "source_pointer": (
+                        f"/v1_3_7_max_prompt_baseline/cells/mechanical/attempts/{index}"
+                    ),
+                    "configuration_identity": "max-prompt-baseline",
+                    "cell": "mechanical",
+                    "status": "topology_failed",
+                    "boundary": record["observed"],
+                    "record": record,
+                }
+            )
+        not_run = {
+            "id": f"spontaneous-{source['runs'][0]['name']}",
+            "source_pointer": "/runs/0",
+            "configuration_identity": "v1.3.0-baseline",
+            "status": "not_run",
+            "reason": source["runs"][0]["claim"],
+            "record": source["runs"][0],
+        }
+        canonical_pointers = (
+            [f"/runs/{index}" for index in range(6)]
+            + [entry["source_pointer"] for entry in unknown]
+            + [entry["source_pointer"] for entry in failed[1:]]
+            + [entry["source_pointer"] for entry in passed[4:6]]
+            + [passed[6]["source_pointer"]]
+        )
+        identities = {
+            "policy_inputs": source["policy_inputs"],
+            "paired-matrix": {
+                "environment": paired["environment"],
+                "input_contract": paired["input_contract"],
+                "arms": {
+                    arm: {
+                        key: paired["cue_free"][arm][key]
+                        for key in ("account_plan", "run_date", "prompts")
+                    }
+                    for arm in ("pro", "max")
+                },
+            },
+            "max-prompt-baseline": {
+                "environment": baseline["environment"],
+                "claim_boundary": baseline["claim_boundary"],
+                "cells": {
+                    cell: {
+                        key: record[key]
+                        for key in ("expected_topology", "baseline_tree")
+                    }
+                    for cell, record in baseline["cells"].items()
+                },
+            },
+        }
+
+        def validate(candidate: dict) -> None:
+            self.assertEqual(
+                set(source),
+                {
+                    "schema_version",
+                    "run_dates",
+                    "timezone",
+                    "client",
+                    "metric_note",
+                    "input_contract",
+                    "policy_inputs",
+                    "runs",
+                    "v1_3_7_paired_opt_in_matrix",
+                    "v1_3_7_max_prompt_baseline",
+                },
+            )
+            self.assertEqual(len(source["runs"]), 6)
+            self.assertEqual(
+                set(candidate),
+                {
+                    "schema_version",
+                    "source",
+                    "counts",
+                    "coverage",
+                    "configuration_identities",
+                    "passed_attempts",
+                    "failed_attempts",
+                    "unknown_attempts",
+                    "not_run",
+                },
+            )
+            self.assertEqual(candidate["schema_version"], 1)
+            self.assertEqual(
+                candidate["source"],
+                {
+                    "path": "results.json",
+                    "sha256": hashlib.sha256(source_bytes).hexdigest(),
+                },
+            )
+            self.assertEqual(
+                candidate["counts"],
+                {"attempted": 20, "passed": 7, "failed": 3, "unknown": 10},
+            )
+            self.assertEqual(
+                candidate["coverage"],
+                {
+                    "canonical_record_pointers": canonical_pointers,
+                    "aliases": aliases,
+                    "external_aggregate_exclusions": [
+                        {
+                            "source_pointer": "/v1_3_7_paired_opt_in_matrix/explicitly_directed",
+                            "target": "../verifier-boundary/results.json#passing_gate",
+                            "reason": "This is an external aggregate alias, not a source-native invocation record.",
+                        }
+                    ],
+                },
+            )
+            self.assertEqual(candidate["configuration_identities"], identities)
+            self.assertEqual(candidate["passed_attempts"], passed)
+            self.assertEqual(candidate["failed_attempts"], failed)
+            self.assertEqual(candidate["unknown_attempts"], unknown)
+            self.assertEqual(candidate["not_run"], [not_run])
+            all_records = passed + failed + unknown + [not_run]
+            self.assertEqual(len(all_records), 21)
+            self.assertEqual(len({entry["id"] for entry in all_records}), 21)
+            self.assertEqual(
+                len({entry["source_pointer"] for entry in all_records}), 21
+            )
+            self.assertEqual(
+                len({entry["record"]["raw_stream_sha256"] for entry in all_records}),
+                21,
+            )
+            self.assertEqual(
+                sum(
+                    entry["record"]["client_reported_cost_usd"]
+                    for entry in unknown[:5]
+                ),
+                paired["cue_free"]["pro"]["reported_cost_usd_paired_cells"],
+            )
+            self.assertEqual(
+                sum(
+                    entry["record"]["client_reported_cost_usd"]
+                    for entry in unknown[5:]
+                ),
+                paired["cue_free"]["max"]["reported_cost_usd_paired_cells"],
+            )
+            self.assertEqual(
+                sum(
+                    entry["record"]["client_reported_cost_usd"]
+                    for entry in failed[1:] + passed[4:]
+                ),
+                baseline["cost"]["newly_run_streams_usd"],
+            )
+            self.assertEqual(source["runs"][1]["tests_passed"], 12)
+            self.assertEqual(source["runs"][1]["status"], "success_topology_fail")
+            self.assertTrue(
+                all(entry["record"]["topology"] == "FAIL" for entry in failed[1:])
+            )
+            self.assertEqual(not_run["record"]["status"], "usage_credits_required")
+            for alias in aliases:
+                self.assertNotIn(
+                    alias["alias_pointer"],
+                    candidate["coverage"]["canonical_record_pointers"],
+                )
+            self.assertTrue(
+                all("/agent_calls/" not in pointer for pointer in canonical_pointers)
+            )
+
+        validate(ledger)
+
+        missing = deepcopy(ledger)
+        missing["unknown_attempts"].pop()
+        with self.assertRaises(AssertionError):
+            validate(missing)
+
+        duplicate = deepcopy(ledger)
+        duplicate["passed_attempts"][-1]["source_pointer"] = duplicate[
+            "passed_attempts"
+        ][0]["source_pointer"]
+        with self.assertRaises(AssertionError):
+            validate(duplicate)
+
+        counted_alias = deepcopy(ledger)
+        counted_alias["coverage"]["canonical_record_pointers"].append(
+            aliases[0]["alias_pointer"]
+        )
+        with self.assertRaises(AssertionError):
+            validate(counted_alias)
+
+        promoted = deepcopy(ledger)
+        promoted["unknown_attempts"][0]["status"] = "passed"
+        with self.assertRaises(AssertionError):
+            validate(promoted)
+
+        flipped = deepcopy(ledger)
+        flipped["failed_attempts"][0]["status"] = "passed"
+        with self.assertRaises(AssertionError):
+            validate(flipped)
+
+        counted_not_run = deepcopy(ledger)
+        counted_not_run["counts"]["attempted"] += 1
+        with self.assertRaises(AssertionError):
+            validate(counted_not_run)
+
+        for target, key, value in (
+            ("configuration_identities", "policy_inputs", {}),
+            ("record", "raw_stream_sha256", "0" * 64),
+            ("record", "client_reported_cost_usd", Decimal("0")),
+            (None, "stream", "different"),
+        ):
+            changed = deepcopy(ledger)
+            if target == "configuration_identities":
+                changed[target][key] = value
+            else:
+                container = changed["unknown_attempts"][0]
+                if target is not None:
+                    container = container[target]
+                container[key] = value
+            with self.assertRaises(AssertionError):
+                validate(changed)
+
+        remapped_alias = deepcopy(ledger)
+        remapped_alias["coverage"]["aliases"][0]["canonical_pointers"].reverse()
+        with self.assertRaises(AssertionError):
+            validate(remapped_alias)
+
+        child_inflated = deepcopy(ledger)
+        child_inflated["counts"]["attempted"] += 1
+        with self.assertRaises(AssertionError):
+            validate(child_inflated)
+
     def test_baton_gate_snapshot_matches_recorded_hashes(self) -> None:
         gate = ROOT / "benchmarks" / "baton-compatibility"
         results = json.loads(
