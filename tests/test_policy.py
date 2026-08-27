@@ -5081,6 +5081,441 @@ class PolicyContractTests(unittest.TestCase):
             )
         self.assertNotIn("interrupted_invocation", json.dumps(results, default=str))
 
+    def test_baton_compatibility_attempts_are_source_bound(self) -> None:
+        benchmark = ROOT / "benchmarks" / "baton-compatibility"
+        ledger = json.loads(
+            (benchmark / "attempts.json").read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        source_bytes = (benchmark / "results.json").read_bytes()
+        source = json.loads(source_bytes, parse_float=Decimal)
+        expected_source_keys = {
+            "schema_version",
+            "run_date",
+            "timezone",
+            "fixture",
+            "runtime",
+            "final_gate_status",
+            "previous_final_gate",
+            "final_gate",
+            "v1_3_2_release_gate",
+            "v1_3_2_opus5_release_gate",
+            "v1_3_2_opus5_rejected_user_source_attempt",
+            "v1_3_2_post_gate_role_change",
+            "failed_candidate_gate",
+            "previous_release_gate",
+            "historical_release_gate",
+            "superseded_candidate_gate",
+            "superseded_gate",
+            "rejected_harness_run",
+            "unexercised_controls",
+            "post_gate_role_frontmatter_change",
+        }
+        invocation_pointers = [
+            "/previous_final_gate/turns/0",
+            "/previous_final_gate/turns/1",
+            "/final_gate/turns/0",
+            "/final_gate/turns/1",
+            "/v1_3_2_release_gate/turns/0",
+            "/v1_3_2_release_gate/turns/1",
+            "/v1_3_2_opus5_release_gate/turns/0",
+            "/v1_3_2_opus5_release_gate/turns/1",
+            "/v1_3_2_opus5_release_gate/turns/2",
+            "/v1_3_2_opus5_rejected_user_source_attempt/turn_1",
+            "/v1_3_2_opus5_rejected_user_source_attempt/explicit_route_probe",
+            "/failed_candidate_gate/turns/0",
+            "/superseded_candidate_gate/turns/0",
+            "/superseded_candidate_gate/turns/1",
+            "/superseded_candidate_gate/turns/2",
+        ]
+        unknown_pointers = [
+            "/previous_release_gate",
+            "/historical_release_gate",
+            "/superseded_gate",
+            "/rejected_harness_run",
+        ]
+        excluded_pointers = [
+            "/v1_3_2_post_gate_role_change",
+            "/unexercised_controls",
+            "/post_gate_role_frontmatter_change",
+        ]
+        passed_specs = [
+            (
+                "baton-compatibility-previous-final-turn-1",
+                invocation_pointers[0],
+                "lifecycle_turn",
+                "passed_phase",
+                "The passed gate records this discovery and approval invocation as completed.",
+            ),
+            (
+                "baton-compatibility-previous-final-turn-2",
+                invocation_pointers[1],
+                "lifecycle_turn",
+                "passed_phase",
+                "The passed gate records this execution and verification invocation as completed.",
+            ),
+            (
+                "baton-compatibility-final-turn-1",
+                invocation_pointers[2],
+                "lifecycle_turn",
+                "passed_phase",
+                "The passed gate records this discovery and approval invocation as completed.",
+            ),
+            (
+                "baton-compatibility-final-turn-2",
+                invocation_pointers[3],
+                "lifecycle_turn",
+                "passed_phase",
+                "The passed gate records this execution and verification invocation as completed.",
+            ),
+            (
+                "baton-compatibility-v1-3-2-turn-1",
+                invocation_pointers[4],
+                "lifecycle_turn",
+                "passed_phase",
+                "The passed release gate records this discovery and approval invocation as completed.",
+            ),
+            (
+                "baton-compatibility-v1-3-2-turn-2",
+                invocation_pointers[5],
+                "lifecycle_turn",
+                "passed_phase",
+                "The passed release gate records final-byte tests and a CONFIRMED verifier for this execution invocation.",
+            ),
+            (
+                "baton-compatibility-opus5-turn-1",
+                invocation_pointers[6],
+                "lifecycle_turn",
+                "passed_phase",
+                "The release gate records both readiness units reaching READY in this discovery invocation.",
+            ),
+            (
+                "baton-compatibility-opus5-turn-2b",
+                invocation_pointers[8],
+                "corrective_verification",
+                "passed_phase",
+                "This corrective invocation independently verified the final bytes after the preceding post-verdict edit.",
+            ),
+            (
+                "baton-compatibility-superseded-turn-1",
+                invocation_pointers[12],
+                "lifecycle_turn",
+                "passed_phase",
+                "The superseded gate passed at the time and records this discovery invocation as completed.",
+            ),
+            (
+                "baton-compatibility-superseded-turn-2-resume",
+                invocation_pointers[14],
+                "resumed_invocation",
+                "passed_resumed_completion",
+                "CLI invocation 3 resumed CLI invocation 2 in the same session and completed tests and verification.",
+            ),
+        ]
+        failed_specs = [
+            (
+                "baton-compatibility-opus5-turn-2",
+                invocation_pointers[7],
+                "lifecycle_turn",
+                "verification_invalidated_by_post_verdict_edit",
+                "A post-verdict edit meant the initial verifier did not cover final bytes; accepted_as_final and initial_verdict_covers_final_bytes are false.",
+            ),
+            (
+                "baton-compatibility-rejected-user-source-turn-1",
+                invocation_pointers[9],
+                "lifecycle_turn",
+                "rejected_wrong_route",
+                source["v1_3_2_opus5_rejected_user_source_attempt"]["reason"],
+            ),
+            (
+                "baton-compatibility-rejected-user-source-route-probe",
+                invocation_pointers[10],
+                "route_probe",
+                "rejected_wrong_route",
+                "The independent route probe resolved to claude-opus-4-8 instead of the proposed Opus 5 route, and its raw result was not persisted.",
+            ),
+            (
+                "baton-compatibility-failed-candidate-turn-1",
+                invocation_pointers[11],
+                "lifecycle_turn",
+                "budget_exhausted",
+                source["failed_candidate_gate"]["turns"][0]["failure_summary"],
+            ),
+            (
+                "baton-compatibility-superseded-turn-2-interrupted",
+                invocation_pointers[13],
+                "interrupted_invocation",
+                "interrupted",
+                source["superseded_candidate_gate"]["turns"][1]["interruption"][
+                    "boundary"
+                ],
+            ),
+        ]
+        identity_keys = {
+            "status",
+            "passed",
+            "passed_at_the_time",
+            "source_base_head",
+            "source_commit",
+            "release_candidate_version",
+            "proposed_install_version",
+            "run_date",
+            "claude_code",
+            "requested_main_model",
+            "observed_main_model",
+            "setting_sources",
+            "provider_route",
+            "fast_mode",
+            "orchestration_sha256",
+            "policy_orchestration_sha256",
+            "agents_json_sha256",
+            "agents_json_runtime_sha256",
+            "settings_sha256",
+            "transcript_sha256",
+            "source_pr_url",
+        }
+
+        def resolve(pointer: str) -> object:
+            value: object = source
+            for token in pointer.removeprefix("/").split("/"):
+                if isinstance(value, dict):
+                    self.assertIn(token, value)
+                    value = value[token]
+                elif isinstance(value, list):
+                    self.assertTrue(token.isdigit())
+                    value = value[int(token)]
+                else:
+                    self.fail(f"cannot resolve {pointer!r}")
+            return value
+
+        def candidate_identity(pointer: str) -> dict:
+            gate_pointer = "/" + pointer.removeprefix("/").split("/", 1)[0]
+            parent = resolve(gate_pointer)
+            self.assertIsInstance(parent, dict)
+            return {
+                "gate_pointer": gate_pointer,
+                **{key: value for key, value in parent.items() if key in identity_keys},
+            }
+
+        def expected_detail(spec: tuple[str, str, str, str, str]) -> dict:
+            entry_id, pointer, record_class, status, boundary = spec
+            record = resolve(pointer)
+            self.assertIsInstance(record, dict)
+            return {
+                "id": entry_id,
+                "source_pointer": pointer,
+                "record_class": record_class,
+                "candidate_identity": candidate_identity(pointer),
+                "status": status,
+                "boundary": boundary,
+                "record": record,
+            }
+
+        unknown_specs = [
+            ("baton-compatibility-previous-release-summary", unknown_pointers[0], "unknown"),
+            ("baton-compatibility-historical-release-summary", unknown_pointers[1], "unknown"),
+            (
+                "baton-compatibility-superseded-summary",
+                unknown_pointers[2],
+                "passed_at_the_time",
+            ),
+            (
+                "baton-compatibility-rejected-harness-summary",
+                unknown_pointers[3],
+                "rejected",
+            ),
+        ]
+        unknown_reason = (
+            "The source marks this record granularity summary and retains neither "
+            "turns nor total_cli_invocations. num_turns is not an invocation count."
+        )
+
+        def expected_unknown(spec: tuple[str, str, str]) -> dict:
+            entry_id, pointer, outcome = spec
+            record = resolve(pointer)
+            self.assertIsInstance(record, dict)
+            return {
+                "id": entry_id,
+                "source_pointer": pointer,
+                "status": "attempt_count_unknown",
+                "recorded_outcome": outcome,
+                "reason": unknown_reason,
+                "record": record,
+            }
+
+        def validate(candidate: dict) -> None:
+            self.assertEqual(set(source), expected_source_keys)
+            for gate in (
+                "previous_final_gate",
+                "final_gate",
+                "v1_3_2_release_gate",
+                "v1_3_2_opus5_release_gate",
+                "failed_candidate_gate",
+                "superseded_candidate_gate",
+            ):
+                self.assertEqual(
+                    len(source[gate]["turns"]), source[gate]["total_cli_invocations"]
+                )
+                self.assertEqual(
+                    [turn["cli_invocation"] for turn in source[gate]["turns"]],
+                    list(range(1, len(source[gate]["turns"]) + 1)),
+                )
+            self.assertEqual(
+                set(candidate),
+                {
+                    "schema_version",
+                    "source",
+                    "counts",
+                    "coverage",
+                    "passed_attempts",
+                    "failed_attempts",
+                    "unknown_attempt_counts",
+                    "not_run",
+                },
+            )
+            self.assertEqual(candidate["schema_version"], 1)
+            self.assertEqual(
+                candidate["source"],
+                {
+                    "path": "results.json",
+                    "sha256": hashlib.sha256(source_bytes).hexdigest(),
+                },
+            )
+            self.assertEqual(
+                candidate["counts"],
+                {
+                    "attempted": 15,
+                    "passed": 10,
+                    "failed": 5,
+                    "unknown_invocation_count_records": 4,
+                },
+            )
+            self.assertEqual(
+                candidate["coverage"],
+                {
+                    "invocation_pointers": invocation_pointers,
+                    "unknown_invocation_count_pointers": unknown_pointers,
+                    "excluded_summary_pointers": excluded_pointers,
+                },
+            )
+            self.assertEqual(
+                candidate["passed_attempts"],
+                [expected_detail(spec) for spec in passed_specs],
+            )
+            self.assertEqual(
+                candidate["failed_attempts"],
+                [expected_detail(spec) for spec in failed_specs],
+            )
+            self.assertEqual(
+                candidate["unknown_attempt_counts"],
+                [expected_unknown(spec) for spec in unknown_specs],
+            )
+            self.assertEqual(
+                candidate["not_run"],
+                [
+                    {
+                        "source_pointer": "/v1_3_2_opus5_rejected_user_source_attempt/turn_1/turn_2_started",
+                        "status": "not_run",
+                        "reason": "The rejected source-composition attempt stopped after turn 1; the recorded boolean is false.",
+                    }
+                ],
+            )
+            self.assertFalse(resolve(candidate["not_run"][0]["source_pointer"]))
+            details = candidate["passed_attempts"] + candidate["failed_attempts"]
+            self.assertEqual(len(details), candidate["counts"]["attempted"])
+            self.assertEqual(len({entry["id"] for entry in details}), 15)
+            self.assertEqual(len({entry["source_pointer"] for entry in details}), 15)
+            self.assertEqual(
+                {entry["source_pointer"] for entry in details}, set(invocation_pointers)
+            )
+            self.assertTrue(
+                all(
+                    "/agent_calls/" not in pointer and "/scout_calls/" not in pointer
+                    for pointer in invocation_pointers
+                )
+            )
+            self.assertTrue(source["previous_final_gate"]["turns"][0]["scout_calls"])
+            opus_initial = candidate["failed_attempts"][0]["record"]
+            self.assertTrue(opus_initial["post_verdict_edit"])
+            self.assertFalse(opus_initial["initial_verdict_covers_final_bytes"])
+            self.assertFalse(opus_initial["accepted_as_final"])
+            route_probe = candidate["failed_attempts"][2]["record"]
+            self.assertFalse(route_probe["raw_result_persisted"])
+            self.assertNotIn("raw_result_sha256", route_probe)
+            interrupted = candidate["failed_attempts"][4]["record"]
+            resumed = candidate["passed_attempts"][-1]["record"]
+            self.assertTrue(interrupted["is_error"])
+            self.assertEqual(resumed["resume"]["resumed_cli_invocation"], 2)
+            self.assertTrue(resumed["resume"]["same_session"])
+            for summary in candidate["unknown_attempt_counts"]:
+                self.assertEqual(summary["record"]["granularity"], "summary")
+                self.assertNotIn("turns", summary["record"])
+                self.assertNotIn("total_cli_invocations", summary["record"])
+
+        validate(ledger)
+
+        missing = deepcopy(ledger)
+        missing["passed_attempts"].pop()
+        with self.assertRaises(AssertionError):
+            validate(missing)
+
+        aggregate = deepcopy(ledger)
+        aggregate["coverage"]["invocation_pointers"][0] = "/final_gate"
+        with self.assertRaises(AssertionError):
+            validate(aggregate)
+
+        for index in range(5):
+            flipped = deepcopy(ledger)
+            flipped["failed_attempts"][index]["status"] = "passed_phase"
+            with self.assertRaises(AssertionError):
+                validate(flipped)
+
+        replaced_source = deepcopy(ledger)
+        replaced_source["source"]["sha256"] = "0" * 64
+        with self.assertRaises(AssertionError):
+            validate(replaced_source)
+
+        for target, key, value in (
+            ("candidate_identity", "gate_pointer", "/different"),
+            ("record", "client_reported_cost_usd", Decimal("0")),
+            (None, "boundary", "different"),
+        ):
+            replaced = deepcopy(ledger)
+            container = replaced["failed_attempts"][3]
+            if target is not None:
+                container = container[target]
+            container[key] = value
+            with self.assertRaises(AssertionError):
+                validate(replaced)
+
+        invented_raw = deepcopy(ledger)
+        invented_raw["failed_attempts"][2]["record"]["raw_result_sha256"] = "0" * 64
+        with self.assertRaises(AssertionError):
+            validate(invented_raw)
+
+        inferred = deepcopy(ledger)
+        inferred["counts"]["attempted"] += inferred["unknown_attempt_counts"][0][
+            "record"
+        ]["total_num_turns"]
+        with self.assertRaises(AssertionError):
+            validate(inferred)
+
+        moved_summary = deepcopy(ledger)
+        moved_summary["passed_attempts"].append(moved_summary["unknown_attempt_counts"].pop())
+        with self.assertRaises(AssertionError):
+            validate(moved_summary)
+
+        collapsed_resume = deepcopy(ledger)
+        collapsed_resume["failed_attempts"].pop()
+        collapsed_resume["passed_attempts"].pop()
+        collapsed_resume["counts"] = {
+            "attempted": 13,
+            "passed": 9,
+            "failed": 4,
+            "unknown_invocation_count_records": 4,
+        }
+        with self.assertRaises(AssertionError):
+            validate(collapsed_resume)
+
 
 if __name__ == "__main__":
     unittest.main()
