@@ -75,9 +75,9 @@ set -e
 test "$NPM_STATUS" -eq 1
 NORMALIZED_OUTPUT="$(printf '%s\n' "$NPM_OUTPUT" | sed 's/ℹ pass/# pass/; s/ℹ fail/# fail/')"
 printf '%s\n' "$NORMALIZED_OUTPUT"
-printf '%s\n' "$NORMALIZED_OUTPUT" | grep -F '# pass 0' >/dev/null
-printf '%s\n' "$NORMALIZED_OUTPUT" | grep -F '# fail 12' >/dev/null
-find "$ROOT/fixture" -name '*.js' -type f -exec node --check {} +
+printf '%s\n' "$NORMALIZED_OUTPUT" | grep -Fx '# pass 0' >/dev/null
+printf '%s\n' "$NORMALIZED_OUTPUT" | grep -Fx '# fail 12' >/dev/null
+find "$ROOT/fixture" -name '*.js' -type f -print0 | xargs -0 -n 1 node --check
 echo "Static fixture retained at $ROOT; remove manually when authorized."
 ```
 
