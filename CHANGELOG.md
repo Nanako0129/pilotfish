@@ -2,7 +2,7 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
-## Unreleased
+## v1.4.1 — 2026-08-27
 
 Allow the effective user `CLAUDE.md` to be a stable symlink when its final
 target is a readable regular file. Dangling links, directories, unreadable

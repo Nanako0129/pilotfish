@@ -1573,7 +1573,7 @@ class PolicyContractTests(unittest.TestCase):
         version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         self.assertEqual(runtime["final_gate_candidate_version_stamp"], "1.3.1")
         self.assertEqual(runtime["release_candidate_version"], version)
-        self.assertEqual(version, "1.4.0")
+        self.assertEqual(version, "1.4.1")
         self.assertEqual(
             runtime["release_candidate_generated_by"],
             "benchmarks/baton-compatibility/build-agents-json.py templates/agents",
