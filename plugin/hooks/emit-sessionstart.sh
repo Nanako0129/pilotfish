@@ -28,11 +28,7 @@ if [ ! -d "$config_root" ] || [ ! -r "$config_root" ] || [ ! -x "$config_root" ]
 fi
 
 config_file=$config_root/CLAUDE.md
-if [ -L "$config_file" ]; then
-    printf '%s\n' "pilotfish Plugin blocked: the effective CLAUDE.md cannot be checked safely. Follow $MIGRATION_URL and restart Claude Code."
-    exit 0
-fi
-if [ -e "$config_file" ]; then
+if [ -e "$config_file" ] || [ -L "$config_file" ]; then
     if [ ! -f "$config_file" ] || [ ! -r "$config_file" ]; then
         printf '%s\n' "pilotfish Plugin blocked: the effective CLAUDE.md cannot be checked safely. Follow $MIGRATION_URL and restart Claude Code."
         exit 0
