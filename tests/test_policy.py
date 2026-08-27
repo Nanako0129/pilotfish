@@ -449,6 +449,330 @@ class PolicyContractTests(unittest.TestCase):
             self.assertIn("0.1.1", content)
             self.assertIn("results.json", content)
 
+    def test_baton_dispatch_effect_attempts_are_source_bound(self) -> None:
+        benchmark = ROOT / "benchmarks" / "baton-dispatch-effect"
+        ledger = json.loads(
+            (benchmark / "attempts.json").read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        source_bytes = (benchmark / "results.json").read_bytes()
+        source = json.loads(source_bytes, parse_float=Decimal)
+        expected_source_keys = {
+            "schema_version",
+            "run_date",
+            "timezone",
+            "client",
+            "treatment_dependency",
+            "shared_runtime",
+            "small_availability_observation",
+            "large_policy_activation_gate",
+            "release_payload_replay",
+            "metric_note",
+        }
+        expected_pointers = [
+            "/small_availability_observation/cells/0",
+            "/small_availability_observation/cells/1",
+            "/large_policy_activation_gate/attempts/0",
+            "/large_policy_activation_gate/attempts/1",
+            "/large_policy_activation_gate/attempts/2",
+            "/large_policy_activation_gate/attempts/3",
+            "/release_payload_replay",
+        ]
+        passed_pointers = [
+            expected_pointers[0],
+            expected_pointers[1],
+            expected_pointers[5],
+            expected_pointers[6],
+        ]
+        failed_pointers = expected_pointers[2:5]
+        ledger_keys = {
+            "schema_version",
+            "source",
+            "counts",
+            "coverage",
+            "passed_attempts",
+            "failed_attempts",
+            "not_run",
+        }
+
+        def resolve(pointer: str) -> dict:
+            value: object = source
+            for token in pointer.removeprefix("/").split("/"):
+                if isinstance(value, dict):
+                    self.assertIn(token, value)
+                    value = value[token]
+                elif isinstance(value, list):
+                    self.assertTrue(token.isdigit())
+                    value = value[int(token)]
+                else:
+                    self.fail(f"cannot resolve {pointer!r}")
+            self.assertIsInstance(value, dict)
+            return value
+
+        def project(pointer: str) -> dict:
+            record = resolve(pointer)
+            if pointer.startswith("/small_availability_observation/cells/"):
+                parent = source["small_availability_observation"]
+                return {
+                    "id": f"baton-dispatch-effect-small-{record['name']}",
+                    "source_pointer": pointer,
+                    "class": "availability",
+                    "configuration_identity": {
+                        "client_version": parent["client_version"],
+                        "fixture": parent["fixture"],
+                        "fixture_digest": parent["fixture_digest"],
+                        "policy_sha256": parent["policy_sha256"],
+                        "prompt_file_sha256": parent["prompt_file_sha256"],
+                        "prompt_runtime_input_sha256": parent[
+                            "prompt_runtime_input_sha256"
+                        ],
+                        "baton_visibility": record["baton_visibility"],
+                    },
+                    "status": record["status"],
+                    "boundary": parent["claim_boundary"],
+                    **{
+                        key: record[key]
+                        for key in (
+                            "wall_seconds",
+                            "duration_ms",
+                            "duration_api_ms",
+                            "num_turns",
+                            "client_reported_cost_usd",
+                            "baton_listed_at_init",
+                            "baton_skill_call_count",
+                            "agent_call_count",
+                            "topology",
+                            "test_passed",
+                            "report_sha256",
+                            "raw_stream_sha256",
+                        )
+                    },
+                }
+            if pointer.startswith("/large_policy_activation_gate/attempts/"):
+                parent = source["large_policy_activation_gate"]
+                entry = {
+                    "id": f"baton-dispatch-effect-{record['name']}",
+                    "source_pointer": pointer,
+                    "class": "activation",
+                    "configuration_identity": {
+                        "fixture_baseline_commit": parent["fixture"][
+                            "baseline_commit"
+                        ],
+                        "fixture_baseline_tree": parent["fixture"]["baseline_tree"],
+                        "prompt_file_sha256": parent["prompt_file_sha256"],
+                        "prompt_runtime_input_sha256": parent[
+                            "prompt_runtime_input_sha256"
+                        ],
+                        "client_version": record["client_version"],
+                        "policy_sha256": record["policy_sha256"],
+                    },
+                    "status": record["status"],
+                    "boundary": parent["claim_boundary"],
+                    **{
+                        key: record[key]
+                        for key in (
+                            "wall_seconds",
+                            "client_reported_cost_usd",
+                            "baton_skill_call_count",
+                            "agent_call_count",
+                            "completed_agent_count",
+                            "test_passed",
+                            "raw_stream_sha256",
+                        )
+                    },
+                }
+                for key in (
+                    "failed_agent_count",
+                    "active_scope_overlap_observed",
+                    "failure",
+                    "audit_sha256",
+                    "terminal_is_error",
+                ):
+                    if key in record:
+                        entry[key] = record[key]
+                if "post_run_verification" in record:
+                    entry["final_byte_verification"] = record[
+                        "post_run_verification"
+                    ]
+                return entry
+
+            self.assertEqual(pointer, "/release_payload_replay")
+            return {
+                "id": "baton-dispatch-effect-large-v131-release-payload-replay",
+                "source_pointer": pointer,
+                "class": "replay",
+                "configuration_identity": {
+                    key: record[key]
+                    for key in (
+                        "fixture_baseline_commit",
+                        "fixture_baseline_tree",
+                        "prompt_file_sha256",
+                        "prompt_runtime_input_sha256",
+                        "client_version",
+                        "policy_sha256",
+                        "agents_json_sha256",
+                        "baton_skill_sha256",
+                    )
+                },
+                "status": record["status"],
+                "boundary": record["claim_boundary"],
+                **{
+                    key: record[key]
+                    for key in (
+                        "duration_ms",
+                        "duration_api_ms",
+                        "num_turns",
+                        "client_reported_cost_usd",
+                        "terminal_is_error",
+                        "baton_skill_call_count",
+                        "agent_call_count",
+                        "completed_agent_count",
+                        "active_scope_overlap_observed",
+                        "test_passed",
+                        "audit_sha256",
+                        "raw_stream_sha256",
+                    )
+                },
+                "final_byte_verification": record["post_run_verification"],
+            }
+
+        def validate(candidate: dict) -> None:
+            self.assertEqual(set(source), expected_source_keys)
+            self.assertEqual(source["schema_version"], 3)
+            self.assertEqual(
+                [
+                    cell["name"]
+                    for cell in source["small_availability_observation"]["cells"]
+                ],
+                ["control", "treatment"],
+            )
+            self.assertEqual(
+                [
+                    attempt["name"]
+                    for attempt in source["large_policy_activation_gate"][
+                        "attempts"
+                    ]
+                ],
+                [f"large-v131-{number}" for number in range(1, 5)],
+            )
+            self.assertEqual(
+                source["release_payload_replay"]["name"],
+                "large-v131-release-payload-replay",
+            )
+            self.assertEqual(set(candidate), ledger_keys)
+            self.assertEqual(candidate["schema_version"], 1)
+            self.assertEqual(
+                candidate["source"],
+                {
+                    "path": "results.json",
+                    "sha256": hashlib.sha256(source_bytes).hexdigest(),
+                },
+            )
+            self.assertEqual(
+                candidate["coverage"],
+                {
+                    "source_pointers": [
+                        "/small_availability_observation/cells",
+                        "/large_policy_activation_gate/attempts",
+                        "/release_payload_replay",
+                    ],
+                    "invocation_pointers": expected_pointers,
+                },
+            )
+            passed = candidate["passed_attempts"]
+            failed = candidate["failed_attempts"]
+            self.assertEqual(candidate["not_run"], [])
+            self.assertEqual(
+                candidate["counts"], {"attempted": 7, "passed": 4, "failed": 3}
+            )
+            self.assertEqual(len(passed), 4)
+            self.assertEqual(len(failed), 3)
+            self.assertEqual(
+                [entry["source_pointer"] for entry in passed], passed_pointers
+            )
+            self.assertEqual(
+                [entry["source_pointer"] for entry in failed], failed_pointers
+            )
+            entries = passed + failed
+            self.assertEqual(len({entry["id"] for entry in entries}), 7)
+            self.assertEqual(
+                len({entry["source_pointer"] for entry in entries}), 7
+            )
+            self.assertEqual(
+                {entry["source_pointer"] for entry in entries},
+                set(expected_pointers),
+            )
+            for entry in entries:
+                self.assertEqual(entry, project(entry["source_pointer"]))
+                self.assertRegex(entry["raw_stream_sha256"], r"^[0-9a-f]{64}$")
+            self.assertTrue(failed[0]["status"].endswith("ownership_fail"))
+            self.assertTrue(failed[1]["status"].endswith("ownership_fail"))
+            self.assertTrue(failed[0]["test_passed"])
+            self.assertTrue(failed[1]["test_passed"])
+            self.assertEqual(
+                failed[2]["status"],
+                "topology_pass_runtime_limit_outcome_incomplete",
+            )
+            self.assertFalse(failed[2]["test_passed"])
+            self.assertEqual(passed[2]["final_byte_verification"]["exit_code"], 0)
+            self.assertEqual(passed[3]["class"], "replay")
+            child_calls = sum(entry["agent_call_count"] for entry in entries)
+            self.assertEqual(child_calls, 16)
+            self.assertGreater(child_calls, candidate["counts"]["attempted"])
+            for forbidden in (
+                "/small_availability_observation/gate",
+                "/large_policy_activation_gate/effect_gate",
+                "/large_policy_activation_gate/attempts/3/post_run_verification",
+                "/release_payload_replay/effect_gate",
+            ):
+                self.assertNotIn(
+                    forbidden, candidate["coverage"]["invocation_pointers"]
+                )
+
+        validate(ledger)
+
+        missing = deepcopy(ledger)
+        missing["passed_attempts"].pop()
+        with self.assertRaises(AssertionError):
+            validate(missing)
+
+        for invalid_pointer in (
+            "/large_policy_activation_gate/effect_gate",
+            "/large_policy_activation_gate/attempts/3/post_run_verification",
+        ):
+            inserted = deepcopy(ledger)
+            inserted["passed_attempts"][0]["source_pointer"] = invalid_pointer
+            with self.assertRaises(AssertionError):
+                validate(inserted)
+
+        for index in (0, 1):
+            flipped = deepcopy(ledger)
+            flipped["failed_attempts"][index]["status"] = "passed"
+            with self.assertRaises(AssertionError):
+                validate(flipped)
+
+        for key, value in (
+            ("failure", "different"),
+            ("raw_stream_sha256", "0" * 64),
+            ("client_reported_cost_usd", Decimal("0")),
+        ):
+            replaced = deepcopy(ledger)
+            replaced["failed_attempts"][0][key] = value
+            with self.assertRaises(AssertionError):
+                validate(replaced)
+
+        replaced_identity = deepcopy(ledger)
+        replaced_identity["failed_attempts"][0]["configuration_identity"][
+            "policy_sha256"
+        ] = "0" * 64
+        with self.assertRaises(AssertionError):
+            validate(replaced_identity)
+
+        child_inflated = deepcopy(ledger)
+        child_inflated["counts"] = {"attempted": 16, "passed": 14, "failed": 2}
+        with self.assertRaises(AssertionError):
+            validate(child_inflated)
+
     def test_spontaneous_dispatch_inputs_are_cue_free_and_recorded(self) -> None:
         benchmark = ROOT / "benchmarks" / "spontaneous-dispatch"
         results = json.loads((benchmark / "results.json").read_text(encoding="utf-8"))
