@@ -3745,6 +3745,173 @@ class PolicyContractTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             validate(reordered)
 
+    def test_verifier_paid_campaign_summary_is_source_bound(self) -> None:
+        gate = ROOT / "benchmarks" / "verifier-boundary"
+        summary = json.loads(
+            (gate / "paid-campaign.summary.json").read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        source_bytes = (gate / "results.json").read_bytes()
+        source = json.loads(source_bytes, parse_float=Decimal)
+        semantics = [
+            ("at_least_one_failure", ["/failed_attempts/2"]),
+            (
+                "outcome_unknown_quota_terminated",
+                ["/failed_attempts/2/inconclusive_diagnostic"],
+            ),
+            (
+                "at_least_one_pass",
+                ["/failed_attempts/2/same_bytes_later_reproduced"],
+            ),
+            ("unknown", []),
+            ("at_least_one_failure", ["/failed_attempts/3"]),
+            ("unknown", []),
+            ("unknown", []),
+            ("unknown", []),
+            (
+                "at_least_one_pass",
+                ["/superseded_v1_3_6_passing_gate/status"],
+            ),
+            ("passed", ["/passing_gate/status"]),
+        ]
+        claim_boundary = (
+            "These records are cost/run-category aggregates labeled by policy SHA "
+            "prefix. Suffixes such as diagnostic and reproduction subdivide runs "
+            "against the same policy bytes, so group_count is not a distinct-policy "
+            "count. Invocation cardinality is unknown for every group, so they do "
+            "not define attempt counts, rates, or complete group outcomes. "
+            "at_least_one_pass and at_least_one_failure are source-supported lower "
+            "bounds only; passed is used only where the aggregate cost exactly "
+            "equals the complete passing gate."
+        )
+
+        def resolve(pointer: str) -> object:
+            value: object = source
+            for token in pointer.removeprefix("/").split("/"):
+                if isinstance(value, dict):
+                    self.assertIn(token, value)
+                    value = value[token]
+                elif isinstance(value, list):
+                    self.assertTrue(token.isdigit())
+                    value = value[int(token)]
+                else:
+                    self.fail(f"cannot resolve {pointer!r}")
+            return value
+
+        expected_groups = [
+            {
+                "id": f"verifier-paid-group-{index}",
+                "source_pointer": f"/paid_campaign/attempt_log/{index}",
+                "invocation_count": "unknown",
+                "recorded_outcome": outcome,
+                "outcome_evidence_pointers": evidence,
+                "record": record,
+            }
+            for index, (record, (outcome, evidence)) in enumerate(
+                zip(source["paid_campaign"]["attempt_log"], semantics)
+            )
+        ]
+
+        def validate(candidate: dict) -> None:
+            self.assertEqual(source["schema_version"], 2)
+            self.assertEqual(candidate["schema_version"], 1)
+            self.assertEqual(
+                set(candidate),
+                {
+                    "schema_version",
+                    "source",
+                    "claim_boundary",
+                    "summary",
+                    "groups",
+                },
+            )
+            self.assertEqual(
+                candidate["source"],
+                {
+                    "path": "results.json",
+                    "sha256": hashlib.sha256(source_bytes).hexdigest(),
+                },
+            )
+            self.assertEqual(candidate["claim_boundary"], claim_boundary)
+            self.assertEqual(
+                candidate["summary"],
+                {
+                    "group_kind": "cost_run_category",
+                    "group_count": 10,
+                    "total_client_reported_cost_usd": source["paid_campaign"][
+                        "client_reported_cost_usd"
+                    ],
+                },
+            )
+            self.assertEqual(candidate["groups"], expected_groups)
+            self.assertEqual(
+                sum(group["record"]["client_reported_cost_usd"] for group in candidate["groups"]),
+                candidate["summary"]["total_client_reported_cost_usd"],
+            )
+            self.assertTrue(
+                all(group["invocation_count"] == "unknown" for group in candidate["groups"])
+            )
+            self.assertEqual(
+                [
+                    index
+                    for index, group in enumerate(candidate["groups"])
+                    if group["recorded_outcome"] == "passed"
+                ],
+                [9],
+            )
+            self.assertTrue(resolve(candidate["groups"][2]["outcome_evidence_pointers"][0]))
+            self.assertEqual(
+                candidate["groups"][9]["record"]["client_reported_cost_usd"],
+                source["passing_gate"]["client_reported_cost_usd"],
+            )
+            self.assertEqual(resolve("/passing_gate/status"), "passed")
+            self.assertEqual(
+                resolve("/superseded_v1_3_6_passing_gate/status"), "passed"
+            )
+            for group in candidate["groups"]:
+                for pointer in group["outcome_evidence_pointers"]:
+                    self.assertIsNotNone(resolve(pointer))
+            forbidden = {"attempted", "passed", "failed", "rate", "attempt_count"}
+            self.assertTrue(forbidden.isdisjoint(candidate["summary"]))
+            self.assertEqual(
+                hashlib.sha256((gate / "attempts.json").read_bytes()).hexdigest(),
+                "96b875c2eff91faf8bca9d4d582ca86a45998b18626c2b491478fc4911f4c49d",
+            )
+
+        validate(summary)
+
+        promoted = deepcopy(summary)
+        promoted["groups"][2]["recorded_outcome"] = "passed"
+        with self.assertRaises(AssertionError):
+            validate(promoted)
+
+        cardinalized = deepcopy(summary)
+        cardinalized["groups"][0]["invocation_count"] = 1
+        with self.assertRaises(AssertionError):
+            validate(cardinalized)
+
+        remapped = deepcopy(summary)
+        remapped["groups"][4]["outcome_evidence_pointers"] = [
+            "/passing_gate/status"
+        ]
+        with self.assertRaises(AssertionError):
+            validate(remapped)
+
+        changed_cost = deepcopy(summary)
+        changed_cost["groups"][9]["record"]["client_reported_cost_usd"] = Decimal("0")
+        with self.assertRaises(AssertionError):
+            validate(changed_cost)
+
+        missing = deepcopy(summary)
+        missing["groups"].pop()
+        with self.assertRaises(AssertionError):
+            validate(missing)
+
+        changed_source = deepcopy(summary)
+        changed_source["source"]["sha256"] = "0" * 64
+        with self.assertRaises(AssertionError):
+            validate(changed_source)
+
     def test_prompt_template_semantic_equivalence_gate_is_documented(self) -> None:
         contributing = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
         release = (ROOT / "RELEASING.md").read_text(encoding="utf-8")

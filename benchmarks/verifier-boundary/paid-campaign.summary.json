@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "source": {
+    "path": "results.json",
+    "sha256": "574fe0dcc78e0abf4faf4fb6895ecc7cf5fba964f3fbb0b6987f5d4779f87430"
+  },
+  "claim_boundary": "These records are cost/run-category aggregates labeled by policy SHA prefix. Suffixes such as diagnostic and reproduction subdivide runs against the same policy bytes, so group_count is not a distinct-policy count. Invocation cardinality is unknown for every group, so they do not define attempt counts, rates, or complete group outcomes. at_least_one_pass and at_least_one_failure are source-supported lower bounds only; passed is used only where the aggregate cost exactly equals the complete passing gate.",
+  "summary": {
+    "group_kind": "cost_run_category",
+    "group_count": 10,
+    "total_client_reported_cost_usd": 29.83550685
+  },
+  "groups": [
+    {
+      "id": "verifier-paid-group-0",
+      "source_pointer": "/paid_campaign/attempt_log/0",
+      "invocation_count": "unknown",
+      "recorded_outcome": "at_least_one_failure",
+      "outcome_evidence_pointers": [
+        "/failed_attempts/2"
+      ],
+      "record": {
+        "policy_sha256_prefix": "59f18c6d",
+        "client_reported_cost_usd": 2.813526
+      }
+    },
+    {
+      "id": "verifier-paid-group-1",
+      "source_pointer": "/paid_campaign/attempt_log/1",
+      "invocation_count": "unknown",
+      "recorded_outcome": "outcome_unknown_quota_terminated",
+      "outcome_evidence_pointers": [
+        "/failed_attempts/2/inconclusive_diagnostic"
+      ],
+      "record": {
+        "policy_sha256_prefix": "59f18c6d-diagnostic",
+        "client_reported_cost_usd": 0.37431
+      }
+    },
+    {
+      "id": "verifier-paid-group-2",
+      "source_pointer": "/paid_campaign/attempt_log/2",
+      "invocation_count": "unknown",
+      "recorded_outcome": "at_least_one_pass",
+      "outcome_evidence_pointers": [
+        "/failed_attempts/2/same_bytes_later_reproduced"
+      ],
+      "record": {
+        "policy_sha256_prefix": "59f18c6d-reproduction",
+        "client_reported_cost_usd": 1.147222
+      }
+    },
+    {
+      "id": "verifier-paid-group-3",
+      "source_pointer": "/paid_campaign/attempt_log/3",
+      "invocation_count": "unknown",
+      "recorded_outcome": "unknown",
+      "outcome_evidence_pointers": [],
+      "record": {
+        "policy_sha256_prefix": "69ed7ffc",
+        "client_reported_cost_usd": 2.314099
+      }
+    },
+    {
+      "id": "verifier-paid-group-4",
+      "source_pointer": "/paid_campaign/attempt_log/4",
+      "invocation_count": "unknown",
+      "recorded_outcome": "at_least_one_failure",
+      "outcome_evidence_pointers": [
+        "/failed_attempts/3"
+      ],
+      "record": {
+        "policy_sha256_prefix": "6b1e8095-shipped",
+        "client_reported_cost_usd": 3.989178
+      }
+    },
+    {
+      "id": "verifier-paid-group-5",
+      "source_pointer": "/paid_campaign/attempt_log/5",
+      "invocation_count": "unknown",
+      "recorded_outcome": "unknown",
+      "outcome_evidence_pointers": [],
+      "record": {
+        "policy_sha256_prefix": "6f3d513b",
+        "client_reported_cost_usd": 3.99375
+      }
+    },
+    {
+      "id": "verifier-paid-group-6",
+      "source_pointer": "/paid_campaign/attempt_log/6",
+      "invocation_count": "unknown",
+      "recorded_outcome": "unknown",
+      "outcome_evidence_pointers": [],
+      "record": {
+        "policy_sha256_prefix": "84309e9b",
+        "client_reported_cost_usd": 2.613567
+      }
+    },
+    {
+      "id": "verifier-paid-group-7",
+      "source_pointer": "/paid_campaign/attempt_log/7",
+      "invocation_count": "unknown",
+      "recorded_outcome": "unknown",
+      "outcome_evidence_pointers": [],
+      "record": {
+        "policy_sha256_prefix": "8cec947e",
+        "client_reported_cost_usd": 3.589613
+      }
+    },
+    {
+      "id": "verifier-paid-group-8",
+      "source_pointer": "/paid_campaign/attempt_log/8",
+      "invocation_count": "unknown",
+      "recorded_outcome": "at_least_one_pass",
+      "outcome_evidence_pointers": [
+        "/superseded_v1_3_6_passing_gate/status"
+      ],
+      "record": {
+        "policy_sha256_prefix": "v1_3_6_baseline",
+        "client_reported_cost_usd": 5.1607271
+      }
+    },
+    {
+      "id": "verifier-paid-group-9",
+      "source_pointer": "/paid_campaign/attempt_log/9",
+      "invocation_count": "unknown",
+      "recorded_outcome": "passed",
+      "outcome_evidence_pointers": [
+        "/passing_gate/status"
+      ],
+      "record": {
+        "policy_sha256_prefix": "b26ef4a6-shipped-verified",
+        "client_reported_cost_usd": 3.83951475
+      }
+    }
+  ]
+}
