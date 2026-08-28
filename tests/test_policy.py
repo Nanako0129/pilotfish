@@ -4135,43 +4135,82 @@ class PolicyContractTests(unittest.TestCase):
             len([turn for turn in ("turn_1", "turn_2") if turn in attempt])
             for attempt in results["schema_lifecycle"]["attempts"]
         )
+        schema_primary_results = []
+        for attempt in results["schema_lifecycle"]["attempts"]:
+            match = re.fullmatch(
+                r"(?P<passed>\d+) passed, (?P<failed>\d+) failed",
+                attempt["turn_2"]["primary_tests"],
+            )
+            self.assertIsNotNone(match)
+            self.assertEqual(int(match.group("failed")), 0)
+            schema_primary_results.append(int(match.group("passed")))
+        self.assertEqual(len(set(schema_primary_results)), 1)
+        schema_primary_tests = schema_primary_results[0]
         total_invocations = (
             routine_attempts + bug_attempts + mechanical_attempts + schema_turns
         )
         self.assertEqual(total_invocations, 10)
-        compact_readme = (
+        compact_english = (
             ROOT / "benchmarks/spontaneous-dispatch/README.md"
         ).read_text(encoding="utf-8")
-        compact_start = compact_readme.index(
+        compact_start = compact_english.index(
             f"The compact {compact['candidate']['bytes']:,}-byte policy"
         )
-        compact_end = compact_readme.index("\n\n", compact_start)
-        compact_paragraph = compact_readme[compact_start:compact_end]
+        compact_end = compact_english.index("\n\n", compact_start)
+        compact_paragraph = compact_english[compact_start:compact_end]
         for fragment in (
             f"compact {compact['candidate']['bytes']:,}-byte policy",
             f"Routine and single-bug controls stayed direct `{routine_attempts}/2`",
             f"mechanical delegation passed `{mechanical_attempts}/2`",
-            f"{schema_turns}/{schema_turns} primary tests",
+            f"{schema_primary_tests}/{schema_primary_tests} primary tests",
             "The ten invocations reported "
             f"`${compact['budget']['actual_usd']}`",
             f"under the same `${compact['budget']['hard_cap_usd']}` hard cap",
         ):
             self.assertIn(fragment, compact_paragraph)
 
-        self.assertEqual(routine_attempts, bug_attempts)
-        verifier_readme = (
-            ROOT / "benchmarks/verifier-boundary/README.md"
+        compact_chinese = (
+            ROOT / "benchmarks/spontaneous-dispatch/README.zh-TW.md"
         ).read_text(encoding="utf-8")
-        self.assertIn(
-            f"current passing controls reported "
-            f"${verifier['passing_gate']['client_reported_cost_usd']}",
-            verifier_readme,
+        compact_zh_start = compact_chinese.index(
+            f"對 {compact['candidate']['bytes']:,}-byte compact policy"
         )
-        self.assertIn(
-            f"reported $"
-            f"{verifier['paid_campaign']['client_reported_cost_usd'].quantize(Decimal('0.0001'))}",
-            verifier_readme,
+        compact_zh_end = compact_chinese.index("\n\n", compact_zh_start)
+        compact_zh_paragraph = compact_chinese[compact_zh_start:compact_zh_end]
+        for fragment in (
+            f"{compact['candidate']['bytes']:,}-byte compact policy",
+            f"Routine 與 single-bug controls 維持 direct `{routine_attempts}/2`",
+            f"mechanical delegation 通過 `{mechanical_attempts}/2`",
+            f"{schema_primary_tests}/{schema_primary_tests} primary tests",
+            "十次 invocation",
+            f"`${compact['budget']['hard_cap_usd']}` hard cap",
+            f"`${compact['budget']['actual_usd']}`",
+        ):
+            self.assertIn(fragment, compact_zh_paragraph)
+
+        self.assertEqual(routine_attempts, bug_attempts)
+        verifier_docs = (
+            (
+                ROOT / "benchmarks/verifier-boundary/README.md",
+                "current passing controls reported",
+            ),
+            (
+                ROOT / "benchmarks/verifier-boundary/README.zh-TW.md",
+                "目前 passing controls 對 v1.3.7 壓縮後政策 reported",
+            ),
         )
+        for path, current_label in verifier_docs:
+            content = path.read_text(encoding="utf-8")
+            self.assertIn(
+                f"{current_label} "
+                f"${verifier['passing_gate']['client_reported_cost_usd']}",
+                content,
+            )
+            self.assertIn(
+                f"reported $"
+                f"{verifier['paid_campaign']['client_reported_cost_usd'].quantize(Decimal('0.0001'))}",
+                content,
+            )
 
     def test_release_pushes_default_branch_before_tags(self) -> None:
         release = (ROOT / "RELEASING.md").read_text(encoding="utf-8")
