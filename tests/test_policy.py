@@ -4206,15 +4206,18 @@ class PolicyContractTests(unittest.TestCase):
         )
         for path, current_label in verifier_docs:
             content = path.read_text(encoding="utf-8")
+            summary_start = content.index(current_label)
+            summary_end = content.index("\n\n", summary_start)
+            summary_paragraph = content[summary_start:summary_end]
             self.assertIn(
                 f"{current_label} "
                 f"${verifier['passing_gate']['client_reported_cost_usd']}",
-                content,
+                summary_paragraph,
             )
             self.assertIn(
                 f"reported $"
                 f"{verifier['paid_campaign']['client_reported_cost_usd'].quantize(Decimal('0.0001'))}",
-                content,
+                summary_paragraph,
             )
 
     def test_release_pushes_default_branch_before_tags(self) -> None:
