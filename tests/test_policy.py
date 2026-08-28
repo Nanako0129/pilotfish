@@ -3775,12 +3775,14 @@ class PolicyContractTests(unittest.TestCase):
             ("passed", ["/passing_gate/status"]),
         ]
         claim_boundary = (
-            "These records are cost aggregates grouped by policy bytes. Invocation "
-            "cardinality is unknown for every group, so they do not define attempt "
-            "counts, rates, or complete group outcomes. at_least_one_pass and "
-            "at_least_one_failure are source-supported lower bounds only; passed is "
-            "used only where the aggregate cost exactly equals the complete passing "
-            "gate."
+            "These records are cost/run-category aggregates labeled by policy SHA "
+            "prefix. Suffixes such as diagnostic and reproduction subdivide runs "
+            "against the same policy bytes, so group_count is not a distinct-policy "
+            "count. Invocation cardinality is unknown for every group, so they do "
+            "not define attempt counts, rates, or complete group outcomes. "
+            "at_least_one_pass and at_least_one_failure are source-supported lower "
+            "bounds only; passed is used only where the aggregate cost exactly "
+            "equals the complete passing gate."
         )
 
         def resolve(pointer: str) -> object:
@@ -3834,6 +3836,7 @@ class PolicyContractTests(unittest.TestCase):
             self.assertEqual(
                 candidate["summary"],
                 {
+                    "group_kind": "cost_run_category",
                     "group_count": 10,
                     "total_client_reported_cost_usd": source["paid_campaign"][
                         "client_reported_cost_usd"
