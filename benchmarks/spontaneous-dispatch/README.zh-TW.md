@@ -231,7 +231,7 @@ Review 釐清 precedence 與重疊 predicate 後，新的 18,477-byte candidate 
 
 目前 machine-readable 紀錄位於 [`issue-29-recovery.json`](./issue-29-recovery.json) 的 `adaptive_interaction_routing_post_review_gate`。舊 v1.3.8 policy 另固定在 [`v1.3.8-policy-snapshot/CLAUDE.md`](./v1.3.8-policy-snapshot/CLAUDE.md)，後續 template 變更不會重寫較早的 release 或 TUI 證據。這些 Gates 證明新規則與既有 topology boundary 相容，不是 A/B 品質提升或 mode-selection rate。
 
-後續也以 Claude Code 2.1.224 對 15,841-byte compact policy 重跑完整 matrix。Routine 與 single-bug controls 維持 direct `2/2`，mechanical delegation 通過 `2/2`，兩組 schema lifecycle 都完成 `plan-verifier READY` → approval stop → direct implementation 與 4/4 primary tests → `verifier CONFIRMED`。十次 invocation 在相同的 `$8` hard cap 下 reported `$3.79160515`。Exact bytes 與 additive record 分別固定在 [`compact-policy-gate-snapshot/CLAUDE.md`](./compact-policy-gate-snapshot/CLAUDE.md) 與 [`compact-policy-full-matrix.json`](./compact-policy-full-matrix.json)。
+後續也以 Claude Code 2.1.224 對 15,841-byte compact policy 重跑完整 matrix。Routine 與 single-bug controls 維持 direct `2/2`，mechanical delegation 通過 `2/2`，兩組 schema lifecycle 都完成 `plan-verifier READY` → approval stop → direct implementation 與 4/4 primary tests → `verifier CONFIRMED`。10 次 invocation 在相同的 `$8` hard cap 下 reported `$3.79160515`。Exact bytes 與 additive record 分別固定在 [`compact-policy-gate-snapshot/CLAUDE.md`](./compact-policy-gate-snapshot/CLAUDE.md) 與 [`compact-policy-full-matrix.json`](./compact-policy-full-matrix.json)。
 
 ## Calico TUI 診斷
 

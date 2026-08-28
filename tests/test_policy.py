@@ -4109,21 +4109,22 @@ class PolicyContractTests(unittest.TestCase):
             parse_float=Decimal,
         )
         baton_docs = {
-            "Current generated": (
+            ("Current generated", "Last behaviorally qualified policy SHA-256"): (
                 ROOT / "benchmarks/baton-compatibility/README.md"
             ).read_text(encoding="utf-8"),
-            "目前產生的": (
+            ("目前產生的", "最近一次完成行為驗證的 policy SHA-256"): (
                 ROOT / "benchmarks/baton-compatibility/README.zh-TW.md"
             ).read_text(encoding="utf-8"),
         }
-        for label, content in baton_docs.items():
+        for (current_label, qualified_label), content in baton_docs.items():
             self.assertIn(
-                f"{label} v{version} agents payload SHA-256 | "
+                f"{current_label} v{version} agents payload SHA-256 | "
                 f"`{baton['release_candidate_agents_json_sha256']}`",
                 content,
             )
             self.assertIn(
-                baton["last_behaviorally_qualified_orchestration_sha256"],
+                f"{qualified_label} | "
+                f"`{baton['last_behaviorally_qualified_orchestration_sha256']}`",
                 content,
             )
 
@@ -4160,10 +4161,12 @@ class PolicyContractTests(unittest.TestCase):
         compact_paragraph = compact_english[compact_start:compact_end]
         for fragment in (
             f"compact {compact['candidate']['bytes']:,}-byte policy",
-            f"Routine and single-bug controls stayed direct `{routine_attempts}/2`",
-            f"mechanical delegation passed `{mechanical_attempts}/2`",
+            f"Routine and single-bug controls stayed direct "
+            f"`{routine_attempts}/{routine_attempts}`",
+            f"mechanical delegation passed "
+            f"`{mechanical_attempts}/{mechanical_attempts}`",
             f"{schema_primary_tests}/{schema_primary_tests} primary tests",
-            "The ten invocations reported "
+            f"The {total_invocations} invocations reported "
             f"`${compact['budget']['actual_usd']}`",
             f"under the same `${compact['budget']['hard_cap_usd']}` hard cap",
         ):
@@ -4179,10 +4182,12 @@ class PolicyContractTests(unittest.TestCase):
         compact_zh_paragraph = compact_chinese[compact_zh_start:compact_zh_end]
         for fragment in (
             f"{compact['candidate']['bytes']:,}-byte compact policy",
-            f"Routine 與 single-bug controls 維持 direct `{routine_attempts}/2`",
-            f"mechanical delegation 通過 `{mechanical_attempts}/2`",
+            f"Routine 與 single-bug controls 維持 direct "
+            f"`{routine_attempts}/{routine_attempts}`",
+            f"mechanical delegation 通過 "
+            f"`{mechanical_attempts}/{mechanical_attempts}`",
             f"{schema_primary_tests}/{schema_primary_tests} primary tests",
-            "十次 invocation",
+            f"{total_invocations} 次 invocation",
             f"`${compact['budget']['hard_cap_usd']}` hard cap",
             f"`${compact['budget']['actual_usd']}`",
         ):
