@@ -4198,13 +4198,16 @@ class PolicyContractTests(unittest.TestCase):
             (
                 ROOT / "benchmarks/verifier-boundary/README.md",
                 "current passing controls reported",
+                "schema cell fully reproduced on {count} of {count} attempts",
             ),
             (
                 ROOT / "benchmarks/verifier-boundary/README.zh-TW.md",
                 "目前 passing controls 對 v1.3.7 壓縮後政策 reported",
+                "schema cell 對出貨位元組 {count} 次嘗試全部完整重現",
             ),
         )
-        for path, current_label in verifier_docs:
+        verifier_attempts = verifier["passing_gate"]["schema_lifecycle"]["attempts"]
+        for path, current_label, attempt_template in verifier_docs:
             content = path.read_text(encoding="utf-8")
             summary_start = content.index(current_label)
             summary_end = content.index("\n\n", summary_start)
@@ -4212,6 +4215,10 @@ class PolicyContractTests(unittest.TestCase):
             self.assertIn(
                 f"{current_label} "
                 f"${verifier['passing_gate']['client_reported_cost_usd']}",
+                summary_paragraph,
+            )
+            self.assertIn(
+                attempt_template.format(count=verifier_attempts),
                 summary_paragraph,
             )
             self.assertIn(
