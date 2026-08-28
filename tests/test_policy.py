@@ -4088,6 +4088,145 @@ class PolicyContractTests(unittest.TestCase):
             runtime["release_candidate_behavioral_gate_status"],
         )
 
+    def test_current_derived_benchmark_prose_is_source_bound(self) -> None:
+        version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+        baton = json.loads(
+            (ROOT / "benchmarks/baton-compatibility/results.json").read_text(
+                encoding="utf-8"
+            )
+        )["runtime"]
+        compact = json.loads(
+            (
+                ROOT
+                / "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json"
+            ).read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        verifier = json.loads(
+            (ROOT / "benchmarks/verifier-boundary/results.json").read_text(
+                encoding="utf-8"
+            ),
+            parse_float=Decimal,
+        )
+        baton_docs = {
+            ("Current generated", "Last behaviorally qualified policy SHA-256"): (
+                ROOT / "benchmarks/baton-compatibility/README.md"
+            ).read_text(encoding="utf-8"),
+            ("目前產生的", "最近一次完成行為驗證的 policy SHA-256"): (
+                ROOT / "benchmarks/baton-compatibility/README.zh-TW.md"
+            ).read_text(encoding="utf-8"),
+        }
+        for (current_label, qualified_label), content in baton_docs.items():
+            self.assertIn(
+                f"{current_label} v{version} agents payload SHA-256 | "
+                f"`{baton['release_candidate_agents_json_sha256']}`",
+                content,
+            )
+            self.assertIn(
+                f"{qualified_label} | "
+                f"`{baton['last_behaviorally_qualified_orchestration_sha256']}`",
+                content,
+            )
+
+        results = compact["results"]
+        routine_attempts = len(results["routine_docs"]["attempts"])
+        bug_attempts = len(results["single_unknown_bug"]["attempts"])
+        mechanical_attempts = len(results["mechanical_repetition"]["attempts"])
+        schema_turns = sum(
+            len([turn for turn in ("turn_1", "turn_2") if turn in attempt])
+            for attempt in results["schema_lifecycle"]["attempts"]
+        )
+        schema_primary_results = []
+        for attempt in results["schema_lifecycle"]["attempts"]:
+            match = re.fullmatch(
+                r"(?P<passed>\d+) passed, (?P<failed>\d+) failed",
+                attempt["turn_2"]["primary_tests"],
+            )
+            self.assertIsNotNone(match)
+            self.assertEqual(int(match.group("failed")), 0)
+            schema_primary_results.append(int(match.group("passed")))
+        self.assertEqual(len(set(schema_primary_results)), 1)
+        schema_primary_tests = schema_primary_results[0]
+        total_invocations = (
+            routine_attempts + bug_attempts + mechanical_attempts + schema_turns
+        )
+        self.assertEqual(total_invocations, 10)
+        compact_english = (
+            ROOT / "benchmarks/spontaneous-dispatch/README.md"
+        ).read_text(encoding="utf-8")
+        compact_start = compact_english.index(
+            f"The compact {compact['candidate']['bytes']:,}-byte policy"
+        )
+        compact_end = compact_english.index("\n\n", compact_start)
+        compact_paragraph = compact_english[compact_start:compact_end]
+        for fragment in (
+            f"compact {compact['candidate']['bytes']:,}-byte policy",
+            f"Routine and single-bug controls stayed direct "
+            f"`{routine_attempts}/{routine_attempts}`",
+            f"mechanical delegation passed "
+            f"`{mechanical_attempts}/{mechanical_attempts}`",
+            f"{schema_primary_tests}/{schema_primary_tests} primary tests",
+            f"The {total_invocations} invocations reported "
+            f"`${compact['budget']['actual_usd']}`",
+            f"under the same `${compact['budget']['hard_cap_usd']}` hard cap",
+        ):
+            self.assertIn(fragment, compact_paragraph)
+
+        compact_chinese = (
+            ROOT / "benchmarks/spontaneous-dispatch/README.zh-TW.md"
+        ).read_text(encoding="utf-8")
+        compact_zh_start = compact_chinese.index(
+            f"對 {compact['candidate']['bytes']:,}-byte compact policy"
+        )
+        compact_zh_end = compact_chinese.index("\n\n", compact_zh_start)
+        compact_zh_paragraph = compact_chinese[compact_zh_start:compact_zh_end]
+        for fragment in (
+            f"{compact['candidate']['bytes']:,}-byte compact policy",
+            f"Routine 與 single-bug controls 維持 direct "
+            f"`{routine_attempts}/{routine_attempts}`",
+            f"mechanical delegation 通過 "
+            f"`{mechanical_attempts}/{mechanical_attempts}`",
+            f"{schema_primary_tests}/{schema_primary_tests} primary tests",
+            f"{total_invocations} 次 invocation",
+            f"`${compact['budget']['hard_cap_usd']}` hard cap",
+            f"`${compact['budget']['actual_usd']}`",
+        ):
+            self.assertIn(fragment, compact_zh_paragraph)
+
+        self.assertEqual(routine_attempts, bug_attempts)
+        verifier_docs = (
+            (
+                ROOT / "benchmarks/verifier-boundary/README.md",
+                "current passing controls reported",
+                "schema cell fully reproduced on {count} of {count} attempts",
+            ),
+            (
+                ROOT / "benchmarks/verifier-boundary/README.zh-TW.md",
+                "目前 passing controls 對 v1.3.7 壓縮後政策 reported",
+                "schema cell 對出貨位元組 {count} 次嘗試全部完整重現",
+            ),
+        )
+        verifier_attempts = verifier["passing_gate"]["schema_lifecycle"]["attempts"]
+        for path, current_label, attempt_template in verifier_docs:
+            content = path.read_text(encoding="utf-8")
+            summary_start = content.index(current_label)
+            summary_end = content.index("\n\n", summary_start)
+            summary_paragraph = content[summary_start:summary_end]
+            self.assertIn(
+                f"{current_label} "
+                f"${verifier['passing_gate']['client_reported_cost_usd']}",
+                summary_paragraph,
+            )
+            self.assertIn(
+                attempt_template.format(count=verifier_attempts),
+                summary_paragraph,
+            )
+            self.assertIn(
+                f"reported $"
+                f"{verifier['paid_campaign']['client_reported_cost_usd'].quantize(Decimal('0.0001'))}",
+                summary_paragraph,
+            )
+
     def test_release_pushes_default_branch_before_tags(self) -> None:
         release = (ROOT / "RELEASING.md").read_text(encoding="utf-8")
         match = re.search(
