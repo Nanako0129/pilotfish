@@ -4088,6 +4088,91 @@ class PolicyContractTests(unittest.TestCase):
             runtime["release_candidate_behavioral_gate_status"],
         )
 
+    def test_current_derived_benchmark_prose_is_source_bound(self) -> None:
+        version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+        baton = json.loads(
+            (ROOT / "benchmarks/baton-compatibility/results.json").read_text(
+                encoding="utf-8"
+            )
+        )["runtime"]
+        compact = json.loads(
+            (
+                ROOT
+                / "benchmarks/spontaneous-dispatch/compact-policy-full-matrix.json"
+            ).read_text(encoding="utf-8"),
+            parse_float=Decimal,
+        )
+        verifier = json.loads(
+            (ROOT / "benchmarks/verifier-boundary/results.json").read_text(
+                encoding="utf-8"
+            ),
+            parse_float=Decimal,
+        )
+        baton_docs = {
+            "Current generated": (
+                ROOT / "benchmarks/baton-compatibility/README.md"
+            ).read_text(encoding="utf-8"),
+            "目前產生的": (
+                ROOT / "benchmarks/baton-compatibility/README.zh-TW.md"
+            ).read_text(encoding="utf-8"),
+        }
+        for label, content in baton_docs.items():
+            self.assertIn(
+                f"{label} v{version} agents payload SHA-256 | "
+                f"`{baton['release_candidate_agents_json_sha256']}`",
+                content,
+            )
+            self.assertIn(
+                baton["last_behaviorally_qualified_orchestration_sha256"],
+                content,
+            )
+
+        results = compact["results"]
+        routine_attempts = len(results["routine_docs"]["attempts"])
+        bug_attempts = len(results["single_unknown_bug"]["attempts"])
+        mechanical_attempts = len(results["mechanical_repetition"]["attempts"])
+        schema_turns = sum(
+            len([turn for turn in ("turn_1", "turn_2") if turn in attempt])
+            for attempt in results["schema_lifecycle"]["attempts"]
+        )
+        total_invocations = (
+            routine_attempts + bug_attempts + mechanical_attempts + schema_turns
+        )
+        self.assertEqual(total_invocations, 10)
+        compact_readme = (
+            ROOT / "benchmarks/spontaneous-dispatch/README.md"
+        ).read_text(encoding="utf-8")
+        compact_start = compact_readme.index(
+            f"The compact {compact['candidate']['bytes']:,}-byte policy"
+        )
+        compact_end = compact_readme.index("\n\n", compact_start)
+        compact_paragraph = compact_readme[compact_start:compact_end]
+        for fragment in (
+            f"compact {compact['candidate']['bytes']:,}-byte policy",
+            f"Routine and single-bug controls stayed direct `{routine_attempts}/2`",
+            f"mechanical delegation passed `{mechanical_attempts}/2`",
+            f"{schema_turns}/{schema_turns} primary tests",
+            "The ten invocations reported "
+            f"`${compact['budget']['actual_usd']}`",
+            f"under the same `${compact['budget']['hard_cap_usd']}` hard cap",
+        ):
+            self.assertIn(fragment, compact_paragraph)
+
+        self.assertEqual(routine_attempts, bug_attempts)
+        verifier_readme = (
+            ROOT / "benchmarks/verifier-boundary/README.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn(
+            f"current passing controls reported "
+            f"${verifier['passing_gate']['client_reported_cost_usd']}",
+            verifier_readme,
+        )
+        self.assertIn(
+            f"reported $"
+            f"{verifier['paid_campaign']['client_reported_cost_usd'].quantize(Decimal('0.0001'))}",
+            verifier_readme,
+        )
+
     def test_release_pushes_default_branch_before_tags(self) -> None:
         release = (ROOT / "RELEASING.md").read_text(encoding="utf-8")
         match = re.search(
