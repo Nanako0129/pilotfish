@@ -31,17 +31,17 @@ reviews:
         one-line frontmatter change can invalidate an exact-byte fixture.
 
         These are behaviour-bearing prompt templates: the same independent
-        semantic-equivalence reading applies. `templates/settings.snippet.json`
+        semantic-equivalence reading applies. templates/settings.snippet.json
         is configuration and is excluded from that procedure.
 
     - path: "benchmarks/**/results.json"
       instructions: |
         Machine-readable evidence. Add new observations; never relabel failed,
         superseded or historical runs. A historical Gate payload keeps its exact
-        bytes and its `final_gate_*` hash; a current generated candidate records
-        its builder-derived `release_candidate_*` hash separately.
+        bytes and its final_gate_* hash; a current generated candidate records
+        its builder-derived release_candidate_* hash separately.
 
-        `build-agents-json.py` is the only supported builder for the `--agents`
+        build-agents-json.py is the only supported builder for the --agents
         payload. Flag a hand-reordered JSON object, or a payload replaced beside
         an already-recorded runtime Gate.
 
