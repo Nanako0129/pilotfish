@@ -1,0 +1,73 @@
+# CodeRabbit configuration.
+# Schema: https://storage.googleapis.com/coderabbit_public_assets/schema.v2.json
+#
+# Every instruction below restates a rule this repository already writes down in
+# CONTRIBUTING.md. Nothing here is a new policy.
+
+reviews:
+  auto_review:
+    # Default is 5: after five reviewed commits CodeRabbit silently stops
+    # auto-reviewing, and a poller then reads that as a timeout rather than a
+    # pause. A fix loop on a contested PR passes five rounds easily.
+    auto_pause_after_reviewed_commits: 20
+
+  path_instructions:
+    - path: "templates/claude-md.orchestration.md"
+      instructions: |
+        Model-independent orchestration policy. Role names belong here; model
+        bindings do not. A wording-only change here can alter runtime
+        orchestration, so treat prose edits as behaviour changes rather than
+        cosmetics.
+
+        Changes to this file need an independent semantic-equivalence reading
+        before release readiness, recorded with the exact base revision, every
+        changed template path, and the identity of a reader who did not author
+        the change.
+
+    - path: "templates/agents/*.md"
+      instructions: |
+        Current role prompts, tool boundaries, models and effort settings. Role
+        frontmatter changes belong here, not in the orchestration policy. A
+        one-line frontmatter change can invalidate an exact-byte fixture.
+
+        These are behaviour-bearing prompt templates: the same independent
+        semantic-equivalence reading applies. `templates/settings.snippet.json`
+        is configuration and is excluded from that procedure.
+
+    - path: "benchmarks/**/results.json"
+      instructions: |
+        Machine-readable evidence. Add new observations; never relabel failed,
+        superseded or historical runs. A historical Gate payload keeps its exact
+        bytes and its `final_gate_*` hash; a current generated candidate records
+        its builder-derived `release_candidate_*` hash separately.
+
+        `build-agents-json.py` is the only supported builder for the `--agents`
+        payload. Flag a hand-reordered JSON object, or a payload replaced beside
+        an already-recorded runtime Gate.
+
+    - path: "benchmarks/*/*-snapshot/**"
+      instructions: |
+        Exact historical runtime inputs. Never regenerate an old snapshot to
+        match newer templates. A new live Gate is added or versioned as a new
+        snapshot; it does not overwrite the previous run.
+
+        Use LF line endings. A CRLF conversion or an extra newline changes
+        exact-byte hashes even when the rendered content looks identical.
+
+    - path: "{README.md,README.zh-TW.md,docs/**}"
+      instructions: |
+        User-facing behaviour and design rationale. Keep the English and
+        Traditional Chinese claims aligned when both surfaces cover the change.
+
+        Keep claims within the evidence collected. Static tests establish
+        template shape and invariants; they cannot establish that Claude
+        dispatched a role. A live Gate establishes the behaviour it actually
+        exercised; it does not prove lower cost, lower latency or general
+        efficiency without a controlled comparison. Flag a claim that extends a
+        passing result beyond what it measured.
+
+knowledge_base:
+  code_guidelines:
+    filePatterns:
+      - "CONTRIBUTING.md"
+      - "README.md"
