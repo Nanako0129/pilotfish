@@ -3,13 +3,18 @@
 #
 # Every instruction below restates a rule this repository already writes down in
 # CONTRIBUTING.md. Nothing here is a new policy.
+#
+# The one setting that is a choice rather than a restatement is
+# auto_pause_after_reviewed_commits, commented at its key.
 
 reviews:
   auto_review:
-    # Default is 5: after five reviewed commits CodeRabbit silently stops
-    # auto-reviewing, and a poller then reads that as a timeout rather than a
-    # pause. A fix loop on a contested PR passes five rounds easily.
-    auto_pause_after_reviewed_commits: 20
+    # 0 disables the pause entirely, which is the schema's documented sentinel
+    # ("Set to 0 to disable"), not a large number chosen by hand. At the default
+    # of 5, automatic review stops silently once a pull request has five
+    # reviewed commits, and a poller waiting on the verdict reads that pause as
+    # a timeout rather than as a stop. Measured: sepia#250 ran four rounds.
+    auto_pause_after_reviewed_commits: 0
 
   path_instructions:
     - path: "templates/claude-md.orchestration.md"
