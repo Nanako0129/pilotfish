@@ -280,7 +280,7 @@ Under the Plugin, the built-in `Explore` keeps inheriting the main-session model
 | Option | What it gives you | Where it stops |
 |---|---|---|
 | Name `pilotfish:scout` for reconnaissance (`model: haiku`, `effort: low`, `tools: Read, Glob, Grep`) | The same tier and the same enforced read-only surface | It is a separate role, not an override. Only calls that name it are routed; anything that still reaches for the built-in `Explore` runs on the main model |
-| Place your own `~/.claude/agents/Explore.md` with `model: haiku` | A real override of the built-in, for every caller | It is yours to maintain outside the Plugin, and managed settings still outrank it, so an organization-wide same-name agent wins. Claude Code watches `~/.claude/agents/` and picks up an edit within seconds; restart only when you are creating that directory for the first time, or when the session was started with `--disable-slash-commands` |
+| Place your own `~/.claude/agents/Explore.md` with `model: haiku` | A real override of the built-in: every call that would reach `Explore` gets it, not only calls that name a role | It is yours to maintain outside the Plugin, and it wins only where no higher-priority same-name definition exists — managed settings, `--agents`, and a project `.claude/agents/` all outrank `~/.claude/agents/`. Claude Code watches the directory and picks up an edit within seconds; restart only when you are creating it for the first time, or when the session was started with `--disable-slash-commands` |
 
 ## Update
 
