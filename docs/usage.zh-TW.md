@@ -58,7 +58,7 @@ and call the named agents only when the policy selects delegation.
 |---|---|
 | 自訂設定根目錄 | 所有 `~/.claude/` 路徑會移到 `CLAUDE_CONFIG_DIR`；installer 會在寫入前解析 |
 | 專案層 `CLAUDE.md` | Claude Code 會疊加專案與使用者記憶；pilotfish 不會寫入專案 |
-| 自訂 `Explore` 角色 | 將偵察固定到 Haiku，但與內建角色不同，它會載入使用者記憶；policy 在 subagent 角色內自我停用，以限制這項開銷 |
+| 自訂 `Explore` 角色 | 僅 legacy global install——Plugin 覆寫不到內建角色（[原因](../install/PLUGIN-INSTALL.zh-TW.md#plugin-出貨的角色)）。它將偵察固定到 Haiku，但與內建角色不同，它會載入使用者記憶；policy 在 subagent 角色內自我停用，以限制這項開銷 |
 | `availableModels` 白名單 | 納入 `opus`、`fable`、`sonnet`、`haiku` 與選定的主模型，否則角色 alias 可能靜默繼承主模型 |
 | Managed／企業設定 | Managed model、allowlist 與同名 agent 優先於 user-level install；pilotfish 不會繞過它們 |
 | `claude-router` | 不要啟用 `forceRoute`，它會覆寫 agent frontmatter；`restoreDelegation` 會移除另一個被追蹤的 delegation injection |

@@ -82,7 +82,7 @@ opus · fresh context"]
 | 角色 | 模型 | Effort | 用途 |
 |---|---|---|---|
 | `scout` | haiku | low | 唯讀 repo 偵察 |
-| `Explore` | haiku | low | 不繼承主模型的廣域唯讀搜尋 |
+| `Explore` | haiku | low | 不繼承主模型的廣域唯讀搜尋——僅 legacy global install（[原因](./install/PLUGIN-INSTALL.zh-TW.md#plugin-出貨的角色)） |
 | `plan-verifier` | opus | medium | 批准前挑戰 Plan：`READY` 或結構化 `REVISE` |
 | `security-reviewer` | opus | high | 批准前蒐集唯讀資安證據 |
 | `mech-executor` | sonnet | low | 規格完整的機械性重複工作 |

@@ -89,7 +89,7 @@ opus · fresh context"]
 | Role | Model | Effort | Purpose |
 |---|---|---|---|
 | `scout` | haiku | low | Read-only repository reconnaissance |
-| `Explore` | haiku | low | Broad read-only search without inheriting the main model |
+| `Explore` | haiku | low | Broad read-only search without inheriting the main model — legacy global install only ([why](./install/PLUGIN-INSTALL.md#roles-the-plugin-ships)) |
 | `plan-verifier` | opus | medium | Pre-approval Plan challenge: `READY` or structured `REVISE` |
 | `security-reviewer` | opus | high | Read-only security evidence before approval |
 | `mech-executor` | sonnet | low | Fully specified mechanical repetition |

@@ -63,7 +63,7 @@ examples, not a dispatch rate or proof of the active system-prompt bytes.
 |---|---|
 | Custom configuration root | Every `~/.claude/` path moves under `CLAUDE_CONFIG_DIR`; the installer resolves it before writing |
 | Project-level `CLAUDE.md` | Claude Code stacks project and user memory; pilotfish never writes into the project |
-| Custom `Explore` role | Pins reconnaissance to Haiku, but unlike the built-in role it loads user memory; the policy self-disables inside subagent roles to limit that overhead |
+| Custom `Explore` role | Legacy global install only — the Plugin cannot override the built-in ([why](../install/PLUGIN-INSTALL.md#roles-the-plugin-ships)). It pins reconnaissance to Haiku, but unlike the built-in role it loads user memory; the policy self-disables inside subagent roles to limit that overhead |
 | `availableModels` allowlist | Include `opus`, `fable`, `sonnet`, `haiku`, and the selected main-model value or role aliases may silently inherit the main model |
 | Managed or enterprise settings | Managed models, allowlists, and same-name agents outrank the user-level install; pilotfish does not bypass them |
 | `claude-router` | Keep `forceRoute` off because it overrides agent frontmatter; `restoreDelegation` strips the separately tracked delegation injection |
