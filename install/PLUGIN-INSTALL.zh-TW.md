@@ -291,7 +291,7 @@ README 角色表裡的第八個角色 `Explore` **不在**出貨範圍內，這�
 | 選項 | 你會得到什麼 | 邊界在哪 |
 |---|---|---|
 | 偵察工作改為指名 `pilotfish:scout`（`model: haiku`、`effort: low`、`tools: Read, Glob, Grep`） | 同一個模型層級與同樣被強制的唯讀介面 | 它是另一個角色，不是覆寫。只有指名它的呼叫會被分流；任何仍然走內建 `Explore` 的路徑照樣跑主模型 |
-| 自行放一份 `~/.claude/agents/Explore.md` 並設 `model: haiku` | 對所有呼叫端都生效的真正覆寫 | 這份檔案在 Plugin 之外、由你自己維護。agents 目錄只在 session 啟動時掃描，所以要重啟 Claude Code |
+| 自行放一份 `~/.claude/agents/Explore.md` 並設 `model: haiku` | 對所有呼叫端都生效的真正覆寫 | 這份檔案在 Plugin 之外、由你自己維護，而且 managed settings 的優先序仍然在它之上，組織層的同名 agent 會勝出。Claude Code 會監看 `~/.claude/agents/`，編輯後數秒內生效；只有在你第一次建立這個目錄時，或 session 以 `--disable-slash-commands` 啟動時才需要重啟 |
 
 ## 更新
 
