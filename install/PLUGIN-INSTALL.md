@@ -269,6 +269,19 @@ claude plugin install --scope user pilotfish@pilotfish
 
 Review and accept the declared SessionStart hook if Claude Code prompts. Restart Claude Code; installation alone does not activate the hook in the current process.
 
+## Roles the Plugin ships
+
+The Plugin ships seven namespaced roles: `pilotfish:scout`, `pilotfish:plan-verifier`, `pilotfish:security-reviewer`, `pilotfish:mech-executor`, `pilotfish:executor`, `pilotfish:verifier`, and `pilotfish:security-executor`.
+
+The eighth role in the README table, `Explore`, is deliberately **not** shipped, and shipping it would not work. Claude Code names a plugin agent after its file inside the plugin namespace, so `agents/Explore.md` would load as `pilotfish:Explore` and shadow nothing (see the [plugins reference](https://code.claude.com/docs/en/plugins-reference)). A plugin's `agents/` directory is also the lowest-priority source, below `~/.claude/agents/` (see [subagents](https://code.claude.com/docs/en/sub-agents)). Overriding the built-in `Explore` is a user- or project-level mechanism; the legacy global install uses it, the Plugin cannot.
+
+Under the Plugin, the built-in `Explore` keeps inheriting the main-session model — on an Opus main session, that runs your cheapest workload on your most expensive model. Two options if that matters:
+
+| Option | What it gives you | Where it stops |
+|---|---|---|
+| Name `pilotfish:scout` for reconnaissance (`model: haiku`, `effort: low`, `tools: Read, Glob, Grep`) | The same tier and the same enforced read-only surface | It is a separate role, not an override. Only calls that name it are routed; anything that still reaches for the built-in `Explore` runs on the main model |
+| Place your own `~/.claude/agents/Explore.md` with `model: haiku` | A real override of the built-in: every call that would reach `Explore` gets it, not only calls that name a role | It is yours to maintain outside the Plugin, and it wins only where no higher-priority same-name definition exists — managed settings, `--agents`, and a project `.claude/agents/` all outrank `~/.claude/agents/`. Claude Code watches the directory and picks up an edit within seconds; restart only when you are creating it for the first time, or when the session was started with `--disable-slash-commands` |
+
 ## Update
 
 If you installed the mutable current marketplace branch:

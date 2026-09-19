@@ -51,7 +51,7 @@ The role set is the smallest one that covers the delegation patterns that actual
 | `verifier` | Official guidance: independent fresh-context verifiers outperform self-critique. After implementation it retains Bash to reproduce tests and returns calibrated `CONFIRMED` / `REFUTED` / `INCONCLUSIVE`, while write tools stay disabled — a verifier that fixes work stops being independent. |
 | `security-executor` | Approved security implementation deserves consistently high effort, and the frontier model's safety classifiers can refuse benign defensive-security work mid-task. Pre-routing it to Opus makes the refusal path unreachable instead of handled. It is intentionally separate from the read-only pre-approval reviewer. |
 
-The `Explore` override exists because Claude Code v2.1.198 changed the built-in Explore agent to inherit the main-session model — on a frontier main session, that silently upgrades your cheapest workload to your most expensive model. A same-name user-level agent shadows it.
+The `Explore` override exists because Claude Code v2.1.198 changed the built-in Explore agent to inherit the main-session model — on a frontier main session, that silently upgrades your cheapest workload to your most expensive model. A same-name user-level agent shadows it. That shadowing is a user- or project-level mechanism, so it belongs to the legacy global install only: plugin agents load namespaced as `pilotfish:<role>` from the lowest-priority source, so the Plugin beta ships the other seven roles and leaves the built-in `Explore` in place ([details](../install/PLUGIN-INSTALL.md#roles-the-plugin-ships)).
 
 ## Quality: verification over executor pedigree
 

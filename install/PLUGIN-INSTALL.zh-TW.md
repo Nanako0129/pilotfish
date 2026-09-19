@@ -12,6 +12,7 @@ Plugin 不可與 legacy global install 共存。若有效的 user `CLAUDE.md` �
 - [從 global v1 遷移](#從-global-v1-遷移)
 - [安裝前選擇主模型](#安裝前選擇主模型)
 - [安裝到 user scope](#安裝到-user-scope)
+- [Plugin 出貨的角色](#plugin-出貨的角色)
 - [更新](#更新)
 - [停用或重新啟用](#停用或重新啟用)
 - [移除](#移除)
@@ -278,6 +279,19 @@ claude plugin install --scope user pilotfish@pilotfish
 ```
 
 若 Claude Code 詢問，請檢查並接受宣告的 SessionStart hook。接著重啟 Claude Code；只完成安裝不會在目前 process 啟用 hook。
+
+## Plugin 出貨的角色
+
+Plugin 出貨七個帶 namespace 的角色：`pilotfish:scout`、`pilotfish:plan-verifier`、`pilotfish:security-reviewer`、`pilotfish:mech-executor`、`pilotfish:executor`、`pilotfish:verifier`、`pilotfish:security-executor`。
+
+README 角色表裡的第八個角色 `Explore` **不在**出貨範圍內，這是刻意的，而且就算出貨也不會生效。Claude Code 會以檔名在 plugin 的 namespace 下命名 agent，因此 `agents/Explore.md` 會載成 `pilotfish:Explore`，覆寫不到任何東西（見 [plugins reference](https://code.claude.com/docs/en/plugins-reference)）。plugin 的 `agents/` 也是優先序最低的來源，低於 `~/.claude/agents/`（見 [subagents](https://code.claude.com/docs/en/sub-agents)）。覆寫內建 `Explore` 是 user 層或 project 層的機制；legacy global install 用得到，Plugin 用不到。
+
+在 Plugin 路徑下，內建 `Explore` 仍然繼承主 session 模型——主 session 是 Opus 時，等於把最廉價的工作量跑在最昂貴的模型上。若這件事有影響，有兩個選項：
+
+| 選項 | 你會得到什麼 | 邊界在哪 |
+|---|---|---|
+| 偵察工作改為指名 `pilotfish:scout`（`model: haiku`、`effort: low`、`tools: Read, Glob, Grep`） | 同一個模型層級與同樣被強制的唯讀介面 | 它是另一個角色，不是覆寫。只有指名它的呼叫會被分流；任何仍然走內建 `Explore` 的路徑照樣跑主模型 |
+| 自行放一份 `~/.claude/agents/Explore.md` 並設 `model: haiku` | 對內建角色的真正覆寫：任何會走到 `Explore` 的呼叫都適用，不限於指名某個角色的呼叫 | 這份檔案在 Plugin 之外、由你自己維護，而且只有在沒有更高優先序的同名定義時才會勝出——managed settings、`--agents` 與專案層 `.claude/agents/` 的優先序都在 `~/.claude/agents/` 之上。Claude Code 會監看這個目錄，編輯後數秒內生效；只有在你第一次建立它時，或 session 以 `--disable-slash-commands` 啟動時才需要重啟 |
 
 ## 更新
 
