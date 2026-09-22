@@ -69,7 +69,7 @@ and call the named agents only when the policy selects delegation.
 | 目標 | 調整方式 |
 |---|---|
 | 減少額度消耗 | 使用 `/model opusplan`；偵察與機械性角色維持預設 low effort |
-| 增加主 session 判斷力 | 從 `high` effort 開始，只有在額度或延遲更重要時再降低 |
+| 設定主 session 判斷力 | 主 session 用 Opus 5.5，effort 設 `medium`。`opus` alias 只有在解析為 Opus 5.5 時才等於 Opus 5.5；Claude Code 2.1.280 first-party 的實測是如此，但實際解析結果會因 provider、帳號與設定而異。這是 maintainer 的判斷，本 repo 沒有做過 benchmark：Opus 5.5 `medium` 的能力已經超過 Opus 5 `high`。只有在任務需要的推敲程度超出額度或延遲容許的範圍時，才調到 `high`。不推薦 Opus 5（[原因](../install/AGENT-INSTALL.md)） |
 | 改單一角色 tier | 只改該 agent 檔的 `model:` frontmatter；政策只寫角色，不寫模型 |
 | 讓更多工作留在主 session | 要求 inline 執行；這只停用 optional execution delegation，不停用 mandatory risk review |
 | 判斷 spawn overhead | 每個 agent 都會建立新 context，需支付重建與整合成本；只有整體效益為正才委派 |

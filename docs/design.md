@@ -130,7 +130,7 @@ Effort is the second big quota lever after model choice, and the Fable-5 generat
 | Mechanical (`mech-executor`) | `low` | Judgment lives in the spec |
 | Judgment (`executor`, `plan-verifier`, `verifier`) | `medium` | Balance point |
 | Security (`security-reviewer`, `security-executor`) | `high` | Correctness over cost |
-| Main session | `high` (user setting) | Judgment-heavy orchestration; users can lower it when quota or latency matters more |
+| Main session | `medium` on Opus 5.5 (user setting) | Judgment-heavy orchestration. Maintainer judgment, not benchmarked in this repository: Opus 5.5 at `medium` already outperforms Opus 5 at `high`, so `high` is reserved for tasks that need more deliberation |
 
 ## Deliberately left out
 

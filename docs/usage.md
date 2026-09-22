@@ -74,7 +74,7 @@ examples, not a dispatch rate or proof of the active system-prompt bytes.
 | Goal | Adjustment |
 |---|---|
 | Reduce quota use | Use `/model opusplan`; keep reconnaissance and mechanical roles at their shipped low effort |
-| Increase main-session judgment | Start at `high` effort and lower it only when quota or latency matters more |
+| Set main-session judgment | Run the main session on Opus 5.5 at `medium` effort. The `opus` alias gives you Opus 5.5 where it resolves there, as observed on Claude Code 2.1.280 first-party; resolution can vary by provider, account, and settings. Maintainer judgment, not benchmarked in this repository: Opus 5.5 at `medium` already outperforms Opus 5 at `high`. Raise to `high` only when a task needs more deliberation than quota or latency allow for. Opus 5 is not recommended ([why](../install/AGENT-INSTALL.md)) |
 | Change one role's tier | Edit only that agent file's `model:` frontmatter; the policy names roles, not models |
 | Keep more work inline | Ask the main session to work inline; this disables optional execution delegation, not mandatory risk review |
 | Understand spawn overhead | Every agent starts a fresh context and pays reconstruction plus integration cost; dispatch only when the combined benefit is positive |
