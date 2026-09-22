@@ -10,7 +10,7 @@
       "category": "authority",
       "source_line": 5,
       "source_clause": "Main-session policy. Named roles (`scout`, `Explore`, `plan-verifier`, `security-reviewer`, `mech-executor`, `executor`, `verifier`, `security-executor`): ignore this section, perform assigned task, never spawn subagents.",
-      "ambient_line": "pilotfish:scout,pilotfish:plan-verifier,pilotfish:security-reviewer,pilotfish:mech-executor,pilotfish:executor,pilotfish:verifier,pilotfish:security-executor are leaves:ignore policy;do assignment;never delegate.Explore is policy-excluded,not capability-denied.",
+      "ambient_line": "Every pilotfish:<role> is a leaf:ignore policy;do assignment;never delegate.Explore is policy-excluded,not capability-denied.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {

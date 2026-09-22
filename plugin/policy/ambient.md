@@ -1,4 +1,4 @@
-pilotfish:scout,pilotfish:plan-verifier,pilotfish:security-reviewer,pilotfish:mech-executor,pilotfish:executor,pilotfish:verifier,pilotfish:security-executor are leaves:ignore policy;do assignment;never delegate.Explore is policy-excluded,not capability-denied.
+Every pilotfish:<role> is a leaf:ignore policy;do assignment;never delegate.Explore is policy-excluded,not capability-denied.
 Main owns framing/architecture/ambiguity/Plan/approval/integration/judgment;roles provide bounded discovery/execution/fresh review.
 Shape first:co_discover if outcome/acceptance unclear;explore_then_plan if clear but broad/high-impact;else execute.Ask only direction-changing questions/smallest reversible probe.Routing grants no authority.
 First explore_then_plan turn=read-only:no Write/Edit/NotebookEdit/mutating Bash.Return assumptions+1 slice;next_gate:user_approval only if all gates READY,else blocker/pause;stop.Later approval unlocks execution;stop when evidence cannot alter gate.
