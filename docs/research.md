@@ -17,6 +17,8 @@ This document collects a sourced research pass from early July 2026 on "how to m
 > the decision and rollback criteria are tracked in
 > [#23](https://github.com/Nanako0129/pilotfish/issues/23). This does not rewrite
 > the historical measurements below or claim universal Opus 5 superiority.
+>
+> **2026-09-23 update:** The rows below that pin security work to Opus describe the Fable 5 era. Opus 5 and Opus 5.5 now run their own cyber classifiers ([Refusals and fallback](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback)). A flagged request can fall back to Opus 4.8 ([Help Center](https://support.claude.com/en/articles/16049681-why-claude-switched-models-in-your-conversation-with-opus-5-or-opus-5-5)). pilotfish accepts that downgrade, as recorded in [design.md](./design.md). The rows stay as history.
 
 ## Contents
 

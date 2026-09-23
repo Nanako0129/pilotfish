@@ -16,6 +16,8 @@
 > rollback 條件記錄在
 > [#23](https://github.com/Nanako0129/pilotfish/issues/23)。這不會改寫下方
 > 的歷史測量，也不宣稱 Opus 5 全面勝過 Fable 5。
+>
+> **2026-09-23 更新：** 下方把資安工作釘在 Opus 的那幾列，描述的是 Fable 5 時期的狀態。Opus 5 與 Opus 5.5 現在也有自己的資安分類器（[Refusals and fallback](https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback)），被 flag 的請求可能退回 Opus 4.8（[Help Center](https://support.claude.com/en/articles/16049681-why-claude-switched-models-in-your-conversation-with-opus-5-or-opus-5-5)）。pilotfish 接受這種降級，細節記錄在 [design.md](./design.md)。那幾列保留作為歷史紀錄。
 
 ## 目錄
 
