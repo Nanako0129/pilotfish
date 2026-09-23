@@ -130,7 +130,7 @@ Effort is the second big quota lever after model choice, and the Fable-5 generat
 | Mechanical (`mech-executor`) | `low` | Judgment lives in the spec |
 | Judgment (`executor`, `plan-verifier`, `verifier`) | `medium` | Balance point |
 | Security (`security-reviewer`, `security-executor`) | `high` | Correctness over cost |
-| Main session | `medium` on Opus 5.5 (user setting) | Judgment-heavy orchestration. On the [Artificial Analysis Intelligence Index](https://artificialanalysis.ai/models/claude-opus-5-5) (accessed 2026-09-23, fallback on, published integer scores with costs read approximately off the chart, a general-capability benchmark rather than a pilotfish measurement), Opus 5.5 at `medium` scores about 51 at about $1.45 per task, above Opus 5 at `high` (about 48, about $3.6). `high` is reserved for tasks that need more deliberation |
+| Main session | `medium` on Opus 5.5 (user setting) | Judgment-heavy orchestration. On the Artificial Analysis Intelligence Index (profiles accessed 2026-09-23; a general-capability benchmark, not a pilotfish measurement), [Opus 5.5 at `medium` with Anthropic's default fallback](https://artificialanalysis.ai/models/claude-opus-5-5-medium) scores 51 at $1.34 per task, above [Opus 5 at `high`](https://artificialanalysis.ai/models/claude-opus-5-high) at 48 for $3.61. `high` is reserved for tasks that need more deliberation |
 
 ## Deliberately left out
 
