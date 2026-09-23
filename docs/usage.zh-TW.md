@@ -69,7 +69,7 @@ and call the named agents only when the policy selects delegation.
 | 目標 | 調整方式 |
 |---|---|
 | 減少額度消耗 | 使用 `/model opusplan`；偵察與機械性角色維持預設 low effort |
-| 設定主 session 判斷力 | 主 session 用 Opus 5.5，effort 設 `medium`。`opus` alias 只有在解析為 Opus 5.5 時才等於 Opus 5.5；Claude Code 2.1.280 first-party 的實測是如此，但實際解析結果會因 provider、帳號與設定而異。這是 maintainer 的判斷，本 repo 沒有做過 benchmark：Opus 5.5 `medium` 的能力已經超過 Opus 5 `high`。只有在任務需要的推敲程度超出額度或延遲容許的範圍時，才調到 `high`。不推薦 Opus 5（[原因](../install/AGENT-INSTALL.md)） |
+| 設定主 session 判斷力 | 主 session 用 Opus 5.5，effort 設 `medium`。`opus` alias 只有在解析為 Opus 5.5 時才等於 Opus 5.5；Claude Code 2.1.280 first-party 的實測是如此，但實際解析結果會因 provider、帳號與設定而異。依 [Artificial Analysis Intelligence Index](https://artificialanalysis.ai/models/claude-opus-5-5)（2026-09-23 查閱，所有測試都開啟 Anthropic 的 fallback），Opus 5.5 `medium` 約 51 分，每題約 $1.45；Opus 5 `high` 約 48 分，每題約 $3.6；Opus 5 `max` 約 51 分，每題約 $5.9。分數為該指標標示的整數，成本則是從對數座標圖讀出的近似值。此指標衡量通用能力，不是 pilotfish 調度任務的實測。只有在任務需要的推敲程度超出額度或延遲容許的範圍時，才調到 `high`。不推薦 Opus 5（[原因](../install/AGENT-INSTALL.md)） |
 | 改單一角色 tier | 只改該 agent 檔的 `model:` frontmatter；政策只寫角色，不寫模型 |
 | 讓更多工作留在主 session | 要求 inline 執行；這只停用 optional execution delegation，不停用 mandatory risk review |
 | 判斷 spawn overhead | 每個 agent 都會建立新 context，需支付重建與整合成本；只有整體效益為正才委派 |
