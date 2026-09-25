@@ -3087,7 +3087,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["release_candidate_agents_json_delta_from_final_gate"],
-            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow fallback, and bounded-recheck contracts; the issue #29 recovery Gate exercised this exact generated payload",
+            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow fallback, and bounded-recheck contracts; since the issue #29 recovery Gate payload, scout model changed haiku to sonnet, security-executor effort changed high to medium, and both prompts dropped one sentence each (scout's line-count cap, security-executor's high-effort and classifier rationale); these deltas passed no behavioral Gate, only a live model-resolution probe with effort unobserved, and the mechanical, bug, routine and schema cells were not rerun on this payload",
         )
         final_policy = (gate / runtime["final_gate_snapshot_policy"]).read_bytes()
         self.assertEqual(
@@ -3231,7 +3231,10 @@ class PolicyContractTests(unittest.TestCase):
             check=True,
             capture_output=True,
         )
-        self.assertEqual(agents, completed.stdout)
+        # The v1.3.7 snapshot is immutable history. Agent templates changed
+        # after it (scout model, security-executor effort), so it must no
+        # longer equal the current builder output; its own hashes still bind it.
+        self.assertNotEqual(agents, completed.stdout)
         self.assertEqual(
             hashlib.sha256(agents).hexdigest(),
             inputs["agents"]["file_sha256"],
@@ -5804,7 +5807,7 @@ class PolicyContractTests(unittest.TestCase):
         # security roles deliberately remain on Opus for their separate
         # capability and trust-boundary requirements.
         expected_models = {
-            "scout": "haiku",
+            "scout": "sonnet",
             "Explore": "haiku",
             "plan-verifier": "opus",
             "security-reviewer": "opus",

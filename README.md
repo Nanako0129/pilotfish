@@ -7,8 +7,8 @@
 [Claude Code](https://code.claude.com). The [macOS and Linux Plugin beta](./install/PLUGIN-INSTALL.md)
 adds hook-based ambient activation; the global configuration install remains a
 legacy alternative. The policy uses the `opus` family for the main session,
-Sonnet and Haiku for bounded execution and reconnaissance, and fresh Opus
-contexts for risk-triggered review.
+Sonnet for bounded execution and reconnaissance (Haiku only for the legacy
+install's `Explore`), and fresh Opus contexts for risk-triggered review.
 
 [繁體中文](./README.zh-TW.md)
 
@@ -65,7 +65,9 @@ execute / explore_then_plan / co_discover"]
         O["Orchestrator
 plan / decide / spec / review"]
     end
-    O -->|recon| S["scout / Explore
+    O -->|recon| S["scout
+sonnet · effort low"]
+    O -.->|recon, legacy only| X["Explore
 haiku · effort low"]
     O -->|Plan challenge| PV["plan-verifier
 opus · read-only"]
@@ -78,7 +80,7 @@ sonnet · effort medium"]
 opus · read-only"]
     SR --> O
     O -->|approved security work| SEC["security-executor
-opus · effort high"]
+opus · effort medium"]
     M --> V["verifier
 opus · fresh context"]
     E --> V
@@ -88,14 +90,14 @@ opus · fresh context"]
 
 | Role | Model | Effort | Purpose |
 |---|---|---|---|
-| `scout` | haiku | low | Read-only repository reconnaissance |
+| `scout` | sonnet | low | Read-only repository reconnaissance |
 | `Explore` | haiku | low | Broad read-only search without inheriting the main model — legacy global install only ([why](./install/PLUGIN-INSTALL.md#roles-the-plugin-ships)) |
 | `plan-verifier` | opus | medium | Pre-approval Plan challenge: `READY` or structured `REVISE` |
 | `security-reviewer` | opus | high | Read-only security evidence before approval |
 | `mech-executor` | sonnet | low | Fully specified mechanical repetition |
 | `executor` | sonnet | medium | Approved implementation requiring local judgment |
 | `verifier` | opus | medium | Fresh-context outcome falsification after implementation |
-| `security-executor` | opus | high | Approved security-sensitive implementation |
+| `security-executor` | opus | medium | Approved security-sensitive implementation |
 
 Before Baton or direct/delegated routing, pilotfish chooses the first matching
 interaction shape: `co_discover` while the outcome or acceptance is unclear;

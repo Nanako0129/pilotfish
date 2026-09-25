@@ -249,7 +249,7 @@ fi
 
 ## 安裝前選擇主模型
 
-Plugin 不會修改 `settings.json`。執行安裝指令前，請在每個要使用 Plugin 的 project 中重複以下檢查：使用 `/status` 找出有效的 managed、local（`.claude/settings.local.json`）、project（`.claude/settings.json`）與 user settings，再確認有效的 model picker 包含所有隨附 role-model aliases：`"opus"`、`"sonnet"` 與 `"haiku"`。
+Plugin 不會修改 `settings.json`。執行安裝指令前，請在每個要使用 Plugin 的 project 中重複以下檢查：使用 `/status` 找出有效的 managed、local（`.claude/settings.local.json`）、project（`.claude/settings.json`）與 user settings，再確認有效的 model picker 包含所有隨附 role-model aliases：`"opus"` 與 `"sonnet"`。（`scout` 使用 Sonnet 期間，沒有任何 Plugin 角色使用 `"haiku"`；若 `scout` 改回較新的 Haiku，要再把它加回來。）
 
 User、project 與 local 的 `availableModels` arrays 會合併並去除重複項目。先計算它們有效的 non-managed union。只有該 union 缺少隨附 alias 時，才由使用者明確批准，把每個缺少的 alias 加到一個適當、可編輯的 scope，並保留所有既有 entries；若另一個 scope 已提供 alias，請勿重複加入。Managed policy 優先級最高，可強制執行 lower scopes 無法放寬的嚴格 `availableModels` allowlist；若它排除任何隨附 alias，且 administrator 無法修改，請停止。請參考[官方 settings precedence](https://code.claude.com/docs/en/configuration#settings-precedence)。任何缺少隨附 alias 的有效 model set，都不足以證明所宣稱的 tiering。
 
@@ -290,7 +290,7 @@ README 角色表裡的第八個角色 `Explore` **不在**出貨範圍內，這�
 
 | 選項 | 你會得到什麼 | 邊界在哪 |
 |---|---|---|
-| 偵察工作改為指名 `pilotfish:scout`（`model: haiku`、`effort: low`、`tools: Read, Glob, Grep`） | 同一個模型層級與同樣被強制的唯讀介面 | 它是另一個角色，不是覆寫。只有指名它的呼叫會被分流；任何仍然走內建 `Explore` 的路徑照樣跑主模型 |
+| 偵察工作改為指名 `pilotfish:scout`（`model: sonnet`、`effort: low`、`tools: Read, Glob, Grep`） | 比 Opus 主 session 低一個模型層級，以及同樣被強制的唯讀介面 | 它是另一個角色，不是覆寫。只有指名它的呼叫會被分流；任何仍然走內建 `Explore` 的路徑照樣跑主模型 |
 | 自行放一份 `~/.claude/agents/Explore.md` 並設 `model: haiku` | 對內建角色的真正覆寫：任何會走到 `Explore` 的呼叫都適用，不限於指名某個角色的呼叫 | 這份檔案在 Plugin 之外、由你自己維護，而且只有在沒有更高優先序的同名定義時才會勝出——managed settings、`--agents` 與專案層 `.claude/agents/` 的優先序都在 `~/.claude/agents/` 之上。Claude Code 會監看這個目錄，編輯後數秒內生效；只有在你第一次建立它時，或 session 以 `--disable-slash-commands` 啟動時才需要重啟 |
 
 ## 更新
