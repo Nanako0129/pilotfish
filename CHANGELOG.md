@@ -25,6 +25,13 @@ Documentation now reflects Claude Opus 5.5:
 - The recommended main-session effort is `medium` on Opus 5.5. This cites Anthropic's Opus 5.5 prompting guide and the Artificial Analysis Intelligence Index (#88, #89).
 - The security-routing rationale now states the Opus 5 / 5.5 cyber-classifier fallback to Opus 4.8, which pilotfish accepts (#89).
 
+This release also carries repository work merged since v1.4.1 that does not change installed behavior:
+
+- **Release tooling.** Test release version stamps are derived from `VERSION` (#59, thanks [neoeric](https://github.com/neoeric)). Current derived prose is bound in tests (#83). A CodeRabbit review configuration was added (#84).
+- **Benchmark evidence.** Attempts and runs are bound to their sources for prompt compression (#71), cue-free TUI (#72), dispatch brake (#73), dispatch positive controls (#74), Baton dispatch effect (#75), Baton compatibility (#76), compact policy (#77), issue 29 recovery (#78), spontaneous dispatch (#79), verifier boundary (#81), and verifier paid summaries (#82).
+- **Contributor and benchmark docs.** Template changes now require a semantic-equivalence review (#68), and benchmark docs define safe reproduction boundaries (#69).
+- **Install docs.** The `Explore` override is scoped to the legacy global install (#85), and the global install runbook states the correct restart reason (#86).
+
 ## v1.4.1 — 2026-08-27
 
 Allow the effective user `CLAUDE.md` to be a stable symlink when its final
