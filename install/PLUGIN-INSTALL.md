@@ -240,7 +240,7 @@ Continue only if the backup block exits `0`. If any copy or read-back verificati
 
 ## Choose the main model before installation
 
-The Plugin does not edit `settings.json`. Before running the install commands, repeat this check inside every project where the Plugin will run: use `/status` to identify active managed, local (`.claude/settings.local.json`), project (`.claude/settings.json`), and user settings, then confirm the effective model picker exposes every shipped role-model alias—`"opus"`, `"sonnet"`, and `"haiku"`.
+The Plugin does not edit `settings.json`. Before running the install commands, repeat this check inside every project where the Plugin will run: use `/status` to identify active managed, local (`.claude/settings.local.json`), project (`.claude/settings.json`), and user settings, then confirm the effective model picker exposes every shipped role-model alias—`"opus"` and `"sonnet"`. (No Plugin role uses `"haiku"` while `scout` runs on Sonnet; add it back if `scout` returns to a newer Haiku.)
 
 User, project, and local `availableModels` arrays merge and deduplicate. Evaluate their effective non-managed union first. Only when that union omits a shipped alias should the user explicitly approve appending each missing alias to one appropriate editable scope while preserving every existing entry; do not duplicate an alias already supplied by another scope. Managed policy is highest priority and can enforce a strict `availableModels` allowlist that lower scopes cannot loosen; if it excludes any shipped alias and an administrator cannot change it, stop. See the [official settings precedence](https://code.claude.com/docs/en/configuration#settings-precedence). Any effective model set that omits a shipped alias does not establish the advertised tiering.
 
@@ -279,7 +279,7 @@ Under the Plugin, the built-in `Explore` keeps inheriting the main-session model
 
 | Option | What it gives you | Where it stops |
 |---|---|---|
-| Name `pilotfish:scout` for reconnaissance (`model: haiku`, `effort: low`, `tools: Read, Glob, Grep`) | The same tier and the same enforced read-only surface | It is a separate role, not an override. Only calls that name it are routed; anything that still reaches for the built-in `Explore` runs on the main model |
+| Name `pilotfish:scout` for reconnaissance (`model: sonnet`, `effort: low`, `tools: Read, Glob, Grep`) | A tier below an Opus main session and the same enforced read-only surface | It is a separate role, not an override. Only calls that name it are routed; anything that still reaches for the built-in `Explore` runs on the main model |
 | Place your own `~/.claude/agents/Explore.md` with `model: haiku` | A real override of the built-in: every call that would reach `Explore` gets it, not only calls that name a role | It is yours to maintain outside the Plugin, and it wins only where no higher-priority same-name definition exists — managed settings, `--agents`, and a project `.claude/agents/` all outrank `~/.claude/agents/`. Claude Code watches the directory and picks up an edit within seconds; restart only when you are creating it for the first time, or when the session was started with `--disable-slash-commands` |
 
 ## Update
