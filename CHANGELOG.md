@@ -2,6 +2,29 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
+## v1.4.2 — 2026-09-26
+
+Re-route two roles by maintainer decision:
+
+- **`scout`** moves from Haiku to Sonnet, keeping `low` effort. The current Haiku hallucinates too often for reconnaissance the orchestrator acts on; revisit when a newer Haiku ships.
+- **`security-executor`** moves from `high` to `medium` effort, staying on Opus. Implementation does not need `high`: rigor is carried by review, with `security-reviewer` at `high` before approval and a fresh `verifier` after.
+
+No other role changes. `Explore` stays on Haiku in the legacy global install. With `scout` on Sonnet, no Plugin role uses `haiku`, so the Plugin install guide now lists only `"opus"` and `"sonnet"` as shipped role-model aliases. Both role changes were confirmed by a live model-resolution probe on Claude Code 2.1.280 (`scout` ran as `claude-sonnet-5`, `security-executor` as `claude-opus-5-5`). Effort was not observable in that probe, and neither role was rerun through a behavioural Gate (#93).
+
+Remove two stale prompt lines found by an Opus 5.5 prompt audit (#92):
+
+- `security-executor` no longer claims that Opus routing keeps security work clear of safety classifiers; Opus 5 and Opus 5.5 run cyber classifiers too.
+- `scout` drops its "under ~20 lines" output cap.
+
+The same audit trimmed the Plugin policy's leaf-role list to `Every pilotfish:<role> is a leaf`. `sessionstart.txt` goes from 8,978 to 8,842 bytes. That candidate passed 8/8 across the mechanical, schema lifecycle, tightly coupled bug and routine docs cells on `claude-opus-5-5` (#88, #29).
+
+Documentation now reflects Claude Opus 5.5:
+
+- The `opus` alias resolved to `claude-opus-5-5` on 2.1.280 first-party, for the main session and for `model: opus` roles.
+- Opus 5 is marked not recommended. Its system prompt carries an injected Agent-suppression line that Opus 5.5 does not receive, and a main session pinned to `claude-opus-5` drags `model: opus` roles down with it (#88).
+- The recommended main-session effort is `medium` on Opus 5.5. This cites Anthropic's Opus 5.5 prompting guide and the Artificial Analysis Intelligence Index (#88, #89).
+- The security-routing rationale now states the Opus 5 / 5.5 cyber-classifier fallback to Opus 4.8, which pilotfish accepts (#89).
+
 ## v1.4.1 — 2026-08-27
 
 Allow the effective user `CLAUDE.md` to be a stable symlink when its final
