@@ -21,7 +21,7 @@ RENDERER = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(RENDERER)
 
 ROUTING = {
-    "scout": ("sonnet", "low"),
+    "scout": ("haiku", "low"),
     "plan-verifier": ("opus", "medium"),
     "security-reviewer": ("opus", "high"),
     "mech-executor": ("sonnet", "low"),
@@ -135,7 +135,7 @@ class PluginArtifactTests(unittest.TestCase):
             b'merge `"model": "opus"` into the highest-priority editable scope',
             b"preserving every other key",
             b"every project where the Plugin will run",
-            b'`"opus"` and `"sonnet"`',
+            b'`"opus"`, `"sonnet"`, and `"haiku"`',
             b"effective non-managed union",
             b"one appropriate editable scope",
             b"preserving every existing entry",

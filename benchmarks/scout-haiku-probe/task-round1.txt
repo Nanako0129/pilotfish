@@ -1,0 +1,12 @@
+Answer each question about this repository. For every claim give a `file:line` reference. If something does not exist, say so and state what you searched.
+
+Q1. Which test method in tests/ pins the expected model for every named role, and what model does it expect for `Explore`?
+Q2. What does plugin/hooks/emit-sessionstart.sh do when the environment variable CLAUDE_CODE_SUBAGENT_MODEL is set? Quote the message it prints and give its exit code.
+Q3. Which hook event(s) does the plugin register, and with what matcher string?
+Q4. When `tools/render_plugin_spike.py --check` finds a generated file whose bytes differ from the expected output, what exact error text does it record, and in which function?
+Q5. Where is the `--dry-run` flag of `tools/render_plugin_spike.py` defined?
+Q6. Which model is the shipped `pilotfish:scout` agent routed to?
+Q7. How many adapter source files are in benchmarks/dispatch-brake/positive-controls/mechanical/fixture/src/adapters/?
+Q8. Where is the `pilotfish:auditor` role defined, and what model does it use?
+Q9. List every file and line that references `release_candidate_agents_json_sha256`.
+Q10. Which function in tools/render_plugin_spike.py uploads the plugin to the marketplace?

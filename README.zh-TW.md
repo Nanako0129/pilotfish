@@ -5,7 +5,7 @@
 **pilotfish** 是 [Claude Code](https://code.claude.com) 的多模型編排政策。
 [macOS 與 Linux Plugin beta](./install/PLUGIN-INSTALL.zh-TW.md) 提供 hook-based ambient activation；
 全域設定安裝則保留為 legacy alternative。Policy 以 `opus` family 作為主 session，
-Sonnet 負責有界的執行與偵察（Haiku 只用於 legacy 安裝的 `Explore`），風險觸發的 review 使用全新 Opus context。
+Sonnet 負責有界的執行，Haiku 負責偵察，風險觸發的 review 使用全新 Opus context。
 
 [English](./README.md)
 
@@ -59,7 +59,7 @@ execute / explore_then_plan / co_discover"]
 規劃 / 決策 / 撰寫規格 / 審查"]
     end
     O -->|偵察搜尋| S["scout
-sonnet · effort low"]
+haiku · effort low"]
     O -.->|偵察搜尋, 僅 legacy| X["Explore
 haiku · effort low"]
     O -->|挑戰 Plan| PV["plan-verifier
@@ -83,7 +83,7 @@ opus · fresh context"]
 
 | 角色 | 模型 | Effort | 用途 |
 |---|---|---|---|
-| `scout` | sonnet | low | 唯讀 repo 偵察 |
+| `scout` | haiku | low | 唯讀 repo 偵察 |
 | `Explore` | haiku | low | 不繼承主模型的廣域唯讀搜尋——僅 legacy global install（[原因](./install/PLUGIN-INSTALL.zh-TW.md#plugin-出貨的角色)） |
 | `plan-verifier` | opus | medium | 批准前挑戰 Plan：`READY` 或結構化 `REVISE` |
 | `security-reviewer` | opus | high | 批准前蒐集唯讀資安證據 |

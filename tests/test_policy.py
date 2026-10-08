@@ -3087,7 +3087,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["release_candidate_agents_json_delta_from_final_gate"],
-            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow fallback, and bounded-recheck contracts; since the issue #29 recovery Gate payload, scout model changed haiku to sonnet, security-executor effort changed high to medium, and both prompts dropped one sentence each (scout's line-count cap, security-executor's high-effort and classifier rationale); these deltas passed no behavioral Gate, only a live model-resolution probe with effort unobserved, and the mechanical, bug, routine and schema cells were not rerun on this payload",
+            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow fallback, and bounded-recheck contracts; since the issue #29 recovery Gate payload, security-executor effort changed high to medium and both prompts dropped one sentence each (scout's line-count cap, security-executor's high-effort and classifier rationale); scout ran on sonnet in v1.4.2 and is back on the Gate payload's haiku alias after the benchmarks/scout-haiku-probe accuracy probe, but that alias now resolves to claude-haiku-5-5, which no behavioral Gate has run; these deltas passed no behavioral Gate, only a live per-subagent model-resolution check (pilotfish:scout child messages on claude-haiku-5-5, Claude Code 2.1.294) with effort unobserved, and the mechanical, bug, routine and schema cells were not rerun on this payload",
         )
         final_policy = (gate / runtime["final_gate_snapshot_policy"]).read_bytes()
         self.assertEqual(
@@ -5807,7 +5807,7 @@ class PolicyContractTests(unittest.TestCase):
         # security roles deliberately remain on Opus for their separate
         # capability and trust-boundary requirements.
         expected_models = {
-            "scout": "sonnet",
+            "scout": "haiku",
             "Explore": "haiku",
             "plan-verifier": "opus",
             "security-reviewer": "opus",
