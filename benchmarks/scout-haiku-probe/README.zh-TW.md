@@ -33,7 +33,7 @@
 
 輸入 token 包含 cache read。「其他瑕疵」指的是語句不通、hash 縮寫抄錯，或引用位置偏離重點；這幾種情況的主答案都是對的。
 
-Haiku 5.5 的 effort 拉到 `low` 以上，準確度沒有可量測的提升，只多花時間和 token，所以出貨的角色維持 `effort: low`。
+Haiku 5.5 的 effort 拉到 `low` 以上，主答案準確度沒有可量測的提升，反而多花時間和 token；出現其他瑕疵的兩組（`medium`、`xhigh`）也都在 `low` 以上，所以出貨的角色維持 `effort: low`。
 
 ## 限制
 
