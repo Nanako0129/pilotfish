@@ -6,7 +6,7 @@
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(git -C "$HERE" rev-parse --show-toplevel)"
-TASK="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
+PROMPT="$(cat "$1")"; [ -n "$PROMPT" ] || { echo "empty task file: $1" >&2; exit 1; }
 REF="${3:-aa595da}"
 mkdir -p "$2"; OUT="$(cd "$2" && pwd)"
 WORK="$(mktemp -d)"; trap 'rm -rf "$WORK"' EXIT
@@ -19,7 +19,7 @@ git -C "$ROOT" show "$REF:templates/agents/scout.md" \
 cd "$WORK/repo" || exit 1
 run() { # model effort rep
   local tag="$1-$2-r$3" rc=0
-  claude -p "$(cat "$TASK")" --model "$1" --effort "$2" \
+  claude -p "$PROMPT" --model "$1" --effort "$2" \
     --system-prompt-file "$WORK/scout-system.md" \
     --tools Read,Glob,Grep --allowedTools Read,Glob,Grep \
     --setting-sources project --strict-mcp-config --no-session-persistence \
