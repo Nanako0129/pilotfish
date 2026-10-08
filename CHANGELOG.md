@@ -10,9 +10,9 @@ All notable changes to pilotfish. The installed version is stamped inside the po
 - Sonnet 5.5 at `low`: one wrong claim.
 - Haiku 4.5 at `low`: two wrong or incomplete answers.
 
-No configuration fabricated a `file:line` citation. Effort above `low` added only time and tokens. Haiku 4.5 nearly passed too, so the probe shows no measured gap on bounded reconnaissance, not that Haiku never hallucinates.
+No configuration fabricated a `file:line` citation. Effort above `low` did not improve main-answer accuracy; it added time and tokens, and `medium` and `xhigh` each recorded one other defect. Haiku 4.5 nearly passed too, so the probe shows no measured gap on bounded reconnaissance, not that Haiku never hallucinates.
 
-The role uses the `haiku` alias. Claude Code resolves it to Haiku 5.5 from 2.1.293 according to its changelog: observed on 2.1.294, while 2.1.287 still resolved it to Haiku 4.5. Older clients therefore run `scout` and the legacy `Explore` on Haiku 4.5. A live check on 2.1.294 attributed the `pilotfish:scout` subagent's own messages to `claude-haiku-5-5`. The Plugin install guide again lists `"opus"`, `"sonnet"` and `"haiku"` as shipped role-model aliases. No other role changes, and `scout` was not rerun through a behavioural Gate.
+The role uses the `haiku` alias. Claude Code's changelog for 2.1.293 makes Haiku 5.5 "the default Haiku model on the Anthropic API". Observed: 2.1.294 resolved the alias to `claude-haiku-5-5`, and 2.1.287 resolved it to Haiku 4.5. Older clients therefore run `scout` and the legacy `Explore` on Haiku 4.5. A live check on 2.1.294 attributed the `pilotfish:scout` subagent's own messages to `claude-haiku-5-5`. The Plugin install guide again lists `"opus"`, `"sonnet"` and `"haiku"` as shipped role-model aliases. No other role changes, and `scout` was not rerun through a behavioural Gate.
 
 ## v1.4.2 — 2026-09-26
 

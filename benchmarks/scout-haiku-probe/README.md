@@ -33,7 +33,7 @@ Per-run grades, token counts and defects are in [`results.json`](./results.json)
 
 Input tokens include cache reads. "Other defects" are an incoherent sentence, a misquoted hash abbreviation and off-target citations. In each case the main answer was right.
 
-Effort above `low` bought Haiku 5.5 no measured accuracy, only time and tokens. That is why the shipped role keeps `effort: low`.
+Effort above `low` bought Haiku 5.5 no measured main-answer accuracy. It cost time and tokens, and the two configurations with an other defect, `medium` and `xhigh`, are both above `low`. That is why the shipped role keeps `effort: low`.
 
 ## Limits
 
