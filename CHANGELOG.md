@@ -2,6 +2,18 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
+## v1.4.3 — 2026-10-08
+
+`scout` moves back from Sonnet to Haiku, keeping `low` effort (#96). The v1.4.2 move rested on secondhand reports that Haiku hallucinated too often, and no failing case was recorded. Haiku 5.5 shipped on 2026-10-07, and a [probe](benchmarks/scout-haiku-probe/README.md) then gave scout's own prompt and `Read, Glob, Grep` surface 20 graded repository questions, two runs per configuration:
+
+- Haiku 5.5 at every effort, `low` through `max`: no wrong answer out of 40.
+- Sonnet 5.5 at `low`: one wrong claim.
+- Haiku 4.5 at `low`: two wrong or incomplete answers.
+
+No configuration fabricated a `file:line` citation. Effort above `low` added only time and tokens. Haiku 4.5 nearly passed too, so the probe shows no measured gap on bounded reconnaissance, not that Haiku never hallucinates.
+
+The role uses the `haiku` alias. Claude Code resolves it to Haiku 5.5 from 2.1.293 according to its changelog: observed on 2.1.294, while 2.1.287 still resolved it to Haiku 4.5. Older clients therefore run `scout` and the legacy `Explore` on Haiku 4.5. A live check on 2.1.294 attributed the `pilotfish:scout` subagent's own messages to `claude-haiku-5-5`. The Plugin install guide again lists `"opus"`, `"sonnet"` and `"haiku"` as shipped role-model aliases. No other role changes, and `scout` was not rerun through a behavioural Gate.
+
 ## v1.4.2 — 2026-09-26
 
 Re-route two roles by maintainer decision:
