@@ -7,8 +7,8 @@
 [Claude Code](https://code.claude.com). The [macOS and Linux Plugin beta](./install/PLUGIN-INSTALL.md)
 adds hook-based ambient activation; the global configuration install remains a
 legacy alternative. The policy uses the `opus` family for the main session,
-Sonnet for bounded execution and reconnaissance (Haiku only for the legacy
-install's `Explore`), and fresh Opus contexts for risk-triggered review.
+Sonnet for bounded execution, Haiku for reconnaissance, and fresh Opus contexts
+for risk-triggered review.
 
 [繁體中文](./README.zh-TW.md)
 
@@ -66,7 +66,7 @@ execute / explore_then_plan / co_discover"]
 plan / decide / spec / review"]
     end
     O -->|recon| S["scout
-sonnet · effort low"]
+haiku · effort low"]
     O -.->|recon, legacy only| X["Explore
 haiku · effort low"]
     O -->|Plan challenge| PV["plan-verifier
@@ -90,7 +90,7 @@ opus · fresh context"]
 
 | Role | Model | Effort | Purpose |
 |---|---|---|---|
-| `scout` | sonnet | low | Read-only repository reconnaissance |
+| `scout` | haiku | low | Read-only repository reconnaissance |
 | `Explore` | haiku | low | Broad read-only search without inheriting the main model — legacy global install only ([why](./install/PLUGIN-INSTALL.md#roles-the-plugin-ships)) |
 | `plan-verifier` | opus | medium | Pre-approval Plan challenge: `READY` or structured `REVISE` |
 | `security-reviewer` | opus | high | Read-only security evidence before approval |

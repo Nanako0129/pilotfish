@@ -1,0 +1,12 @@
+Answer each question about this repository. For every claim give a `file:line` reference. If something does not exist, say so and state what you searched.
+
+H1. List every test method in tests/ whose name ends with `_source_bound`, with file:line for each.
+H2. Which version entry in CHANGELOG.md is the earliest one that mentions the `security-executor` role? Give the version and its date.
+H3. Trace how the contents of the VERSION file end up as the "version" field of plugin/.claude-plugin/plugin.json. Name each function involved, in call order, with file:line.
+H4. For each of the seven files in plugin/agents/, quote the exact frontmatter line that restricts its tools.
+H5. Which test in tests/test_plugin_hook.py covers a non-empty CLAUDE_CODE_SUBAGENT_MODEL? List every assertion it makes.
+H6. Which CHANGELOG.md version moved the `Explore` role from Haiku to Sonnet?
+H7. According to docs/field-report-tokscale-2026-07.zh-TW.md, how many tokens and what percentage went to the Explore/scout/mech-executor group, and on which model profile?
+H8. According to the same field report, what was the verifier REFUTED rate in each of the two sessions?
+H9. Exactly how many `self.assertIn(` calls are in tests/test_plugin.py?
+H10. Which test in tests/test_plugin_hook.py checks a CLAUDE_CONFIG_DIR path that contains spaces?
