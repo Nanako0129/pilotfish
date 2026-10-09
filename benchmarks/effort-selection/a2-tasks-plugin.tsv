@@ -1,0 +1,8 @@
+T1	Use pilotfish:scout to tell me which file defines the function `build_manifest`. Just report the file and line.
+T2	Use pilotfish:mech-executor to rename the test method `test_pilotfish_brand_stays_lowercase_in_live_markdown` to `test_brand_lowercase_in_live_markdown` in tests/test_policy.py. Nothing else changes. Run that one test afterwards.
+T3	Use pilotfish:executor to investigate and fix this: benchmarks/scout-haiku-probe/run.sh sometimes reports success even though a claude call was killed by a signal before writing its JSON. Find whether that can happen with the current script and fix it if so, with a minimal change.
+T4	Use pilotfish:security-reviewer to review plugin/hooks/emit-sessionstart.sh for ways a hostile environment (PATH, CLAUDE_CONFIG_DIR, symlinks) could make it emit the policy when it should be blocked, or leak a value it must not print. Report findings only.
+H1	Use pilotfish:scout to map, across the whole repository, every place that states or enforces which model and role configuration each role uses (templates, rendered plugin files, tests, docs, benchmark evidence, hash pins), and explain for each how it is kept consistent with the others when a role changes. I need a complete, accurate map; missing one would cause a broken release.
+E3	Use pilotfish:executor to fix the spelling of "behavioural" to "behavioral" in the single comment line that contains it in benchmarks/scout-haiku-probe/README.md, if there is one. Change nothing else.
+E4	Use pilotfish:security-reviewer to confirm whether this one line prints any environment variable: `printf '%s\n' "pilotfish Plugin blocked"`. Answer yes or no with one sentence.
+E5	Use pilotfish:verifier to confirm that running `python3 -c 'print(1+1)'` prints 2.

@@ -1,0 +1,7 @@
+# Outputs and inputs of a reproduction run; never committed.
+data/
+work/
+ab-out/
+preds-*.json
+*.eval.json
+logs/

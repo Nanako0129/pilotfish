@@ -1,0 +1,162 @@
+[
+ {
+  "lang": "python",
+  "name": "book-store"
+ },
+ {
+  "lang": "python",
+  "name": "bottle-song"
+ },
+ {
+  "lang": "python",
+  "name": "dominoes"
+ },
+ {
+  "lang": "python",
+  "name": "dot-dsl"
+ },
+ {
+  "lang": "python",
+  "name": "food-chain"
+ },
+ {
+  "lang": "python",
+  "name": "forth"
+ },
+ {
+  "lang": "python",
+  "name": "go-counting"
+ },
+ {
+  "lang": "python",
+  "name": "grep"
+ },
+ {
+  "lang": "python",
+  "name": "list-ops"
+ },
+ {
+  "lang": "python",
+  "name": "phone-number"
+ },
+ {
+  "lang": "python",
+  "name": "pig-latin"
+ },
+ {
+  "lang": "python",
+  "name": "proverb"
+ },
+ {
+  "lang": "python",
+  "name": "react"
+ },
+ {
+  "lang": "python",
+  "name": "robot-name"
+ },
+ {
+  "lang": "python",
+  "name": "scale-generator"
+ },
+ {
+  "lang": "python",
+  "name": "simple-linked-list"
+ },
+ {
+  "lang": "python",
+  "name": "two-bucket"
+ },
+ {
+  "lang": "python",
+  "name": "variable-length-quantity"
+ },
+ {
+  "lang": "python",
+  "name": "wordy"
+ },
+ {
+  "lang": "python",
+  "name": "zipper"
+ },
+ {
+  "lang": "rust",
+  "name": "acronym"
+ },
+ {
+  "lang": "rust",
+  "name": "book-store"
+ },
+ {
+  "lang": "rust",
+  "name": "dot-dsl"
+ },
+ {
+  "lang": "rust",
+  "name": "doubly-linked-list"
+ },
+ {
+  "lang": "rust",
+  "name": "fizzy"
+ },
+ {
+  "lang": "rust",
+  "name": "gigasecond"
+ },
+ {
+  "lang": "rust",
+  "name": "luhn-from"
+ },
+ {
+  "lang": "rust",
+  "name": "nucleotide-codons"
+ },
+ {
+  "lang": "rust",
+  "name": "ocr-numbers"
+ },
+ {
+  "lang": "rust",
+  "name": "react"
+ },
+ {
+  "lang": "rust",
+  "name": "say"
+ },
+ {
+  "lang": "rust",
+  "name": "scale-generator"
+ },
+ {
+  "lang": "rust",
+  "name": "two-bucket"
+ },
+ {
+  "lang": "rust",
+  "name": "variable-length-quantity"
+ },
+ {
+  "lang": "rust",
+  "name": "wordy"
+ },
+ {
+  "lang": "rust",
+  "name": "xorcism"
+ },
+ {
+  "lang": "rust",
+  "name": "bowling"
+ },
+ {
+  "lang": "rust",
+  "name": "forth"
+ },
+ {
+  "lang": "rust",
+  "name": "accumulate"
+ },
+ {
+  "lang": "rust",
+  "name": "word-count"
+ }
+]
