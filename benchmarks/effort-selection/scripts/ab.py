@@ -151,6 +151,12 @@ if __name__ == "__main__":
     with ThreadPoolExecutor(workers) as ex:
         list(ex.map(lambda a: fn(*a), jobs))
     if suite == "swe":
+        records = {(i["instance_id"], arm): json.loads((OUT / f"swe-{arm}" / f"{i['instance_id']}.json").read_text())
+                   for i in items for arm in ("A", "B")}
+        invalid = sorted(k for k, r in records.items() if not r.get("valid"))
+        if invalid:
+            # Rerunning is a paid decision; stop instead of grading runs that missed their treatment.
+            raise SystemExit(f"invalid runs, delete their records and rerun before exporting: {invalid}")
         for arm in ("A", "B"):
             preds = [{"instance_id": i["instance_id"], "model_name_or_path": f"ab-{arm}",
                       "model_patch": json.loads((OUT / f"swe-{arm}" / f"{i['instance_id']}.json").read_text())["patch"]}
