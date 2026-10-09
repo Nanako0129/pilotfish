@@ -1,0 +1,30 @@
+A2 isolation record, round2_floor_wording (2026-10-10)
+claude_version: 2.1.294 (Claude Code)
+fixtures: git archive HEAD a12b57a with nested benchmark snapshot CLAUDE.md files removed
+runs use: env -u CLAUDE_EFFORT -u CLAUDE_CODE_EFFORT_LEVEL; --setting-sources project --strict-mcp-config; no --append-system-prompt
+shell effort variables before unsetting: CLAUDE_EFFORT=xhigh
+user ~/.claude/CLAUDE.md lines containing 'effort': 0
+plugin fixture CLAUDE.md/AGENTS.md files: (none)
+template fixture CLAUDE.md/AGENTS.md files: ./CLAUDE.md
+plugin/policy/ambient.md:27: Agent files own routing.Never pass model at invocation except ad-hoc agent.Explicit instruction:on each pilotfish:<role> call pass Agent effort per task difficulty/ambiguity/risk;role effort=default;floor:verifiers medium,pilotfish:security-reviewer high.
+templates/claude-md.orchestration.md:38: - Named-role model routing lives in agent definitions. Omit invocation `model`; override would replace role routing. Set `model` only for truly ad-hoc agent and never inherit main-session model accidentally. Explicit instruction: pass Agent `effort` on each named-role delegation, chosen by task difficulty, ambiguity, error cost; role `effort` = default; floor: `verifier`/`plan-verifier` `medium`, `security-reviewer` `high`.
+plugin sessionstart.txt sha256: 8e407559ccc89e791937517884c3d758643715eb736d9044036ff02794e06799
+template-arm CLAUDE.md sha256: 86ab451414832b3b5e0842f225da5d6ece3da2c77d21d23c532c9e2f1af9c9f7
+task prompts (sha256, effort-level words):
+  plugin T1 b77281c0be0cb523fcfd041e4591ef6b124f5a790206f862afd0de2caa003524 none
+  plugin T2 bc7ff3b2dc0b4cf503ada0d5f88cffc27476dad57f08b99d8fa68645943be685 none
+  plugin T3 a2a0b19408a0dece420fc99ae4d6c257e95fe26b827a8b28c2283982ba9d3535 none
+  plugin T4 1a7f5fc2e7bb4f864629d158ff52503b5ef82d2fb3d3cec712149c6b0c338652 none
+  plugin H1 e190ab7beb71124f051bbb265a03605003743a05b2a1d14283b3b514d17dc0ee none
+  plugin E3 688b47a03ca99c34fed368c5ef88e46645212f8bfb2c4f5ed7ca4c5b6545c705 none
+  plugin E4 14786cd02693e9e3dbf50512b20ab533f41989b7fa8d4781bc1d653009ab94b0 none
+  plugin E5 8585206c0394bf555af10f2c04ce991fed178669c78b47841ded296ffc45e79e none
+  template T1 32e774559b5d23a5264798ced5d47dc00d3fb7d7bcaaa3425a4e308aa26259e1 none
+  template T2 0bb83cd424c39e61bb2c983d7ebe533f164bc03f3c81c12fdddedda15ae8bc77 none
+  template T3 a0bef16c9500680ca2ee7b0b0e395431c1b56e3d2fe99023671dda83a48def26 none
+  template T4 e859d0913327ccfc6afbb8eb8efb4b5b7e94d3942ee395915f81028c8dd5e877 none
+  template H1 2059105f946244d0a9fa40705026ce1e36f298d5f1379a896b19807986bb4a27 none
+  template E3 73c96a30640774286d268a58ce915f30197777e69eecb6074fac3b4f0299f3a2 none
+  template E4 90ee7ef012db44b1e93e0248e408e68e0ea7b651c8944c0997c165ce853b517d none
+  template E5 69eaf76cc79cd53dd72d8ed6057e7c9a98b2c2e635f6ec7e53ad96f80bf8cf85 none
+prompts with effort-level words: 0

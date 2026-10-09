@@ -88,7 +88,7 @@ opus · fresh context"]
     V -->|CONFIRMED / REFUTED / INCONCLUSIVE| O
 ```
 
-| Role | Model | Effort | Purpose |
+| Role | Model | Default effort | Purpose |
 |---|---|---|---|
 | `scout` | haiku | low | Read-only repository reconnaissance |
 | `Explore` | haiku | low | Broad read-only search without inheriting the main model — legacy global install only ([why](./install/PLUGIN-INSTALL.md#roles-the-plugin-ships)) |
@@ -98,6 +98,15 @@ opus · fresh context"]
 | `executor` | sonnet | medium | Approved implementation requiring local judgment |
 | `verifier` | opus | medium | Fresh-context outcome falsification after implementation |
 | `security-executor` | opus | medium | Approved security-sensitive implementation |
+
+Each role's effort is a recommended default, not a fixed setting. The policy asks
+the main session to pass the Agent tool's `effort` (Claude Code 2.1.292 or newer)
+for each delegation, chosen from the task's difficulty, ambiguity and cost of
+error: a lookup can stay at `low` while a hard investigation runs at `high`. The
+reviewers have a floor at their defaults: `verifier` and `plan-verifier` never
+below `medium`, `security-reviewer` never below `high`. Model routing stays fixed;
+per Claude Code's documentation, `CLAUDE_CODE_EFFORT_LEVEL`, when set, overrides
+both ([evidence](./benchmarks/effort-selection/README.md)).
 
 Before Baton or direct/delegated routing, pilotfish chooses the first matching
 interaction shape: `co_discover` while the outcome or acceptance is unclear;

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "source": {
     "path": "templates/claude-md.orchestration.md",
-    "sha256": "23828827ad6e5963f4fcb91883090e2c1055cbf3515c8c88d64cae8500189a54"
+    "sha256": "86ab451414832b3b5e0842f225da5d6ece3da2c77d21d23c532c9e2f1af9c9f7"
   },
   "requirements": [
     {
@@ -217,8 +217,8 @@
       "id": "PLUG-AUTHORITY-MODEL",
       "category": "authority",
       "source_line": 38,
-      "source_clause": "- Named-role model routing lives in agent definitions. Omit invocation `model`; override would replace role routing. Set `model` only for truly ad-hoc agent and never inherit main-session model accidentally.",
-      "ambient_line": "Agent definitions own routing.Never pass model at invocation;it overrides routing.Set only for ad-hoc non-role agent.",
+      "source_clause": "- Named-role model routing lives in agent definitions. Omit invocation `model`; override would replace role routing. Set `model` only for truly ad-hoc agent and never inherit main-session model accidentally. Explicit instruction: pass Agent `effort` on each named-role delegation, chosen by task difficulty, ambiguity, error cost; role `effort` = default; floor: `verifier`/`plan-verifier` `medium`, `security-reviewer` `high`.",
+      "ambient_line": "Agent files own routing.Never pass model at invocation except ad-hoc agent.Explicit instruction:on each pilotfish:<role> call pass Agent effort per task difficulty/ambiguity/risk;role effort=default;floor:verifiers medium,pilotfish:security-reviewer high.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {

@@ -1,0 +1,3894 @@
+{
+ "schema_version": 1,
+ "date": "2026-10-10",
+ "claude_code_version": "2.1.294",
+ "main_model": "claude-opus-5-5",
+ "selection_probe": {
+  "instruction": "scripts/ab-rule-B.md appended via --append-system-prompt",
+  "runs": [
+   {
+    "probe": "round1",
+    "run": "T1-1",
+    "delegations": [
+     {
+      "role": "pilotfish:scout",
+      "effort": "low"
+     }
+    ],
+    "duration_s": 8.3
+   },
+   {
+    "probe": "round1",
+    "run": "T1-2",
+    "delegations": [
+     {
+      "role": "pilotfish:scout",
+      "effort": "low"
+     }
+    ],
+    "duration_s": 8.0
+   },
+   {
+    "probe": "round1",
+    "run": "T2-1",
+    "delegations": [
+     {
+      "role": "pilotfish:mech-executor",
+      "effort": "low"
+     }
+    ],
+    "duration_s": 34.9
+   },
+   {
+    "probe": "round1",
+    "run": "T2-2",
+    "delegations": [
+     {
+      "role": "pilotfish:mech-executor",
+      "effort": "low"
+     }
+    ],
+    "duration_s": 23.2
+   },
+   {
+    "probe": "round1",
+    "run": "T3-1",
+    "delegations": [
+     {
+      "role": "pilotfish:executor",
+      "effort": "medium"
+     }
+    ],
+    "duration_s": 68.5
+   },
+   {
+    "probe": "round1",
+    "run": "T3-2",
+    "delegations": [
+     {
+      "role": "pilotfish:executor",
+      "effort": "medium"
+     }
+    ],
+    "duration_s": 48.5
+   },
+   {
+    "probe": "round1",
+    "run": "T4-1",
+    "delegations": [
+     {
+      "role": "pilotfish:security-reviewer",
+      "effort": "high"
+     }
+    ],
+    "duration_s": 333.9
+   },
+   {
+    "probe": "round1",
+    "run": "T4-2",
+    "delegations": [
+     {
+      "role": "pilotfish:security-reviewer",
+      "effort": "high"
+     }
+    ],
+    "duration_s": 463.1
+   },
+   {
+    "probe": "round2",
+    "run": "E3-1",
+    "delegations": [
+     {
+      "role": "pilotfish:executor",
+      "effort": "low"
+     }
+    ],
+    "duration_s": 19.6
+   },
+   {
+    "probe": "round2",
+    "run": "E3-2",
+    "delegations": [
+     {
+      "role": "pilotfish:executor",
+      "effort": "low"
+     }
+    ],
+    "duration_s": 19.7
+   },
+   {
+    "probe": "round2",
+    "run": "E4-1",
+    "delegations": [
+     {
+      "role": "pilotfish:security-reviewer",
+      "effort": "low"
+     }
+    ],
+    "duration_s": 11.2
+   },
+   {
+    "probe": "round2",
+    "run": "E4-2",
+    "delegations": [
+     {
+      "role": "pilotfish:security-reviewer",
+      "effort": "low"
+     }
+    ],
+    "duration_s": 7.4
+   },
+   {
+    "probe": "round2",
+    "run": "H1-1",
+    "delegations": [
+     {
+      "role": "pilotfish:scout",
+      "effort": "high"
+     }
+    ],
+    "duration_s": 520.0
+   },
+   {
+    "probe": "round2",
+    "run": "H1-2",
+    "delegations": [
+     {
+      "role": "pilotfish:scout",
+      "effort": "high"
+     }
+    ],
+    "duration_s": 614.4
+   }
+  ]
+ },
+ "ab": {
+  "arms": {
+   "A": "appended: do not pass effort (role frontmatter applies)",
+   "B": "appended: scripts/ab-rule-B.md"
+  },
+  "polyglot": {
+   "role": "pilotfish:mech-executor",
+   "tasks": 40,
+   "runs": [
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "book-store"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1707316,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.139531,
+      "claude-sonnet-5-5": 0.031200600000000002
+     },
+     "duration_s": 28.0
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "bottle-song"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.16865599999999997,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1387676,
+      "claude-sonnet-5-5": 0.0298884
+     },
+     "duration_s": 25.3
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "dominoes"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.15864560000000003,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.12931140000000002,
+      "claude-sonnet-5-5": 0.029334199999999998
+     },
+     "duration_s": 24.8
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "dot-dsl"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1788623,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.14458680000000002,
+      "claude-sonnet-5-5": 0.0342755
+     },
+     "duration_s": 29.9
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "food-chain"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1796311,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.14625860000000002,
+      "claude-sonnet-5-5": 0.033372500000000006
+     },
+     "duration_s": 27.5
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "forth"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": false,
+     "total_cost_usd": 0.19081420000000002,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.14945440000000002,
+      "claude-sonnet-5-5": 0.0413598
+     },
+     "duration_s": 33.1
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "go-counting"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": false,
+     "total_cost_usd": 0.1861511,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.151671,
+      "claude-sonnet-5-5": 0.0344801
+     },
+     "duration_s": 32.0
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "grep"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1678844,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.129934,
+      "claude-sonnet-5-5": 0.037950399999999995
+     },
+     "duration_s": 34.6
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "list-ops"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.17276239999999998,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.137539,
+      "claude-sonnet-5-5": 0.0352234
+     },
+     "duration_s": 32.0
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "phone-number"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.2006518,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.16541099999999997,
+      "claude-sonnet-5-5": 0.0352408
+     },
+     "duration_s": 35.8
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "pig-latin"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1727938,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1438586,
+      "claude-sonnet-5-5": 0.0289352
+     },
+     "duration_s": 29.6
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "proverb"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.16044939999999996,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1334686,
+      "claude-sonnet-5-5": 0.0269808
+     },
+     "duration_s": 23.3
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "react"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1687888,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.117779,
+      "claude-sonnet-5-5": 0.0510098
+     },
+     "duration_s": 31.4
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "robot-name"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1517733,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1230402,
+      "claude-sonnet-5-5": 0.028733100000000004
+     },
+     "duration_s": 26.4
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "scale-generator"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.2064101,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1646418,
+      "claude-sonnet-5-5": 0.0417683
+     },
+     "duration_s": 43.6
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "simple-linked-list"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1971785,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.163744,
+      "claude-sonnet-5-5": 0.0334345
+     },
+     "duration_s": 37.6
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "two-bucket"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.20372490000000001,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.155858,
+      "claude-sonnet-5-5": 0.047866900000000004
+     },
+     "duration_s": 31.2
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "variable-length-quantity"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.17987569999999997,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.14745919999999998,
+      "claude-sonnet-5-5": 0.0324165
+     },
+     "duration_s": 28.2
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "wordy"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1906553,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.15147739999999998,
+      "claude-sonnet-5-5": 0.0391779
+     },
+     "duration_s": 41.1
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "python",
+      "name": "zipper"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.17596689999999998,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1370324,
+      "claude-sonnet-5-5": 0.0389345
+     },
+     "duration_s": 32.9
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "accumulate"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.17578739999999998,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.13409939999999998,
+      "claude-sonnet-5-5": 0.041687999999999996
+     },
+     "duration_s": 55.5
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "acronym"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1779023,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1327808,
+      "claude-sonnet-5-5": 0.0451215
+     },
+     "duration_s": 37.0
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "book-store"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.217347,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1453362,
+      "claude-sonnet-5-5": 0.0720108
+     },
+     "duration_s": 46.5
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "bowling"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.22239460000000003,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.148984,
+      "claude-sonnet-5-5": 0.0734106
+     },
+     "duration_s": 53.9
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "dot-dsl"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.2068099,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.14029619999999998,
+      "claude-sonnet-5-5": 0.0665137
+     },
+     "duration_s": 41.1
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "doubly-linked-list"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.2378573,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.15787879999999999,
+      "claude-sonnet-5-5": 0.0799785
+     },
+     "duration_s": 50.0
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "fizzy"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1991464,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.14149,
+      "claude-sonnet-5-5": 0.0576564
+     },
+     "duration_s": 40.2
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "forth"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": false,
+     "total_cost_usd": 0.2060931,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.14708380000000001,
+      "claude-sonnet-5-5": 0.0590093
+     },
+     "duration_s": 54.8
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "gigasecond"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1584588,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1161722,
+      "claude-sonnet-5-5": 0.0422866
+     },
+     "duration_s": 31.0
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "luhn-from"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1689998,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1238946,
+      "claude-sonnet-5-5": 0.0451052
+     },
+     "duration_s": 32.3
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "nucleotide-codons"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.194289,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.13155840000000002,
+      "claude-sonnet-5-5": 0.0627306
+     },
+     "duration_s": 49.6
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "ocr-numbers"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1926685,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.135734,
+      "claude-sonnet-5-5": 0.0569345
+     },
+     "duration_s": 40.8
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "react"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.23336040000000002,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.13669,
+      "claude-sonnet-5-5": 0.0966704
+     },
+     "duration_s": 58.1
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "say"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1936553,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.13346159999999999,
+      "claude-sonnet-5-5": 0.0601937
+     },
+     "duration_s": 46.0
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "scale-generator"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.20164749999999998,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.14493679999999998,
+      "claude-sonnet-5-5": 0.0567107
+     },
+     "duration_s": 38.2
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "two-bucket"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1678927,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1371518,
+      "claude-sonnet-5-5": 0.0307409
+     },
+     "duration_s": 28.3
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "variable-length-quantity"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.21235,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1477388,
+      "claude-sonnet-5-5": 0.0646112
+     },
+     "duration_s": 50.6
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "word-count"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1729297,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1279394,
+      "claude-sonnet-5-5": 0.044990300000000004
+     },
+     "duration_s": 38.2
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "wordy"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.190853,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.13569579999999998,
+      "claude-sonnet-5-5": 0.0551572
+     },
+     "duration_s": 42.1
+    },
+    {
+     "arm": "A",
+     "task": {
+      "lang": "rust",
+      "name": "xorcism"
+     },
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.27063639999999994,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1595886,
+      "claude-sonnet-5-5": 0.1110478
+     },
+     "duration_s": 74.4
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "book-store"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.19381389999999998,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.15462900000000002,
+      "claude-sonnet-5-5": 0.0391849
+     },
+     "duration_s": 38.3
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "bottle-song"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.16779919999999998,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.13881759999999999,
+      "claude-sonnet-5-5": 0.028981600000000003
+     },
+     "duration_s": 23.5
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "dominoes"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.15830059999999999,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1298102,
+      "claude-sonnet-5-5": 0.0284904
+     },
+     "duration_s": 28.4
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "dot-dsl"
+     },
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.19281879999999998,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.151532,
+      "claude-sonnet-5-5": 0.041286800000000005
+     },
+     "duration_s": 37.5
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "food-chain"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.18060429999999997,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.14702099999999999,
+      "claude-sonnet-5-5": 0.0335833
+     },
+     "duration_s": 27.1
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "forth"
+     },
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.2032758,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1564808,
+      "claude-sonnet-5-5": 0.046795
+     },
+     "duration_s": 37.4
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "go-counting"
+     },
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1749102,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1402408,
+      "claude-sonnet-5-5": 0.0346694
+     },
+     "duration_s": 27.4
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "grep"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.16297330000000002,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.131784,
+      "claude-sonnet-5-5": 0.031189300000000003
+     },
+     "duration_s": 24.7
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "list-ops"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1710262,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1388042,
+      "claude-sonnet-5-5": 0.032222
+     },
+     "duration_s": 31.2
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "phone-number"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.19275280000000003,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1577446,
+      "claude-sonnet-5-5": 0.0350082
+     },
+     "duration_s": 33.0
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "pig-latin"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1534043,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1272322,
+      "claude-sonnet-5-5": 0.0261721
+     },
+     "duration_s": 22.6
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "proverb"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.15920180000000003,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.13341820000000001,
+      "claude-sonnet-5-5": 0.025783599999999997
+     },
+     "duration_s": 22.1
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "react"
+     },
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1642405,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1272738,
+      "claude-sonnet-5-5": 0.0369667
+     },
+     "duration_s": 31.3
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "robot-name"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.17308350000000003,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.13217900000000002,
+      "claude-sonnet-5-5": 0.0409045
+     },
+     "duration_s": 37.3
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "scale-generator"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.18071289999999998,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1479304,
+      "claude-sonnet-5-5": 0.032782500000000006
+     },
+     "duration_s": 35.6
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "simple-linked-list"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1879955,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.15403039999999998,
+      "claude-sonnet-5-5": 0.0339651
+     },
+     "duration_s": 33.1
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "two-bucket"
+     },
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1767044,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.144916,
+      "claude-sonnet-5-5": 0.0317884
+     },
+     "duration_s": 28.6
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "variable-length-quantity"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1701219,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1396412,
+      "claude-sonnet-5-5": 0.0304807
+     },
+     "duration_s": 25.9
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "wordy"
+     },
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.21580880000000002,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1589106,
+      "claude-sonnet-5-5": 0.056898199999999996
+     },
+     "duration_s": 46.1
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "python",
+      "name": "zipper"
+     },
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1739328,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.13705079999999997,
+      "claude-sonnet-5-5": 0.036882
+     },
+     "duration_s": 37.4
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "accumulate"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.17370439999999998,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1337056,
+      "claude-sonnet-5-5": 0.0399988
+     },
+     "duration_s": 34.6
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "acronym"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.17030340000000002,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1286992,
+      "claude-sonnet-5-5": 0.04160420000000001
+     },
+     "duration_s": 33.7
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "book-store"
+     },
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.205256,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.14815440000000002,
+      "claude-sonnet-5-5": 0.0571016
+     },
+     "duration_s": 43.6
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "bowling"
+     },
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.21799069999999998,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.150654,
+      "claude-sonnet-5-5": 0.0673367
+     },
+     "duration_s": 57.6
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "dot-dsl"
+     },
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.2059574,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.138591,
+      "claude-sonnet-5-5": 0.06736639999999999
+     },
+     "duration_s": 42.0
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "doubly-linked-list"
+     },
+     "efforts": [
+      "high"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.3696795,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1616004,
+      "claude-sonnet-5-5": 0.20807910000000002
+     },
+     "duration_s": 103.4
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "fizzy"
+     },
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.2102534,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.14307999999999998,
+      "claude-sonnet-5-5": 0.06717340000000001
+     },
+     "duration_s": 45.1
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "forth"
+     },
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": false,
+     "total_cost_usd": 0.2429366,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1489218,
+      "claude-sonnet-5-5": 0.09401480000000001
+     },
+     "duration_s": 64.8
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "gigasecond"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1361797,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1151938,
+      "claude-sonnet-5-5": 0.020985900000000002
+     },
+     "duration_s": 18.8
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "luhn-from"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1683331,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.12479219999999999,
+      "claude-sonnet-5-5": 0.043540899999999993
+     },
+     "duration_s": 31.8
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "nucleotide-codons"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1960332,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1336732,
+      "claude-sonnet-5-5": 0.06236
+     },
+     "duration_s": 44.6
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "ocr-numbers"
+     },
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.21022939999999998,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1385476,
+      "claude-sonnet-5-5": 0.0716818
+     },
+     "duration_s": 59.2
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "react"
+     },
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.21975820000000001,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1397284,
+      "claude-sonnet-5-5": 0.08002980000000001
+     },
+     "duration_s": 59.2
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "say"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.19250910000000002,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1342244,
+      "claude-sonnet-5-5": 0.0582847
+     },
+     "duration_s": 40.7
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "scale-generator"
+     },
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.19954880000000003,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1508436,
+      "claude-sonnet-5-5": 0.048705200000000004
+     },
+     "duration_s": 44.2
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "two-bucket"
+     },
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.19162280000000004,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1475066,
+      "claude-sonnet-5-5": 0.04411620000000001
+     },
+     "duration_s": 40.8
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "variable-length-quantity"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1967503,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1445124,
+      "claude-sonnet-5-5": 0.052237900000000004
+     },
+     "duration_s": 39.9
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "word-count"
+     },
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.18577860000000002,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1415614,
+      "claude-sonnet-5-5": 0.0442172
+     },
+     "duration_s": 35.1
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "wordy"
+     },
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.2223411,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1375302,
+      "claude-sonnet-5-5": 0.08481090000000001
+     },
+     "duration_s": 60.3
+    },
+    {
+     "arm": "B",
+     "task": {
+      "lang": "rust",
+      "name": "xorcism"
+     },
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:mech-executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.2916802,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.16480299999999998,
+      "claude-sonnet-5-5": 0.1268772
+     },
+     "duration_s": 81.4
+    }
+   ]
+  },
+  "swe_bench_verified_medium": {
+   "role": "pilotfish:executor",
+   "tasks": 20,
+   "resolved": {
+    "A": [
+     "astropy__astropy-12907",
+     "django__django-11211",
+     "django__django-12273",
+     "django__django-13569",
+     "django__django-14349",
+     "django__django-15022",
+     "django__django-15382",
+     "django__django-16082",
+     "django__django-16454",
+     "django__django-7530",
+     "psf__requests-6028",
+     "pydata__xarray-4687",
+     "pydata__xarray-7233",
+     "pytest-dev__pytest-7324",
+     "scikit-learn__scikit-learn-15100",
+     "sympy__sympy-20428",
+     "sympy__sympy-23413",
+     "sympy__sympy-24066"
+    ],
+    "B": [
+     "astropy__astropy-12907",
+     "django__django-11211",
+     "django__django-13569",
+     "django__django-14349",
+     "django__django-15022",
+     "django__django-15382",
+     "django__django-16082",
+     "django__django-16454",
+     "django__django-7530",
+     "psf__requests-6028",
+     "pydata__xarray-4687",
+     "pydata__xarray-7233",
+     "pytest-dev__pytest-7324",
+     "scikit-learn__scikit-learn-15100",
+     "sympy__sympy-23413",
+     "sympy__sympy-24066"
+    ]
+   },
+   "runs": [
+    {
+     "arm": "A",
+     "task": "astropy__astropy-12907",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.195522,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1306744,
+      "claude-sonnet-5-5": 0.0648476
+     },
+     "duration_s": 40.5
+    },
+    {
+     "arm": "A",
+     "task": "django__django-11211",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.17395739999999998,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1269026,
+      "claude-sonnet-5-5": 0.0470548
+     },
+     "duration_s": 35.9
+    },
+    {
+     "arm": "A",
+     "task": "django__django-12273",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.2592083,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.133973,
+      "claude-sonnet-5-5": 0.1252353
+     },
+     "duration_s": 107.1
+    },
+    {
+     "arm": "A",
+     "task": "django__django-13569",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.17519730000000003,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1435846,
+      "claude-sonnet-5-5": 0.0316127
+     },
+     "duration_s": 34.6
+    },
+    {
+     "arm": "A",
+     "task": "django__django-14034",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": false,
+     "total_cost_usd": 0.1945669,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.133316,
+      "claude-sonnet-5-5": 0.061250900000000004
+     },
+     "duration_s": 68.3
+    },
+    {
+     "arm": "A",
+     "task": "django__django-14349",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1928582,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1489948,
+      "claude-sonnet-5-5": 0.0438634
+     },
+     "duration_s": 34.6
+    },
+    {
+     "arm": "A",
+     "task": "django__django-15022",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.17969310000000002,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1368078,
+      "claude-sonnet-5-5": 0.0428853
+     },
+     "duration_s": 57.1
+    },
+    {
+     "arm": "A",
+     "task": "django__django-15382",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.182728,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.12355440000000001,
+      "claude-sonnet-5-5": 0.05917359999999999
+     },
+     "duration_s": 83.4
+    },
+    {
+     "arm": "A",
+     "task": "django__django-16082",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.14540379999999997,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1133014,
+      "claude-sonnet-5-5": 0.0321024
+     },
+     "duration_s": 31.6
+    },
+    {
+     "arm": "A",
+     "task": "django__django-16454",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1916508,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1419954,
+      "claude-sonnet-5-5": 0.049655399999999995
+     },
+     "duration_s": 58.3
+    },
+    {
+     "arm": "A",
+     "task": "django__django-16502",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": false,
+     "total_cost_usd": 0.2259928,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.139906,
+      "claude-sonnet-5-5": 0.0860868
+     },
+     "duration_s": 82.6
+    },
+    {
+     "arm": "A",
+     "task": "django__django-7530",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1457808,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1177156,
+      "claude-sonnet-5-5": 0.028065200000000002
+     },
+     "duration_s": 27.7
+    },
+    {
+     "arm": "A",
+     "task": "psf__requests-6028",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.2024726,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1284482,
+      "claude-sonnet-5-5": 0.0740244
+     },
+     "duration_s": 51.0
+    },
+    {
+     "arm": "A",
+     "task": "pydata__xarray-4687",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.20749850000000003,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1497862,
+      "claude-sonnet-5-5": 0.0577123
+     },
+     "duration_s": 59.3
+    },
+    {
+     "arm": "A",
+     "task": "pydata__xarray-7233",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.19989300000000002,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1354894,
+      "claude-sonnet-5-5": 0.0644036
+     },
+     "duration_s": 86.3
+    },
+    {
+     "arm": "A",
+     "task": "pytest-dev__pytest-7324",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.17657089999999998,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1207994,
+      "claude-sonnet-5-5": 0.0557715
+     },
+     "duration_s": 48.2
+    },
+    {
+     "arm": "A",
+     "task": "scikit-learn__scikit-learn-15100",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.16685490000000003,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1335056,
+      "claude-sonnet-5-5": 0.0333493
+     },
+     "duration_s": 40.3
+    },
+    {
+     "arm": "A",
+     "task": "sympy__sympy-20428",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.24879189999999998,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1780178,
+      "claude-sonnet-5-5": 0.0707741
+     },
+     "duration_s": 179.6
+    },
+    {
+     "arm": "A",
+     "task": "sympy__sympy-23413",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.22099960000000002,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1260588,
+      "claude-sonnet-5-5": 0.09494079999999998
+     },
+     "duration_s": 77.3
+    },
+    {
+     "arm": "A",
+     "task": "sympy__sympy-24066",
+     "efforts": [
+      null
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.17930379999999999,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.122116,
+      "claude-sonnet-5-5": 0.0571878
+     },
+     "duration_s": 55.8
+    },
+    {
+     "arm": "B",
+     "task": "astropy__astropy-12907",
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1848459,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.13088840000000002,
+      "claude-sonnet-5-5": 0.0539575
+     },
+     "duration_s": 47.1
+    },
+    {
+     "arm": "B",
+     "task": "django__django-11211",
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1793452,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.13412860000000001,
+      "claude-sonnet-5-5": 0.0452166
+     },
+     "duration_s": 31.6
+    },
+    {
+     "arm": "B",
+     "task": "django__django-12273",
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": false,
+     "total_cost_usd": 0.23722720000000003,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.133419,
+      "claude-sonnet-5-5": 0.1038082
+     },
+     "duration_s": 113.6
+    },
+    {
+     "arm": "B",
+     "task": "django__django-13569",
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.18909310000000001,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1456506,
+      "claude-sonnet-5-5": 0.0434425
+     },
+     "duration_s": 38.7
+    },
+    {
+     "arm": "B",
+     "task": "django__django-14034",
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": false,
+     "total_cost_usd": 0.22378869999999998,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.153938,
+      "claude-sonnet-5-5": 0.0698507
+     },
+     "duration_s": 74.6
+    },
+    {
+     "arm": "B",
+     "task": "django__django-14349",
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1695662,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1364088,
+      "claude-sonnet-5-5": 0.033157400000000004
+     },
+     "duration_s": 31.7
+    },
+    {
+     "arm": "B",
+     "task": "django__django-15022",
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.18729189999999998,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.14313779999999998,
+      "claude-sonnet-5-5": 0.0441541
+     },
+     "duration_s": 172.4
+    },
+    {
+     "arm": "B",
+     "task": "django__django-15382",
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.15546839999999998,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.12080439999999999,
+      "claude-sonnet-5-5": 0.034664
+     },
+     "duration_s": 40.6
+    },
+    {
+     "arm": "B",
+     "task": "django__django-16082",
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.15740780000000001,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.11812740000000001,
+      "claude-sonnet-5-5": 0.0392804
+     },
+     "duration_s": 39.1
+    },
+    {
+     "arm": "B",
+     "task": "django__django-16454",
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.18579619999999997,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.14337339999999998,
+      "claude-sonnet-5-5": 0.0424228
+     },
+     "duration_s": 55.1
+    },
+    {
+     "arm": "B",
+     "task": "django__django-16502",
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": false,
+     "total_cost_usd": 0.2170358,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.14338,
+      "claude-sonnet-5-5": 0.07365580000000001
+     },
+     "duration_s": 72.0
+    },
+    {
+     "arm": "B",
+     "task": "django__django-7530",
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1517501,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1224296,
+      "claude-sonnet-5-5": 0.029320500000000003
+     },
+     "duration_s": 39.5
+    },
+    {
+     "arm": "B",
+     "task": "psf__requests-6028",
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1919148,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1386542,
+      "claude-sonnet-5-5": 0.05326059999999999
+     },
+     "duration_s": 49.7
+    },
+    {
+     "arm": "B",
+     "task": "pydata__xarray-4687",
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.20335040000000001,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1529482,
+      "claude-sonnet-5-5": 0.0504022
+     },
+     "duration_s": 72.6
+    },
+    {
+     "arm": "B",
+     "task": "pydata__xarray-7233",
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1763404,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1333754,
+      "claude-sonnet-5-5": 0.042965
+     },
+     "duration_s": 62.3
+    },
+    {
+     "arm": "B",
+     "task": "pytest-dev__pytest-7324",
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.1612842,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.12874939999999999,
+      "claude-sonnet-5-5": 0.032534799999999996
+     },
+     "duration_s": 46.8
+    },
+    {
+     "arm": "B",
+     "task": "scikit-learn__scikit-learn-15100",
+     "efforts": [
+      "low"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.17518229999999999,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1375,
+      "claude-sonnet-5-5": 0.0376823
+     },
+     "duration_s": 40.1
+    },
+    {
+     "arm": "B",
+     "task": "sympy__sympy-20428",
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": false,
+     "total_cost_usd": 0.2549999,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1666958,
+      "claude-sonnet-5-5": 0.08830410000000001
+     },
+     "duration_s": 96.9
+    },
+    {
+     "arm": "B",
+     "task": "sympy__sympy-23413",
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.24060470000000006,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.1397728,
+      "claude-sonnet-5-5": 0.1008319
+     },
+     "duration_s": 98.9
+    },
+    {
+     "arm": "B",
+     "task": "sympy__sympy-24066",
+     "efforts": [
+      "medium"
+     ],
+     "roles": [
+      "pilotfish:executor"
+     ],
+     "main_tools": [],
+     "passed": true,
+     "total_cost_usd": 0.16857250000000001,
+     "cost_by_model": {
+      "claude-opus-5-5": 0.126542,
+      "claude-sonnet-5-5": 0.0420305
+     },
+     "duration_s": 43.9
+    }
+   ]
+  },
+  "validity_check": {
+   "rule": "exactly one delegation and no main-session tool call",
+   "invalid_runs": []
+  }
+ },
+ "a2_gate": {
+  "pass_rule": "round2 rule, per arm, both arms required: (a) effort present on >= 13/14 of delegations as a share; (b) every delegation names the requested role; (c) scout pair T1/H1 and executor pair E3/T3 put the hard task strictly higher in both repetitions; (d) floor: no security-reviewer delegation below high, no verifier/plan-verifier below medium (missing effort = role default). 16 sessions per arm: tasks T1-T4, H1, E3, E4, E5 x2. Earlier rounds were scored with the earlier rule: >=13/14, roles, and >=2 of 3 ordering pairs including security-reviewer E4/T4, 14 sessions per arm.",
+  "isolation": "a2-isolation.txt",
+  "round0_compressed_wording": {
+   "verdict": {
+    "plugin": "FAIL (effort 1/14)",
+    "template": "FAIL (effort 11/15, scout pair failed)"
+   },
+   "runs": [
+    {
+     "arm": "plugin",
+     "task": "E3",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:executor",
+       "effort": null
+      }
+     ],
+     "total_cost_usd": 0.1441482,
+     "duration_s": 20.6
+    },
+    {
+     "arm": "plugin",
+     "task": "E3",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:executor",
+       "effort": null
+      }
+     ],
+     "total_cost_usd": 0.1561246,
+     "duration_s": 21.8
+    },
+    {
+     "arm": "plugin",
+     "task": "E4",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:security-reviewer",
+       "effort": null
+      }
+     ],
+     "total_cost_usd": 0.11070940000000001,
+     "duration_s": 8.8
+    },
+    {
+     "arm": "plugin",
+     "task": "E4",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:security-reviewer",
+       "effort": null
+      }
+     ],
+     "total_cost_usd": 0.1086294,
+     "duration_s": 8.1
+    },
+    {
+     "arm": "plugin",
+     "task": "H1",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:scout",
+       "effort": null
+      }
+     ],
+     "total_cost_usd": 0.6128777700000001,
+     "duration_s": 269.0
+    },
+    {
+     "arm": "plugin",
+     "task": "H1",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:scout",
+       "effort": null
+      }
+     ],
+     "total_cost_usd": 0.5116452699999999,
+     "duration_s": 252.5
+    },
+    {
+     "arm": "plugin",
+     "task": "T1",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:scout",
+       "effort": null
+      }
+     ],
+     "total_cost_usd": 0.1034424,
+     "duration_s": 8.0
+    },
+    {
+     "arm": "plugin",
+     "task": "T1",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:scout",
+       "effort": null
+      }
+     ],
+     "total_cost_usd": 0.103539245,
+     "duration_s": 8.5
+    },
+    {
+     "arm": "plugin",
+     "task": "T2",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:mech-executor",
+       "effort": null
+      }
+     ],
+     "total_cost_usd": 0.176058,
+     "duration_s": 31.9
+    },
+    {
+     "arm": "plugin",
+     "task": "T2",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:mech-executor",
+       "effort": null
+      }
+     ],
+     "total_cost_usd": 0.18398799999999998,
+     "duration_s": 39.2
+    },
+    {
+     "arm": "plugin",
+     "task": "T3",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:executor",
+       "effort": null
+      }
+     ],
+     "total_cost_usd": 0.2371923,
+     "duration_s": 61.4
+    },
+    {
+     "arm": "plugin",
+     "task": "T3",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:executor",
+       "effort": null
+      }
+     ],
+     "total_cost_usd": 0.2541885,
+     "duration_s": 78.9
+    },
+    {
+     "arm": "plugin",
+     "task": "T4",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:security-reviewer",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 0.9832230000000001,
+     "duration_s": 255.0
+    },
+    {
+     "arm": "plugin",
+     "task": "T4",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:security-reviewer",
+       "effort": null
+      }
+     ],
+     "total_cost_usd": 0.9520262,
+     "duration_s": 250.2
+    },
+    {
+     "arm": "template",
+     "task": "E3",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.18179320000000004,
+     "duration_s": 19.6
+    },
+    {
+     "arm": "template",
+     "task": "E3",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.1822119,
+     "duration_s": 20.1
+    },
+    {
+     "arm": "template",
+     "task": "E4",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "security-reviewer",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.1599804,
+     "duration_s": 10.2
+    },
+    {
+     "arm": "template",
+     "task": "E4",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "security-reviewer",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.15487439999999997,
+     "duration_s": 8.7
+    },
+    {
+     "arm": "template",
+     "task": "H1",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "scout",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 1.037156915,
+     "duration_s": 474.4
+    },
+    {
+     "arm": "template",
+     "task": "H1",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "scout",
+       "effort": null
+      }
+     ],
+     "total_cost_usd": 0.5078554900000001,
+     "duration_s": 208.8
+    },
+    {
+     "arm": "template",
+     "task": "T1",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "scout",
+       "effort": null
+      }
+     ],
+     "total_cost_usd": 0.12162823,
+     "duration_s": 8.3
+    },
+    {
+     "arm": "template",
+     "task": "T1",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "scout",
+       "effort": null
+      }
+     ],
+     "total_cost_usd": 0.12362584000000001,
+     "duration_s": 11.1
+    },
+    {
+     "arm": "template",
+     "task": "T2",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "mech-executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.1968093,
+     "duration_s": 26.1
+    },
+    {
+     "arm": "template",
+     "task": "T2",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "mech-executor",
+       "effort": null
+      }
+     ],
+     "total_cost_usd": 0.20224,
+     "duration_s": 30.5
+    },
+    {
+     "arm": "template",
+     "task": "T3",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "executor",
+       "effort": "medium"
+      }
+     ],
+     "total_cost_usd": 0.26225620000000005,
+     "duration_s": 56.7
+    },
+    {
+     "arm": "template",
+     "task": "T3",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "executor",
+       "effort": "medium"
+      },
+      {
+       "role": "executor",
+       "effort": "medium"
+      }
+     ],
+     "total_cost_usd": 0.549441,
+     "duration_s": 188.3
+    },
+    {
+     "arm": "template",
+     "task": "T4",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "security-reviewer",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 1.0538142,
+     "duration_s": 277.6
+    },
+    {
+     "arm": "template",
+     "task": "T4",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "security-reviewer",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 1.0552054,
+     "duration_s": 274.9
+    }
+   ],
+   "label": "earlier wording, superseded"
+  },
+  "round1_explicit_wording": {
+   "verdict": {
+    "plugin": "PASS (effort 14/14, 3/3 pairs)",
+    "template": "PASS (effort 14/14, 3/3 pairs)"
+   },
+   "runs": [
+    {
+     "arm": "plugin",
+     "task": "E3",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.1383629,
+     "duration_s": 16.5
+    },
+    {
+     "arm": "plugin",
+     "task": "E3",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.14122969999999999,
+     "duration_s": 16.6
+    },
+    {
+     "arm": "plugin",
+     "task": "E4",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:security-reviewer",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.10904,
+     "duration_s": 8.1
+    },
+    {
+     "arm": "plugin",
+     "task": "E4",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:security-reviewer",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.112185,
+     "duration_s": 9.6
+    },
+    {
+     "arm": "plugin",
+     "task": "H1",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:scout",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 1.1398570149999998,
+     "duration_s": 614.2
+    },
+    {
+     "arm": "plugin",
+     "task": "H1",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:scout",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 0.5861709549999999,
+     "duration_s": 300.4
+    },
+    {
+     "arm": "plugin",
+     "task": "T1",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:scout",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.105136215,
+     "duration_s": 8.6
+    },
+    {
+     "arm": "plugin",
+     "task": "T1",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:scout",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.10507771999999999,
+     "duration_s": 8.9
+    },
+    {
+     "arm": "plugin",
+     "task": "T2",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:mech-executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.16094780000000003,
+     "duration_s": 22.6
+    },
+    {
+     "arm": "plugin",
+     "task": "T2",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:mech-executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.1535609,
+     "duration_s": 31.8
+    },
+    {
+     "arm": "plugin",
+     "task": "T3",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:executor",
+       "effort": "medium"
+      }
+     ],
+     "total_cost_usd": 0.2949725,
+     "duration_s": 197.4
+    },
+    {
+     "arm": "plugin",
+     "task": "T3",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:executor",
+       "effort": "medium"
+      }
+     ],
+     "total_cost_usd": 0.3552626,
+     "duration_s": 101.4
+    },
+    {
+     "arm": "plugin",
+     "task": "T4",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:security-reviewer",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 0.9284614,
+     "duration_s": 248.6
+    },
+    {
+     "arm": "plugin",
+     "task": "T4",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:security-reviewer",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 0.67579,
+     "duration_s": 163.7
+    },
+    {
+     "arm": "template",
+     "task": "E3",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.17249099999999998,
+     "duration_s": 17.1
+    },
+    {
+     "arm": "template",
+     "task": "E3",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.1849293,
+     "duration_s": 19.1
+    },
+    {
+     "arm": "template",
+     "task": "E4",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "security-reviewer",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.15968939999999998,
+     "duration_s": 10.3
+    },
+    {
+     "arm": "template",
+     "task": "E4",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "security-reviewer",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.1597634,
+     "duration_s": 9.8
+    },
+    {
+     "arm": "template",
+     "task": "H1",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "scout",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 1.13489436,
+     "duration_s": 552.2
+    },
+    {
+     "arm": "template",
+     "task": "H1",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "scout",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 1.263561815,
+     "duration_s": 540.6
+    },
+    {
+     "arm": "template",
+     "task": "T1",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "scout",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.12452907999999999,
+     "duration_s": 10.7
+    },
+    {
+     "arm": "template",
+     "task": "T1",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "scout",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.12033457500000003,
+     "duration_s": 8.9
+    },
+    {
+     "arm": "template",
+     "task": "T2",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "mech-executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.20003520000000002,
+     "duration_s": 25.0
+    },
+    {
+     "arm": "template",
+     "task": "T2",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "mech-executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.2000347,
+     "duration_s": 24.6
+    },
+    {
+     "arm": "template",
+     "task": "T3",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "executor",
+       "effort": "medium"
+      }
+     ],
+     "total_cost_usd": 0.31549770000000005,
+     "duration_s": 76.7
+    },
+    {
+     "arm": "template",
+     "task": "T3",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "executor",
+       "effort": "medium"
+      }
+     ],
+     "total_cost_usd": 0.2614677,
+     "duration_s": 58.3
+    },
+    {
+     "arm": "template",
+     "task": "T4",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "security-reviewer",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 1.0298856,
+     "duration_s": 281.4
+    },
+    {
+     "arm": "template",
+     "task": "T4",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "security-reviewer",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 0.9365532000000001,
+     "duration_s": 235.0
+    }
+   ],
+   "label": "earlier wording without the reviewer floor, superseded"
+  },
+  "round2_floor_wording": {
+   "label": "shipped wording",
+   "isolation": "a2-isolation.txt",
+   "wording": {
+    "plugin_ambient_line_27": "Agent files own routing.Never pass model at invocation except ad-hoc agent.Explicit instruction:on each pilotfish:<role> call pass Agent effort per task difficulty/ambiguity/risk;role effort=default;floor:verifiers medium,pilotfish:security-reviewer high.",
+    "template_line_38": "- Named-role model routing lives in agent definitions. Omit invocation `model`; override would replace role routing. Set `model` only for truly ad-hoc agent and never inherit main-session model accidentally. Explicit instruction: pass Agent `effort` on each named-role delegation, chosen by task difficulty, ambiguity, error cost; role `effort` = default; floor: `verifier`/`plan-verifier` `medium`, `security-reviewer` `high`."
+   },
+   "verdict": {
+    "plugin": "PASS (effort 16/16 delegations, roles ok, scout and executor pairs pass, no floor break)",
+    "template": "PASS (effort 17/17 delegations, roles ok, scout and executor pairs pass, no floor break)"
+   },
+   "notes": [
+    "template T3 rep 2 delegated twice (executor medium, then executor low); the rule counts delegations, so both are scored"
+   ],
+   "runs": [
+    {
+     "arm": "plugin",
+     "task": "E3",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.1548193,
+     "duration_s": 20.9
+    },
+    {
+     "arm": "plugin",
+     "task": "E3",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.14156480000000002,
+     "duration_s": 18.4
+    },
+    {
+     "arm": "plugin",
+     "task": "E4",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:security-reviewer",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 0.1150256,
+     "duration_s": 17.3
+    },
+    {
+     "arm": "plugin",
+     "task": "E4",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:security-reviewer",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 0.1094516,
+     "duration_s": 8.0
+    },
+    {
+     "arm": "plugin",
+     "task": "E5",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:verifier",
+       "effort": "medium"
+      }
+     ],
+     "total_cost_usd": 0.173808,
+     "duration_s": 14.3
+    },
+    {
+     "arm": "plugin",
+     "task": "E5",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:verifier",
+       "effort": "medium"
+      }
+     ],
+     "total_cost_usd": 0.1475998,
+     "duration_s": 14.8
+    },
+    {
+     "arm": "plugin",
+     "task": "H1",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:scout",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 0.8903403900000001,
+     "duration_s": 475.9
+    },
+    {
+     "arm": "plugin",
+     "task": "H1",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:scout",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 0.8319155199999998,
+     "duration_s": 413.1
+    },
+    {
+     "arm": "plugin",
+     "task": "T1",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:scout",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.10880817500000001,
+     "duration_s": 13.6
+    },
+    {
+     "arm": "plugin",
+     "task": "T1",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:scout",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.10869581999999998,
+     "duration_s": 11.3
+    },
+    {
+     "arm": "plugin",
+     "task": "T2",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:mech-executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.17406899999999997,
+     "duration_s": 25.0
+    },
+    {
+     "arm": "plugin",
+     "task": "T2",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:mech-executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.1591949,
+     "duration_s": 27.8
+    },
+    {
+     "arm": "plugin",
+     "task": "T3",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:executor",
+       "effort": "medium"
+      }
+     ],
+     "total_cost_usd": 0.2371828,
+     "duration_s": 61.4
+    },
+    {
+     "arm": "plugin",
+     "task": "T3",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:executor",
+       "effort": "medium"
+      }
+     ],
+     "total_cost_usd": 0.3903613,
+     "duration_s": 119.1
+    },
+    {
+     "arm": "plugin",
+     "task": "T4",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "pilotfish:security-reviewer",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 0.7640006,
+     "duration_s": 213.9
+    },
+    {
+     "arm": "plugin",
+     "task": "T4",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "pilotfish:security-reviewer",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 1.0252113999999999,
+     "duration_s": 293.9
+    },
+    {
+     "arm": "template",
+     "task": "E3",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.18158029999999997,
+     "duration_s": 20.8
+    },
+    {
+     "arm": "template",
+     "task": "E3",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.1766496,
+     "duration_s": 15.9
+    },
+    {
+     "arm": "template",
+     "task": "E4",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "security-reviewer",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 0.1592816,
+     "duration_s": 9.2
+    },
+    {
+     "arm": "template",
+     "task": "E4",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "security-reviewer",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 0.1602716,
+     "duration_s": 9.9
+    },
+    {
+     "arm": "template",
+     "task": "E5",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "verifier",
+       "effort": "medium"
+      }
+     ],
+     "total_cost_usd": 0.1922054,
+     "duration_s": 13.9
+    },
+    {
+     "arm": "template",
+     "task": "E5",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "verifier",
+       "effort": "medium"
+      }
+     ],
+     "total_cost_usd": 0.1921304,
+     "duration_s": 14.1
+    },
+    {
+     "arm": "template",
+     "task": "H1",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "scout",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 1.0413015300000001,
+     "duration_s": 481.2
+    },
+    {
+     "arm": "template",
+     "task": "H1",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "scout",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 0.9514803749999999,
+     "duration_s": 512.6
+    },
+    {
+     "arm": "template",
+     "task": "T1",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "scout",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.13374487999999998,
+     "duration_s": 15.5
+    },
+    {
+     "arm": "template",
+     "task": "T1",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "scout",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.137683525,
+     "duration_s": 14.0
+    },
+    {
+     "arm": "template",
+     "task": "T2",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "mech-executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.1970468,
+     "duration_s": 24.6
+    },
+    {
+     "arm": "template",
+     "task": "T2",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "mech-executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.192791,
+     "duration_s": 22.3
+    },
+    {
+     "arm": "template",
+     "task": "T3",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "executor",
+       "effort": "medium"
+      }
+     ],
+     "total_cost_usd": 0.3206316,
+     "duration_s": 79.9
+    },
+    {
+     "arm": "template",
+     "task": "T3",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "executor",
+       "effort": "medium"
+      },
+      {
+       "role": "executor",
+       "effort": "low"
+      }
+     ],
+     "total_cost_usd": 0.5443992000000001,
+     "duration_s": 194.9
+    },
+    {
+     "arm": "template",
+     "task": "T4",
+     "rep": 1,
+     "delegations": [
+      {
+       "role": "security-reviewer",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 1.0059934000000001,
+     "duration_s": 272.2
+    },
+    {
+     "arm": "template",
+     "task": "T4",
+     "rep": 2,
+     "delegations": [
+      {
+       "role": "security-reviewer",
+       "effort": "high"
+      }
+     ],
+     "total_cost_usd": 1.1247296000000002,
+     "duration_s": 260.7
+    }
+   ]
+  }
+ },
+ "effort_scaling_probe": {
+  "task": "pilotfish:scout lookup of the string 'generated bytes drift', main session told the effort to pass",
+  "note": "haiku_output_tokens is the session total for claude-haiku-5-5, which includes Claude Code auxiliary calls",
+  "runs": [
+   {
+    "requested_effort": "low",
+    "duration_s": 16,
+    "haiku_output_tokens": 1007
+   },
+   {
+    "requested_effort": "high",
+    "duration_s": 36,
+    "haiku_output_tokens": 5968
+   },
+   {
+    "requested_effort": "max",
+    "duration_s": 458,
+    "haiku_output_tokens": 115114
+   }
+  ]
+ },
+ "env_default_probe": {
+  "question": "does CLAUDE_EFFORT change the effort of a delegation that passes no effort (arm A's condition)?",
+  "plugin": "plugin/ from a12b57a (no effort clause)",
+  "task": "pilotfish:scout lookup, main session told not to pass effort",
+  "runs": [
+   {
+    "environment": "CLAUDE_EFFORT=max",
+    "effort_passed": null,
+    "duration_s": 14,
+    "haiku_output_tokens": 1211
+   },
+   {
+    "environment": "CLAUDE_EFFORT unset",
+    "effort_passed": null,
+    "duration_s": 16,
+    "haiku_output_tokens": 2268
+   }
+  ],
+  "reading": "with CLAUDE_EFFORT=max the scout used about as few tokens as with it unset and far fewer than an explicit effort=max (115k), so the variable did not override the frontmatter default"
+ },
+ "old_client_probe": {
+  "client": "Claude Code 2.1.287 via npx",
+  "plugin": "plugin/ with the round1 explicit wording (before the floor)",
+  "task": "T1 (pilotfish:scout lookup of build_manifest)",
+  "effort_passed": null,
+  "delegation_completed": true,
+  "agent_error": false,
+  "answer_correct": "tools/render_plugin_spike.py:168",
+  "total_cost_usd": 0.11838125000000001,
+  "runs": 1
+ },
+ "plan_verifier_floor_probe": {
+  "wording": "round2 shipped",
+  "task": "pilotfish:plan-verifier review of a one-line rename plan",
+  "runs": [
+   {
+    "role": "pilotfish:plan-verifier",
+    "effort": "medium",
+    "model_passed": null,
+    "total_cost_usd": 0.24033000000000002
+   },
+   {
+    "role": "pilotfish:plan-verifier",
+    "effort": "medium",
+    "model_passed": null,
+    "total_cost_usd": 0.300659
+   }
+  ],
+  "reading": "floor medium held in both runs"
+ },
+ "model_param_check": {
+  "scope": "every main-session Agent tool_use in the selection probes, all A2 rounds and the verifier spot checks",
+  "delegations": 107,
+  "with_model_param": 0
+ }
+}

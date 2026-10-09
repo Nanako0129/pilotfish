@@ -24,9 +24,33 @@ ROLES = (
     "verifier",
     "security-executor",
 )
+# Appended to template line 38 after the last behavioural gate. The gated
+# policies stay byte-identical to the live template everywhere else.
+EFFORT_CLAUSE = (
+    b" Explicit instruction: pass Agent `effort` on each named-role delegation,"
+    b" chosen by task difficulty, ambiguity, error cost; role `effort` = default;"
+    b" floor: `verifier`/`plan-verifier` `medium`, `security-reviewer` `high`."
+)
+EFFORT_LINE = 38
+
+
+def normalize_version_marker(payload: bytes) -> bytes:
+    return re.sub(
+        rb"<!-- pilotfish v\d+\.\d+\.\d+ -->", b"<!-- pilotfish vX.Y.Z -->", payload
+    )
 
 
 class PolicyContractTests(unittest.TestCase):
+    def assert_only_effort_clause_added(self, gated: bytes, live: bytes) -> None:
+        gated_lines = normalize_version_marker(gated).split(b"\n")
+        live_lines = normalize_version_marker(live).split(b"\n")
+        self.assertEqual(len(gated_lines), len(live_lines))
+        index = EFFORT_LINE - 1
+        for number, (old, new) in enumerate(zip(gated_lines, live_lines), 1):
+            if number != EFFORT_LINE:
+                self.assertEqual(old, new, f"line {number} drifted from the gated policy")
+        self.assertEqual(live_lines[index], gated_lines[index] + EFFORT_CLAUSE)
+
     def test_spontaneous_dispatch_classifier_separates_child_tools(self) -> None:
         events = [
             {
@@ -2086,15 +2110,8 @@ class PolicyContractTests(unittest.TestCase):
             hashlib.sha256(candidate).hexdigest(), evidence["candidate"]["sha256"]
         )
         live = (ROOT / "templates/claude-md.orchestration.md").read_bytes()
-        normalize_version_marker = lambda payload: re.sub(
-            rb"<!-- pilotfish v\d+\.\d+\.\d+ -->",
-            b"<!-- pilotfish vX.Y.Z -->",
-            payload,
-        )
         self.assertNotEqual(candidate, live)
-        self.assertEqual(
-            normalize_version_marker(candidate), normalize_version_marker(live)
-        )
+        self.assert_only_effort_clause_added(candidate, live)
         self.assertEqual(evidence["route"]["client_versions"], ["2.1.224"])
 
         expected_adapters = [
@@ -2915,11 +2932,6 @@ class PolicyContractTests(unittest.TestCase):
         )
 
         current_policy = (ROOT / "templates/claude-md.orchestration.md").read_bytes()
-        normalize_version_marker = lambda payload: re.sub(
-            rb"<!-- pilotfish v\d+\.\d+\.\d+ -->",
-            b"<!-- pilotfish vX.Y.Z -->",
-            payload,
-        )
         snapshot_policy = (gate / runtime["final_gate_snapshot_policy"]).read_bytes()
         snapshot_agents = (
             gate / runtime["final_gate_snapshot_agents_json"]
@@ -2950,10 +2962,7 @@ class PolicyContractTests(unittest.TestCase):
             hashlib.sha256(last_qualified_policy).hexdigest(),
         )
         self.assertNotEqual(last_qualified_policy, current_policy)
-        self.assertEqual(
-            normalize_version_marker(last_qualified_policy),
-            normalize_version_marker(current_policy),
-        )
+        self.assert_only_effort_clause_added(last_qualified_policy, current_policy)
         self.assertEqual(
             runtime["release_candidate_agents_json_sha256"],
             hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
@@ -3044,10 +3053,16 @@ class PolicyContractTests(unittest.TestCase):
             runtime["release_candidate_generated_by"],
             "benchmarks/baton-compatibility/build-agents-json.py templates/agents",
         )
+        # The live policy appends the line-38 effort clause to the gated
+        # bytes, so the status must not claim the gate covers it.
         self.assertTrue(
             runtime["release_candidate_behavioral_gate_status"].startswith(
-                "passed;"
+                "delta-ungated;"
             )
+        )
+        self.assertIn(
+            "per-delegation effort clause to line 38",
+            runtime["release_candidate_behavioral_gate_status"],
         )
         self.assertEqual(
             runtime["release_candidate_runtime_evidence"],
@@ -5800,6 +5815,25 @@ class PolicyContractTests(unittest.TestCase):
             self.assertRegex(frontmatter, rf"(?m)^name:\s*{re.escape(role)}\s*$")
             self.assertRegex(frontmatter, r"(?m)^model:\s*\S+\s*$")
             self.assertIn(f"`{role}`", policy)
+
+    def test_effort_floor_matches_reviewer_defaults(self) -> None:
+        # The policy states the reviewer floor as levels because the main
+        # session cannot see frontmatter; the levels must stay the defaults.
+        def default_effort(role: str) -> str:
+            frontmatter = (ROOT / "templates/agents" / f"{role}.md").read_text(
+                encoding="utf-8"
+            ).split("---", 2)[1]
+            return re.search(r"(?m)^effort:\s*(\S+)\s*$", frontmatter).group(1)
+
+        template = (ROOT / "templates/claude-md.orchestration.md").read_text(encoding="utf-8")
+        ambient = (ROOT / "plugin/policy/ambient.md").read_text(encoding="utf-8")
+        self.assertEqual(default_effort("verifier"), default_effort("plan-verifier"))
+        verifiers, security = default_effort("verifier"), default_effort("security-reviewer")
+        self.assertIn(
+            f"floor: `verifier`/`plan-verifier` `{verifiers}`, `security-reviewer` `{security}`.",
+            template,
+        )
+        self.assertIn(f"floor:verifiers {verifiers},pilotfish:security-reviewer {security}.", ambient)
 
     def test_default_implementation_tier_stays_below_opus_main_loop(self) -> None:
         # Regression for #18: the main session defaults to Opus. The default

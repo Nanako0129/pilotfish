@@ -284,6 +284,8 @@ claude plugin install --scope user pilotfish@pilotfish
 
 Plugin 出貨七個帶 namespace 的角色：`pilotfish:scout`、`pilotfish:plan-verifier`、`pilotfish:security-reviewer`、`pilotfish:mech-executor`、`pilotfish:executor`、`pilotfish:verifier`、`pilotfish:security-executor`。
 
+各角色的 `effort` 是建議預設值。在 Claude Code 2.1.292 以上，policy 會要求主 session 每次委派時依任務傳入 Agent tool 的 `effort`，審查角色另有下限：`pilotfish:verifier` 與 `pilotfish:plan-verifier` 不低於 `medium`，`pilotfish:security-reviewer` 不低於 `high`。較舊的 client 沒有這個參數；在 2.1.287 上實測一次（用的是加入下限之前的 policy），主 session 沒有傳入 effort，委派正常完成，推測是以角色預設值執行。依 Claude Code 的 sub-agents 文件，若設定了 `CLAUDE_CODE_EFFORT_LEVEL`，它會蓋過兩者。
+
 README 角色表裡的第八個角色 `Explore` **不在**出貨範圍內，這是刻意的，而且就算出貨也不會生效。Claude Code 會以檔名在 plugin 的 namespace 下命名 agent，因此 `agents/Explore.md` 會載成 `pilotfish:Explore`，覆寫不到任何東西（見 [plugins reference](https://code.claude.com/docs/en/plugins-reference)）。plugin 的 `agents/` 也是優先序最低的來源，低於 `~/.claude/agents/`（見 [subagents](https://code.claude.com/docs/en/sub-agents)）。覆寫內建 `Explore` 是 user 層或 project 層的機制；legacy global install 用得到，Plugin 用不到。
 
 在 Plugin 路徑下，內建 `Explore` 仍然繼承主 session 模型——主 session 是 Opus 時，等於把最廉價的工作量跑在最昂貴的模型上。若這件事有影響，有兩個選項：

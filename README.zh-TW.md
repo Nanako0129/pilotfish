@@ -81,7 +81,7 @@ opus · fresh context"]
     V -->|CONFIRMED / REFUTED / INCONCLUSIVE| O
 ```
 
-| 角色 | 模型 | Effort | 用途 |
+| 角色 | 模型 | 預設 Effort | 用途 |
 |---|---|---|---|
 | `scout` | haiku | low | 唯讀 repo 偵察 |
 | `Explore` | haiku | low | 不繼承主模型的廣域唯讀搜尋——僅 legacy global install（[原因](./install/PLUGIN-INSTALL.zh-TW.md#plugin-出貨的角色)） |
@@ -91,6 +91,10 @@ opus · fresh context"]
 | `executor` | sonnet | medium | 已批准且需要局部判斷的實作 |
 | `verifier` | opus | medium | 實作後以 fresh context 反駁 outcome claim |
 | `security-executor` | opus | medium | 已批准的資安敏感實作 |
+
+各角色的 effort 是建議預設值，不是固定設定。policy 會要求主 session
+每次委派時傳入 Agent tool 的 `effort`（Claude Code 2.1.292 以上才有），依任務的難度、模糊程度與出錯代價選擇：簡單查詢可以維持 `low`，困難的調查可以用 `high`。審查角色以預設值為下限：`verifier` 與 `plan-verifier` 不低於 `medium`，`security-reviewer` 不低於 `high`。
+模型路由維持固定；依 Claude Code 文件，若設定了 `CLAUDE_CODE_EFFORT_LEVEL`，它會蓋過兩者（[證據](./benchmarks/effort-selection/README.zh-TW.md)）。
 
 在 Baton 或 direct／delegated routing 前，pilotfish 依序採用第一個符合的互動形態：
 結果或驗收不清楚時用 `co_discover`；否則，方向清楚且範圍廣或影響高時用
