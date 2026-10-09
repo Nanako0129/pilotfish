@@ -1,5 +1,5 @@
 <!-- pilotfish:begin -->
-<!-- pilotfish v1.4.3 -->
+<!-- pilotfish v1.5.0 -->
 ## Orchestration
 
 Main-session policy. Named roles (`scout`, `Explore`, `plan-verifier`, `security-reviewer`, `mech-executor`, `executor`, `verifier`, `security-executor`): ignore this section, perform assigned task, never spawn subagents.
