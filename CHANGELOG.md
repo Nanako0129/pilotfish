@@ -2,6 +2,22 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
+## v1.5.0 — 2026-10-10
+
+**Per-delegation effort (#98).** Each role's frontmatter `effort` is now a recommended default. The policy tells the main session to pass the Agent tool's `effort` (Claude Code 2.1.292 or newer) on every named-role delegation, chosen from the task's difficulty, ambiguity and risk. The reviewers keep a floor at their defaults: `verifier` and `plan-verifier` never below `medium`, `security-reviewer` never below `high`. Model routing is unchanged.
+
+The wording matters because the Agent tool's own description says to set `effort` only when instructions explicitly ask. A compressed policy line got `effort` on 1 of 14 delegations. The shipped line opens with "Explicit instruction:". In the gate it got `effort` on 16 of 16 delegations (Plugin) and 17 of 17 (template proxy), varied the level by task within `scout` and `executor`, and held every reviewer at or above its floor.
+
+An A/B against fixed defaults used a longer appended instruction and no floor: 40 Aider Polyglot tasks went through `mech-executor`, and 20 SWE-bench Verified medium tasks through `executor`. Both arms resolved 55 of 60, and list-price cost differed by 1.1%. No quality or cost change was measured on those Sonnet roles. Opus and Haiku roles and the shipped line's own quality and cost were not A/B-tested. Claude Code 2.1.287, which has no Agent `effort` parameter, completed a delegation normally in one run. The effort a subagent actually runs at is not logged; only the requested value is visible. Evidence: [`benchmarks/effort-selection`](benchmarks/effort-selection/README.md).
+
+**The Plugin is no longer beta (#99).** The macOS and Linux Plugin drops its beta and experimental labels. Its manifest `displayName` is now `pilotfish`. Every evidence boundary stays as written:
+- Linux is contract-qualified only and has never been tested, verified or live-observed.
+- Windows is excluded.
+- The Plugin must not coexist with the legacy global install.
+- It claims no stable ambient reliability, cross-version compatibility or runtime namespace-collision proof.
+
+Plugin role calls stay foreground, because only foreground calls have been qualified.
+
 ## v1.4.3 — 2026-10-08
 
 `scout` moves back from Sonnet to Haiku, keeping `low` effort (#96). The v1.4.2 move rested on secondhand reports that Haiku hallucinated too often, and no failing case was recorded. Haiku 5.5 shipped on 2026-10-07, and a [probe](benchmarks/scout-haiku-probe/README.md) then gave scout's own prompt and `Read, Glob, Grep` surface 20 graded repository questions, two runs per configuration:

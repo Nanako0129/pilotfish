@@ -2,7 +2,7 @@
   "schema_version": 1,
   "source": {
     "path": "templates/claude-md.orchestration.md",
-    "sha256": "86ab451414832b3b5e0842f225da5d6ece3da2c77d21d23c532c9e2f1af9c9f7"
+    "sha256": "a34ddc908c72134e24adc57a61569e02abdbdc71e5759c99abe1fc5b392769ca"
   },
   "requirements": [
     {
