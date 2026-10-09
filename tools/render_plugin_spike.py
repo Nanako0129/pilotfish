@@ -170,9 +170,9 @@ def build_manifest(release_version: str) -> bytes:
         {
             "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
             "name": "pilotfish",
-            "displayName": "pilotfish Plugin beta",
+            "displayName": "pilotfish",
             "version": release_version,
-            "description": "macOS and Linux Claude Code Plugin beta with hook-based ambient policy activation and namespaced role agents.",
+            "description": "macOS and Linux Claude Code Plugin with hook-based ambient policy activation and namespaced role agents.",
             "author": {
                 "name": "Nanako0129",
                 "url": "https://github.com/Nanako0129",
@@ -184,7 +184,6 @@ def build_manifest(release_version: str) -> bytes:
                 "ambient-activation",
                 "subagents",
                 "delegation",
-                "beta",
             ],
         }
     )
@@ -199,19 +198,18 @@ def build_marketplace(release_version: str) -> bytes:
                 "name": "Nanako0129",
                 "url": "https://github.com/Nanako0129",
             },
-            "description": "Marketplace for the pilotfish macOS and Linux Claude Code Plugin beta.",
+            "description": "Marketplace for the pilotfish macOS and Linux Claude Code Plugin.",
             "plugins": [
                 {
                     "name": "pilotfish",
                     "source": "./plugin",
                     "version": release_version,
-                    "description": "Hook-based ambient orchestration beta for macOS and Linux Claude Code.",
+                    "description": "Hook-based ambient orchestration for macOS and Linux Claude Code.",
                     "category": "productivity",
                     "tags": [
                         "orchestration",
                         "subagents",
                         "delegation",
-                        "beta",
                     ],
                 }
             ],

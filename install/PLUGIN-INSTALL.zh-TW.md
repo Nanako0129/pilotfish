@@ -1,8 +1,8 @@
-# pilotfish macOS 與 Linux Plugin beta 安裝指南
+# pilotfish macOS 與 Linux Plugin 安裝指南
 
 [English](./PLUGIN-INSTALL.md)
 
-> 這個 experimental beta 適用於 macOS 與 Linux。依據[官方系統需求](https://code.claude.com/docs/en/setup#system-requirements)（查核日期 2026-08-22），Linux 需要 Ubuntu 20.04+、Debian 10+ 或 Alpine Linux 3.19+，並且 Claude Code 本身已能在官方支援範圍內正常運作。macOS 搭配 Claude Code 2.1.239 已有 live observation；Linux 僅完成 contract qualification，未經測試、驗證或 live observation。Windows 不在範圍內。Ambient activation 需要 SessionStart hooks。本 beta 不主張 stable reliability、跨版本相容性或 runtime namespace-collision proof。
+> Plugin 適用於 macOS 與 Linux。依據[官方系統需求](https://code.claude.com/docs/en/setup#system-requirements)（查核日期 2026-08-22），Linux 需要 Ubuntu 20.04+、Debian 10+ 或 Alpine Linux 3.19+，並且 Claude Code 本身已能在官方支援範圍內正常運作。macOS 搭配 Claude Code 2.1.239 已有 live observation；Linux 僅完成 contract qualification，未經測試、驗證或 live observation。Windows 不在範圍內。Ambient activation 需要 SessionStart hooks。Plugin 不主張 stable reliability、跨版本相容性或 runtime namespace-collision proof。
 
 Plugin 不可與 legacy global install 共存。若有效的 user `CLAUDE.md` 包含 pilotfish 的標準 markers 或已知 legacy policy header，Plugin hook 會 fail closed：不輸出 policy，並要求先完成遷移。
 

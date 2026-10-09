@@ -5,19 +5,18 @@
     "name": "Nanako0129",
     "url": "https://github.com/Nanako0129"
   },
-  "description": "Marketplace for the pilotfish macOS and Linux Claude Code Plugin beta.",
+  "description": "Marketplace for the pilotfish macOS and Linux Claude Code Plugin.",
   "plugins": [
     {
       "name": "pilotfish",
       "source": "./plugin",
       "version": "1.4.3",
-      "description": "Hook-based ambient orchestration beta for macOS and Linux Claude Code.",
+      "description": "Hook-based ambient orchestration for macOS and Linux Claude Code.",
       "category": "productivity",
       "tags": [
         "orchestration",
         "subagents",
-        "delegation",
-        "beta"
+        "delegation"
       ]
     }
   ]
