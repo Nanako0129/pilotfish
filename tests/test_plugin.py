@@ -76,14 +76,14 @@ def unqualified_role_refs(text: str, *, allow_frontmatter: bool = False) -> list
 
 
 class PluginArtifactTests(unittest.TestCase):
-    def test_manifests_are_versioned_beta_metadata_from_version(self) -> None:
+    def test_manifests_are_versioned_metadata_from_version(self) -> None:
         release_version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
         manifest = json.loads(
             (PLUGIN / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8")
         )
         self.assertEqual(manifest["name"], "pilotfish")
         self.assertEqual(manifest["version"], release_version)
-        self.assertEqual(manifest["displayName"], "pilotfish Plugin beta")
+        self.assertEqual(manifest["displayName"], "pilotfish")
         self.assertEqual(manifest["repository"], "https://github.com/Nanako0129/pilotfish")
         self.assertEqual(manifest["license"], "MIT")
         self.assertIn("macOS and Linux", manifest["description"])
@@ -303,13 +303,13 @@ class PluginArtifactTests(unittest.TestCase):
         self.assertFalse({path.name for path in PLUGIN.rglob("*")} & forbidden)
         self.assertFalse(any(path.name in {"bin", "monitors", "lsp", "mcp"} for path in PLUGIN.rglob("*")))
 
-    def test_license_attribution_and_beta_claim_boundary(self) -> None:
+    def test_license_attribution_and_claim_boundary(self) -> None:
         self.assertEqual((PLUGIN / "LICENSE").read_bytes(), (ROOT / "LICENSE").read_bytes())
         attribution = (PLUGIN / "ATTRIBUTION.md").read_text(encoding="utf-8")
         for commit in ("f636e298", "647fd5b4", "5067870b", "71d92bc"):
             self.assertIn(commit, attribution)
         for phrase in (
-            "Plugin beta",
+            "pilotfish is a macOS and Linux Plugin.",
             "macOS and Linux",
             "Ubuntu 20.04+",
             "Debian 10+",

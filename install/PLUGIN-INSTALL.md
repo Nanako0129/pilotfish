@@ -1,8 +1,8 @@
-# pilotfish macOS and Linux Plugin beta install
+# pilotfish macOS and Linux Plugin install
 
 [繁體中文](./PLUGIN-INSTALL.zh-TW.md)
 
-> This experimental beta targets macOS and Linux. Linux requires Ubuntu 20.04+, Debian 10+, or Alpine Linux 3.19+ and an otherwise-working officially supported Claude Code installation, per the [official system requirements](https://code.claude.com/docs/en/setup#system-requirements) (checked 2026-08-22). macOS with Claude Code 2.1.239 is live-observed. Linux is contract-qualified only; it has not been tested, verified, or live-observed. Windows is excluded. SessionStart hooks are required for ambient activation. This beta does not claim stable reliability, cross-version compatibility, or runtime namespace-collision proof.
+> The Plugin targets macOS and Linux. Linux requires Ubuntu 20.04+, Debian 10+, or Alpine Linux 3.19+ and an otherwise-working officially supported Claude Code installation, per the [official system requirements](https://code.claude.com/docs/en/setup#system-requirements) (checked 2026-08-22). macOS with Claude Code 2.1.239 is live-observed. Linux is contract-qualified only; it has not been tested, verified, or live-observed. Windows is excluded. SessionStart hooks are required for ambient activation. It does not claim stable reliability, cross-version compatibility, or runtime namespace-collision proof.
 
 The Plugin and the legacy global install must not coexist. The Plugin hook fails closed when the effective user `CLAUDE.md` contains canonical pilotfish markers or the known legacy policy header: it emits no policy and tells you to migrate.
 

@@ -14,7 +14,7 @@ Pre-Agent-call:state phase/brake.Discovery needs stable research contract;writin
 Keep bounded local search in main when splitting duplicates startup/synthesis.Fan out only independent substantial surfaces/latency/evidence reducing Plan uncertainty.
 Pre-discovery:declare main/agent read scopes.Agent scope is exclusive until collection/cancellation/redirection;reject mixed reads touching it.
 Collect all discovery before cross-surface comparison;check decision facts.Discovery reports facts;main reconciles/Plans.
-Stable same-shape multi-file repetition defaults to 1 pilotfish:mech-executor:complete brief,exclusive owner,independent items,per-item acceptance.Plugin beta calls are foreground.
+Stable same-shape multi-file repetition defaults to 1 pilotfish:mech-executor:complete brief,exclusive owner,independent items,per-item acceptance.Plugin calls are foreground.
 Collect mechanical result before main edits.Worker files stay worker-only until done;never redo.Main owns triage/exceptions/integration/acceptance.
 Main does qualifying mechanical only after naming evolving/coupled evidence,ownership/integration conflict,unavailable worker,or non-positive net benefit.
 Delegate only if cost/quota/context/parallelism/isolation/freshness outweigh reconstruction/coordination/integration/verification;match role.
@@ -36,5 +36,5 @@ Recovery=original repro+bounded regression,no adjacent audit.High-risk claim-cri
 Pre-likely-long autonomy:offer AUTO/ASK;wait.Absence/sleep//goal grant nothing;continue-while-away selects announced AUTO.Headless without mode exits PAUSED_NEEDS_USER.
 AUTO:approved-scope reversible work+main P2 adjudication only.No VCS/release/publish/install,credentials,shutdown/rollback/delete,external/destructive/irreversible,scope,spend authority;separate grants remain.
 ASK:use AskUserQuestion;else PAUSED_NEEDS_USER+1 question/choices/recommendation.Headless cannot poll/retry/guess;children cannot ask.P0 freezes dependents;cross-cutting P0 stops all.Stop only on cross-cutting/dependency blocker,authority/product choice,destructive/external action,exhausted budget,unsafe environment,impossible scope.Report outcomes/dispositions/pauses/gaps/narrowed claims/gates/cost/external actions separately.
-Dependency order:2+ selected independent agents launch back-to-back/background,disjoint;collect pre-dependent-work/final.Foreground only if blocked.Parallel writers need Git worktrees,else shared writer/direct.Integrate all.Plugin beta foreground wins.
+Dependency order:2+ selected independent agents launch back-to-back/background,disjoint;collect pre-dependent-work/final.Foreground only if blocked.Parallel writers need Git worktrees,else shared writer/direct.Integrate all.Plugin foreground wins.
 Long processes:main-owned.Bash leaves never detach;>10-minute work returns exact command,directory/worktree,environment,inputs;main runs tracked-background,resumes with output.Liveness=tracked state/output,not CPU/stale files/transcript delay;never kill on suspicion.Child final=deliverable;resume only for new/redirection.

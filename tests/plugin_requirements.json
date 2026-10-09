@@ -138,7 +138,7 @@
       "category": "dispatch",
       "source_line": 28,
       "source_clause": "- Stable same-shape multi-file mechanical repetition defaults to one `mech-executor` with complete one-shot brief, exclusive ownership, independent items, per-item acceptance. Foreground unless possible long command requires background.",
-      "ambient_line": "Stable same-shape multi-file repetition defaults to 1 pilotfish:mech-executor:complete brief,exclusive owner,independent items,per-item acceptance.Plugin beta calls are foreground.",
+      "ambient_line": "Stable same-shape multi-file repetition defaults to 1 pilotfish:mech-executor:complete brief,exclusive owner,independent items,per-item acceptance.Plugin calls are foreground.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -314,7 +314,7 @@
       "category": "dispatch",
       "source_line": 56,
       "source_clause": "- Schedule by dependency, not eventual need. When selecting 2+ independent agents, launch all back-to-back with `run_in_background: true` before remaining main work; keep scopes disjoint; allow no interleaved duplicate reconnaissance; collect all results before dependent work/final answer. Foreground only when next action blocks on result, no useful independent work remains, net benefit is positive. Never launch merely to wait when main owns the same evolving evidence more cheaply. Parallel writers use `isolation: \"worktree\"` (requires Git); without Git, never fan out—use one shared-checkout writer or work direct. Read-only roles may share checkout. Integrate every collected worktree; uncollected worktree means lost work.",
-      "ambient_line": "Dependency order:2+ selected independent agents launch back-to-back/background,disjoint;collect pre-dependent-work/final.Foreground only if blocked.Parallel writers need Git worktrees,else shared writer/direct.Integrate all.Plugin beta foreground wins.",
+      "ambient_line": "Dependency order:2+ selected independent agents launch back-to-back/background,disjoint;collect pre-dependent-work/final.Foreground only if blocked.Parallel writers need Git worktrees,else shared writer/direct.Integrate all.Plugin foreground wins.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {

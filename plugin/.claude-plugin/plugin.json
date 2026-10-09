@@ -1,9 +1,9 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "pilotfish",
-  "displayName": "pilotfish Plugin beta",
+  "displayName": "pilotfish",
   "version": "1.4.3",
-  "description": "macOS and Linux Claude Code Plugin beta with hook-based ambient policy activation and namespaced role agents.",
+  "description": "macOS and Linux Claude Code Plugin with hook-based ambient policy activation and namespaced role agents.",
   "author": {
     "name": "Nanako0129",
     "url": "https://github.com/Nanako0129"
@@ -14,7 +14,6 @@
     "orchestration",
     "ambient-activation",
     "subagents",
-    "delegation",
-    "beta"
+    "delegation"
   ]
 }
