@@ -76,6 +76,7 @@ template 組有一個 session（T3 第 2 次）委派了兩次，第二次以 `l
 - A2 沒有 `plan-verifier` 的任務。另外跑了兩次（`plan_verifier_floor_probe`）：把一行計畫交給它審查，兩次都選 `medium`，正好是它的下限。
 - 記錄中的 107 次委派都沒有傳 `model`（`model_param_check`），所以這幾次執行裡，Plugin 那一行縮短後的 model 句子沒有改變路由。
 - `scripts/agent_run.py` 的 `./envrun` 用 `$*` 串接參數，帶內層引號的參數在 container 裡會被重新切開。A/B 兩組用的是同一個 helper。
+- 記錄中的 SWE-bench patch 是用一般的 `git diff` 匯出，agent 新建的檔案沒有被送出。兩組受到的影響相同，而且只會讓解出數偏低；提交的 scripts 現在會納入新檔案。
 - `CLAUDE_CODE_EFFORT_LEVEL` 的優先順序取自 Claude Code 的 sub-agents 文件，本研究沒有量測。
 - A/B 中每題每組只跑一次，效果大小落在每次執行的雜訊範圍內。
 

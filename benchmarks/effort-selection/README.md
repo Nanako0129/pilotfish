@@ -76,6 +76,7 @@ In one template session (T3, repetition 2) the main session delegated twice, the
 - `plan-verifier` is not an A2 task. In two separate runs (`plan_verifier_floor_probe`), a one-line plan sent to it got `medium`, its floor.
 - None of 107 recorded delegations passed `model` (`model_param_check`), so the compressed model sentence in the Plugin line did not change routing in these runs.
 - `scripts/agent_run.py`'s `./envrun` helper joins its arguments with `$*`, so arguments with inner quoting are re-split inside the container. Both A/B arms ran with the same helper.
+- The recorded SWE-bench patches were exported with plain `git diff`, so files an agent created were not submitted. This applies to both arms equally and can only lower resolved counts; the committed scripts now include new files.
 - The precedence of `CLAUDE_CODE_EFFORT_LEVEL` is taken from the Claude Code sub-agents documentation and was not measured here.
 - One run per task per arm in the A/B; the effect sizes are within run-to-run noise.
 

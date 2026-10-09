@@ -25,6 +25,12 @@ def sh(cmd, **kw):
     return subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL, **kw)
 
 
+def diff_with_new_files(wd):
+    """Tracked changes plus files the agent created (envrun is excluded via info/exclude)."""
+    sh(["git", "add", "--intent-to-add", "--all"], cwd=wd)
+    return sh(["git", "-c", "core.fileMode=false", "diff", "--no-color"], cwd=wd).stdout
+
+
 def prompt(inst):
     return (
         "Resolve the following GitHub issue in the repository in the current directory "
@@ -81,7 +87,7 @@ def run_one(inst, conf):
         j = json.loads(out)
     except Exception:
         j = {"is_error": True, "result": out[-2000:]}
-    diff = sh(["git", "-c", "core.fileMode=false", "diff", "--no-color"], cwd=wd).stdout
+    diff = diff_with_new_files(wd)
     sh(["docker", "rm", "-f", cont])
     mu = j.get("modelUsage", {})
     rec = {"instance_id": iid, "model": model, "effort": effort,

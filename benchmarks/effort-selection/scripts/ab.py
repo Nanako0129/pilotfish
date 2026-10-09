@@ -33,7 +33,7 @@ WRAP = ("Delegate this task exactly once to {role} and wait for it in the foregr
         "when it returns, report its result.\n\n--- task for {role} ---\n{task}")
 
 
-def parse(stdout):
+def parse(stdout, role, arm):
     calls, child, main_tools, res = [], {}, [], None
     for line in stdout.splitlines():
         try:
@@ -56,7 +56,10 @@ def parse(stdout):
             res = e
     for c in calls:
         c["child_models"] = sorted(child.get(c["id"], []))
-    valid = res is not None and not res.get("is_error") and len(calls) == 1 and not main_tools
+    # A run counts only if it received its arm's treatment: one delegation to the
+    # requested role, with no effort in arm A and an explicit effort in arm B.
+    valid = (res is not None and not res.get("is_error") and len(calls) == 1 and not main_tools
+             and calls[0]["role"] == role and (calls[0]["effort"] is None) == (arm == "A"))
     mu = (res or {}).get("modelUsage", {})
     return {
         "valid": valid, "delegations": calls, "main_tools": main_tools,
@@ -93,7 +96,8 @@ def run_polyglot(t, arm):
     with tempfile.TemporaryDirectory(prefix="ab-") as d:
         work = Path(d) / t["name"]
         pg.prepare(t, work)
-        rec = parse(claude(WRAP.format(role="pilotfish:mech-executor", task=pg.prompt(t)), work, arm))
+        rec = parse(claude(WRAP.format(role="pilotfish:mech-executor", task=pg.prompt(t)), work, arm),
+                    "pilotfish:mech-executor", arm)
         rec["passed"], rec["grader_tail"] = pg.grade(t, work)
     rec["task"] = t
     path.write_text(json.dumps(rec, indent=1, ensure_ascii=False))
@@ -125,8 +129,9 @@ def run_swe(inst, arm):
     (wd / "envrun").chmod(0o755)
     with open(wd / ".git/info/exclude", "a") as f:
         f.write("\nenvrun\n")
-    rec = parse(claude(WRAP.format(role="pilotfish:executor", task=ar.prompt(inst)), wd, arm))
-    rec["patch"] = ar.sh(["git", "-c", "core.fileMode=false", "diff", "--no-color"], cwd=wd).stdout
+    rec = parse(claude(WRAP.format(role="pilotfish:executor", task=ar.prompt(inst)), wd, arm),
+                "pilotfish:executor", arm)
+    rec["patch"] = ar.diff_with_new_files(wd)
     rec["instance_id"] = iid
     ar.sh(["docker", "rm", "-f", cont])
     shutil.rmtree(wd, ignore_errors=True)
