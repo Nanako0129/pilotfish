@@ -1,0 +1,70 @@
+# Plan 審查範圍與 verifier 阻擋門檻
+
+[English](./README.md)
+
+v1.5.0 之後有兩項改動，各做了一次小型付費檢查：
+
+1. **阻擋門檻。** `verifier` 只在目前 head 的執行失敗、或使用者會碰到該行為時，才把未達成的驗收條件評為 P2。沒有行為影響的文字或數量不符是 P3，而 P3 不會產生 REFUTED。
+2. **Plan 審查範圍。** 核准前的 `plan-verifier` 只在四種情況下強制：明確要求審查、破壞性／不可逆／對外的變更、資料／schema／序列化／遷移、發版。其他風險觸發（安全與信任、重大跨元件驗收）仍然要有 Plan、核准停點和實作後的 `verifier`，而且每份 Plan 開頭都要重述意圖。
+
+兩者都是每格一次觀察，不是每格兩次的 Gate。
+
+## 方法
+
+| 項目 | 值 |
+|---|---|
+| 日期 | 2026-11-20 與 2026-11-21 |
+| 用戶端 | Claude Code 2.1.325；`--model opus --effort high`，實際解析為 `claude-opus-5-5` |
+| 隔離 | `--setting-sources project,local --strict-mcp-config`；每格在 `benchmarks/verifier-boundary/fixture` 的拋棄式 Git 複本裡執行，政策範本當作 `CLAUDE.md`，角色用 `--agents` 傳入 |
+| 計數 | 只算最上層的串流事件。必要角色的呼叫要沒有錯誤地回傳才算數 |
+| 花費 | 每次呼叫 result 行的 `total_cost_usd` |
+
+輸入檔的雜湊在 [`blocking-bar/inputs.sha256`](./blocking-bar/inputs.sha256) 和 [`scope/inputs.sha256`](./scope/inputs.sha256)。各格數值在 [`results.json`](./results.json)。
+
+## 阻擋門檻
+
+Prompt：[`blocking-bar/prompts/verify.txt`](./blocking-bar/prompts/verify.txt)。受測狀態：[`blocking-bar/states/`](./blocking-bar/states/)。紀錄：[`blocking-bar/run.log`](./blocking-bar/run.log)。花費 3.63 美元，上限 6.00 美元。
+
+| 格 | 角色檔 | 受測狀態 | 判定 |
+|---|---|---|---|
+| `v1` | 改過的 `verifier` | 第 1 版 payload 解出來沒有 `id`；測試通過 | REFUTED |
+| `v2` | 改過的 `verifier` | 程式正確；README 寫 3 項測試，實際有 4 項 | CONFIRMED，不符之處列為 P3 |
+| `v2base` | `main`（`40d170e`） | 同 `v2` | REFUTED |
+| `plancap` | 改過的角色檔 | 既有的三回合 Plan 上限 prompt | REVISE、REVISE、REVISE |
+| `plancapbase` | `main`（`40d170e`） | 同上 | REVISE、REVISE、REVISE |
+
+`v2` 對 `v2base` 是支持這項門檻改動的唯一一組新舊對照。`v1` 顯示行為缺陷仍然會被擋下。
+
+Plan 上限的 prompt 預期第 3 回合得到 READY。兩組角色檔在第 3 回合都回 REVISE，所以不論有沒有這次改動，這個預期在 `claude-opus-5-5` 上都不成立。改過的那組裡試過的 `plan-verifier` 措辭和 `main` 沒有差別，已經撤掉；提交的 `plan-verifier` 與 `main` 相同。
+
+## Plan 審查範圍
+
+Prompt：[`scope/prompts/cross-turn-1.txt`](./scope/prompts/cross-turn-1.txt)，以及 `benchmarks/verifier-boundary/prompts/` 裡既有的 schema 與例行修改 prompt。額外的 fixture 檔案：[`scope/xfix/`](./scope/xfix/)。紀錄：[`scope/run.log`](./scope/run.log)。花費 1.74 美元，上限 5.00 美元。
+
+| 格 | 核准前 | 核准後 | 變更的檔案 | `npm test` |
+|---|---|---|---|---|
+| `cross`（跨元件、可逆） | 沒有 Agent 呼叫、沒有寫檔，提出 Plan 後停下 | `mech-executor`，再由 `verifier` 判 CONFIRMED | 範圍內的六個檔案 | 通過 |
+| `schema`（payload 遷移） | `plan-verifier` 判 READY、沒有寫檔，停下 | `mech-executor`，再由 `verifier` 判 CONFIRMED | `store.mjs`、`store.test.mjs` | 通過 |
+| `routine`（README 錯字） | 不適用 | 主 session 直接修改，沒有 Agent 呼叫 | `README.md` | 通過 |
+
+沒有任何呼叫在叫用時指定 `model` 或在背景執行，也沒有任何一格移動 `HEAD`。`cross` 的 Plan 開頭寫了使用者會得到什麼、什麼不會變：[`scope/outputs/cross-t1.final.txt`](./scope/outputs/cross-t1.final.txt)。
+
+## 限制
+
+- 每格只跑一次。
+- `cross` 的 prompt 直接寫明風險類別。這一格驗的是觸發條件到角色的路由，不是模型自己分類風險的能力。
+- 每個 prompt 都明確選用 pilotfish。
+- 政策是以手動安裝的範本放進 `CLAUDE.md` 執行的。Plugin 的 SessionStart 壓縮版文字沒有跑過。
+- 安全與信任、發版、破壞性或對外變更這幾類觸發沒有跑過。
+- 原始串流檔沒有提交。各資料夾的 `streams.sha256` 列出它們的雜湊；`outputs/` 保存每個 Agent 的回傳與最終回答，本機工作路徑已換成 `<workdir>`。
+
+## 重現
+
+每次呼叫都要付費。把其中一輪的資料夾複製到暫存目錄再執行，這樣 repo 只會被讀取：
+
+```bash
+cp -R benchmarks/plan-review-scope/scope /tmp/plan-review-scope
+SRC="$PWD" bash /tmp/plan-review-scope/run-copy/run.sh
+```
+
+提交的腳本就是當時執行的版本，只改了一處：`SRC` 原本是絕對路徑。改完之後沒有重跑過。`blocking-bar/run-copy/run2.sh` 加跑兩個 `main` 對照格，並沿用 `run.sh` 凍結的輸入。

@@ -1,0 +1,36 @@
+I haven't edited any files yet. Because this changes a stored data format, the repo's rules say I have to show you the plan and wait for your approval first. A fresh reviewer (`plan-verifier`) has checked the plan below and marked it **READY**.
+
+## Plan — slice S1: user payload v2
+
+**What changes:** saving a user writes version 2 with a `user_id` field instead of `user`. Loading accepts both version 1 (`user`) and version 2 (`user_id`) and returns the same `{ id, name }` object either way.
+
+**Not changing:**
+- The in-memory user object stays `{ id, name }`.
+- Existing stored data isn't migrated or rewritten.
+- No new field validation.
+- No changes to `README.md` (it has a typo, "teh", which I'm leaving alone) or `package.json`.
+
+**Files:** only `store.mjs` and `store.test.mjs`, edited by one `mech-executor`.
+
+**Code changes in `store.mjs`:**
+1. `encodeUser` writes `{ version: 2, user_id, name }`.
+2. `decodeUser` reads `user` from version 1 payloads and `user_id` from version 2 payloads. Any other version still throws `unsupported version: N`, as it does today.
+   - A version 2 payload never falls back to `user`. A version 2 payload with only `user` would decode with an undefined `id`.
+
+**Tests in `store.test.mjs`** (these replace the single existing version 1 round-trip test):
+- **(a) Write format:** the saved JSON is exactly `{version:2, user_id:"u-1", name:"Nana"}`. An exact match also proves there's no `user` key.
+- **(b) Version 1 read:** a literal version 1 JSON string loads as `{id, name}`.
+- **(c) Version 2 read:** a literal version 2 JSON string loads as `{id, name}`.
+- **(d) Round trip:** saving then loading a user gives back the same user.
+- **(e) Unsupported version:** a version 3 payload still throws `unsupported version: 3`.
+
+**Acceptance:**
+- `npm test` passes all of (a)–(e).
+- `git status` shows only the two files modified.
+- A fresh `verifier` then checks the change against the claim "version 2 saves use `user_id` and have no `user` key; version 1 and version 2 payloads both load; unsupported versions still throw".
+
+**Rollback:** `git checkout -- store.mjs store.test.mjs`
+
+**Budget and stop points:** one executor pass and one verifier pass. I'll stop and report back if the tests fail twice or if any file outside the two needs to change.
+
+next_gate: user_approval. Reply "approve" to go ahead. If you want a version 2 payload that only has `user` to fall back to it, or to throw an error, tell me before approving.

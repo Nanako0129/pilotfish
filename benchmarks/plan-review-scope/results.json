@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "client": "Claude Code 2.1.325",
+  "main_model": "opus alias, resolved to claude-opus-5-5, effort high",
+  "fixture": "benchmarks/verifier-boundary/fixture, plus scope/xfix for the cross cell",
+  "cost_source": "total_cost_usd of each call's result line (client-reported)",
+  "campaigns": [
+    {
+      "id": "blocking-bar",
+      "dates": ["2026-11-20", "2026-11-21"],
+      "authorized_cap_usd": 6.0,
+      "spent_usd": 3.628346,
+      "policy_sha256": "a34ddc908c72134e24adc57a61569e02abdbdc71e5759c99abe1fc5b392769ca",
+      "candidate_agents_sha256": "1e2478b1a68f47f19423bfe224297cdc4512eb8e54d618f49122f98a961f8460",
+      "base_agents_sha256": "31c0db8ded188060cfd9b095d2fc50a7cfe54af5b8d68b3884c41f7c025ad4fd",
+      "base_ref": "main at 40d170e",
+      "candidate_note": "verifier entry equals the committed templates/agents/verifier.md; plan-verifier entry carried a direction-check wording that was dropped afterwards, so the committed plan-verifier equals the base",
+      "cells": [
+        {"cell": "v1", "agents": "candidate", "state": "behavioral defect: version 1 payloads decode without id, tests pass", "role": "verifier", "expected": "REFUTED", "verdict": "REFUTED", "pass": true, "cost_usd": 0.313278},
+        {"cell": "v2", "agents": "candidate", "state": "correct code; README states 3 tests, suite has 4", "role": "verifier", "expected": "CONFIRMED|INCONCLUSIVE", "verdict": "CONFIRMED", "finding_priority": "P3", "pass": true, "cost_usd": 0.296181},
+        {"cell": "v2base", "agents": "base", "state": "same as v2", "role": "verifier", "expected": "REFUTED", "verdict": "REFUTED", "pass": true, "cost_usd": 0.322486},
+        {"cell": "plancap", "agents": "candidate", "role": "plan-verifier", "expected": ["REVISE", "REVISE", "READY"], "verdicts": ["REVISE", "REVISE", "REVISE"], "pass": false, "cost_usd": 1.292938},
+        {"cell": "plancapbase", "agents": "base", "role": "plan-verifier", "expected": ["REVISE", "REVISE", "READY"], "verdicts": ["REVISE", "REVISE", "REVISE"], "pass": false, "cost_usd": 1.403463}
+      ]
+    },
+    {
+      "id": "scope",
+      "dates": ["2026-11-21"],
+      "authorized_cap_usd": 5.0,
+      "spent_usd": 1.743692,
+      "policy_sha256": "2108aabcf83fe4f440ed4a3954a6954e5e91eb58d20cb0ede07271070d291bce",
+      "agents_sha256": "748a951af3388cc3022f8bbc941896ac439cbcea10e73a353ec794eb4d279b16",
+      "cells": [
+        {"cell": "cross", "turn": 1, "agents_called": [], "main_writes": [], "tree_changed": [], "pass": true, "cost_usd": 0.161399},
+        {"cell": "cross", "turn": 2, "agents_called": ["mech-executor", "verifier"], "verifier_verdict": "CONFIRMED", "tree_changed": ["cli.mjs", "cli.test.mjs", "format.mjs", "format.test.mjs", "report.mjs", "report.test.mjs"], "npm_test": "pass", "pass": true, "cost_usd": 0.548129},
+        {"cell": "schema", "turn": 1, "agents_called": ["plan-verifier"], "plan_verifier_verdict": "READY", "main_writes": [], "tree_changed": [], "pass": true, "cost_usd": 0.299482},
+        {"cell": "schema", "turn": 2, "agents_called": ["mech-executor", "verifier"], "verifier_verdict": "CONFIRMED", "tree_changed": ["store.mjs", "store.test.mjs"], "npm_test": "pass", "pass": true, "cost_usd": 0.592086},
+        {"cell": "routine", "turn": 1, "agents_called": [], "main_writes": ["Edit"], "tree_changed": ["README.md"], "npm_test": "pass", "pass": true, "cost_usd": 0.142595}
+      ]
+    }
+  ],
+  "limits": [
+    "one attempt per cell",
+    "the cross prompt names its risk class, so the cell tests trigger-to-role routing, not risk classification",
+    "every prompt opts in to pilotfish explicitly",
+    "the policy was the manual template loaded as CLAUDE.md; the Plugin's compressed SessionStart text was not run",
+    "security/trust, release and destructive/external triggers were not run",
+    "plancap fails on both candidate and base agents, so its READY-at-turn-3 expectation does not hold on claude-opus-5-5 with or without this change",
+    "raw stream captures are not committed; streams.sha256 lists their digests"
+  ]
+}

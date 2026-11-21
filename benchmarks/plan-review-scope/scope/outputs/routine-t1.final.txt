@@ -1,0 +1,5 @@
+I fixed the typo in `README.md` ("teh" → "the"), and the repository's test command, `npm test` (which runs `node --test`), passed: 1 test, 0 failures.
+
+`git status` shows `README.md` is the only changed file. I didn't commit anything.
+
+I didn't use any named agents. This was a single edit with no risk involved, so it wasn't work the policy says to delegate.

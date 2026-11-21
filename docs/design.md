@@ -59,7 +59,7 @@ The `Explore` override exists because Claude Code v2.1.198 changed the built-in 
 The intuitive objection to cheap executors is quality. pilotfish's answer is structural, not hopeful:
 
 1. The orchestrator writes complete one-shot Plans and execution specs (goal, constraints, done-criteria, the *why*) — most cheap-model failures are actually spec failures.
-2. Material Plans use a program envelope plus independently approvable slices. When concrete security, irreversible/external, data, release, or cross-component acceptance risk justifies independent review, a tool-enforced read-only `plan-verifier` reviews the envelope, then only the next executable slice.
+2. Material Plans use a program envelope plus independently approvable slices. Every Plan opens by restating the intent (outcome and non-goals) in the main session's words, so the user confirms direction before approval. A tool-enforced read-only `plan-verifier` reviews the envelope, then only the next executable slice, only where a mistake cannot be run and corrected afterwards: an explicit request for review, destructive/irreversible/external mutation, data/schema/serialization/migration, or release. Security and cross-component risk still get the post-implementation `verifier`, without a pre-approval Plan challenge. (One run per cell in `benchmarks/plan-review-scope` checked this scope; no full Gate has.)
 3. Escalation is bounded: two failed attempts on a tier, then escalate or take over. No infinite cheap retries that burn more than they save.
 4. Risk-triggered completed work passes through `verifier` after the primary acceptance flow has been exercised; routine local work does not spawn review merely because it is called non-trivial.
 

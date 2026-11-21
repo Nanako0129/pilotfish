@@ -32,6 +32,29 @@ EFFORT_CLAUSE = (
     b" floor: `verifier`/`plan-verifier` `medium`, `security-reviewer` `high`."
 )
 EFFORT_LINE = 38
+# Plan-review scope, changed after the last behavioural gate. Checked by one run
+# per cell in benchmarks/plan-review-scope, not by a full Gate:
+# pre-approval `plan-verifier` is mandatory only for the Plan-review subset, and
+# every Plan opens by restating intent. Each entry is (gated text, live text).
+POST_GATE_REPLACEMENTS = {
+    14: (
+        b"release; material cross-component acceptance. File count,",
+        b"release; material cross-component acceptance. Plan-review subset: explicit"
+        b" request; destructive/irreversible/external mutation;"
+        b" data/schema/serialization/migration; release. File count,",
+    ),
+    17: (
+        b"Risk-triggered units use fresh `plan-verifier`; main owns revisions/synthesis.",
+        b"Plan opens restating intent (outcome, non-goals) in main's words. Plan-review"
+        b" units use fresh `plan-verifier`; main owns revisions/synthesis.",
+    ),
+    37: (
+        b"pre-approval `plan-verifier` and post-implementation `verifier` are mandatory"
+        b" Agent calls, with no extra opt-in.",
+        b"post-implementation `verifier` is a mandatory Agent call; Plan-review units"
+        b" also require pre-approval `plan-verifier`, with no extra opt-in.",
+    ),
+}
 
 
 def normalize_version_marker(payload: bytes) -> bytes:
@@ -47,6 +70,10 @@ class PolicyContractTests(unittest.TestCase):
         self.assertEqual(len(gated_lines), len(live_lines))
         index = EFFORT_LINE - 1
         for number, (old, new) in enumerate(zip(gated_lines, live_lines), 1):
+            if number in POST_GATE_REPLACEMENTS:
+                before, after = POST_GATE_REPLACEMENTS[number]
+                self.assertEqual(old.count(before), 1, f"line {number} gated text")
+                old = old.replace(before, after)
             if number != EFFORT_LINE:
                 self.assertEqual(old, new, f"line {number} drifted from the gated policy")
         self.assertEqual(live_lines[index], gated_lines[index] + EFFORT_CLAUSE)
@@ -3102,7 +3129,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["release_candidate_agents_json_delta_from_final_gate"],
-            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow fallback, and bounded-recheck contracts; since the issue #29 recovery Gate payload, security-executor effort changed high to medium and both prompts dropped one sentence each (scout's line-count cap, security-executor's high-effort and classifier rationale); scout ran on sonnet in v1.4.2 and is back on the Gate payload's haiku alias after the benchmarks/scout-haiku-probe accuracy probe, but that alias now resolves to claude-haiku-5-5, which no behavioral Gate has run; these deltas passed no behavioral Gate, only a live per-subagent model-resolution check (pilotfish:scout child messages on claude-haiku-5-5, Claude Code 2.1.294) with effort unobserved, and the mechanical, bug, routine and schema cells were not rerun on this payload",
+            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow fallback, and bounded-recheck contracts; since the issue #29 recovery Gate payload, security-executor effort changed high to medium and both prompts dropped one sentence each (scout's line-count cap, security-executor's high-effort and classifier rationale); scout ran on sonnet in v1.4.2 and is back on the Gate payload's haiku alias after the benchmarks/scout-haiku-probe accuracy probe, but that alias now resolves to claude-haiku-5-5, which no behavioral Gate has run; these deltas passed no behavioral Gate, only a live per-subagent model-resolution check (pilotfish:scout child messages on claude-haiku-5-5, Claude Code 2.1.294) with effort unobserved, and the mechanical, bug, routine and schema cells were not rerun on this payload; after v1.5.0 the verifier prompt limits a failed acceptance condition to P2 only for a failing current-head run or behavior users hit and rates wording/count mismatches P3, checked by one old-versus-new observation in benchmarks/plan-review-scope rather than a full Gate",
         )
         final_policy = (gate / runtime["final_gate_snapshot_policy"]).read_bytes()
         self.assertEqual(
@@ -6049,7 +6076,7 @@ class PolicyContractTests(unittest.TestCase):
             "smallest coherent integration boundary",
             "explicit user request for independent review",
             "Any independent-review trigger makes that unit risky",
-            "pre-approval `plan-verifier` and post-implementation `verifier` are mandatory Agent calls",
+            "post-implementation `verifier` is a mandatory Agent call; Plan-review units also require pre-approval `plan-verifier`, with no extra opt-in",
             "with no extra opt-in",
             "pause before edits, never direct fallback or waiver",
             "unblock only by lifting the prohibition or narrowing away every trigger",
@@ -6197,7 +6224,8 @@ class PolicyContractTests(unittest.TestCase):
             "P2 = material bounded/recoverable issue",
             "P3 =",
             "P4 =",
-            "failed acceptance condition is P2 when bounded/recoverable",
+            "P2 only when current-head run fails/users hit behavior",
+            "mismatch lacking behavioral effect = P3 unless users rely on mismatched text",
         )))
         lowered = verifier.lower()
         self.assertIsNone(re.search(

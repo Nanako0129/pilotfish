@@ -1,0 +1,16 @@
+748a951af3388cc3022f8bbc941896ac439cbcea10e73a353ec794eb4d279b16  ./agents.json
+2108aabcf83fe4f440ed4a3954a6954e5e91eb58d20cb0ede07271070d291bce  ./CLAUDE.md
+97b91839fcb3202b36836900c60b13ee65447800ef5e9e275f45d8fddff0f2ba  ./fixture/package.json
+053d459251adb6074f420e3f72f813e9fcc8a31eefb7ab1f947c756afb70df9e  ./fixture/README.md
+84cce7009177d0817e417052da73810696727515f0c53daf0c0ac6ddbf168a18  ./fixture/store.mjs
+73cf0fb1ae65995f8018d396614095a91d0cbda99796816978103664549962a6  ./fixture/store.test.mjs
+b9bcef3f8d929fb9798a0c60d859e5ae96cadf0987bbf5e3f52ab37009a67979  ./prompts/cross-turn-1.txt
+d87c8b90e5e6257addb85eec184c9a057dcf4b228a65f4c1c1361282441ed444  ./prompts/routine-docs-explicit.txt
+605f8ab79b00f644bc00e92fae5f2b19a9bdc2fb0bc00d121f3dedb1ceba7d32  ./prompts/schema-turn-1-explicit.txt
+2578a2a540e92324874c37fb3a41b12cbef7446da0e44fcc88cc2c9f6e0bf852  ./prompts/schema-turn-2-explicit.txt
+fb54f093ca4b431f152a8e06ab271736312dfd67abd7303d33287c206b2ab049  ./xfix/cli.mjs
+4143b54611970680c77ada969201266657e053df8a74ecbdce99cce53df4dfe3  ./xfix/cli.test.mjs
+21993f39dc8e47316b90c9b7cb31dad0ee765f36abe4d0a142e79adbb321a5bc  ./xfix/format.mjs
+1fa781be7931d3c9c7257fa650e2534b4a5fb185e84c5992d5d17aadb68ba798  ./xfix/format.test.mjs
+f337084b50c8c2f8dbb7f8a7d3035e28a9c8425466ae45cb934f5b250e959cea  ./xfix/report.mjs
+d3a70c26fd00e68c0a935e68214a522b957a9b6cbe2771b55c391b26d598a355  ./xfix/report.test.mjs
