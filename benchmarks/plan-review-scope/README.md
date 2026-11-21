@@ -7,7 +7,7 @@ Two small paid checks for two changes made after v1.5.0:
 1. **Blocking bar.** `verifier` rates a failed acceptance condition P2 only when a current-head run fails or users hit the behavior. A wording or count mismatch with no behavioral effect is P3, and P3 does not produce REFUTED.
 2. **Plan-review scope.** Pre-approval `plan-verifier` is mandatory only for an explicit review request, destructive/irreversible/external mutation, data/schema/serialization/migration, and release. Other risk triggers (security/trust, material cross-component acceptance) keep the Plan, the approval stop and the post-implementation `verifier`, and every Plan opens by restating intent.
 
-Both are single observations per cell, not a two-attempt Gate.
+The scope change was run once on the manual template and once on the Plugin. All are single observations per cell, not a two-attempt Gate.
 
 ## Method
 
@@ -19,7 +19,7 @@ Both are single observations per cell, not a two-attempt Gate.
 | Counting | Only top-level stream events. A required role counts only when its call returned without error |
 | Cost | `total_cost_usd` from each result line |
 
-Exact input hashes are in [`blocking-bar/inputs.sha256`](./blocking-bar/inputs.sha256) and [`scope/inputs.sha256`](./scope/inputs.sha256). Per-cell values are in [`results.json`](./results.json).
+Exact input hashes are in `inputs.sha256` in each of [`blocking-bar/`](./blocking-bar/), [`scope/`](./scope/) and [`plugin/`](./plugin/). Per-cell values are in [`results.json`](./results.json).
 
 ## Blocking bar
 
@@ -49,22 +49,35 @@ Prompts: [`scope/prompts/cross-turn-1.txt`](./scope/prompts/cross-turn-1.txt) an
 
 No call passed an invocation `model` or ran in the background, and no cell moved `HEAD`. The `cross` Plan opens with what the user gets and what stays unchanged: [`scope/outputs/cross-t1.final.txt`](./scope/outputs/cross-t1.final.txt).
 
+## Plan-review scope on the Plugin
+
+Same `cross` and `schema` prompts, with no `CLAUDE.md` and no `--agents`: a frozen copy of `plugin/` at `0ffce36` was loaded by `--plugin-dir`, so the policy came only from the SessionStart hook's compressed text (`sessionstart.txt` SHA-256 `52daf9bf...eaf1`). Log: [`plugin/run.log`](./plugin/run.log). Spent USD 1.25 of a 3.00 cap.
+
+Each session-start capture had to contain the hook's `*=mandatory pre-approval pilotfish:plan-verifier.` text, and each init event had to list the `pilotfish:` roles. A Haiku preflight call checked both before the Opus cells ran.
+
+| Cell | Before approval | After approval | Files changed | `npm test` |
+|---|---|---|---|---|
+| `cross` | No Agent call, no write, Plan presented, stop | `pilotfish:mech-executor`, then `pilotfish:verifier` CONFIRMED | The six scoped files | Pass |
+| `schema` | `pilotfish:plan-verifier` READY, no write, stop | Main session wrote both files, then `pilotfish:verifier` CONFIRMED | `store.mjs`, `store.test.mjs` | Pass |
+
+In `schema` the main session made the edits itself and said so; on the manual template it had used `mech-executor`. The check requires the `verifier` call and allows either.
+
 ## Limits
 
 - One attempt per cell.
 - The `cross` prompt names its risk class. The cell tests trigger-to-role routing, not whether the model classifies the risk itself.
 - Every prompt opts in to pilotfish explicitly.
-- The policy ran as the manual template in `CLAUDE.md`. The Plugin's compressed SessionStart text was not run.
+- The Plugin run has no `routine` cell and no blocking-bar cells.
 - Security/trust, release, and destructive/external triggers were not run.
 - Raw stream captures are not committed. `streams.sha256` in each folder lists their digests; `outputs/` holds each Agent result and final answer, with the local work path replaced by `<workdir>`.
 
 ## Reproduce
 
-Each call is paid. Copy one campaign folder to a scratch directory and run its script from there, so the repository is only read:
+Each call is paid. Copy one campaign folder (`blocking-bar`, `scope` or `plugin`) to a scratch directory and run its script from there, so the repository is only read:
 
 ```bash
 cp -R benchmarks/plan-review-scope/scope /tmp/plan-review-scope
 SRC="$PWD" bash /tmp/plan-review-scope/run-copy/run.sh
 ```
 
-The committed scripts are the ones that ran, with one edit: `SRC` was an absolute path. They have not been rerun since that edit. `blocking-bar/run-copy/run2.sh` adds the two `main` controls and reuses the inputs frozen by `run.sh`.
+The committed scripts are the ones that ran, with one edit: `SRC` was an absolute path. `plugin/run-copy/run.sh` reads its `cross` fixture and prompt from `scope/` in the repository. They have not been rerun since that edit. `blocking-bar/run-copy/run2.sh` adds the two `main` controls and reuses the inputs frozen by `run.sh`.

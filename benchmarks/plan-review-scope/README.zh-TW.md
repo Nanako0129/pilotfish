@@ -7,7 +7,7 @@ v1.5.0 之後有兩項改動，各做了一次小型付費檢查：
 1. **阻擋門檻。** `verifier` 只在目前 head 的執行失敗、或使用者會碰到該行為時，才把未達成的驗收條件評為 P2。沒有行為影響的文字或數量不符是 P3，而 P3 不會產生 REFUTED。
 2. **Plan 審查範圍。** 核准前的 `plan-verifier` 只在四種情況下強制：明確要求審查、破壞性／不可逆／對外的變更、資料／schema／序列化／遷移、發版。其他風險觸發（安全與信任、重大跨元件驗收）仍然要有 Plan、核准停點和實作後的 `verifier`，而且每份 Plan 開頭都要重述意圖。
 
-兩者都是每格一次觀察，不是每格兩次的 Gate。
+範圍的改動在手動安裝的範本和 Plugin 上各跑了一次。全部都是每格一次觀察，不是每格兩次的 Gate。
 
 ## 方法
 
@@ -19,7 +19,7 @@ v1.5.0 之後有兩項改動，各做了一次小型付費檢查：
 | 計數 | 只算最上層的串流事件。必要角色的呼叫要沒有錯誤地回傳才算數 |
 | 花費 | 每次呼叫 result 行的 `total_cost_usd` |
 
-輸入檔的雜湊在 [`blocking-bar/inputs.sha256`](./blocking-bar/inputs.sha256) 和 [`scope/inputs.sha256`](./scope/inputs.sha256)。各格數值在 [`results.json`](./results.json)。
+輸入檔的雜湊在 [`blocking-bar/`](./blocking-bar/)、[`scope/`](./scope/)、[`plugin/`](./plugin/) 各自的 `inputs.sha256`。各格數值在 [`results.json`](./results.json)。
 
 ## 阻擋門檻
 
@@ -49,22 +49,35 @@ Prompt：[`scope/prompts/cross-turn-1.txt`](./scope/prompts/cross-turn-1.txt)，
 
 沒有任何呼叫在叫用時指定 `model` 或在背景執行，也沒有任何一格移動 `HEAD`。`cross` 的 Plan 開頭寫了使用者會得到什麼、什麼不會變：[`scope/outputs/cross-t1.final.txt`](./scope/outputs/cross-t1.final.txt)。
 
+## Plugin 上的 Plan 審查範圍
+
+同樣的 `cross` 與 `schema` prompt，但沒有 `CLAUDE.md`、也沒有 `--agents`：用 `--plugin-dir` 載入 `0ffce36` 的 `plugin/` 凍結複本，所以政策只來自 SessionStart hook 輸出的壓縮版文字（`sessionstart.txt` 的 SHA-256 是 `52daf9bf...eaf1`）。紀錄：[`plugin/run.log`](./plugin/run.log)。花費 1.25 美元，上限 3.00 美元。
+
+每個 session 開頭的串流都必須含有 hook 輸出的 `*=mandatory pre-approval pilotfish:plan-verifier.`，每個 init 事件都必須列出 `pilotfish:` 角色。Opus 的各格執行之前，先用一次 Haiku 的 preflight 呼叫確認這兩點。
+
+| 格 | 核准前 | 核准後 | 變更的檔案 | `npm test` |
+|---|---|---|---|---|
+| `cross` | 沒有 Agent 呼叫、沒有寫檔，提出 Plan 後停下 | `pilotfish:mech-executor`，再由 `pilotfish:verifier` 判 CONFIRMED | 範圍內的六個檔案 | 通過 |
+| `schema` | `pilotfish:plan-verifier` 判 READY、沒有寫檔，停下 | 主 session 自己寫了兩個檔案，再由 `pilotfish:verifier` 判 CONFIRMED | `store.mjs`、`store.test.mjs` | 通過 |
+
+`schema` 這格的主 session 自己動手修改，並在回答裡說明了；在手動範本那次它用的是 `mech-executor`。檢查只要求 `verifier` 的呼叫，兩種做法都接受。
+
 ## 限制
 
 - 每格只跑一次。
 - `cross` 的 prompt 直接寫明風險類別。這一格驗的是觸發條件到角色的路由，不是模型自己分類風險的能力。
 - 每個 prompt 都明確選用 pilotfish。
-- 政策是以手動安裝的範本放進 `CLAUDE.md` 執行的。Plugin 的 SessionStart 壓縮版文字沒有跑過。
+- Plugin 那次沒有 `routine` 格，也沒有阻擋門檻的各格。
 - 安全與信任、發版、破壞性或對外變更這幾類觸發沒有跑過。
 - 原始串流檔沒有提交。各資料夾的 `streams.sha256` 列出它們的雜湊；`outputs/` 保存每個 Agent 的回傳與最終回答，本機工作路徑已換成 `<workdir>`。
 
 ## 重現
 
-每次呼叫都要付費。把其中一輪的資料夾複製到暫存目錄再執行，這樣 repo 只會被讀取：
+每次呼叫都要付費。把其中一輪的資料夾（`blocking-bar`、`scope` 或 `plugin`）複製到暫存目錄再執行，這樣 repo 只會被讀取：
 
 ```bash
 cp -R benchmarks/plan-review-scope/scope /tmp/plan-review-scope
 SRC="$PWD" bash /tmp/plan-review-scope/run-copy/run.sh
 ```
 
-提交的腳本就是當時執行的版本，只改了一處：`SRC` 原本是絕對路徑。改完之後沒有重跑過。`blocking-bar/run-copy/run2.sh` 加跑兩個 `main` 對照格，並沿用 `run.sh` 凍結的輸入。
+提交的腳本就是當時執行的版本，只改了一處：`SRC` 原本是絕對路徑。`plugin/run-copy/run.sh` 會從 repo 的 `scope/` 讀取 `cross` 的 fixture 與 prompt。改完之後沒有重跑過。`blocking-bar/run-copy/run2.sh` 加跑兩個 `main` 對照格，並沿用 `run.sh` 凍結的輸入。
