@@ -25,7 +25,7 @@ done
 cp "$SRC/templates/claude-md.orchestration.md" "$FROZEN/CLAUDE.md"
 python3 "$SRC/benchmarks/baton-compatibility/build-agents-json.py" "$SRC/templates/agents" > "$FROZEN/agents-candidate.json"
 mkdir -p "$FROZEN/base"
-git -C "$SRC" archive main templates/agents | tar -x -C "$FROZEN/base"
+git -C "$SRC" archive "${BASE_REF:-40d170e}" templates/agents | tar -x -C "$FROZEN/base"
 python3 "$SRC/benchmarks/baton-compatibility/build-agents-json.py" "$FROZEN/base/templates/agents" > "$FROZEN/agents-base.json"
 cp "$SRC"/benchmarks/verifier-boundary/prompts/plan-cap-turn-{1,2,3}.txt "$G/prompts/"
 if cmp -s "$FROZEN/agents-candidate.json" "$FROZEN/agents-base.json"; then say "STOP candidate equals base"; exit 4; fi

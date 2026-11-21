@@ -13,10 +13,11 @@ The scope change was run once on the manual template and once on the Plugin. All
 
 | Item | Value |
 |---|---|
-| Dates | 2026-11-20 and 2026-11-21 |
+| Dates | 2026-11-20 to 2026-11-22 |
 | Client | Claude Code 2.1.325; `--model opus --effort high`, resolved to `claude-opus-5-5` |
 | Isolation | `--setting-sources project,local --strict-mcp-config`, each cell in a disposable Git copy of `benchmarks/verifier-boundary/fixture` with the policy template as `CLAUDE.md` and roles passed by `--agents` |
-| Counting | Only top-level stream events. A required role counts only when its call returned without error |
+| Counting | Only top-level stream events. In `scope` and `plugin`, a required role counts only when its call returned without error; `blocking-bar` did not check that, and its captures hold no failed top-level tool result |
+| Role models | Child messages in the captures report `claude-opus-5-5` for `verifier` and `plan-verifier` and `claude-sonnet-5-5` for `mech-executor`, so no subagent model override was active |
 | Cost | `total_cost_usd` from each result line |
 
 Exact input hashes are in `inputs.sha256` in each of [`blocking-bar/`](./blocking-bar/), [`scope/`](./scope/) and [`plugin/`](./plugin/). Per-cell values are in [`results.json`](./results.json).
@@ -65,6 +66,10 @@ In `schema` the main session made the edits itself and said so; on the manual te
 ## Limits
 
 - One attempt per cell.
+- In `scope` and `plugin` the scripts check which roles were called, writes, changed files and tests. They do not check verdicts or call order: the CONFIRMED and READY entries above were read from `outputs/`.
+- The blocking-bar comparison covers one kind of failed condition, a count mismatch in a README. A failed condition of another kind that breaks no run and reaches no user, such as a required test that was not added, is also below P2 under the new wording and was not observed.
+- `verifier` returned CONFIRMED in `v2` while reporting acceptance condition 5 as not literally met. The role's CONFIRMED definition still says every required condition has evidence; that wording was not reconciled.
+- Policy lines 36, 37 and 40 still mention readiness without limiting it to Plan-review units. Both `cross` runs presented the Plan and stopped without a `plan-verifier` call; a security/trust unit was not run.
 - The `cross` prompt names its risk class. The cell tests trigger-to-role routing, not whether the model classifies the risk itself.
 - Every prompt opts in to pilotfish explicitly.
 - The Plugin run has no `routine` cell and no blocking-bar cells.
@@ -80,4 +85,4 @@ cp -R benchmarks/plan-review-scope/scope /tmp/plan-review-scope
 SRC="$PWD" bash /tmp/plan-review-scope/run-copy/run.sh
 ```
 
-The committed scripts are the ones that ran, with one edit: `SRC` was an absolute path. `plugin/run-copy/run.sh` reads its `cross` fixture and prompt from `scope/` in the repository. They have not been rerun since that edit. `blocking-bar/run-copy/run2.sh` adds the two `main` controls and reuses the inputs frozen by `run.sh`.
+The committed scripts are records of what ran and are not maintained as shared tooling, which is why they repeat each other. Two edits were made: `SRC` was an absolute path, and `blocking-bar/run-copy/run.sh` took its base roles from `main`, now pinned to `40d170e`. `plugin/run-copy/run.sh` reads its `cross` fixture and prompt from `scope/` in the repository. They have not been rerun since that edit. `blocking-bar/run-copy/run2.sh` adds the two `main` controls and reuses the inputs frozen by `run.sh`.

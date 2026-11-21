@@ -13,10 +13,11 @@ v1.5.0 之後有兩項改動，各做了一次小型付費檢查：
 
 | 項目 | 值 |
 |---|---|
-| 日期 | 2026-11-20 與 2026-11-21 |
+| 日期 | 2026-11-20 至 2026-11-22 |
 | 用戶端 | Claude Code 2.1.325；`--model opus --effort high`，實際解析為 `claude-opus-5-5` |
 | 隔離 | `--setting-sources project,local --strict-mcp-config`；每格在 `benchmarks/verifier-boundary/fixture` 的拋棄式 Git 複本裡執行，政策範本當作 `CLAUDE.md`，角色用 `--agents` 傳入 |
-| 計數 | 只算最上層的串流事件。必要角色的呼叫要沒有錯誤地回傳才算數 |
+| 計數 | 只算最上層的串流事件。在 `scope` 與 `plugin`，必要角色的呼叫要沒有錯誤地回傳才算數；`blocking-bar` 沒有檢查這一點，而它的串流裡沒有失敗的最上層工具結果 |
+| 角色模型 | 串流裡子代理的訊息顯示 `verifier` 與 `plan-verifier` 是 `claude-opus-5-5`、`mech-executor` 是 `claude-sonnet-5-5`，所以沒有子代理模型覆寫在作用 |
 | 花費 | 每次呼叫 result 行的 `total_cost_usd` |
 
 輸入檔的雜湊在 [`blocking-bar/`](./blocking-bar/)、[`scope/`](./scope/)、[`plugin/`](./plugin/) 各自的 `inputs.sha256`。各格數值在 [`results.json`](./results.json)。
@@ -65,6 +66,10 @@ Prompt：[`scope/prompts/cross-turn-1.txt`](./scope/prompts/cross-turn-1.txt)，
 ## 限制
 
 - 每格只跑一次。
+- 在 `scope` 與 `plugin`，腳本檢查的是叫了哪些角色、有沒有寫檔、變更了哪些檔案、測試有沒有過。腳本不檢查判定結果和呼叫順序：上面的 CONFIRMED 與 READY 是從 `outputs/` 讀出來的。
+- 阻擋門檻的對照只涵蓋一種未達成的條件，也就是 README 裡的數量不符。其他不會讓執行失敗、使用者也碰不到的未達成條件（例如要求的測試沒有補上），依新措辭同樣低於 P2，這種情況沒有觀察過。
+- `verifier` 在 `v2` 判 CONFIRMED，同時回報驗收條件 5 字面上沒有達成。角色檔裡 CONFIRMED 的定義仍然寫每個必要條件都要有證據；這段文字還沒有調整成一致。
+- 政策第 36、37、40 行提到 readiness 時，沒有限定在 Plan 審查的單元。兩次 `cross` 都提出 Plan 後停下、沒有叫 `plan-verifier`；安全與信任的單元沒有跑過。
 - `cross` 的 prompt 直接寫明風險類別。這一格驗的是觸發條件到角色的路由，不是模型自己分類風險的能力。
 - 每個 prompt 都明確選用 pilotfish。
 - Plugin 那次沒有 `routine` 格，也沒有阻擋門檻的各格。
@@ -80,4 +85,4 @@ cp -R benchmarks/plan-review-scope/scope /tmp/plan-review-scope
 SRC="$PWD" bash /tmp/plan-review-scope/run-copy/run.sh
 ```
 
-提交的腳本就是當時執行的版本，只改了一處：`SRC` 原本是絕對路徑。`plugin/run-copy/run.sh` 會從 repo 的 `scope/` 讀取 `cross` 的 fixture 與 prompt。改完之後沒有重跑過。`blocking-bar/run-copy/run2.sh` 加跑兩個 `main` 對照格，並沿用 `run.sh` 凍結的輸入。
+提交的腳本是當時執行內容的紀錄，不當作共用工具維護，所以彼此重複。改了兩處：`SRC` 原本是絕對路徑；`blocking-bar/run-copy/run.sh` 原本從 `main` 取對照用的角色檔，現在固定為 `40d170e`。`plugin/run-copy/run.sh` 會從 repo 的 `scope/` 讀取 `cross` 的 fixture 與 prompt。改完之後沒有重跑過。`blocking-bar/run-copy/run2.sh` 加跑兩個 `main` 對照格，並沿用 `run.sh` 凍結的輸入。

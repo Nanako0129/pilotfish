@@ -64,7 +64,7 @@ def normalize_version_marker(payload: bytes) -> bytes:
 
 
 class PolicyContractTests(unittest.TestCase):
-    def assert_only_effort_clause_added(self, gated: bytes, live: bytes) -> None:
+    def assert_only_declared_lines_changed(self, gated: bytes, live: bytes) -> None:
         gated_lines = normalize_version_marker(gated).split(b"\n")
         live_lines = normalize_version_marker(live).split(b"\n")
         self.assertEqual(len(gated_lines), len(live_lines))
@@ -2138,7 +2138,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         live = (ROOT / "templates/claude-md.orchestration.md").read_bytes()
         self.assertNotEqual(candidate, live)
-        self.assert_only_effort_clause_added(candidate, live)
+        self.assert_only_declared_lines_changed(candidate, live)
         self.assertEqual(evidence["route"]["client_versions"], ["2.1.224"])
 
         expected_adapters = [
@@ -2989,7 +2989,7 @@ class PolicyContractTests(unittest.TestCase):
             hashlib.sha256(last_qualified_policy).hexdigest(),
         )
         self.assertNotEqual(last_qualified_policy, current_policy)
-        self.assert_only_effort_clause_added(last_qualified_policy, current_policy)
+        self.assert_only_declared_lines_changed(last_qualified_policy, current_policy)
         self.assertEqual(
             runtime["release_candidate_agents_json_sha256"],
             hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
