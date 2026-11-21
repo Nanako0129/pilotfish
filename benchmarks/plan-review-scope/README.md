@@ -17,7 +17,7 @@ The scope change was run once on the manual template and once on the Plugin. All
 | Client | Claude Code 2.1.325; `--model opus --effort high`, resolved to `claude-opus-5-5` |
 | Isolation | `--setting-sources project,local --strict-mcp-config`, each cell in a disposable Git copy of `benchmarks/verifier-boundary/fixture` with the policy template as `CLAUDE.md` and roles passed by `--agents` |
 | Counting | Only top-level stream events. In `scope` and `plugin`, a required role counts only when its call returned without error; `blocking-bar` did not check that, and its captures hold no failed top-level tool result |
-| Role models | Child messages in the captures report `claude-opus-5-5` for `verifier` and `plan-verifier` and `claude-sonnet-5-5` for `mech-executor`, so no subagent model override was active |
+| Role models | Child messages in the captures report `claude-opus-5-5` for `verifier` and `plan-verifier` and `claude-sonnet-5-5` for `mech-executor`, so no subagent model override was active (read from the uncommitted raw streams, like the failed-result count above) |
 | Cost | `total_cost_usd` from each result line |
 
 Exact input hashes are in `inputs.sha256` in each of [`blocking-bar/`](./blocking-bar/), [`scope/`](./scope/) and [`plugin/`](./plugin/). Per-cell values are in [`results.json`](./results.json).
@@ -54,7 +54,7 @@ No call passed an invocation `model` or ran in the background, and no cell moved
 
 Same `cross` and `schema` prompts, with no `CLAUDE.md` and no `--agents`: a frozen copy of `plugin/` at `0ffce36` was loaded by `--plugin-dir`, so the policy came only from the SessionStart hook's compressed text (`sessionstart.txt` SHA-256 `52daf9bf...eaf1`). Log: [`plugin/run.log`](./plugin/run.log). Spent USD 1.25 of a 3.00 cap.
 
-Each session-start capture had to contain the hook's `*=mandatory pre-approval pilotfish:plan-verifier.` text, and each init event had to list the `pilotfish:` roles. A Haiku preflight call checked both before the Opus cells ran.
+The preflight and each cell's first-turn capture had to contain the hook's `*=mandatory pre-approval pilotfish:plan-verifier.` text, and each init event had to list the `pilotfish:` roles. A Haiku preflight call checked both before the Opus cells ran.
 
 | Cell | Before approval | After approval | Files changed | `npm test` |
 |---|---|---|---|---|

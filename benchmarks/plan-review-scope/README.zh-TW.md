@@ -17,7 +17,7 @@ v1.5.0 之後有兩項改動，各做了一次小型付費檢查：
 | 用戶端 | Claude Code 2.1.325；`--model opus --effort high`，實際解析為 `claude-opus-5-5` |
 | 隔離 | `--setting-sources project,local --strict-mcp-config`；每格在 `benchmarks/verifier-boundary/fixture` 的拋棄式 Git 複本裡執行，政策範本當作 `CLAUDE.md`，角色用 `--agents` 傳入 |
 | 計數 | 只算最上層的串流事件。在 `scope` 與 `plugin`，必要角色的呼叫要沒有錯誤地回傳才算數；`blocking-bar` 沒有檢查這一點，而它的串流裡沒有失敗的最上層工具結果 |
-| 角色模型 | 串流裡子代理的訊息顯示 `verifier` 與 `plan-verifier` 是 `claude-opus-5-5`、`mech-executor` 是 `claude-sonnet-5-5`，所以沒有子代理模型覆寫在作用 |
+| 角色模型 | 串流裡子代理的訊息顯示 `verifier` 與 `plan-verifier` 是 `claude-opus-5-5`、`mech-executor` 是 `claude-sonnet-5-5`，所以沒有子代理模型覆寫在作用（和上一列的失敗結果數一樣，是從沒有提交的原始串流讀出來的） |
 | 花費 | 每次呼叫 result 行的 `total_cost_usd` |
 
 輸入檔的雜湊在 [`blocking-bar/`](./blocking-bar/)、[`scope/`](./scope/)、[`plugin/`](./plugin/) 各自的 `inputs.sha256`。各格數值在 [`results.json`](./results.json)。
@@ -54,7 +54,7 @@ Prompt：[`scope/prompts/cross-turn-1.txt`](./scope/prompts/cross-turn-1.txt)，
 
 同樣的 `cross` 與 `schema` prompt，但沒有 `CLAUDE.md`、也沒有 `--agents`：用 `--plugin-dir` 載入 `0ffce36` 的 `plugin/` 凍結複本，所以政策只來自 SessionStart hook 輸出的壓縮版文字（`sessionstart.txt` 的 SHA-256 是 `52daf9bf...eaf1`）。紀錄：[`plugin/run.log`](./plugin/run.log)。花費 1.25 美元，上限 3.00 美元。
 
-每個 session 開頭的串流都必須含有 hook 輸出的 `*=mandatory pre-approval pilotfish:plan-verifier.`，每個 init 事件都必須列出 `pilotfish:` 角色。Opus 的各格執行之前，先用一次 Haiku 的 preflight 呼叫確認這兩點。
+preflight 與每格第一回合的串流都必須含有 hook 輸出的 `*=mandatory pre-approval pilotfish:plan-verifier.`，每個 init 事件都必須列出 `pilotfish:` 角色。Opus 的各格執行之前，先用一次 Haiku 的 preflight 呼叫確認這兩點。
 
 | 格 | 核准前 | 核准後 | 變更的檔案 | `npm test` |
 |---|---|---|---|---|
