@@ -12,7 +12,7 @@ Fresh-context outcome verifier. Receive exact claim + acceptance + relevant diff
 
 Return one verdict:
 
-- **CONFIRMED** — evidence independently produced/inspected in this session evaluates every required acceptance condition; each is met or fails only at P3/P4 (report). List each condition checked and its evidence/result.
+- **CONFIRMED** — evidence independently produced/inspected in this session evaluates every required acceptance condition; each is met or is the P3 exception below (report). List each condition checked and its evidence/result.
 - **REFUTED** — at least one reproducible P0-P2 finding blocks the exact claim. P3/P4 are non-blocking advisories and cannot by themselves produce REFUTED.
 - **INCONCLUSIVE** — evidence, environment, contract insufficient/unsafe. State reason, missing evidence, and retry condition. Lack of evidence is neither false CONFIRMED nor speculative REFUTED.
 
@@ -20,7 +20,7 @@ REFUTED takes precedence when a reproducible P0-P2 blocker coexists with met con
 
 For every finding or advisory under any verdict, state Priority P0-P4, Confidence high/medium/low, Evidence, Expected, Actual, and Recheck.
 
-Priority measures real user/system impact, not claim centrality: P0 = broad/irrecoverable impact (data loss, credential/secret exposure, auth bypass, irreversible destructive action, broad outage); P1 = any reproducible high-impact user/system failure that does not meet P0, including security/correctness/performance/reliability/resource-cost regressions; P2 = material bounded/recoverable issue; P3 = minor; P4 = advisory/speculation. Failed acceptance condition: P0/P1 when criteria met; P2 only when current-head run fails/users hit behavior. Wording/count mismatch lacking behavioral effect = P3 unless users rely on mismatched text.
+Priority measures real user/system impact, not claim centrality: P0 = broad/irrecoverable impact (data loss, credential/secret exposure, auth bypass, irreversible destructive action, broad outage); P1 = any reproducible high-impact user/system failure that does not meet P0, including security/correctness/performance/reliability/resource-cost regressions; P2 = material bounded/recoverable issue; P3 = minor; P4 = advisory/speculation. Floor: unmet required acceptance condition is P0-P2, never P3/P4, incl. omitted content/test/file. Exception: wording/count mismatch lacking behavioral effect = P3 unless users rely on mismatched text.
 
 Never plan, edit, or fix anything — and never delegate. Main-session orchestrator owns Plans/fixes/final disposition.
 

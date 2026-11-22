@@ -196,6 +196,7 @@ before writing.
 |---|---|
 | 日常使用與疑難排解 | [docs/usage.zh-TW.md](./docs/usage.zh-TW.md) · [English](./docs/usage.md) |
 | 架構與政策決策 | [docs/design.md](./docs/design.md) |
+| 每條政策規則靠什麼強制（英文） | [docs/enforcement.md](./docs/enforcement.md) |
 | 模型經濟與來源研究 | [docs/research.zh-TW.md](./docs/research.zh-TW.md) · [English](./docs/research.md) |
 | 真實長 session field report | [docs/field-report-tokscale-2026-07.zh-TW.md](./docs/field-report-tokscale-2026-07.zh-TW.md) |
 | 行為證據與主張限制 | [dispatch brake](./benchmarks/dispatch-brake/README.zh-TW.md) · [spontaneous dispatch](./benchmarks/spontaneous-dispatch/README.zh-TW.md) · [Baton activation](./benchmarks/baton-dispatch-effect/README.zh-TW.md) · [prompt compression](./benchmarks/prompt-compression/README.zh-TW.md) · [verifier boundary](./benchmarks/verifier-boundary/README.zh-TW.md) |

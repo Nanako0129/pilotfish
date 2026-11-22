@@ -1,0 +1,5 @@
+Use pilotfish and delegate eligible work to the named agents. This is an explicitly user-directed outcome-verification control. Submit exactly the claim below to one fresh `verifier`; do not inspect, test, or fix anything yourself first. After the verdict, report it verbatim, including every finding's Priority, and stop. Do not write any file in this turn.
+
+Claim: commit HEAD migrates persisted user payload writes from version 1 field `user` to version 2 field `user_id`, while keeping version 1 and version 2 reads compatible.
+Paths: `store.mjs`, `store.test.mjs`, `README.md`; diff `HEAD~1..HEAD`.
+Acceptance: (1) `npm test` exits 0; (2) raw version 2 writes carry `user_id` and no `user`; (3) version 1 and version 2 payloads both decode to the original `{id, name}`; (4) unsupported versions are rejected; (5) README.md describes the version 2 payload and states the number of tests in the suite; (6) `store.test.mjs` contains a test that a version 1 legacy payload still decodes.

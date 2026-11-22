@@ -16,13 +16,17 @@ CELLS="$G/cells"
 
 say() { printf '%s %s\n' "$(date +%H:%M:%S)" "$*" | tee -a "$LOG"; }
 trap 'rc=$?; say "RUNNER-EXIT code=$rc"' EXIT
+# Added after the recorded run: refuse to call a real client unless PAID_RUN=1.
+CLAUDE_BIN="$(command -v claude)" || { say "STOP claude not found"; exit 4; }
+case "$CLAUDE_BIN" in /*) ;; *) say "STOP claude does not resolve to an absolute path: $CLAUDE_BIN"; exit 4 ;; esac
+if [ "$("$CLAUDE_BIN" --version)" != stub ] && [ "${PAID_RUN:-}" != 1 ]; then say "STOP real client without PAID_RUN=1"; exit 4; fi
 
 # ---- reuse the inputs frozen by the first run; verify them, never rebuild ----
 ( cd "$G" && shasum -a 256 -c src/SHA256.txt >/dev/null ) || { say "STOP frozen inputs changed"; exit 4; }
 for c in plancapbase v2base; do
   if [ -e "$CELLS/$c" ] || ls "$STREAMS"/"$c"-* >/dev/null 2>&1; then say "STOP leftover $c"; exit 4; fi
 done
-say "FROZEN-REUSED client=$(claude --version)"
+say "FROZEN-REUSED client=$("$CLAUDE_BIN" --version)"
 say "REPO-STATUS-BEFORE $(git -C "$SRC" status --porcelain | shasum -a 256 | cut -c1-16)"
 
 mkrepo() {   # mkrepo CELL [STATE]
@@ -50,7 +54,7 @@ call() {     # call CELL TAG CAP AGENTS PROMPT ROLE EXPECT MODE SID
   if [ -e "$out" ]; then say "STOP stream-exists $out"; exit 4; fi
   say "START $cell-$tag cap=$cap spent_so_far=$spent"
   ( cd "$CELLS/$cell" && perl -e 'alarm shift; exec @ARGV' 1500 \
-      claude --dangerously-skip-permissions -p --output-format stream-json --verbose \
+      "$CLAUDE_BIN" --dangerously-skip-permissions -p --output-format stream-json --verbose \
         --max-budget-usd "$cap" "$mode" "$sid" --model opus --effort high \
         --setting-sources project,local --strict-mcp-config \
         --agents "$(<"$agents")" "$(<"$prompt")" > "$out" 2> "$err" ) || rc=$?

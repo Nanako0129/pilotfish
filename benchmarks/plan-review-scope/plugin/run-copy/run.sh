@@ -22,6 +22,10 @@ GITC=(-c user.name=gate -c user.email=gate@example.invalid -c commit.gpgsign=fal
 
 say() { printf '%s %s\n' "$(date +%H:%M:%S)" "$*" | tee -a "$LOG"; }
 trap 'rc=$?; say "RUNNER-EXIT code=$rc"' EXIT
+# Added after the recorded run: refuse to call a real client unless PAID_RUN=1.
+CLAUDE_BIN="$(command -v claude)" || { say "STOP claude not found"; exit 4; }
+case "$CLAUDE_BIN" in /*) ;; *) say "STOP claude does not resolve to an absolute path: $CLAUDE_BIN"; exit 4 ;; esac
+if [ "$("$CLAUDE_BIN" --version)" != stub ] && [ "${PAID_RUN:-}" != 1 ]; then say "STOP real client without PAID_RUN=1"; exit 4; fi
 
 # ---- freeze inputs (refuse to start over leftovers) ----
 for d in "$FROZEN" "$STREAMS" "$CELLS"; do
@@ -37,7 +41,7 @@ cp "$SRC"/benchmarks/verifier-boundary/prompts/{schema-turn-1-explicit.txt,schem
 cp "$SRC/benchmarks/plan-review-scope/scope/prompts/cross-turn-1.txt" "$FROZEN/prompts/"
 cp "$G/prompts/preflight.txt" "$FROZEN/prompts/"
 ( cd "$FROZEN" && find . -type f ! -name SHA256.txt | sort | xargs shasum -a 256 > SHA256.txt )
-say "FROZEN client=$(claude --version) sessionstart=$(shasum -a 256 "$FROZEN/plugin/policy/sessionstart.txt" | cut -c1-16) repo_head=$(git -C "$SRC" rev-parse --short HEAD)"
+say "FROZEN client=$("$CLAUDE_BIN" --version) sessionstart=$(shasum -a 256 "$FROZEN/plugin/policy/sessionstart.txt" | cut -c1-16) repo_head=$(git -C "$SRC" rev-parse --short HEAD)"
 say "REPO-STATUS-BEFORE $(git -C "$SRC" status --porcelain | shasum -a 256 | cut -c1-16)"
 
 mkrepo() {   # mkrepo CELL [with-xfix]   (no CLAUDE.md: the Plugin supplies the policy)
@@ -68,7 +72,7 @@ call() {     # call CELL TAG CAP MODEL PROMPT MODE SID -- CHECK-ARGS...
   if [ -e "$out" ]; then say "STOP stream-exists $out"; exit 4; fi
   say "START $cell-$tag cap=$cap spent_so_far=$spent"
   ( cd "$CELLS/$cell" && env -u CLAUDE_CODE_SUBAGENT_MODEL perl -e 'alarm shift; exec @ARGV' 1500 \
-      claude --dangerously-skip-permissions -p --output-format stream-json --verbose \
+      "$CLAUDE_BIN" --dangerously-skip-permissions -p --output-format stream-json --verbose \
         --max-budget-usd "$cap" "$mode" "$sid" --model "$model" --effort high \
         --setting-sources project,local --strict-mcp-config \
         --plugin-dir "$FROZEN/plugin" "$(<"$prompt")" < /dev/null > "$out" 2> "$err" ) || rc=$?
