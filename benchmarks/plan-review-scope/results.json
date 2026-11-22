@@ -693,6 +693,108 @@
           "cost_usd": 0.342166
         }
       ]
+    },
+    {
+      "id": "floor",
+      "dates": [
+        "2026-11-23"
+      ],
+      "authorized_cap_usd": 2.5,
+      "spent_usd": 1.247831,
+      "reason": "verifier line 23 held two P2 rules; a failed acceptance condition is P2 by default again and only a wording/count mismatch with no behavioral effect is P3",
+      "policy_sha256": "93fb822a0cccd1a57df2ebf386f1581d2f3a8c585a0a3b27c79b7c302f04fc45",
+      "agents_sha256": "393a2c937040d172ae54f00de1a4f6dec01f835734b585e020e5e30bdfbd5eed",
+      "base_agents_sha256": "899b9e01eac3114b0773eeb1b0a0520669f7030d91cf7f6a878d461873c4cf93",
+      "base_ref": "1a5bad8",
+      "cells": [
+        {
+          "cell": "v1",
+          "state": "behavioral defect: version 1 payloads decode without id, tests pass",
+          "role": "verifier",
+          "expected": "REFUTED",
+          "verdict": "REFUTED",
+          "pass": true,
+          "cost_usd": 0.338803
+        },
+        {
+          "cell": "v2",
+          "state": "correct code; README states 3 tests, suite has 4",
+          "role": "verifier",
+          "expected": "CONFIRMED|INCONCLUSIVE",
+          "verdict": "CONFIRMED",
+          "finding_priority": "P3",
+          "pass": true,
+          "cost_usd": 0.297929
+        },
+        {
+          "cell": "v4",
+          "state": "correct code, 3 passing tests, correct README count; the test required by acceptance item 6 is absent",
+          "prompt": "floor/prompts/verify-test.txt",
+          "role": "verifier",
+          "expected": "REFUTED",
+          "verdict": "REFUTED",
+          "finding_priority": "P2",
+          "pass": true,
+          "cost_usd": 0.297273
+        },
+        {
+          "cell": "v4base",
+          "state": "same as v4",
+          "prompt": "floor/prompts/verify-test.txt",
+          "role": "verifier at 1a5bad8",
+          "expected": "recorded",
+          "verdict": "REFUTED",
+          "finding_priority": "P2",
+          "cost_usd": 0.313826
+        }
+      ],
+      "wording": "intermediate: 'Failed acceptance condition: P0/P1 when criteria met, else P2, incl. missing required test/file. Exception: ... (P2).'; replaced before merge, see floor-2"
+    },
+    {
+      "id": "floor-2",
+      "dates": [
+        "2026-11-23"
+      ],
+      "authorized_cap_usd": 2.0,
+      "spent_usd": 0.928658,
+      "reason": "a /code-review of the floor wording before merge found it still disagreed with the priority ladder; line 23 now reads 'Floor: unmet required acceptance condition is P0-P2, never P3/P4, incl. omitted content/test/file. Exception: wording/count mismatch lacking behavioral effect = P3 unless users rely on mismatched text.' and line 15 'each is met or is the P3 exception below (report)'",
+      "policy_sha256": "93fb822a0cccd1a57df2ebf386f1581d2f3a8c585a0a3b27c79b7c302f04fc45",
+      "agents_sha256": "58e07cc7791ea4a09f8c80c0be89f1f6b02c961d21d911b14fbeb2e6297ae5ee",
+      "not_rerun": [
+        "v4base"
+      ],
+      "cells": [
+        {
+          "cell": "v1",
+          "state": "behavioral defect: version 1 payloads decode without id, tests pass",
+          "role": "verifier",
+          "expected": "REFUTED",
+          "verdict": "REFUTED",
+          "pass": true,
+          "cost_usd": 0.343625
+        },
+        {
+          "cell": "v2",
+          "state": "correct code; README states 3 tests, suite has 4",
+          "role": "verifier",
+          "expected": "CONFIRMED|INCONCLUSIVE",
+          "verdict": "CONFIRMED",
+          "finding_priority": "P3",
+          "pass": true,
+          "cost_usd": 0.302502
+        },
+        {
+          "cell": "v4",
+          "state": "correct code, 3 passing tests, correct README count; the test required by acceptance item 6 is absent",
+          "prompt": "floor/prompts/verify-test.txt",
+          "role": "verifier",
+          "expected": "REFUTED",
+          "verdict": "REFUTED",
+          "finding_priority": "P2",
+          "pass": true,
+          "cost_usd": 0.28253
+        }
+      ]
     }
   ],
   "limits": [
@@ -705,6 +807,8 @@
     "the Plugin campaign has no routine cell and no blocking-bar cells",
     "scope and plugin ran on the policy and roles at 0ffce36, blocking-bar on main's policy (40d170e) with a candidate role set whose verifier equals the one at 0ffce36; rerun repeats their cells on the final text except v2base, plancapbase (main's roles) and plancap (candidate roles under main's policy, not run on the final text); the rerun's pass/fail results and verdicts equal the earlier ones (executor roles and the files touched in cross differ) and no cell distinguishes the reworded text from the earlier wording",
     "in the rerun's p-schema turn 1 the client ran the plan-verifier call in the background without being asked; the check counted the launch notice as a returned call and READY was read from the completion notification",
-    "precedence and precedence-2: the verifier at 5ba7ee0 returned REFUTED on both v3 states, the same as the changed verifier, so no cell shows the precedence sentence changing a verdict; one observation per cell"
+    "precedence and precedence-2: the verifier at 5ba7ee0 returned REFUTED on both v3 states, the same as the changed verifier, so no cell shows the precedence sentence changing a verdict; one observation per cell",
+    "floor: the verifier at 1a5bad8 returned REFUTED/P2 on v4, the same as the changed verifier, so no cell shows the failed-condition floor changing a verdict; one observation per cell",
+    "floor-2: same verdicts as floor and as the roles at 1a5bad8, so no cell shows the final floor wording changing a verdict; finding priorities were read from outputs/, the scripts check only the verdict word"
   ]
 }
