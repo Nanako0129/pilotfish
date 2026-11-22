@@ -77,6 +77,15 @@ def normalize_version_marker(payload: bytes) -> bytes:
     )
 
 
+def policy_rule_lines(text: str) -> list[str]:
+    """Rule units of the orchestration template, as the density budget counts them."""
+    return [
+        line
+        for line in text.split("\n")
+        if line.startswith(("- ", "| ")) and len(line) > 40
+    ]
+
+
 class PolicyContractTests(unittest.TestCase):
     def assert_only_declared_lines_changed(self, gated: bytes, live: bytes) -> None:
         gated_lines = normalize_version_marker(gated).split(b"\n")
@@ -4444,11 +4453,7 @@ class PolicyContractTests(unittest.TestCase):
 
         policy = ROOT / "templates/claude-md.orchestration.md"
         text = policy.read_text(encoding="utf-8")
-        rules = [
-            line
-            for line in text.split("\n")
-            if line.startswith(("- ", "| ")) and len(line) > 40
-        ]
+        rules = policy_rule_lines(text)
         self.assertEqual(
             len(rules),
             budget["primary"]["expected_rule_count"],
@@ -6117,6 +6122,31 @@ class PolicyContractTests(unittest.TestCase):
         self.assertIn(
             "Any required post-verdict change invalidates final-byte coverage",
             policy,
+        )
+
+    def test_every_rule_has_a_current_enforcement_row(self) -> None:
+        # docs/enforcement.md says what holds each rule in place. Rows are keyed
+        # by a digest of the rule's line, so adding, removing or rewording a rule
+        # fails here until its row is read again and its key updated. Rule lines
+        # are the density budget's rule units, plus the preamble that tells roles
+        # not to delegate and the indented boundary under the first rule.
+        template = (ROOT / "templates" / "claude-md.orchestration.md").read_text(encoding="utf-8")
+        lines = policy_rule_lines(template) + [
+            line
+            for line in template.split("\n")
+            if line.startswith(("Main-session policy. Named roles", "  **`explore_then_plan` boundary:**"))
+        ]
+        self.assertEqual(len(lines), len(policy_rule_lines(template)) + 2)
+        expected = {hashlib.sha256(line.encode("utf-8")).hexdigest()[:8] for line in lines}
+        self.assertEqual(len(expected), len(lines))
+        table = (ROOT / "docs" / "enforcement.md").read_text(encoding="utf-8")
+        keys = re.findall(r"(?m)^\| \d+ \| `([0-9a-f]{8})` \|", table)
+        self.assertEqual(len(keys), len(set(keys)))
+        self.assertEqual(
+            set(keys),
+            expected,
+            "a policy rule changed: reread its row in docs/enforcement.md, then set "
+            "its Key to the first 8 hex digits of the SHA-256 of the rule's line.",
         )
 
     def test_plan_review_requires_future_slice_identity_not_optional_detail(self) -> None:
