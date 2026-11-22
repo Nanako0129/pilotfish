@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Paid check of the verifier verdict-precedence wording (REFUTED over CONFIRMED when a
 # reproducible P0-P2 blocker coexists with met conditions).
-# Runs on the Mac. Hard cap: USD 2.50 total across all cells.
+# Runs on the Mac. Hard cap: USD 2.50 total across all cells. Refuses to call a real client unless
+# PAID_RUN=1 (added after the run this folder records, which had no such check).
 # Cells: v1 (behavioral defect), v2 (count mismatch), v3 (all listed conditions met, the
 #        commit also mutates the caller's object) on the working-tree roles; v3base = v3 on
 #        the roles at BASE_REF. v1, v2, v3 stop the run on an unexpected verdict; v3base is
@@ -25,6 +26,9 @@ GITC=(-c user.name=gate -c user.email=gate@example.invalid -c commit.gpgsign=fal
 say() { printf '%s %s\n' "$(date +%H:%M:%S)" "$*" | tee -a "$LOG"; }
 trap 'rc=$?; say "RUNNER-EXIT code=$rc"' EXIT
 
+CLIENT="$(claude --version)"
+if [ "$CLIENT" != stub ] && [ "${PAID_RUN:-}" != 1 ]; then say "STOP real client '$CLIENT' without PAID_RUN=1"; exit 4; fi
+
 # ---- freeze inputs (refuse to start over leftovers) ----
 for d in "$FROZEN" "$STREAMS" "$CELLS"; do
   if [ -e "$d" ]; then say "STOP exists $d"; exit 4; fi
@@ -43,7 +47,7 @@ cp "$SRC"/benchmarks/verifier-boundary/fixture/{package.json,README.md,store.mjs
 cp -R "$PRS/blocking-bar/states/v1" "$PRS/blocking-bar/states/v2" "$PRS/precedence/states/v3" "$FROZEN/states/"
 cp "$PRS/precedence/prompts/verify.txt" "$FROZEN/prompts/"
 ( cd "$FROZEN" && find . -type f ! -name SHA256.txt | sort | xargs shasum -a 256 > SHA256.txt )
-say "FROZEN client=$(claude --version) policy=$(shasum -a 256 "$FROZEN/CLAUDE.md" | cut -c1-16) agents=$(shasum -a 256 "$FROZEN/agents.json" | cut -c1-16) agents_base=$(shasum -a 256 "$FROZEN/agents-base.json" | cut -c1-16) repo_head=$(git -C "$SRC" rev-parse --short HEAD) base=$(printf %s "$BASE_REF" | cut -c1-7)"
+say "FROZEN client=$CLIENT policy=$(shasum -a 256 "$FROZEN/CLAUDE.md" | cut -c1-16) agents=$(shasum -a 256 "$FROZEN/agents.json" | cut -c1-16) agents_base=$(shasum -a 256 "$FROZEN/agents-base.json" | cut -c1-16) repo_head=$(git -C "$SRC" rev-parse --short HEAD) base=$(printf %s "$BASE_REF" | cut -c1-7)"
 say "REPO-STATUS-BEFORE $(git -C "$SRC" status --porcelain | shasum -a 256 | cut -c1-16)"
 
 mkrepo() {   # mkrepo CELL STATE

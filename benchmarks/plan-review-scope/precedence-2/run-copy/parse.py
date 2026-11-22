@@ -61,8 +61,12 @@ def spent(directory):
             # A capture without a result line has unknown cost: refuse to guess.
             print(f"UNKNOWN-COST {p.name}", file=sys.stderr)
             return None
+        cost = r.get("total_cost_usd")
+        if cost is None:
+            print(f"UNKNOWN-COST {p.name}", file=sys.stderr)
+            return None
         session = r.get("session_id") or p.name
-        latest[session] = max(latest.get(session, 0.0), float(r.get("total_cost_usd") or 0.0))
+        latest[session] = max(latest.get(session, 0.0), float(cost))
     return sum(latest.values())
 
 

@@ -114,7 +114,7 @@ preflight 與每格第一回合的串流都必須含有 hook 輸出的 `*=mandat
 
 `5ba7ee0` 的 verifier 在兩個狀態上本來就判 REFUTED。這兩次執行顯示 `v1`、`v2` 沒有回歸，也沒有任何判定因為新的那句話而改變；那句話是把模型在這兩次觀察裡已經做的事寫進角色文字。
 
-第一次執行沒有經過授權。負責審查的子代理被要求用假的用戶端試跑腳本，但假的用戶端沒有建立成功，腳本找到了真的用戶端。腳本與輸入就是原本準備要跑的那一份，所以結果保留。同一個子代理的第二次啟動在 `v1` 途中被中止，擷取檔沒有 result 行，也沒有提交或列入雜湊，那筆花費不明，沒有算進總額。`precedence-2/run-copy/run.sh` 在沒有設定 `PAID_RUN=1` 時會拒絕真的用戶端。
+第一次執行沒有經過授權。負責審查的子代理被要求用假的用戶端試跑腳本，但假的用戶端沒有建立成功，腳本找到了真的用戶端。腳本與輸入就是原本準備要跑的那一份，所以結果保留。同一個子代理的第二次啟動在 `v1` 途中被中止，擷取檔沒有 result 行，也沒有提交或列入雜湊，那筆花費不明，沒有算進總額。`precedence-2/run-copy/run.sh` 執行時就帶有檢查，沒有設定 `PAID_RUN=1` 會拒絕真的用戶端；同樣的檢查事後也補進 `precedence/run-copy/run.sh`。
 
 ## 限制
 
@@ -137,4 +137,4 @@ cp -R benchmarks/plan-review-scope/scope /tmp/plan-review-scope
 SRC="$PWD" bash /tmp/plan-review-scope/run-copy/run.sh
 ```
 
-提交的腳本是當時執行內容的紀錄，不當作共用工具維護，所以彼此重複。改了三處：`SRC` 原本是絕對路徑；`blocking-bar/run-copy/run.sh` 原本從 `main` 取對照用的角色檔，現在固定為 `40d170e`；各檢查程式的花費加總原本把續接 session 的每一回合都加進去，現在每個 session 只算一次。`plugin/run-copy/run.sh` 會從 repo 的 `scope/` 讀取 `cross` 的 fixture 與 prompt。改完之後沒有重跑過；`rerun/run-copy/`、`precedence/run-copy/`、`precedence-2/run-copy/` 裡的腳本則是執行當時的原樣；跑 `precedence-2` 要設定 `PAID_RUN=1`。`blocking-bar/run-copy/run2.sh` 加跑兩個 `main` 對照格，並沿用 `run.sh` 凍結的輸入。
+提交的腳本是當時執行內容的紀錄，不當作共用工具維護，所以彼此重複。改了三處：`SRC` 原本是絕對路徑；`blocking-bar/run-copy/run.sh` 原本從 `main` 取對照用的角色檔，現在固定為 `40d170e`；各檢查程式的花費加總原本把續接 session 的每一回合都加進去，現在每個 session 只算一次。`plugin/run-copy/run.sh` 會從 repo 的 `scope/` 讀取 `cross` 的 fixture 與 prompt。改完之後沒有重跑過；`rerun/run-copy/` 裡的腳本則是執行當時的原樣。`precedence` 與 `precedence-2` 的腳本經審查後在執行之後改了兩處，改完沒有重跑：`precedence/run-copy/run.sh` 補上 `precedence-2` 執行時就有的 `PAID_RUN=1` 檢查；兩份 `parse.py` 遇到沒有 `total_cost_usd` 的 result 行會停下，不再當成零。兩者都要設定 `PAID_RUN=1` 才能執行。`blocking-bar/run-copy/run2.sh` 加跑兩個 `main` 對照格，並沿用 `run.sh` 凍結的輸入。
