@@ -4,7 +4,7 @@ pilotfish is mostly prose. This table lists every rule unit in `templates/claude
 
 Three kinds of enforcement exist in the shipped files:
 
-- **Tool list.** A role's frontmatter `tools` or `disallowedTools`. `scout`, `Explore`, `plan-verifier` and `security-reviewer` have a read-only `tools` allowlist. `verifier` disallows `Write`, `Edit`, `NotebookEdit`, `Agent` and `Workflow`. The three executors disallow `Agent` and `Workflow`.
+- **Tool list.** A role's frontmatter `tools` or `disallowedTools`. `scout`, `Explore`, `plan-verifier` and `security-reviewer` have a read-only `tools` allowlist. `verifier` disallows `Write`, `Edit`, `NotebookEdit`, `Agent` and `Workflow`, but keeps `Bash`, so its tool list removes the dedicated editing tools and does not stop a shell command from writing a file; "never edit" is text for that path. The three executors disallow `Agent` and `Workflow`.
 - **Frontmatter routing.** A role's `model` and `effort`.
 - **Text.** The rule is stated in the policy or a role prompt and nothing else checks it.
 
@@ -28,7 +28,7 @@ The last column is a candidate, not a plan: none of these mechanisms is built or
 | 17 | Plan gate: one Plan, intent restated, fresh `plan-verifier` for Plan-review units | Tool list keeps `plan-verifier` read-only; text for the rest | None |
 | 18 | Approval gate: no source edit or implementation brief before approval | Text | `PreToolUse` on write tools and on `Agent` with an executor role until an approval marker exists |
 | 19 | Execution gate: approved contract, routing among the three executors | Frontmatter routing for each role's model; text for the choice | None |
-| 20 | Verification gate: fresh `verifier` on risk-triggered units | Tool list keeps `verifier` from editing; text for calling it | `Stop` check that a risk-marked unit has a `verifier` result |
+| 20 | Verification gate: fresh `verifier` on risk-triggered units | Tool list removes `verifier`'s editing tools (it keeps `Bash`, so no-write through the shell is text); text for calling it | `Stop` check that a risk-marked unit has a `verifier` result |
 | 24 | State phase and apply the dispatch brake before every Agent call | Text | None |
 | 25 | Bounded local search stays in the main session | Text | None |
 | 26 | Declare read scopes; an agent's scope is exclusive while it runs | Text | None |
@@ -44,7 +44,7 @@ The last column is a candidate, not a plan: none of these mechanisms is built or
 | 36 | Security work never uses general executors; `security-reviewer` first | Tool list keeps `security-reviewer` read-only; text for the routing | None |
 | 37 | Risk units require `verifier`; Plan-review units also `plan-verifier` | Text | Same `Stop` check as line 20 |
 | 38 | No `model` on a named-role call; pass `effort` per task with reviewer floors | Frontmatter routing supplies the defaults; text for the call arguments | `PreToolUse` on `Agent`: reject `model` with a named role, reject `effort` under a reviewer's floor |
-| 39 | `plan-verifier` and `verifier` contracts; never swap them | Tool lists make the swap fail in one direction (`plan-verifier` cannot run commands); text otherwise | None |
+| 39 | `plan-verifier` and `verifier` contracts; never swap them | Tool lists make the swap fail in one direction (`plan-verifier` has no `Bash`); text otherwise | None |
 | 40 | Envelope before slice for Plan-review units; shared blockers gate dependents | Text | None |
 | 41 | After two automatic `REVISE` verdicts, disposition every blocker; one closing review | Text | None |
 | 42 | One fresh outcome pass at the smallest coherent boundary | Text | None |
