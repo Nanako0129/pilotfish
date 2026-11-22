@@ -4,7 +4,7 @@
 
 Two small paid checks for two changes made after v1.5.0:
 
-1. **Blocking bar.** `verifier` rates a failed acceptance condition P2 only when a current-head run fails or users hit the behavior. A wording or count mismatch with no behavioral effect is P3, and P3 does not produce REFUTED.
+1. **Blocking bar.** A wording or count mismatch with no behavioral effect is P3 for `verifier`, and P3 does not produce REFUTED. The first wording also limited any failed acceptance condition to P2 "only when a current-head run fails or users hit the behavior"; that clause was replaced before v1.6.0 ([Failed-condition floor](#failed-condition-floor)).
 2. **Plan-review scope.** Pre-approval `plan-verifier` is mandatory only for an explicit review request, destructive/irreversible/external mutation, data/schema/serialization/migration, and release. Other risk triggers (security/trust, material cross-component acceptance) keep the Plan, the approval stop and the post-implementation `verifier`, and every Plan opens by restating intent.
 
 The scope change was run once on the manual template and once on the Plugin. A review then found two inconsistencies in the changed text; they were reworded and the affected cells were run again ([Rerun on the final text](#rerun-on-the-final-text)). All are single observations per cell, not a two-attempt Gate.
@@ -20,7 +20,7 @@ The scope change was run once on the manual template and once on the Plugin. A r
 | Role models | Child messages in the captures report `claude-opus-5-5` for `verifier` and `plan-verifier` and `claude-sonnet-5-5` for `mech-executor` and `executor`, so no subagent model override was active (read from the uncommitted raw streams, like the failed-result count above) |
 | Cost | `total_cost_usd` from each result line. A resumed turn reports its session's cumulative total, so each session is counted once. The `DONE spent=` lines in the first three `run.log` files added every turn and overstate the spend |
 
-Exact input hashes are in `inputs.sha256` in each of [`blocking-bar/`](./blocking-bar/), [`scope/`](./scope/), [`plugin/`](./plugin/), [`rerun/`](./rerun/), [`precedence/`](./precedence/) and [`precedence-2/`](./precedence-2/). Per-cell values are in [`results.json`](./results.json).
+Exact input hashes are in `inputs.sha256` in each of [`blocking-bar/`](./blocking-bar/), [`scope/`](./scope/), [`plugin/`](./plugin/), [`rerun/`](./rerun/), [`precedence/`](./precedence/), [`precedence-2/`](./precedence-2/) and [`floor/`](./floor/). Per-cell values are in [`results.json`](./results.json).
 
 ## Blocking bar
 
@@ -116,11 +116,26 @@ The verifier at `5ba7ee0` already returned REFUTED on both states. The runs show
 
 The first run was not authorized. A reviewing subagent was told to exercise the script with a stub client; its stub was never created and the script found the real client. The script and inputs were the ones prepared for the run, so the result is kept. A second start by the same subagent was stopped during `v1`; its capture has no result line and is not committed or hashed here, so that cost is unknown and not in the totals. `precedence-2/run-copy/run.sh` ran with a check that refuses a real client unless `PAID_RUN=1` is set; the same check was added to `precedence/run-copy/run.sh` afterwards.
 
+## Failed-condition floor
+
+Added before v1.6.0. The independent reading for the release found two P2 rules on `verifier` line 23: "P2 = material bounded/recoverable issue", and "P2 only when current-head run fails/users hit behavior" for a failed acceptance condition. Under the second, a required condition that fails by inspection alone, such as a required test that was not added, fell below P2 and could end in CONFIRMED. The line now reads "Failed acceptance condition: P0/P1 when criteria met, else P2, incl. missing required test/file. Exception: wording/count mismatch lacking behavioral effect = P3 unless users rely on mismatched text (P2)."
+
+One run, changed roles (agents SHA-256 `393a2c93...5eed`) against the roles at `1a5bad8` (`899b9e01...cf93`), unchanged policy. `v4` uses [`floor/prompts/verify-test.txt`](./floor/prompts/verify-test.txt), which adds acceptance item 6: `store.test.mjs` contains a test that a version 1 legacy payload still decodes. Log: [`floor/run.log`](./floor/run.log). Spent USD 1.25 of a 2.50 cap.
+
+| Cell | Roles | State under review | Verdict |
+|---|---|---|---|
+| `v1` | changed | Version 1 payloads decode without `id`; tests pass | REFUTED |
+| `v2` | changed | Code correct; README says 3 tests, the suite has 4 | CONFIRMED, mismatch reported as P3 |
+| `v4` | changed | Code correct, 3 tests pass, README count correct; the test required by item 6 is absent | REFUTED, P2 |
+| `v4base` | `1a5bad8` | Same as `v4` | REFUTED, P2 |
+
+The verifier at `1a5bad8` also returned REFUTED on `v4`, grading the missing test P2 because "a required acceptance condition fails at the current head". So the earlier wording did not produce the CONFIRMED the reading predicted in this observation, and no verdict changed. The new wording removes the two-rule conflict from the text; `v1` and `v2` show no regression.
+
 ## Limits
 
 - One attempt per cell.
 - In `scope` and `plugin` the scripts check which roles were called, writes, changed files and tests. They do not check verdicts or call order: the CONFIRMED and READY entries above were read from `outputs/`.
-- The blocking-bar comparison covers one kind of failed condition, a count mismatch in a README. A failed condition of another kind that breaks no run and reaches no user, such as a required test that was not added, is also below P2 under the new wording and was not observed.
+- The blocking-bar comparison covers one kind of P3 condition, a count mismatch in a README. A count required by acceptance itself, such as "adds 4 tests" with 3 present, can be read as a count mismatch (P3) or as a missing required test (P2); no cell contains that case.
 - Whether `--max-budget-usd` on a resumed call counts the session's earlier spend was not checked. Each resumed turn finished under its cap.
 - The `cross` prompt names its risk class. The cell tests trigger-to-role routing, not whether the model classifies the risk itself.
 - Every prompt opts in to pilotfish explicitly.
@@ -130,7 +145,7 @@ The first run was not authorized. A reviewing subagent was told to exercise the 
 
 ## Reproduce
 
-Each call is paid. Copy one campaign folder (`blocking-bar`, `scope`, `plugin`, `rerun`, `precedence` or `precedence-2`) to a scratch directory and run its script from there, so the repository is only read:
+Each call is paid. Copy one campaign folder (`blocking-bar`, `scope`, `plugin`, `rerun`, `precedence`, `precedence-2` or `floor`) to a scratch directory and run its script from there, so the repository is only read:
 
 ```bash
 cp -R benchmarks/plan-review-scope/scope /tmp/plan-review-scope
