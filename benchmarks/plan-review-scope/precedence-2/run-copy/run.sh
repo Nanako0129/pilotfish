@@ -25,7 +25,9 @@ GITC=(-c user.name=gate -c user.email=gate@example.invalid -c commit.gpgsign=fal
 say() { printf '%s %s\n' "$(date +%H:%M:%S)" "$*" | tee -a "$LOG"; }
 trap 'rc=$?; say "RUNNER-EXIT code=$rc"' EXIT
 
-CLIENT="$(claude --version)"
+CLAUDE_BIN="$(command -v claude)" || { say "STOP claude not found"; exit 4; }
+case "$CLAUDE_BIN" in /*) ;; *) say "STOP claude does not resolve to an absolute path: $CLAUDE_BIN"; exit 4 ;; esac
+CLIENT="$("$CLAUDE_BIN" --version)"
 if [ "$CLIENT" != stub ] && [ "${PAID_RUN:-}" != 1 ]; then say "STOP real client '$CLIENT' without PAID_RUN=1"; exit 4; fi
 
 # ---- freeze inputs (refuse to start over leftovers) ----
@@ -74,7 +76,7 @@ call() {     # call CELL AGENTS_JSON EXPECT_REGEX   (one fresh session, cap 0.60
   if [ -e "$out" ]; then say "STOP stream-exists $out"; exit 4; fi
   say "START $cell-t1 cap=$cap spent_so_far=$spent"
   ( cd "$CELLS/$cell" && env -u CLAUDE_CODE_SUBAGENT_MODEL perl -e 'alarm shift; exec @ARGV' 1500 \
-      claude --dangerously-skip-permissions -p --output-format stream-json --verbose \
+      "$CLAUDE_BIN" --dangerously-skip-permissions -p --output-format stream-json --verbose \
         --max-budget-usd "$cap" --session-id "$(python3 -c 'import uuid; print(uuid.uuid4())')" --model opus --effort high \
         --setting-sources project,local --strict-mcp-config \
         --agents "$(<"$agents")" "$(<"$FROZEN/prompts/verify.txt")" < /dev/null > "$out" 2> "$err" ) || rc=$?
