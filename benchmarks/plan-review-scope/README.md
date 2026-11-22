@@ -89,7 +89,7 @@ In `p-schema` turn 1 the client ran the `pilotfish:plan-verifier` call in the ba
 
 Pass/fail results and verdicts equal the earlier ones, so the rerun shows no regression; the executor roles and the files touched in `cross` differ, as noted above. It does not show the rewording works: `cross` already stopped without `plan-verifier` and `v2` was already CONFIRMED on the earlier text, so no cell distinguishes the wordings.
 
-This is the second rerun. The first ran on the wording committed in `a9179ea` (USD 2.74, same verdicts); its record is in the history at that commit. Review then found that wording's line-40 prefix covered too much, so the text changed and the cells ran once more.
+This is the second rerun. The first ran on the wording committed in `a9179ea` (USD 2.74, same verdicts); its record is in [`rerun-a9179ea/`](./rerun-a9179ea/) and under `superseded_run` in `results.json`. Review then found that wording's line-40 prefix covered too much, so the text changed and the cells ran once more.
 
 `v2base`, `plancap` and `plancapbase` were not repeated. `v2base` and `plancapbase` use `main`'s roles. `plancap` used the candidate roles under `main`'s policy and failed the same way as `plancapbase`; it has not been run on the final text.
 

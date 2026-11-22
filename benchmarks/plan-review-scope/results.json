@@ -435,7 +435,172 @@
         "policy_sha256": "bd907c3196bc03ac6589d198e6efc71c75bd041206475fc1df4edbd23fbd2ec5",
         "agents_sha256": "51230d07f41829d9f558c3c6c582680c429b599870f29367f72d48c84ab88a93",
         "sessionstart_sha256": "62751a24adfb9b7eaa07444e8764b41deca7aec6ad64954ec8f7a7717e6170fa",
-        "note": "an earlier rerun on the wording committed in a9179ea; all cells passed with the same verdicts; its record is in the repository history at that commit; review then found the line-40 prefix scoped too much and the CONFIRMED and Plugin wording unclear, so the text changed again"
+        "note": "an earlier rerun on the wording committed in a9179ea; all cells passed with the same verdicts; review then found the line-40 prefix scoped too much and the CONFIRMED and Plugin wording unclear, so the text changed again",
+        "folder": "rerun-a9179ea",
+        "dates": [
+          "2026-11-22"
+        ],
+        "authorized_cap_usd": 4.0,
+        "cells": [
+          {
+            "cell": "v1",
+            "state": "behavioral defect: version 1 payloads decode without id, tests pass",
+            "role": "verifier",
+            "expected": "REFUTED",
+            "verdict": "REFUTED",
+            "pass": true,
+            "cost_usd": 0.31736
+          },
+          {
+            "cell": "v2",
+            "state": "correct code; README states 3 tests, suite has 4",
+            "role": "verifier",
+            "expected": "CONFIRMED|INCONCLUSIVE",
+            "verdict": "CONFIRMED",
+            "finding_priority": "P3",
+            "pass": true,
+            "cost_usd": 0.308947
+          },
+          {
+            "cell": "cross",
+            "turn": 1,
+            "agents_called": [],
+            "main_writes": [],
+            "tree_changed": [],
+            "pass": true,
+            "cost_usd": 0.168705
+          },
+          {
+            "cell": "cross",
+            "turn": 2,
+            "agents_called": [
+              "mech-executor",
+              "verifier"
+            ],
+            "verifier_verdict": "CONFIRMED",
+            "tree_changed": [
+              "cli.mjs",
+              "cli.test.mjs",
+              "format.mjs",
+              "format.test.mjs",
+              "report.mjs",
+              "report.test.mjs"
+            ],
+            "npm_test": "pass",
+            "pass": true,
+            "cost_usd": 0.511001
+          },
+          {
+            "cell": "schema",
+            "turn": 1,
+            "agents_called": [
+              "plan-verifier"
+            ],
+            "plan_verifier_verdict": "READY",
+            "main_writes": [],
+            "tree_changed": [],
+            "pass": true,
+            "cost_usd": 0.273166
+          },
+          {
+            "cell": "schema",
+            "turn": 2,
+            "agents_called": [
+              "mech-executor",
+              "verifier"
+            ],
+            "verifier_verdict": "CONFIRMED",
+            "tree_changed": [
+              "store.mjs",
+              "store.test.mjs"
+            ],
+            "npm_test": "pass",
+            "pass": true,
+            "cost_usd": 0.539384
+          },
+          {
+            "cell": "routine",
+            "turn": 1,
+            "agents_called": [],
+            "main_writes": [
+              "Edit"
+            ],
+            "tree_changed": [
+              "README.md"
+            ],
+            "npm_test": "pass",
+            "pass": true,
+            "cost_usd": 0.144839
+          },
+          {
+            "cell": "p-preflight",
+            "turn": 1,
+            "main_model": "claude-haiku-5-5",
+            "policy_marker_in_capture": true,
+            "pilotfish_roles_in_init": true,
+            "pass": true,
+            "cost_usd": 0.002523
+          },
+          {
+            "cell": "p-cross",
+            "turn": 1,
+            "agents_called": [],
+            "main_writes": [],
+            "tree_changed": [],
+            "pass": true,
+            "cost_usd": 0.14699,
+            "policy_marker_in_capture": true
+          },
+          {
+            "cell": "p-cross",
+            "turn": 2,
+            "agents_called": [
+              "pilotfish:mech-executor",
+              "pilotfish:verifier"
+            ],
+            "verifier_verdict": "CONFIRMED",
+            "tree_changed": [
+              "cli.mjs",
+              "cli.test.mjs",
+              "format.mjs",
+              "format.test.mjs",
+              "report.mjs",
+              "report.test.mjs"
+            ],
+            "npm_test": "pass",
+            "pass": true,
+            "cost_usd": 0.456126
+          },
+          {
+            "cell": "p-schema",
+            "turn": 1,
+            "agents_called": [
+              "pilotfish:plan-verifier"
+            ],
+            "plan_verifier_verdict": "READY",
+            "main_writes": [],
+            "tree_changed": [],
+            "pass": true,
+            "cost_usd": 0.21885,
+            "policy_marker_in_capture": true
+          },
+          {
+            "cell": "p-schema",
+            "turn": 2,
+            "agents_called": [
+              "pilotfish:mech-executor",
+              "pilotfish:verifier"
+            ],
+            "verifier_verdict": "CONFIRMED",
+            "tree_changed": [
+              "store.mjs",
+              "store.test.mjs"
+            ],
+            "npm_test": "pass",
+            "pass": true,
+            "cost_usd": 0.459434
+          }
+        ]
       }
     }
   ],
