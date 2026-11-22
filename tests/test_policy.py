@@ -6119,45 +6119,25 @@ class PolicyContractTests(unittest.TestCase):
             policy,
         )
 
-    def test_prompt_text_only_shrinks(self) -> None:
-        # Ratchet. Prompt text may shrink, never grow: a new rule first deletes
-        # one or moves one into a mechanism (docs/enforcement.md), and whoever
-        # raises a number here does it in the diff that needs it, in plain sight.
-        # verifier keeps the 3,800-byte role ceiling it already had; every other
-        # file is pinned at its size when this test was added.
-        ceilings = {
-            "claude-md.orchestration.md": 16330,
-            "agents/Explore.md": 1356,
-            "agents/executor.md": 1802,
-            "agents/mech-executor.md": 1786,
-            "agents/plan-verifier.md": 2219,
-            "agents/scout.md": 1272,
-            "agents/security-executor.md": 1686,
-            "agents/security-reviewer.md": 1353,
-            "agents/verifier.md": 3800,
-        }
-        templates = ROOT / "templates"
-        present = {"claude-md.orchestration.md"} | {
-            f"agents/{path.name}" for path in (templates / "agents").glob("*.md")
-        }
-        self.assertEqual(present, set(ceilings))
-        for name, ceiling in ceilings.items():
-            with self.subTest(name=name):
-                self.assertLessEqual(len((templates / name).read_bytes()), ceiling)
-
-    def test_every_rule_line_has_an_enforcement_row(self) -> None:
-        # docs/enforcement.md says what holds each rule in place. A rule added,
-        # removed or moved without editing that table fails here.
+    def test_every_rule_has_a_current_enforcement_row(self) -> None:
+        # docs/enforcement.md says what holds each rule in place. Rows are keyed
+        # by a digest of the rule's line, so adding, removing or rewording a rule
+        # fails here until its row is read again and its key updated. Rule lines
+        # use the density budget's definition, plus the preamble that tells roles
+        # not to delegate.
         template = (ROOT / "templates" / "claude-md.orchestration.md").read_text(encoding="utf-8")
-        rule_lines = {
-            number
-            for number, line in enumerate(template.splitlines(), start=1)
-            if line.startswith("- ")
-        }
+        lines = [
+            line
+            for line in template.split("\n")
+            if (line.startswith(("- ", "| ")) and len(line) > 40)
+            or line.startswith("Main-session policy. Named roles")
+        ]
+        expected = {hashlib.sha256(line.encode("utf-8")).hexdigest()[:8] for line in lines}
+        self.assertEqual(len(expected), len(lines))
         table = (ROOT / "docs" / "enforcement.md").read_text(encoding="utf-8")
-        rows = [int(m.group(1)) for m in re.finditer(r"(?m)^\| (\d+) \|", table)]
-        self.assertEqual(len(rows), len(set(rows)))
-        self.assertEqual(set(rows), rule_lines)
+        keys = re.findall(r"(?m)^\| \d+ \| `([0-9a-f]{8})` \|", table)
+        self.assertEqual(len(keys), len(set(keys)))
+        self.assertEqual(set(keys), expected)
 
     def test_plan_review_requires_future_slice_identity_not_optional_detail(self) -> None:
         policy = (ROOT / "templates/claude-md.orchestration.md").read_text(
