@@ -2,6 +2,25 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
+## v1.6.0 — 2026-11-23
+
+**Plan review is limited to four triggers (#101).** Pre-approval `plan-verifier` is now mandatory only for an explicit review request, a destructive, irreversible or external mutation, a data, schema, serialization or migration change, and a release. Security/trust work and material cross-component acceptance remain risk triggers: they keep the Plan, the approval stop and the mandatory post-implementation `verifier`, and security work keeps `security-reviewer` before approval. Every Plan now opens by restating the intent, the outcome and the non-goals, so the user confirms direction before approving. The readiness rules on policy lines 36, 37 and 40 apply only to units that get a Plan review.
+
+**`verifier` no longer blocks on a wording or count mismatch (#101, #102, #105).** A wording or count mismatch with no behavioral effect is P3 unless users rely on the mismatched text, and P3 cannot produce REFUTED. Every other unmet required acceptance condition is P0-P2, including omitted content, a missing test or a missing file. CONFIRMED requires every required condition to be evaluated, with each one met or falling under that P3 exception, which is reported. REFUTED takes precedence when a reproducible P0-P2 blocker coexists with met conditions. `plan-verifier` is unchanged.
+
+Evidence is in [`benchmarks/plan-review-scope`](benchmarks/plan-review-scope/README.md): one observation per cell on Claude Code 2.1.325 and `claude-opus-5-5`, not a two-attempt Gate.
+
+- A cross-component task stopped for approval with no Agent call, then ran an executor and a `verifier` that returned CONFIRMED. A schema migration called `plan-verifier` before approval. A README typo used no agent. The cross-component and schema results held with the policy supplied only by the Plugin's SessionStart text.
+- A README test-count mismatch was CONFIRMED with a P3 finding on the changed `verifier` and REFUTED on the v1.5.0 one. A behavioral defect was still REFUTED.
+- The later rewordings, the precedence sentence and the P0-P2 floor changed no verdict in any cell. On two states where every listed condition was met and the commit introduced a regression outside them, and on one where a required test was absent, the earlier `verifier` wording already returned REFUTED.
+
+Not covered: security/trust, release and destructive triggers; a count required by acceptance itself, and a wrong statement in present text against an omitted one; risk classification by the model, since the cross-component prompt names its risk class; a second attempt per cell. The existing three-turn Plan-cap prompts return REVISE on turn 3 with both the changed roles and the v1.5.0 ones, so their READY expectation does not hold on `claude-opus-5-5` with or without this release.
+
+Repository work that does not change installed behavior:
+
+- [`docs/enforcement.md`](docs/enforcement.md) lists what holds each policy rule in place, a tool list, frontmatter routing or text alone, and a test fails when a rule changes without its row (#106). Thirty of the 37 rule units are text only.
+- The paid scripts under `benchmarks/plan-review-scope` stop before their first model call unless `PAID_RUN=1` is set (#103).
+
 ## v1.5.0 — 2026-10-10
 
 **Per-delegation effort (#98).** Each role's frontmatter `effort` is now a recommended default. The policy tells the main session to pass the Agent tool's `effort` (Claude Code 2.1.292 or newer) on every named-role delegation, chosen from the task's difficulty, ambiguity and risk. The reviewers keep a floor at their defaults: `verifier` and `plan-verifier` never below `medium`, `security-reviewer` never below `high`. Model routing is unchanged.
