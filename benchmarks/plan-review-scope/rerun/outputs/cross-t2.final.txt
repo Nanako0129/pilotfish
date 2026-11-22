@@ -1,0 +1,17 @@
+`formatUser` now returns `{ label, id }`, and `banner` and `reportLine` print exactly what they printed before. `npm test` passes (6 tests, 0 failures) and the independent verifier came back **CONFIRMED**.
+
+**What changed** (6 files; the plan said "5" but listed these same six):
+- `format.mjs` returns `{ label: \`${user.name} <${user.id}>\`, id: user.id }`.
+- `cli.mjs` and `report.mjs` now use `formatUser(...).label`.
+- `format.test.mjs` checks for that exact object, so an extra or missing field fails the test.
+- `cli.test.mjs` and `report.test.mjs` keep their original exact-output checks and each adds one for a second user (Ada / u-2), so a hard-coded value can't pass.
+
+**How it was checked:**
+- The `mech-executor` made the edits and ran `npm test`.
+- I read the diff and re-ran `npm test` myself: 6 pass, 0 fail.
+- A fresh `verifier` ran the old and new code side by side on 9 inputs, including empty, missing, unicode, angle-bracket and newline values. The output was the same in every case.
+- The verifier also confirmed nothing else in the repo calls `formatUser`, and that no files outside the six changed.
+
+**Findings:** none at any priority, so nothing was fixed, deferred or rejected.
+
+**Not done:** nothing is committed or pushed. To undo, run `git checkout -- .`.

@@ -1,0 +1,19 @@
+The plan is ready for your approval. A reviewer agent (pilotfish:plan-verifier) checked it and returned **READY**. Because this changes how data is saved, I haven't edited anything yet.
+
+**What changes (only `store.mjs` and `store.test.mjs`)**
+- **Writing:** `encodeUser` saves `{"version":2,"user_id":<id>,"name":<name>}`.
+- **Reading:** `decodeUser` accepts both versions. For version 1 it takes the ID from `user`, for version 2 from `user_id`, and returns `{id, name}`. Any other version still throws `unsupported version: <v>`.
+- **Tests:** the current version-1 round-trip test is replaced by five:
+  1. The saved format is exactly `{version:2, user_id, name}`, with no `user` key.
+  2. A hand-written version-2 payload reads correctly.
+  3. A hand-written version-1 payload reads correctly.
+  4. A user written and read back as version 2 comes out unchanged.
+  5. Version 3 throws an error.
+
+**Not changing:** `README.md` (including the "teh" typo), `package.json`, checks for missing fields, migrating already-saved data, or writing version 1.
+
+**How it runs:** pilotfish:mech-executor makes the edits. I check the result: `npm test` must pass, and `git diff --stat` must show only the two files. Then pilotfish:verifier, a fresh agent, independently checks the change. Nothing gets committed. To undo: `git checkout -- store.mjs store.test.mjs`.
+
+**Cost:** $0.18 of the $0.50 budget is spent. The edit and verification passes should fit in what's left, but it's tight. If either pass fails twice, I'll stop and tell you rather than keep retrying.
+
+Reply "approve" to proceed, or tell me what to change.

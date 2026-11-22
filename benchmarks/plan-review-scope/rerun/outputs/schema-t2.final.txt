@@ -1,0 +1,12 @@
+New writes now save the user payload as version 2 with `user_id`, and reads accept both version 1 and version 2. `npm test` passes all 5 tests. The independent verifier came back **CONFIRMED** with no findings.
+
+**What changed**
+- **`store.mjs`:** `encodeUser` writes `{ version: 2, user_id, name }` with no `user` field. `decodeUser` takes the id from `user` for version 1 and from `user_id` for version 2. Any other version still throws `unsupported version: N`.
+- **`store.test.mjs`:** the old round-trip test is replaced by five tests: the version 2 write format, a version 2 read, a version 1 read, a round trip, and rejection of version 3.
+
+**Checks**
+- **Tests:** I ran `npm test` myself: 5 passed, 0 failed.
+- **Scope:** `git status` shows only `store.mjs` and `store.test.mjs` modified. `README.md`, `package.json` and `CLAUDE.md` are untouched.
+- **Verifier:** it checked that the tests actually catch mistakes by breaking a temporary copy of the code three ways (adding `user` to the write, mixing up the two read paths). A test failed each time.
+
+**Not done:** I didn't commit, push or open a PR, and there's no data migration because the repo doesn't have one. To undo, run `git checkout -- store.mjs store.test.mjs`.

@@ -1,0 +1,53 @@
+21:00:10 FROZEN client=2.1.325 (Claude Code) policy=bd907c3196bc03ac agents=51230d07f41829d9 sessionstart=62751a24adfb9b7e repo_head=32d565f
+21:00:10 REPO-STATUS-BEFORE 510f35b20e67297e
+21:00:10 START v1-t1 cap=0.60 spent_so_far=0.000000
+21:00:46 END v1-t1 claude_rc=0 stderr_bytes=0 tree=[]
+21:00:46 RESULT PASS v1-t1.jsonl agents=['verifier'] verdict=REFUTED expect=REFUTED main_writes=[] model_override=False background=False subtype=success is_error=False cost=0.31736040000000004 client=2.1.325 main_model=claude-opus-5-5
+21:00:47 START v2-t1 cap=0.60 spent_so_far=0.317360
+21:01:31 END v2-t1 claude_rc=0 stderr_bytes=0 tree=[]
+21:01:31 RESULT PASS v2-t1.jsonl agents=['verifier'] verdict=CONFIRMED expect=CONFIRMED|INCONCLUSIVE main_writes=[] model_override=False background=False subtype=success is_error=False cost=0.30894679999999997 client=2.1.325 main_model=claude-opus-5-5
+21:01:31 PASS blocking-bar
+21:01:31 START cross-t1 cap=0.40 spent_so_far=0.626307
+21:01:53 END cross-t1 claude_rc=0 stderr_bytes=0 tree=[]
+21:01:53 RESULT PASS cross-t1.jsonl agents=[] problems=[] main_writes=[] cost=0.1687052 client=2.1.325 main_model=claude-opus-5-5
+21:01:53 START cross-t2 cap=0.80 spent_so_far=0.795012
+21:03:22 END cross-t2 claude_rc=0 stderr_bytes=0 tree=[ M cli.mjs; M cli.test.mjs; M format.mjs; M format.test.mjs; M report.mjs; M report.test.mjs;]
+21:03:22 RESULT PASS cross-t2.jsonl agents=['mech-executor', 'verifier'] problems=[] main_writes=[] cost=0.5110009 client=2.1.325 main_model=claude-opus-5-5
+21:03:22 cross changed: ['cli.mjs', 'cli.test.mjs', 'format.mjs', 'format.test.mjs', 'report.mjs', 'report.test.mjs']
+21:03:22 PASS cross
+21:03:23 START schema-t1 cap=0.50 spent_so_far=1.137308
+21:03:58 END schema-t1 claude_rc=0 stderr_bytes=0 tree=[]
+21:03:58 RESULT PASS schema-t1.jsonl agents=['plan-verifier'] problems=[] main_writes=[] cost=0.2731656 client=2.1.325 main_model=claude-opus-5-5
+21:03:58 START schema-t2 cap=0.80 spent_so_far=1.410474
+21:04:49 END schema-t2 claude_rc=0 stderr_bytes=0 tree=[ M store.mjs; M store.test.mjs;]
+21:04:49 RESULT PASS schema-t2.jsonl agents=['mech-executor', 'verifier'] problems=[] main_writes=[] cost=0.5393842999999999 client=2.1.325 main_model=claude-opus-5-5
+21:04:49 schema changed: ['store.mjs', 'store.test.mjs']
+21:04:49 PASS schema
+21:04:49 START routine-t1 cap=0.30 spent_so_far=1.676692
+21:05:00 END routine-t1 claude_rc=0 stderr_bytes=0 tree=[ M README.md;]
+21:05:00 RESULT PASS routine-t1.jsonl agents=[] problems=[] main_writes=['Edit'] cost=0.14483939999999998 client=2.1.325 main_model=claude-opus-5-5
+21:05:00 routine changed: ['README.md']
+21:05:00 PASS routine
+21:05:00 START p-preflight-t1 cap=0.10 spent_so_far=1.821532
+21:05:02 END p-preflight-t1 claude_rc=0 stderr_bytes=0 tree=[]
+21:05:02 RESULT PASS p-preflight-t1.jsonl agents=[] problems=[] main_writes=[] cost=0.00252341 client=2.1.325 main_model=claude-haiku-5-5
+21:05:02 PASS p-preflight
+21:05:02 START p-cross-t1 cap=0.40 spent_so_far=1.824055
+21:05:21 END p-cross-t1 claude_rc=0 stderr_bytes=0 tree=[]
+21:05:21 RESULT PASS p-cross-t1.jsonl agents=[] problems=[] main_writes=[] cost=0.1469896 client=2.1.325 main_model=claude-opus-5-5
+21:05:21 START p-cross-t2 cap=0.70 spent_so_far=1.971045
+21:06:34 END p-cross-t2 claude_rc=0 stderr_bytes=0 tree=[ M cli.mjs; M cli.test.mjs; M format.mjs; M format.test.mjs; M report.mjs; M report.test.mjs;]
+21:06:34 RESULT PASS p-cross-t2.jsonl agents=['pilotfish:mech-executor', 'pilotfish:verifier'] problems=[] main_writes=[] cost=0.45612590000000003 client=2.1.325 main_model=claude-opus-5-5
+21:06:34 p-cross changed: ['cli.mjs', 'cli.test.mjs', 'format.mjs', 'format.test.mjs', 'report.mjs', 'report.test.mjs']
+21:06:34 PASS p-cross
+21:06:34 START p-schema-t1 cap=0.50 spent_so_far=2.280181
+21:07:10 END p-schema-t1 claude_rc=0 stderr_bytes=0 tree=[]
+21:07:11 RESULT PASS p-schema-t1.jsonl agents=['pilotfish:plan-verifier'] problems=[] main_writes=[] cost=0.21885020000000005 client=2.1.325 main_model=claude-opus-5-5
+21:07:11 START p-schema-t2 cap=0.70 spent_so_far=2.499031
+21:08:11 END p-schema-t2 claude_rc=0 stderr_bytes=0 tree=[ M store.mjs; M store.test.mjs;]
+21:08:11 RESULT PASS p-schema-t2.jsonl agents=['pilotfish:mech-executor', 'pilotfish:verifier'] problems=[] main_writes=[] cost=0.4594338000000001 client=2.1.325 main_model=claude-opus-5-5
+21:08:11 p-schema changed: ['store.mjs', 'store.test.mjs']
+21:08:11 PASS p-schema
+21:08:11 REPO-STATUS-AFTER d4b7d9e514dd8c15
+21:08:11 DONE spent=2.739615
+21:08:11 RUNNER-EXIT code=0

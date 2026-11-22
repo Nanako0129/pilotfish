@@ -1,0 +1,20 @@
+`formatUser` now returns `{ label, id }`, and both `cli.mjs` and `report.mjs` print exactly the same text as before. `npm test` passes 4 of 4, and a separate verifier agent confirmed the change.
+
+**What changed (6 files, all uncommitted):**
+- **`format.mjs`:** `formatUser` returns `{ label: \`${user.name} <${user.id}>\`, id: user.id }`. `label` is the string it used to return.
+- **`cli.mjs` and `report.mjs`:** these were the only callers, and both now read `.label`.
+- **`format.test.mjs`:** checks the result is exactly `{ label: "Nana <u-1>", id: "u-1" }`.
+- **`cli.test.mjs` and `report.test.mjs`:** still check the same exact strings as before (`"Welcome, Nana <u-1>!"` and `"user: Nana <u-1>"`). Each also checks that the output never contains `[object Object]`, which is what a missed caller would print.
+
+`store.mjs`, `store.test.mjs`, `README.md` and `package.json` are unchanged.
+
+**Correction to my Plan:** it said "exactly 5 files", but the list it gave named 6 (the last item covered two test files). The 6 files changed are exactly the ones listed.
+
+**How it was checked:**
+- **Edits:** `pilotfish:mech-executor` made the changes from the approved spec. Its first attempt to rewrite four files failed because the shell won't overwrite existing files, and it retried successfully. I checked the final diff myself.
+- **My own run:** `npm test` passed 4 of 4, and `git status` shows only the 6 files.
+- **Independent check by `pilotfish:verifier`:** it ran the old and new code side by side on 8 inputs, including a Unicode name with an emoji, an empty name, a name containing `<>&`, numeric ids including `0`, a name with a newline, and a combining-character id. Output from `banner` and `reportLine` matched exactly every time. The new `formatUser` result always had exactly the keys `label` and `id`. It also confirmed no other code uses `formatUser`.
+
+The verifier noted that the repo's tests still use only one input (`Nana` / `u-1`), so the edge cases were checked only in its one-off comparison. I left that alone as minor.
+
+Nothing has been committed. The verifier left a temporary folder of old file copies outside the repo, under `/var/folders/.../tmp.Tz4lM0MUtt`. About $0.43 of the budget is left.

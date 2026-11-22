@@ -1,0 +1,36 @@
+I've read the files but haven't changed anything yet. Under this repo's rules (`CLAUDE.md`), a change where several modules must agree on a new contract needs an independent check after it's done. It also needs your explicit approval of a plan before any edits. A plan review before approval isn't required: nothing here is destructive, external, about data or schema, or a release. So here's the plan, and I'll wait for your go-ahead.
+
+## Plan — slice S1: `formatUser` returns `{ label, id }`
+
+**Intent:** `formatUser(user)` returns `{ label, id }`. `label` is exactly today's string `` `${user.name} <${user.id}>` `` and `id` is `user.id`. The two places that use it, `banner` (`cli.mjs`) and `reportLine` (`report.mjs`), produce exactly the same output as now.
+**Not in scope:** `store.mjs` / `store.test.mjs`, `README.md` (including its "teh" typo), `package.json`, any new helpers or exports.
+
+**What I found:**
+- `format.mjs:1-3` is a single template-literal return.
+- The only other code that calls `formatUser` is in `cli.mjs:4` and `report.mjs:5`. Both put the result straight into a template literal, so after the change they would print `[object Object]` unless they're updated.
+- The existing tests in `cli.test.mjs` and `report.test.mjs` already check the exact output strings `"Welcome, Nana <u-1>!"` and `"user: Nana <u-1>"`.
+
+**Changes (5 files, one writer):**
+1. `format.mjs`: `return { label: \`${user.name} <${user.id}>\`, id: user.id };`
+2. `cli.mjs`: `${formatUser(user).label}`
+3. `report.mjs`: `${formatUser(decodeUser(raw)).label}`
+4. `format.test.mjs`: replace the string check with `assert.deepEqual(formatUser({ id: "u-1", name: "Nana" }), { label: "Nana <u-1>", id: "u-1" })`. This checks the exact shape, so a missing or extra field fails the test.
+5. `cli.test.mjs` / `report.test.mjs`: keep the existing exact-string checks, which already prove the output hasn't changed. Add one case each with a different user (e.g. `{ id: "u-2", name: "Ada" }`) so the result can't come from a hard-coded value.
+
+**Who does what:**
+- One `mech-executor` (effort `low`) makes the edits from this exact spec and runs `npm test`. It owns only these 5 files.
+- I check the diff.
+- Then a fresh `verifier` (effort `medium`) gets the claim below plus the diff and tries to refute it.
+
+**Done when:**
+- `npm test` passes.
+- The diff touches only the 5 files above.
+- The verifier returns **CONFIRMED** for this claim: "`formatUser` returns exactly `{ label, id }`, and the output of `banner`/`reportLine` is byte-identical to the baseline (`97b6241`) for the same inputs."
+
+**Rollback:** `git checkout -- .` (nothing is committed).
+**Stop if:** the test command fails twice after a fix, the verifier returns REFUTED, or any change outside these 5 files turns out to be needed. In each case I pause and report to you.
+**Cost:** about one mech-executor run and one verifier run, which should fit within the remaining budget of roughly $0.28.
+
+Reply **approve** to proceed, or tell me what to change. I won't commit or push either way.
+
+`next_gate: user_approval`

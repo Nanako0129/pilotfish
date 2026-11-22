@@ -1,0 +1,37 @@
+I've read the whole repo (9 tracked files) and changed nothing. Here is the Plan. **Please reply "approve" (or give changes) before I edit anything.**
+
+## Plan — slice S1: `formatUser` returns `{ label, id }`
+
+**What I found**
+- `format.mjs:1` — `formatUser(user)` returns `` `${user.name} <${user.id}>` ``.
+- Only two callers exist: `cli.mjs:4` (`banner`) and `report.mjs:5` (`reportLine`). Both put the result straight into a template string.
+- Tests run with `npm test` (which runs `node --test`). Each module has its own test file.
+
+**Assumptions** (tell me if any are wrong)
+- `id` is `user.id` passed through as-is.
+- `label` is exactly the string `formatUser` returns today.
+- No `toString()` fallback on the object. Callers read `.label` explicitly, so any missed caller would visibly print `[object Object]` instead of quietly working.
+
+**Changes (exactly 5 files)**
+1. `format.mjs`: return `{ label: \`${user.name} <${user.id}>\`, id: user.id }`.
+2. `cli.mjs`: `formatUser(user).label`.
+3. `report.mjs`: `formatUser(decodeUser(raw)).label`.
+4. `format.test.mjs`: check the result with `deepEqual` against `{ label: "Nana <u-1>", id: "u-1" }`. This proves the new shape, including that there are exactly those two keys.
+5. `cli.test.mjs` / `report.test.mjs`: keep the current exact-string checks unchanged as proof the output is byte-identical. Add one guard each that the output doesn't contain `[object Object]`.
+
+**Out of scope:** `store.mjs`, `store.test.mjs`, `README.md` (including its "teh" typo), `package.json`.
+
+**Done when:** `npm test` passes, with all 4 test files green. `git diff --stat` shows only the 5 files above, and the strings `"Welcome, Nana <u-1>!"` and `"user: Nana <u-1>"` are unchanged in the tests.
+
+**Rollback:** `git checkout -- .` (nothing is stored or published, so this fully undoes it).
+
+**Who does what after you approve**
+- `pilotfish:mech-executor` makes the edits from this exact spec.
+- I check the diff and run `npm test`.
+- A separate `pilotfish:verifier` then independently checks the claim that the new shape holds and the output is byte-identical. The workflow requires this for risky changes.
+
+**Stop conditions:** I stop if a test fails twice after a fix attempt, or if anything outside these 5 files would need to change.
+
+**Budget:** about $0.29 left, enough for the edits plus one verification pass. No pre-approval Plan review is required here, because this risk type doesn't need one.
+
+**Next step:** your approval.

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "source": {
     "path": "templates/claude-md.orchestration.md",
-    "sha256": "2108aabcf83fe4f440ed4a3954a6954e5e91eb58d20cb0ede07271070d291bce"
+    "sha256": "bd907c3196bc03ac6589d198e6efc71c75bd041206475fc1df4edbd23fbd2ec5"
   },
   "requirements": [
     {
@@ -201,7 +201,7 @@
       "id": "PLUG-SECURITY-ROUTING",
       "category": "security",
       "source_line": 36,
-      "source_clause": "- Security-sensitive work (authn/authz, credentials/secrets, identity/privacy, crypto, validation/hardening, vuln analysis) never uses general executors. Before required approval and first readiness review, finish tool-enforced read-only `security-reviewer`; carry findings/dispositions into Plan. After approval, send stable contract to `security-executor`. Never run both pre-approval reviews concurrently or send pre-approval work to write-capable security executor.",
+      "source_clause": "- Security-sensitive work (authn/authz, credentials/secrets, identity/privacy, crypto, validation/hardening, vuln analysis) never uses general executors. Before required approval and any readiness review, finish tool-enforced read-only `security-reviewer`; carry findings/dispositions into Plan. After approval, send stable contract to `security-executor`. Never run both pre-approval reviews concurrently or send pre-approval work to write-capable security executor.",
       "ambient_line": "Authn/authz,secrets,identity/privacy,crypto,validation/hardening,vulnerabilities never use general executors.Pre-approval:read-only pilotfish:security-reviewer+dispositions;post-approval:pilotfish:security-executor.Never overlap reviews/send pre-approval work to writers.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
@@ -209,7 +209,7 @@
       "id": "PLUG-SECURITY-MANDATORY-REVIEW",
       "category": "security",
       "source_line": 37,
-      "source_clause": "- Any independent-review trigger makes that unit risky: post-implementation `verifier` is a mandatory Agent call; Plan-review units also require pre-approval `plan-verifier`, with no extra opt-in. Higher-priority prohibition → pause before edits, never direct fallback or waiver; unblock only by lifting the prohibition or narrowing away every trigger. Bounded fail-soft exception applies only without listed risk. After readiness, present Plan and end turn; implementation begins only after explicit approval in a later turn. Plan readiness judges proposed acceptance check.",
+      "source_clause": "- Any independent-review trigger makes that unit risky: post-implementation `verifier` is a mandatory Agent call; Plan-review units also require pre-approval `plan-verifier`, with no extra opt-in. Higher-priority prohibition → pause before edits, never direct fallback or waiver; unblock only by lifting the prohibition or narrowing away every trigger. Bounded fail-soft exception applies only without listed risk. After any required readiness, present Plan and end turn; implementation begins only after explicit approval in a later turn. Plan readiness judges proposed acceptance check.",
       "ambient_line": "Each risk trigger mandates post-implementation pilotfish:verifier,no extra opt-in.Higher-rule prohibition pauses pre-edit—no fallback/waiver—until lifted/risk removed.Present ready Plan/stop;later approval unlocks execution.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
@@ -233,8 +233,8 @@
       "id": "PLUG-APPROVAL-SEQUENCE",
       "category": "approval",
       "source_line": 40,
-      "source_clause": "- Review program envelope before slices, then next executable slice only. Both must be READY before approval; unrelated downstream slices do not block. Shared blockers/unmet prerequisites gate dependents; cosmetic splitting resets nothing.",
-      "ambient_line": "Review envelope before next executable slice;both READY before approval.Unrelated later slices do not block;shared blockers/prerequisites do.Cosmetic splits reset nothing.",
+      "source_clause": "- Plan-review units: review program envelope before slices, then next executable slice only. Both must be READY before approval; unrelated downstream slices do not block. Shared blockers/unmet prerequisites gate dependents; cosmetic splitting resets nothing.",
+      "ambient_line": "*:review envelope before next executable slice;both READY before approval.Unrelated later slices do not block;shared blockers/prerequisites do.Cosmetic splits reset nothing.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {

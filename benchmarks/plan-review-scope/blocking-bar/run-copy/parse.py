@@ -57,15 +57,18 @@ def text_of(content):
 
 
 def spent(directory):
-    total = 0.0
+    # A resumed call reports its session's cumulative total_cost_usd, so count each
+    # session once, at its largest value.
+    latest = {}
     for p in sorted(pathlib.Path(directory).glob("*.jsonl")):
         r = result_of(load(p))
         if r is None:
             # A capture without a result line has unknown cost: refuse to guess.
             print(f"UNKNOWN-COST {p.name}", file=sys.stderr)
             return None
-        total += float(r.get("total_cost_usd") or 0.0)
-    return total
+        session = r.get("session_id") or p.name
+        latest[session] = max(latest.get(session, 0.0), float(r.get("total_cost_usd") or 0.0))
+    return sum(latest.values())
 
 
 def main():

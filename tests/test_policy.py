@@ -55,6 +55,16 @@ POST_GATE_REPLACEMENTS = {
         b" also require pre-approval `plan-verifier`, with no extra opt-in.",
     ),
 }
+# Readiness wording limited to Plan-review units (lines 36, 37, 40), applied on
+# top of the entries above. No benchmark cell distinguishes it from the earlier wording.
+READINESS_REPLACEMENTS = {
+    36: (b"and first readiness review, finish", b"and any readiness review, finish"),
+    37: (b"After readiness, present Plan", b"After any required readiness, present Plan"),
+    40: (
+        b"- Review program envelope before slices,",
+        b"- Plan-review units: review program envelope before slices,",
+    ),
+}
 
 
 def normalize_version_marker(payload: bytes) -> bytes:
@@ -70,10 +80,11 @@ class PolicyContractTests(unittest.TestCase):
         self.assertEqual(len(gated_lines), len(live_lines))
         index = EFFORT_LINE - 1
         for number, (old, new) in enumerate(zip(gated_lines, live_lines), 1):
-            if number in POST_GATE_REPLACEMENTS:
-                before, after = POST_GATE_REPLACEMENTS[number]
-                self.assertEqual(old.count(before), 1, f"line {number} gated text")
-                old = old.replace(before, after)
+            for table in (POST_GATE_REPLACEMENTS, READINESS_REPLACEMENTS):
+                if number in table:
+                    before, after = table[number]
+                    self.assertEqual(old.count(before), 1, f"line {number} gated text")
+                    old = old.replace(before, after)
             if number != EFFORT_LINE:
                 self.assertEqual(old, new, f"line {number} drifted from the gated policy")
         self.assertEqual(live_lines[index], gated_lines[index] + EFFORT_CLAUSE)
@@ -3129,7 +3140,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["release_candidate_agents_json_delta_from_final_gate"],
-            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow fallback, and bounded-recheck contracts; since the issue #29 recovery Gate payload, security-executor effort changed high to medium and both prompts dropped one sentence each (scout's line-count cap, security-executor's high-effort and classifier rationale); scout ran on sonnet in v1.4.2 and is back on the Gate payload's haiku alias after the benchmarks/scout-haiku-probe accuracy probe, but that alias now resolves to claude-haiku-5-5, which no behavioral Gate has run; these deltas passed no behavioral Gate, only a live per-subagent model-resolution check (pilotfish:scout child messages on claude-haiku-5-5, Claude Code 2.1.294) with effort unobserved, and the mechanical, bug, routine and schema cells were not rerun on this payload; after v1.5.0 the verifier prompt limits a failed acceptance condition to P2 only for a failing current-head run or behavior users hit and rates wording/count mismatches P3, checked by one old-versus-new observation in benchmarks/plan-review-scope rather than a full Gate",
+            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow fallback, and bounded-recheck contracts; since the issue #29 recovery Gate payload, security-executor effort changed high to medium and both prompts dropped one sentence each (scout's line-count cap, security-executor's high-effort and classifier rationale); scout ran on sonnet in v1.4.2 and is back on the Gate payload's haiku alias after the benchmarks/scout-haiku-probe accuracy probe, but that alias now resolves to claude-haiku-5-5, which no behavioral Gate has run; these deltas passed no behavioral Gate, only a live per-subagent model-resolution check (pilotfish:scout child messages on claude-haiku-5-5, Claude Code 2.1.294) with effort unobserved, and the mechanical, bug, routine and schema cells were not rerun on this payload; after v1.5.0 the verifier prompt limits a failed acceptance condition to P2 only for a failing current-head run or behavior users hit and rates wording/count mismatches P3, checked by one old-versus-new observation in benchmarks/plan-review-scope rather than a full Gate; CONFIRMED is then defined to admit a P3/P4-only shortfall, which no cell distinguishes from the earlier definition",
         )
         final_policy = (gate / runtime["final_gate_snapshot_policy"]).read_bytes()
         self.assertEqual(
@@ -6081,7 +6092,7 @@ class PolicyContractTests(unittest.TestCase):
             "pause before edits, never direct fallback or waiver",
             "unblock only by lifting the prohibition or narrowing away every trigger",
             "Bounded fail-soft exception applies only without listed risk",
-            "After readiness, present Plan and end turn",
+            "After any required readiness, present Plan and end turn",
             "implementation begins only after explicit approval in a later turn",
             "Plan readiness judges proposed acceptance check",
             "Run primary user-visible acceptance first",
@@ -6184,7 +6195,7 @@ class PolicyContractTests(unittest.TestCase):
             verifier,
         )
         self.assertIn(
-            "sufficient for every required acceptance condition",
+            "sufficient for every required acceptance condition, or its only shortfall rates P3/P4 (report)",
             verifier,
         )
         self.assertIn(

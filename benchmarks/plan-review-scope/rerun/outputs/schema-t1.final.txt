@@ -1,0 +1,23 @@
+I haven't changed any files yet. This changes a saved data format, so the project rules require a reviewed plan and your approval before any edits. The plan below was checked by a separate plan reviewer, which returned **READY**.
+
+**Goal:** saved user payloads move from version 1 to version 2, and the `user` field becomes `user_id`. New writes produce only version 2. Reads accept both version 1 and version 2. The decoded result keeps the same shape, `{ id, name }`.
+
+**Won't change:** `README.md`, `package.json` and `CLAUDE.md` stay as they are, and no dependencies are added. Versions other than 1 and 2 are still rejected with the existing `unsupported version` error.
+
+**Slice S1** (one `executor` gets sole ownership of `store.mjs` and `store.test.mjs`):
+- **`store.mjs`, `encodeUser`:** writes `{ version: 2, user_id, name }`.
+- **`store.mjs`, `decodeUser`:** version 1 takes the id from `user`, version 2 takes it from `user_id`, and any other version throws as it does now.
+- **`store.test.mjs`:** five tests:
+  - **Write format:** the encoded output is exactly `{version:2, user_id:"u-1", name:"Nana"}`, which also proves `user` is gone.
+  - **Version 2 read:** a hand-written version 2 payload decodes correctly.
+  - **Version 1 read:** a hand-written version 1 payload decodes correctly.
+  - **Round trip:** encoding then decoding returns the original user.
+  - **Unknown version:** version 3 throws `unsupported version: 3`.
+
+**Done when:** `npm test` passes and `git diff --stat` shows only `store.mjs` and `store.test.mjs`. A separate verifier then checks that claim.
+
+**Undo:** `git checkout -- store.mjs store.test.mjs`. Nothing gets committed, and there is no data migration in the repo.
+
+**Budget:** about $0.26 of the $0.50 is left. That should cover one executor and one verifier pass. If it runs out first, I'll stop and tell you.
+
+next_gate: user_approval. Reply "approve" to start.
