@@ -16,6 +16,8 @@ CELLS="$G/cells"
 
 say() { printf '%s %s\n' "$(date +%H:%M:%S)" "$*" | tee -a "$LOG"; }
 trap 'rc=$?; say "RUNNER-EXIT code=$rc"' EXIT
+# Added after the recorded run: refuse to call a real client unless PAID_RUN=1.
+if [ "$(claude --version)" != stub ] && [ "${PAID_RUN:-}" != 1 ]; then say "STOP real client without PAID_RUN=1"; exit 4; fi
 
 # ---- freeze inputs (fail if a previous run left anything behind) ----
 for d in "$FROZEN" "$STREAMS" "$CELLS"; do

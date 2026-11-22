@@ -134,7 +134,7 @@ preflight 與每格第一回合的串流都必須含有 hook 輸出的 `*=mandat
 
 ```bash
 cp -R benchmarks/plan-review-scope/scope /tmp/plan-review-scope
-SRC="$PWD" bash /tmp/plan-review-scope/run-copy/run.sh
+PAID_RUN=1 SRC="$PWD" bash /tmp/plan-review-scope/run-copy/run.sh
 ```
 
-提交的腳本是當時執行內容的紀錄，不當作共用工具維護，所以彼此重複。改了三處：`SRC` 原本是絕對路徑；`blocking-bar/run-copy/run.sh` 原本從 `main` 取對照用的角色檔，現在固定為 `40d170e`；各檢查程式的花費加總原本把續接 session 的每一回合都加進去，現在每個 session 只算一次。`plugin/run-copy/run.sh` 會從 repo 的 `scope/` 讀取 `cross` 的 fixture 與 prompt。改完之後沒有重跑過；`rerun/run-copy/` 裡的腳本則是執行當時的原樣。`precedence` 與 `precedence-2` 的腳本經審查後在執行之後改了兩處，改完沒有重跑：`precedence/run-copy/run.sh` 補上 `precedence-2` 執行時就有的 `PAID_RUN=1` 檢查；兩份 `parse.py` 遇到沒有 `total_cost_usd` 的 result 行會停下，不再當成零。兩者都要設定 `PAID_RUN=1` 才能執行。`blocking-bar/run-copy/run2.sh` 加跑兩個 `main` 對照格，並沿用 `run.sh` 凍結的輸入。
+提交的腳本是當時執行內容的紀錄，不當作共用工具維護，所以彼此重複。改了三處：`SRC` 原本是絕對路徑；`blocking-bar/run-copy/run.sh` 原本從 `main` 取對照用的角色檔，現在固定為 `40d170e`；各檢查程式的花費加總原本把續接 session 的每一回合都加進去，現在每個 session 只算一次。`plugin/run-copy/run.sh` 會從 repo 的 `scope/` 讀取 `cross` 的 fixture 與 prompt。改完之後沒有重跑過；現在每支腳本在第一次呼叫之前都會停下，除非設定了 `PAID_RUN=1` 或用戶端回報 `stub`；`blocking-bar`、`scope`、`plugin`、`rerun`、`rerun-a9179ea` 的腳本是在執行之後才補上這項檢查，而 `rerun` 與 `rerun-a9179ea` 的腳本只改了這一處。`precedence` 與 `precedence-2` 的腳本經審查後在執行之後改了兩處，改完沒有重跑：`precedence/run-copy/run.sh` 補上 `precedence-2` 執行時就有的 `PAID_RUN=1` 檢查；兩份 `parse.py` 遇到沒有 `total_cost_usd` 的 result 行會停下，不再當成零。已在不付費的情況下確認：用真的用戶端、不帶 `PAID_RUN` 時，每支腳本都以結束碼 4 停下。`blocking-bar/run-copy/run2.sh` 加跑兩個 `main` 對照格，並沿用 `run.sh` 凍結的輸入。

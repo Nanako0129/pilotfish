@@ -16,6 +16,8 @@ CELLS="$G/cells"
 
 say() { printf '%s %s\n' "$(date +%H:%M:%S)" "$*" | tee -a "$LOG"; }
 trap 'rc=$?; say "RUNNER-EXIT code=$rc"' EXIT
+# Added after the recorded run: refuse to call a real client unless PAID_RUN=1.
+if [ "$(claude --version)" != stub ] && [ "${PAID_RUN:-}" != 1 ]; then say "STOP real client without PAID_RUN=1"; exit 4; fi
 
 # ---- reuse the inputs frozen by the first run; verify them, never rebuild ----
 ( cd "$G" && shasum -a 256 -c src/SHA256.txt >/dev/null ) || { say "STOP frozen inputs changed"; exit 4; }

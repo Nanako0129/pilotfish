@@ -22,6 +22,8 @@ GITC=(-c user.name=gate -c user.email=gate@example.invalid -c commit.gpgsign=fal
 
 say() { printf '%s %s\n' "$(date +%H:%M:%S)" "$*" | tee -a "$LOG"; }
 trap 'rc=$?; say "RUNNER-EXIT code=$rc"' EXIT
+# Added after the recorded run: refuse to call a real client unless PAID_RUN=1.
+if [ "$(claude --version)" != stub ] && [ "${PAID_RUN:-}" != 1 ]; then say "STOP real client without PAID_RUN=1"; exit 4; fi
 
 # ---- freeze inputs (refuse to start over leftovers) ----
 for d in "$FROZEN" "$STREAMS" "$CELLS"; do
