@@ -1,0 +1,11 @@
+00:56:59 FROZEN client=2.1.325 (Claude Code) policy=93fb822a0cccd1a5 agents=899b9e01eac3114b agents_base=2e0ee951f097e118 repo_head=5ba7ee0 base=5ba7ee0
+00:56:59 REPO-STATUS-BEFORE bdf95ca88bcd4533
+00:56:59 START v3-t1 cap=0.60 spent_so_far=0.000000
+00:57:46 END v3-t1 claude_rc=0 stderr_bytes=0 tree=[]
+00:57:46 RESULT PASS v3-t1.jsonl agents=['verifier'] verdict=REFUTED expect=REFUTED main_writes=[] model_override=False background=False subtype=success is_error=False cost=0.3425252 client=2.1.325 main_model=claude-opus-5-5
+00:57:46 START v3base-t1 cap=0.60 spent_so_far=0.342525
+00:58:39 END v3base-t1 claude_rc=0 stderr_bytes=0 tree=[]
+00:58:39 RESULT PASS v3base-t1.jsonl agents=['verifier'] verdict=REFUTED expect=CONFIRMED|REFUTED|INCONCLUSIVE main_writes=[] model_override=False background=False subtype=success is_error=False cost=0.3421658 client=2.1.325 main_model=claude-opus-5-5
+00:58:39 REPO-STATUS-AFTER bdf95ca88bcd4533
+00:58:39 DONE spent=0.684691
+00:58:39 RUNNER-EXIT code=0

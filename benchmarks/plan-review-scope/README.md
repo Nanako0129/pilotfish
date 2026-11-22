@@ -13,14 +13,14 @@ The scope change was run once on the manual template and once on the Plugin. A r
 
 | Item | Value |
 |---|---|
-| Dates | 2026-11-20 to 2026-11-22 |
+| Dates | 2026-11-20 to 2026-11-23 |
 | Client | Claude Code 2.1.325; `--model opus --effort high`, resolved to `claude-opus-5-5` |
 | Isolation | `--setting-sources project,local --strict-mcp-config`, each cell in a disposable Git copy of `benchmarks/verifier-boundary/fixture` with the policy template as `CLAUDE.md` and roles passed by `--agents` |
 | Counting | Only top-level stream events. In `scope` and `plugin`, a required role counts only when its call returned without error; `blocking-bar` did not check that, and its captures hold no failed top-level tool result |
 | Role models | Child messages in the captures report `claude-opus-5-5` for `verifier` and `plan-verifier` and `claude-sonnet-5-5` for `mech-executor` and `executor`, so no subagent model override was active (read from the uncommitted raw streams, like the failed-result count above) |
 | Cost | `total_cost_usd` from each result line. A resumed turn reports its session's cumulative total, so each session is counted once. The `DONE spent=` lines in the first three `run.log` files added every turn and overstate the spend |
 
-Exact input hashes are in `inputs.sha256` in each of [`blocking-bar/`](./blocking-bar/), [`scope/`](./scope/), [`plugin/`](./plugin/) and [`rerun/`](./rerun/). Per-cell values are in [`results.json`](./results.json).
+Exact input hashes are in `inputs.sha256` in each of [`blocking-bar/`](./blocking-bar/), [`scope/`](./scope/), [`plugin/`](./plugin/), [`rerun/`](./rerun/), [`precedence/`](./precedence/) and [`precedence-2/`](./precedence-2/). Per-cell values are in [`results.json`](./results.json).
 
 ## Blocking bar
 
@@ -93,6 +93,29 @@ This is the second rerun. The first ran on the wording committed in `a9179ea` (U
 
 `v2base`, `plancap` and `plancapbase` were not repeated. `v2base` and `plancapbase` use `main`'s roles. `plancap` used the candidate roles under `main`'s policy and failed the same way as `plancapbase`; it has not been run on the final text.
 
+## Verdict precedence
+
+Added after the changes above merged. `verifier` defined CONFIRMED as every required condition met and REFUTED as a reproducible P0-P2 finding that blocks the claim, and no sentence said which applies when all listed conditions are met and the reviewed commit also introduces a P0-P2 regression outside them. `main` at `40d170e` had the same gap. Line 19 now reads "REFUTED takes precedence when a reproducible P0-P2 blocker coexists with met conditions or missing evidence; report both."
+
+Both runs used the changed roles (agents SHA-256 `899b9e01...cf93`) against the roles at `5ba7ee0` (`2e0ee951...b75`), on the unchanged policy. The prompt is the blocking-bar one: [`precedence/prompts/verify.txt`](./precedence/prompts/verify.txt).
+
+| Run | Cell | Roles | State under review | Verdict |
+|---|---|---|---|---|
+| [`precedence/`](./precedence/) | `v1` | changed | Version 1 payloads decode without `id`; tests pass | REFUTED |
+| | `v2` | changed | Code correct; README says 3 tests, the suite has 4 | CONFIRMED, mismatch reported as P3 |
+| | `v3` | changed | `encodeUser` deletes `id` from the caller's object; the commit rewrote the round-trip test | REFUTED, P1 |
+| | `v3base` | `5ba7ee0` | Same as `v3` | REFUTED, P1 |
+| [`precedence-2/`](./precedence-2/) | `v3` | changed | Tests unchanged from `v2`; `encodeUser` keeps every user and payload in a module-level array nothing reads or clears | REFUTED, P1; all five conditions reported met |
+| | `v3base` | `5ba7ee0` | Same as `v3` | REFUTED, P1; all five conditions reported met |
+
+Spent USD 1.29 (script cap 2.50; no authorized cap) and USD 0.68 (cap 1.50). Logs: [`precedence/run.log`](./precedence/run.log), [`precedence-2/run.log`](./precedence-2/run.log).
+
+The first `v3` state did not isolate the case: both verifiers said the checks pass as written, but the changed verifier tied its finding to acceptance item 3 and the base verifier marked item 3 "Met on decode" with a caveat. The second state leaves the tests as they were, and both verifiers marked all five conditions met without qualification before returning REFUTED. The base verifier still labelled its finding as affecting item 2, so the separation is cleaner than in the first state, not complete.
+
+The verifier at `5ba7ee0` already returned REFUTED on both states. The runs show no regression in `v1` and `v2` and no verdict changed by the new sentence; the sentence states in the role text what the model already did in these two observations.
+
+The first run was not authorized. A reviewing subagent was told to exercise the script with a stub client; its stub was never created and the script found the real client. The script and inputs were the ones prepared for the run, so the result is kept. A second start by the same subagent was stopped during `v1`; its capture has no result line and is not committed or hashed here, so that cost is unknown and not in the totals. `precedence-2/run-copy/run.sh` ran with a check that refuses a real client unless `PAID_RUN=1` is set; the same check was added to `precedence/run-copy/run.sh` afterwards.
+
 ## Limits
 
 - One attempt per cell.
@@ -107,11 +130,11 @@ This is the second rerun. The first ran on the wording committed in `a9179ea` (U
 
 ## Reproduce
 
-Each call is paid. Copy one campaign folder (`blocking-bar`, `scope`, `plugin` or `rerun`) to a scratch directory and run its script from there, so the repository is only read:
+Each call is paid. Copy one campaign folder (`blocking-bar`, `scope`, `plugin`, `rerun`, `precedence` or `precedence-2`) to a scratch directory and run its script from there, so the repository is only read:
 
 ```bash
 cp -R benchmarks/plan-review-scope/scope /tmp/plan-review-scope
 SRC="$PWD" bash /tmp/plan-review-scope/run-copy/run.sh
 ```
 
-The committed scripts are records of what ran and are not maintained as shared tooling, which is why they repeat each other. Three edits were made: `SRC` was an absolute path; `blocking-bar/run-copy/run.sh` took its base roles from `main`, now pinned to `40d170e`; and the spend total in each checker added every turn of a resumed session, now counted once per session. `plugin/run-copy/run.sh` reads its `cross` fixture and prompt from `scope/` in the repository. They have not been rerun since those edits; The scripts in `rerun/run-copy/` are as they ran. `blocking-bar/run-copy/run2.sh` adds the two `main` controls and reuses the inputs frozen by `run.sh`.
+The committed scripts are records of what ran and are not maintained as shared tooling, which is why they repeat each other. Three edits were made: `SRC` was an absolute path; `blocking-bar/run-copy/run.sh` took its base roles from `main`, now pinned to `40d170e`; and the spend total in each checker added every turn of a resumed session, now counted once per session. `plugin/run-copy/run.sh` reads its `cross` fixture and prompt from `scope/` in the repository. They have not been rerun since those edits; The scripts in `rerun/run-copy/` are as they ran. Review of the `precedence` and `precedence-2` scripts led to two edits after their runs, not rerun since: `precedence/run-copy/run.sh` got the `PAID_RUN=1` check that `precedence-2` ran with, and both `parse.py` copies now stop on a result line without `total_cost_usd` and no longer count it as zero. Set `PAID_RUN=1` to run either. `blocking-bar/run-copy/run2.sh` adds the two `main` controls and reuses the inputs frozen by `run.sh`.
