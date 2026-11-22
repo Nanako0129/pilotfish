@@ -17,7 +17,9 @@ CELLS="$G/cells"
 say() { printf '%s %s\n' "$(date +%H:%M:%S)" "$*" | tee -a "$LOG"; }
 trap 'rc=$?; say "RUNNER-EXIT code=$rc"' EXIT
 # Added after the recorded run: refuse to call a real client unless PAID_RUN=1.
-if [ "$(claude --version)" != stub ] && [ "${PAID_RUN:-}" != 1 ]; then say "STOP real client without PAID_RUN=1"; exit 4; fi
+CLAUDE_BIN="$(command -v claude)" || { say "STOP claude not found"; exit 4; }
+case "$CLAUDE_BIN" in /*) ;; *) say "STOP claude does not resolve to an absolute path: $CLAUDE_BIN"; exit 4 ;; esac
+if [ "$("$CLAUDE_BIN" --version)" != stub ] && [ "${PAID_RUN:-}" != 1 ]; then say "STOP real client without PAID_RUN=1"; exit 4; fi
 
 # ---- freeze inputs (fail if a previous run left anything behind) ----
 for d in "$FROZEN" "$STREAMS" "$CELLS"; do
@@ -32,7 +34,7 @@ python3 "$SRC/benchmarks/baton-compatibility/build-agents-json.py" "$FROZEN/base
 cp "$SRC"/benchmarks/verifier-boundary/prompts/plan-cap-turn-{1,2,3}.txt "$G/prompts/"
 if cmp -s "$FROZEN/agents-candidate.json" "$FROZEN/agents-base.json"; then say "STOP candidate equals base"; exit 4; fi
 ( cd "$G" && shasum -a 256 src/CLAUDE.md src/agents-candidate.json src/agents-base.json prompts/*.txt > "$FROZEN/SHA256.txt" )
-say "FROZEN client=$(claude --version) $(tr '\n' ' ' < "$FROZEN/SHA256.txt" | cut -c1-400)"
+say "FROZEN client=$("$CLAUDE_BIN" --version) $(tr '\n' ' ' < "$FROZEN/SHA256.txt" | cut -c1-400)"
 
 say "REPO-STATUS-BEFORE $(git -C "$SRC" status --porcelain | shasum -a 256 | cut -c1-16)"
 
@@ -61,7 +63,7 @@ call() {     # call CELL TAG CAP AGENTS PROMPT ROLE EXPECT MODE SID
   if [ -e "$out" ]; then say "STOP stream-exists $out"; exit 4; fi
   say "START $cell-$tag cap=$cap spent_so_far=$spent"
   ( cd "$CELLS/$cell" && perl -e 'alarm shift; exec @ARGV' 1500 \
-      claude --dangerously-skip-permissions -p --output-format stream-json --verbose \
+      "$CLAUDE_BIN" --dangerously-skip-permissions -p --output-format stream-json --verbose \
         --max-budget-usd "$cap" "$mode" "$sid" --model opus --effort high \
         --setting-sources project,local --strict-mcp-config \
         --agents "$(<"$agents")" "$(<"$prompt")" > "$out" 2> "$err" ) || rc=$?
