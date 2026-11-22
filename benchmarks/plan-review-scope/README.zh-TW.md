@@ -120,7 +120,7 @@ preflight 與每格第一回合的串流都必須含有 hook 輸出的 `*=mandat
 
 這一節是 v1.6.0 之前加的。發版前的獨立閱讀發現 `verifier` 第 23 行有兩條 P2 規則：「P2 = material bounded/recoverable issue」，以及針對未達成驗收條件的「P2 only when current-head run fails/users hit behavior」。照第二條，只靠檢視就看得出沒達成的必要條件（例如規定要補的測試沒補）會低於 P2，可能以 CONFIRMED 收場。這一行現在寫成「Failed acceptance condition: P0/P1 when criteria met, else P2, incl. missing required test/file. Exception: wording/count mismatch lacking behavioral effect = P3 unless users rely on mismatched text (P2).」
 
-執行一次，拿修改後的角色（agents SHA-256 `393a2c93...5eed`）對照 `1a5bad8` 的角色（`899b9e01...cf93`），政策文字沒有變。`v4` 用 [`floor/prompts/verify-test.txt`](./floor/prompts/verify-test.txt)，多了驗收條件 6：`store.test.mjs` 要有一個測試確認版本 1 的舊 payload 仍可解碼。紀錄：[`floor/run.log`](./floor/run.log)。花費 1.25 美元，上限 2.50。
+執行一次，拿修改後的角色（agents SHA-256 `393a2c93...5eed`，是產生器輸出連同結尾換行的雜湊；`benchmarks/baton-compatibility` 釘的是同一份 payload 去掉換行後的 `6d28c830...48fd`）對照 `1a5bad8` 的角色（`899b9e01...cf93`），政策文字沒有變。`v4` 用 [`floor/prompts/verify-test.txt`](./floor/prompts/verify-test.txt)，多了驗收條件 6：`store.test.mjs` 要有一個測試確認版本 1 的舊 payload 仍可解碼。紀錄：[`floor/run.log`](./floor/run.log)。花費 1.25 美元，上限 2.50。
 
 | 格 | 角色 | 受審狀態 | 判定 |
 |---|---|---|---|
@@ -134,7 +134,7 @@ preflight 與每格第一回合的串流都必須含有 hook 輸出的 `*=mandat
 ## 限制
 
 - 每格只跑一次。
-- 在 `scope` 與 `plugin`，腳本檢查的是叫了哪些角色、有沒有寫檔、變更了哪些檔案、測試有沒有過。腳本不檢查判定結果和呼叫順序：上面的 CONFIRMED 與 READY 是從 `outputs/` 讀出來的。
+- 在 `scope` 與 `plugin`，腳本檢查的是叫了哪些角色、有沒有寫檔、變更了哪些檔案、測試有沒有過。腳本不檢查判定結果和呼叫順序：上面的 CONFIRMED 與 READY 是從 `outputs/` 讀出來的。在 `precedence`、`precedence-2` 與 `floor`，腳本只檢查判定字樣；表格裡的發現優先等級是從 `outputs/` 讀出來的。
 - 阻擋門檻的對照只涵蓋一種 P3 條件，也就是 README 裡的數量不符。驗收條件本身要求的數量（例如「新增 4 個測試」但只有 3 個）可以讀成數量不符（P3），也可以讀成缺少規定的測試（P2）；沒有任何一格包含這種情況。
 - 續接呼叫的 `--max-budget-usd` 會不會把 session 先前的花費算進去，沒有查過。每個續接回合都在上限內結束。
 - `cross` 的 prompt 直接寫明風險類別。這一格驗的是觸發條件到角色的路由，不是模型自己分類風險的能力。

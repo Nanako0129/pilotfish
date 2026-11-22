@@ -120,7 +120,7 @@ The first run was not authorized. A reviewing subagent was told to exercise the 
 
 Added before v1.6.0. The independent reading for the release found two P2 rules on `verifier` line 23: "P2 = material bounded/recoverable issue", and "P2 only when current-head run fails/users hit behavior" for a failed acceptance condition. Under the second, a required condition that fails by inspection alone, such as a required test that was not added, fell below P2 and could end in CONFIRMED. The line now reads "Failed acceptance condition: P0/P1 when criteria met, else P2, incl. missing required test/file. Exception: wording/count mismatch lacking behavioral effect = P3 unless users rely on mismatched text (P2)."
 
-One run, changed roles (agents SHA-256 `393a2c93...5eed`) against the roles at `1a5bad8` (`899b9e01...cf93`), unchanged policy. `v4` uses [`floor/prompts/verify-test.txt`](./floor/prompts/verify-test.txt), which adds acceptance item 6: `store.test.mjs` contains a test that a version 1 legacy payload still decodes. Log: [`floor/run.log`](./floor/run.log). Spent USD 1.25 of a 2.50 cap.
+One run, changed roles (agents SHA-256 `393a2c93...5eed`, the generator output with its trailing newline; `benchmarks/baton-compatibility` pins the same payload without the newline as `6d28c830...48fd`) against the roles at `1a5bad8` (`899b9e01...cf93`), unchanged policy. `v4` uses [`floor/prompts/verify-test.txt`](./floor/prompts/verify-test.txt), which adds acceptance item 6: `store.test.mjs` contains a test that a version 1 legacy payload still decodes. Log: [`floor/run.log`](./floor/run.log). Spent USD 1.25 of a 2.50 cap.
 
 | Cell | Roles | State under review | Verdict |
 |---|---|---|---|
@@ -134,7 +134,7 @@ The verifier at `1a5bad8` also returned REFUTED on `v4`, grading the missing tes
 ## Limits
 
 - One attempt per cell.
-- In `scope` and `plugin` the scripts check which roles were called, writes, changed files and tests. They do not check verdicts or call order: the CONFIRMED and READY entries above were read from `outputs/`.
+- In `scope` and `plugin` the scripts check which roles were called, writes, changed files and tests. They do not check verdicts or call order: the CONFIRMED and READY entries above were read from `outputs/`. In `precedence`, `precedence-2` and `floor` the scripts check only the verdict word; the finding priorities in the tables were read from `outputs/`.
 - The blocking-bar comparison covers one kind of P3 condition, a count mismatch in a README. A count required by acceptance itself, such as "adds 4 tests" with 3 present, can be read as a count mismatch (P3) or as a missing required test (P2); no cell contains that case.
 - Whether `--max-budget-usd` on a resumed call counts the session's earlier spend was not checked. Each resumed turn finished under its cap.
 - The `cross` prompt names its risk class. The cell tests trigger-to-role routing, not whether the model classifies the risk itself.
