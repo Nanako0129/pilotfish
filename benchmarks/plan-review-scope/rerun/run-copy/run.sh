@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Paid rerun after the wording fix (verifier CONFIRMED definition; policy lines 36, 37, 40; ambient line 29).
+# Paid rerun on the final wording (verifier CONFIRMED definition; policy lines 36, 37, 40; ambient line 29).
 # Runs on the Mac. Hard cap: USD 4.00 total across all cells; stop at the first failed cell.
 # Cells: v1, v2 (verifier blocking bar), cross, schema, routine (manual template),
 #        p-preflight, p-cross, p-schema (Plugin path: no CLAUDE.md, no --agents).
 # Every claude call runs inside a disposable Git copy of a fixture. The pilotfish repository is only read.
 set -euo pipefail
 
-G="$(cd "$(dirname "$0")/.." && pwd)"          # gate-1123/ (script runs from gate-1123/run-copy/)
+G="$(cd "$(dirname "$0")/.." && pwd)"          # gate-1124/ (script runs from gate-1124/run-copy/)
 HERE="$(cd "$(dirname "$0")" && pwd)"
 SRC="${SRC:-$(git rev-parse --show-toplevel)}"
 PRS="$SRC/benchmarks/plan-review-scope"

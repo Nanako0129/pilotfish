@@ -1,12 +1,17 @@
-New writes now save the user payload as version 2 with `user_id`, and reads accept both version 1 and version 2. `npm test` passes all 5 tests. The independent verifier came back **CONFIRMED** with no findings.
+The user payload is now version 2: new writes use `user_id`, and reads still accept both version 1 (`user`) and version 2 (`user_id`). `npm test` exits 0 with 5 of 5 tests passing. I ran it myself, and a separate fresh-context check (`verifier`) returned **CONFIRMED**.
 
-**What changed**
-- **`store.mjs`:** `encodeUser` writes `{ version: 2, user_id, name }` with no `user` field. `decodeUser` takes the id from `user` for version 1 and from `user_id` for version 2. Any other version still throws `unsupported version: N`.
-- **`store.test.mjs`:** the old round-trip test is replaced by five tests: the version 2 write format, a version 2 read, a version 1 read, a round trip, and rejection of version 3.
+**What changed** (only `store.mjs` and `store.test.mjs`; `git status` shows nothing else):
+- **Writing:** `encodeUser` now produces `{ version: 2, user_id, name }`.
+- **Reading:** `decodeUser` turns version 1 (`user`) and version 2 (`user_id`) payloads into `{ id, name }`. Any other version still throws `unsupported version: N`.
+- **Tests:** the old version 1 round-trip test is replaced by five tests. They check:
+  - the exact version 2 output, including that there is no `user` key
+  - reading a version 1 payload
+  - reading a version 2 payload
+  - a version 2 write-then-read round trip
+  - that version 3 is rejected
 
-**Checks**
-- **Tests:** I ran `npm test` myself: 5 passed, 0 failed.
-- **Scope:** `git status` shows only `store.mjs` and `store.test.mjs` modified. `README.md`, `package.json` and `CLAUDE.md` are untouched.
-- **Verifier:** it checked that the tests actually catch mistakes by breaking a temporary copy of the code three ways (adding `user` to the write, mixing up the two read paths). A test failed each time.
+**How it was done:** a `mech-executor` agent made the edits. Its reported exit code came from the wrong command, so I reran `npm test` myself to confirm the real exit status.
 
-**Not done:** I didn't commit, push or open a PR, and there's no data migration because the repo doesn't have one. To undo, run `git checkout -- store.mjs store.test.mjs`.
+**Findings:** nothing blocking. The check noted one out-of-scope case: a version 1 payload that has `user_id` instead of `user` decodes with no `id`. Checking for missing fields was a non-goal in the plan, so I've left it alone.
+
+**Not done:** nothing is committed or pushed. The README typo, other files and stored data are untouched. Cost so far this turn is about $0.26 of $0.80.

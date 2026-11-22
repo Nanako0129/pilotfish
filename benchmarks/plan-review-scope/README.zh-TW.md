@@ -17,7 +17,7 @@ v1.5.0 之後有兩項改動，各做了一次小型付費檢查：
 | 用戶端 | Claude Code 2.1.325；`--model opus --effort high`，實際解析為 `claude-opus-5-5` |
 | 隔離 | `--setting-sources project,local --strict-mcp-config`；每格在 `benchmarks/verifier-boundary/fixture` 的拋棄式 Git 複本裡執行，政策範本當作 `CLAUDE.md`，角色用 `--agents` 傳入 |
 | 計數 | 只算最上層的串流事件。在 `scope` 與 `plugin`，必要角色的呼叫要沒有錯誤地回傳才算數；`blocking-bar` 沒有檢查這一點，而它的串流裡沒有失敗的最上層工具結果 |
-| 角色模型 | 串流裡子代理的訊息顯示 `verifier` 與 `plan-verifier` 是 `claude-opus-5-5`、`mech-executor` 是 `claude-sonnet-5-5`，所以沒有子代理模型覆寫在作用（和上一列的失敗結果數一樣，是從沒有提交的原始串流讀出來的） |
+| 角色模型 | 串流裡子代理的訊息顯示 `verifier` 與 `plan-verifier` 是 `claude-opus-5-5`、`mech-executor` 與 `executor` 是 `claude-sonnet-5-5`，所以沒有子代理模型覆寫在作用（和上一列的失敗結果數一樣，是從沒有提交的原始串流讀出來的） |
 | 花費 | 每次呼叫 result 行的 `total_cost_usd`。續接的回合回報的是整個 session 的累計值，所以每個 session 只算一次。前三份 `run.log` 的 `DONE spent=` 把每一回合都加進去，數字偏高 |
 
 輸入檔的雜湊在 [`blocking-bar/`](./blocking-bar/)、[`scope/`](./scope/)、[`plugin/`](./plugin/)、[`rerun/`](./rerun/) 各自的 `inputs.sha256`。各格數值在 [`results.json`](./results.json)。
@@ -48,7 +48,7 @@ Prompt：[`scope/prompts/cross-turn-1.txt`](./scope/prompts/cross-turn-1.txt)，
 | `schema`（payload 遷移） | `plan-verifier` 判 READY、沒有寫檔，停下 | `mech-executor`，再由 `verifier` 判 CONFIRMED | `store.mjs`、`store.test.mjs` | 通過 |
 | `routine`（README 錯字） | 不適用 | 主 session 直接修改，沒有 Agent 呼叫 | `README.md` | 通過 |
 
-沒有任何呼叫在叫用時指定 `model` 或在背景執行，也沒有任何一格移動 `HEAD`。`cross` 的 Plan 開頭寫了使用者會得到什麼、什麼不會變：[`scope/outputs/cross-t1.final.txt`](./scope/outputs/cross-t1.final.txt)。
+沒有任何呼叫在叫用時指定 `model` 或要求在背景執行，也沒有任何一格移動 `HEAD`。`cross` 的 Plan 開頭寫了使用者會得到什麼、什麼不會變：[`scope/outputs/cross-t1.final.txt`](./scope/outputs/cross-t1.final.txt)。
 
 ## Plugin 上的 Plan 審查範圍
 
@@ -67,37 +67,37 @@ preflight 與每格第一回合的串流都必須含有 hook 輸出的 `*=mandat
 
 `scope` 和 `plugin` 跑的是 `0ffce36` 的政策與角色檔。`blocking-bar` 在那之前執行，用的是 `main`（`40d170e`）的政策，搭配一組候選角色檔，其中的 `verifier` 和 `0ffce36` 的相同。`0ffce36` 的文字有兩處和這次改動對不上：
 
-- `verifier` 把 CONFIRMED 定義成每個必要條件都有證據，但只在 P3 未達成的條件同樣會得到 CONFIRMED。定義現在寫成「sufficient for every required acceptance condition, or its only shortfall rates P3/P4 (report)」。
-- 政策第 36、37、40 行對所有單元都提到 readiness，可是只有 `plan-verifier` 會回 READY。第 40 行現在以「Plan-review units:」開頭，第 37 行寫「After any required readiness」，第 36 行寫「any readiness review」。Plugin 壓縮版的對應規則以 `*:` 開頭。
+- `verifier` 把 CONFIRMED 定義成每個必要條件都有證據，但只在 P3 未達成的條件同樣會得到 CONFIRMED。定義現在寫成「evaluates every required acceptance condition; each is met or fails only at P3/P4 (report)」。
+- 政策第 36、37、40 行對所有單元都提到 readiness，可是只有 `plan-verifier` 會回 READY。第 36 行現在寫「any readiness review」，第 37 行寫「After any required readiness」。第 40 行把審查順序和「both must be READY」限定在「Plan-review units:」，其餘三條規則放在「All units:」之下。Plugin 壓縮版用 `*-marked:` 和 `All:` 做同樣的區分。
 
-各格用同一支腳本重跑，政策 SHA-256 是 `bd907c31...2ec5`，`sessionstart.txt` 的 SHA-256 是 `62751a24...70fa`。紀錄：[`rerun/run.log`](./rerun/run.log)。花費 2.74 美元，上限 4.00 美元。
+各格用同一支腳本重跑，政策 SHA-256 是 `93fb822a...fc45`，`sessionstart.txt` 的 SHA-256 是 `c72fa1f2...a055`。紀錄：[`rerun/run.log`](./rerun/run.log)。花費 2.76 美元，上限 4.00 美元。
 
 | 格 | 路徑 | 結果 |
 |---|---|---|
 | `v1` | 範本 | `verifier` 判 REFUTED |
 | `v2` | 範本 | `verifier` 判 CONFIRMED，數量不符列為 P3 |
-| `cross` | 範本 | 沒有 Agent 呼叫、沒有寫檔，提出 Plan 後停下；之後 `mech-executor`，`verifier` 判 CONFIRMED；範圍內的六個檔案；測試通過 |
+| `cross` | 範本 | 沒有 Agent 呼叫、沒有寫檔，提出 Plan 後停下；之後 `mech-executor`，`verifier` 判 CONFIRMED；範圍內六個檔案中的四個（`cli.test.mjs` 與 `report.test.mjs` 沒有動）；測試通過 |
 | `schema` | 範本 | `plan-verifier` 判 READY、沒有寫檔，停下；之後 `mech-executor`，`verifier` 判 CONFIRMED；`store.mjs`、`store.test.mjs`；測試通過 |
 | `routine` | 範本 | 主 session 直接修改，沒有 Agent 呼叫；`README.md`；測試通過 |
 | `p-preflight` | Plugin | hook 文字與 `pilotfish:` 角色都在 |
-| `p-cross` | Plugin | 與 `cross` 相同，角色名稱帶 `pilotfish:` |
-| `p-schema` | Plugin | 與 `schema` 相同，角色名稱帶 `pilotfish:` |
+| `p-cross` | Plugin | 沒有 Agent 呼叫、沒有寫檔，提出 Plan 後停下；之後 `pilotfish:executor`，`pilotfish:verifier` 判 CONFIRMED；範圍內的六個檔案；測試通過 |
+| `p-schema` | Plugin | `pilotfish:plan-verifier` 判 READY、沒有寫檔，停下；之後 `pilotfish:executor`，`pilotfish:verifier` 判 CONFIRMED；`store.mjs`、`store.test.mjs`；測試通過 |
 
-`p-schema` 這次把修改交給 `pilotfish:mech-executor`；先前那次 Plugin 執行是主 session 自己寫的。結果和先前相同，所以重跑顯示沒有退步。它沒有顯示新措辭有效：在先前的文字上 `cross` 就已經不叫 `plan-verifier` 並停下、`v2` 也已經是 CONFIRMED，沒有任何一格能分辨兩種措辭。
+這次 Plugin 的兩格都把修改交給 `pilotfish:executor`。第一次 Plugin 執行時，`cross` 用的是 `pilotfish:mech-executor`，`schema` 是主 session 自己寫的。
+
+`p-schema` 第一回合裡，用戶端把 `pilotfish:plan-verifier` 的呼叫放到背景執行，呼叫本身並沒有這樣要求。[`rerun/outputs/p-schema-t1.agent0.txt`](./rerun/outputs/p-schema-t1.agent0.txt) 裡的工具結果是啟動通知。READY 是在完成通知裡送達的，session 等到它之後才提出 Plan。腳本把啟動通知算成一次已回傳的呼叫。所有各輪裡沒有其他呼叫在背景執行。
+
+各格通過與否和判定都與先前相同，所以重跑顯示沒有退步；執行角色和 `cross` 動到的檔案有差異，如上所述。它沒有顯示新措辭有效：在先前的文字上 `cross` 就已經不叫 `plan-verifier` 並停下、`v2` 也已經是 CONFIRMED，沒有任何一格能分辨這些措辭。
+
+這是第二次重跑。第一次跑的是 `a9179ea` 提交的措辭（2.74 美元，判定相同），紀錄在該 commit 的歷史裡。之後審查發現那版第 40 行的前綴涵蓋過多，所以文字再改，各格又跑了一次。
 
 `v2base`、`plancap`、`plancapbase` 沒有重跑。`v2base` 與 `plancapbase` 用的是 `main` 的角色檔。`plancap` 用的是候選角色檔搭配 `main` 的政策，失敗的方式和 `plancapbase` 相同；它沒有在最終文字上跑過。
-
-這份紀錄裡 `REPO-STATUS-BEFORE` 和 `-AFTER` 不同，是因為腳本執行期間工作樹多了 `rerun/` 資料夾。沒有任何一格寫進那裡。
 
 ## 限制
 
 - 每格只跑一次。
 - 在 `scope` 與 `plugin`，腳本檢查的是叫了哪些角色、有沒有寫檔、變更了哪些檔案、測試有沒有過。腳本不檢查判定結果和呼叫順序：上面的 CONFIRMED 與 READY 是從 `outputs/` 讀出來的。
 - 阻擋門檻的對照只涵蓋一種未達成的條件，也就是 README 裡的數量不符。其他不會讓執行失敗、使用者也碰不到的未達成條件（例如要求的測試沒有補上），依新措辭同樣低於 P2，這種情況沒有觀察過。
-- 重跑之後又在最終文字裡找到三處弱點，沒有修，因為一修就會改到重跑所綁定的文字：
-  - `verifier` 的 CONFIRMED 定義裡，「its only shortfall」可以讀成缺少的證據被評為 P3，而不只是評估過、在 P3 未達成的條件。角色檔在兩行後對未評估條件的 INCONCLUSIVE 規則說的是另一回事。
-  - 政策第 40 行把「Plan-review units:」放在整條規則前面，所以關於共用阻擋項和表面拆分的句子讀起來也只限這些單元。
-  - Plugin 壓縮版的規則以 `*:` 開頭，而 `*` 在 23 行之前定義成觸發條件的後綴記號。
 - 續接呼叫的 `--max-budget-usd` 會不會把 session 先前的花費算進去，沒有查過。每個續接回合都在上限內結束。
 - `cross` 的 prompt 直接寫明風險類別。這一格驗的是觸發條件到角色的路由，不是模型自己分類風險的能力。
 - 每個 prompt 都明確選用 pilotfish。
@@ -114,4 +114,4 @@ cp -R benchmarks/plan-review-scope/scope /tmp/plan-review-scope
 SRC="$PWD" bash /tmp/plan-review-scope/run-copy/run.sh
 ```
 
-提交的腳本是當時執行內容的紀錄，不當作共用工具維護，所以彼此重複。改了三處：`SRC` 原本是絕對路徑；`blocking-bar/run-copy/run.sh` 原本從 `main` 取對照用的角色檔，現在固定為 `40d170e`；各檢查程式的花費加總原本把續接 session 的每一回合都加進去，現在每個 session 只算一次。`plugin/run-copy/run.sh` 會從 repo 的 `scope/` 讀取 `cross` 的 fixture 與 prompt。改完之後沒有重跑過；`rerun/run-copy/run.sh` 則是執行當時的原樣。`blocking-bar/run-copy/run2.sh` 加跑兩個 `main` 對照格，並沿用 `run.sh` 凍結的輸入。
+提交的腳本是當時執行內容的紀錄，不當作共用工具維護，所以彼此重複。改了三處：`SRC` 原本是絕對路徑；`blocking-bar/run-copy/run.sh` 原本從 `main` 取對照用的角色檔，現在固定為 `40d170e`；各檢查程式的花費加總原本把續接 session 的每一回合都加進去，現在每個 session 只算一次。`plugin/run-copy/run.sh` 會從 repo 的 `scope/` 讀取 `cross` 的 fixture 與 prompt。改完之後沒有重跑過；`rerun/run-copy/` 裡的腳本則是執行當時的原樣。`blocking-bar/run-copy/run2.sh` 加跑兩個 `main` 對照格，並沿用 `run.sh` 凍結的輸入。

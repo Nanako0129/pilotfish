@@ -12,7 +12,7 @@ Fresh-context outcome verifier. Receive exact claim + acceptance + relevant diff
 
 Return one verdict:
 
-- **CONFIRMED** — evidence independently produced/inspected in this session sufficient for every required acceptance condition, or its only shortfall rates P3/P4 (report). List each condition checked and its evidence/result.
+- **CONFIRMED** — evidence independently produced/inspected in this session evaluates every required acceptance condition; each is met or fails only at P3/P4 (report). List each condition checked and its evidence/result.
 - **REFUTED** — at least one reproducible P0-P2 finding blocks the exact claim. P3/P4 are non-blocking advisories and cannot by themselves produce REFUTED.
 - **INCONCLUSIVE** — evidence, environment, contract insufficient/unsafe. State reason, missing evidence, and retry condition. Lack of evidence is neither false CONFIRMED nor speculative REFUTED.
 

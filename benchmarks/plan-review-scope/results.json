@@ -258,11 +258,11 @@
         "2026-11-22"
       ],
       "authorized_cap_usd": 4.0,
-      "spent_usd": 2.739615,
-      "reason": "the review found the verifier CONFIRMED definition and the readiness wording on policy lines 36, 37 and 40 inconsistent with the change; both were reworded and every cell bound to the changed text was run again",
-      "policy_sha256": "bd907c3196bc03ac6589d198e6efc71c75bd041206475fc1df4edbd23fbd2ec5",
-      "agents_sha256": "51230d07f41829d9f558c3c6c582680c429b599870f29367f72d48c84ab88a93",
-      "sessionstart_sha256": "62751a24adfb9b7eaa07444e8764b41deca7aec6ad64954ec8f7a7717e6170fa",
+      "spent_usd": 2.758488,
+      "reason": "review found the verifier CONFIRMED definition and the readiness wording on policy lines 36, 37 and 40 inconsistent with the change; both were reworded (twice, see superseded_run) and the cells were run again on the final text",
+      "policy_sha256": "93fb822a0cccd1a57df2ebf386f1581d2f3a8c585a0a3b27c79b7c302f04fc45",
+      "agents_sha256": "2e0ee951f097e11847c5a0c3297798d037757039e28b4e28d4346702f4defb75",
+      "sessionstart_sha256": "c72fa1f23c5e6bc7f91d3f925d60fa7de99b8be7e0fad27f230dcb294994a055",
       "plugin_cells": "p-*: frozen plugin/ copy loaded by --plugin-dir; no CLAUDE.md, no --agents",
       "not_rerun": [
         "v2base",
@@ -277,7 +277,7 @@
           "expected": "REFUTED",
           "verdict": "REFUTED",
           "pass": true,
-          "cost_usd": 0.31736
+          "cost_usd": 0.322478
         },
         {
           "cell": "v2",
@@ -287,7 +287,7 @@
           "verdict": "CONFIRMED",
           "finding_priority": "P3",
           "pass": true,
-          "cost_usd": 0.308947
+          "cost_usd": 0.285627
         },
         {
           "cell": "cross",
@@ -296,7 +296,7 @@
           "main_writes": [],
           "tree_changed": [],
           "pass": true,
-          "cost_usd": 0.168705
+          "cost_usd": 0.164422
         },
         {
           "cell": "cross",
@@ -308,15 +308,13 @@
           "verifier_verdict": "CONFIRMED",
           "tree_changed": [
             "cli.mjs",
-            "cli.test.mjs",
             "format.mjs",
             "format.test.mjs",
-            "report.mjs",
-            "report.test.mjs"
+            "report.mjs"
           ],
           "npm_test": "pass",
           "pass": true,
-          "cost_usd": 0.511001
+          "cost_usd": 0.502205
         },
         {
           "cell": "schema",
@@ -328,7 +326,7 @@
           "main_writes": [],
           "tree_changed": [],
           "pass": true,
-          "cost_usd": 0.273166
+          "cost_usd": 0.289368
         },
         {
           "cell": "schema",
@@ -344,7 +342,7 @@
           ],
           "npm_test": "pass",
           "pass": true,
-          "cost_usd": 0.539384
+          "cost_usd": 0.579564
         },
         {
           "cell": "routine",
@@ -358,7 +356,7 @@
           ],
           "npm_test": "pass",
           "pass": true,
-          "cost_usd": 0.144839
+          "cost_usd": 0.146431
         },
         {
           "cell": "p-preflight",
@@ -367,7 +365,7 @@
           "policy_marker_in_capture": true,
           "pilotfish_roles_in_init": true,
           "pass": true,
-          "cost_usd": 0.002523
+          "cost_usd": 0.002597
         },
         {
           "cell": "p-cross",
@@ -376,14 +374,14 @@
           "main_writes": [],
           "tree_changed": [],
           "pass": true,
-          "cost_usd": 0.14699,
+          "cost_usd": 0.145959,
           "policy_marker_in_capture": true
         },
         {
           "cell": "p-cross",
           "turn": 2,
           "agents_called": [
-            "pilotfish:mech-executor",
+            "pilotfish:executor",
             "pilotfish:verifier"
           ],
           "verifier_verdict": "CONFIRMED",
@@ -397,7 +395,7 @@
           ],
           "npm_test": "pass",
           "pass": true,
-          "cost_usd": 0.456126
+          "cost_usd": 0.421397
         },
         {
           "cell": "p-schema",
@@ -409,14 +407,16 @@
           "main_writes": [],
           "tree_changed": [],
           "pass": true,
-          "cost_usd": 0.21885,
-          "policy_marker_in_capture": true
+          "cost_usd": 0.226146,
+          "policy_marker_in_capture": true,
+          "plan_verifier_run_in_background_by_client": true,
+          "verdict_source": "completion notification (summary READY); the tool result is the launch notice"
         },
         {
           "cell": "p-schema",
           "turn": 2,
           "agents_called": [
-            "pilotfish:mech-executor",
+            "pilotfish:executor",
             "pilotfish:verifier"
           ],
           "verifier_verdict": "CONFIRMED",
@@ -426,9 +426,17 @@
           ],
           "npm_test": "pass",
           "pass": true,
-          "cost_usd": 0.459434
+          "cost_usd": 0.498189
         }
-      ]
+      ],
+      "superseded_run": {
+        "commit": "a9179ea",
+        "spent_usd": 2.739615,
+        "policy_sha256": "bd907c3196bc03ac6589d198e6efc71c75bd041206475fc1df4edbd23fbd2ec5",
+        "agents_sha256": "51230d07f41829d9f558c3c6c582680c429b599870f29367f72d48c84ab88a93",
+        "sessionstart_sha256": "62751a24adfb9b7eaa07444e8764b41deca7aec6ad64954ec8f7a7717e6170fa",
+        "note": "an earlier rerun on the wording committed in a9179ea; all cells passed with the same verdicts; its record is in the repository history at that commit; review then found the line-40 prefix scoped too much and the CONFIRMED and Plugin wording unclear, so the text changed again"
+      }
     }
   ],
   "limits": [
@@ -439,6 +447,7 @@
     "plancap fails on both candidate and base agents, so its READY-at-turn-3 expectation does not hold on claude-opus-5-5 with or without this change",
     "raw stream captures are not committed; streams.sha256 lists their digests",
     "the Plugin campaign has no routine cell and no blocking-bar cells",
-    "scope and plugin ran on the policy and roles at 0ffce36, blocking-bar on main's policy (40d170e) with a candidate role set whose verifier equals the one at 0ffce36; rerun repeats their cells on the final text except v2base, plancapbase (main's roles) and plancap (candidate roles under main's policy, not run on the final text); the rerun outcomes equal the earlier ones and no cell distinguishes the reworded text from the earlier wording"
+    "scope and plugin ran on the policy and roles at 0ffce36, blocking-bar on main's policy (40d170e) with a candidate role set whose verifier equals the one at 0ffce36; rerun repeats their cells on the final text except v2base, plancapbase (main's roles) and plancap (candidate roles under main's policy, not run on the final text); the rerun's pass/fail results and verdicts equal the earlier ones (executor roles and the files touched in cross differ) and no cell distinguishes the reworded text from the earlier wording",
+    "in the rerun's p-schema turn 1 the client ran the plan-verifier call in the background without being asked; the check counted the launch notice as a returned call and READY was read from the completion notification"
   ]
 }

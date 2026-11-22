@@ -1,5 +1,5 @@
-51230d07f41829d9f558c3c6c582680c429b599870f29367f72d48c84ab88a93  ./agents.json
-bd907c3196bc03ac6589d198e6efc71c75bd041206475fc1df4edbd23fbd2ec5  ./CLAUDE.md
+2e0ee951f097e11847c5a0c3297798d037757039e28b4e28d4346702f4defb75  ./agents.json
+93fb822a0cccd1a57df2ebf386f1581d2f3a8c585a0a3b27c79b7c302f04fc45  ./CLAUDE.md
 97b91839fcb3202b36836900c60b13ee65447800ef5e9e275f45d8fddff0f2ba  ./fixture/package.json
 053d459251adb6074f420e3f72f813e9fcc8a31eefb7ab1f947c756afb70df9e  ./fixture/README.md
 84cce7009177d0817e417052da73810696727515f0c53daf0c0ac6ddbf168a18  ./fixture/store.mjs
@@ -11,13 +11,13 @@ f12fd48905d98358192a5e70b2513197735a644485b5c6d031635916527465be  ./plugin/agent
 38fd9d20317e07acf4e7b60ece79bdb13e1087e3bde6730493052a9b204619ae  ./plugin/agents/scout.md
 14384ecc3d5c4ac585415ea6230f313c8103b3918ab95d1673e599933ad95561  ./plugin/agents/security-executor.md
 c2cd16b86b8f717aef30042cdce37c83ae22e377133d4a86218bb07479fc2724  ./plugin/agents/security-reviewer.md
-e175b3b4e1e95f3804ad1d7b08a6e6752d5e7f8263f47b21a84906d4dff992c6  ./plugin/agents/verifier.md
+f58057f92e571b9d77075a7aea3ebcc5dfba23271292d535c6ceb6d5dbb0e589  ./plugin/agents/verifier.md
 3345e017fc7f900d981826de0267cd45e96b07fdaf710f3b82e24fd5229f58c4  ./plugin/ATTRIBUTION.md
 ceb0f5aaf9c049e45b5fe1de8e73161abc5a07bf89d937e2a6e46fa090557592  ./plugin/hooks/emit-sessionstart.sh
 5b8a0473297ccd6c6cf3f23ae66bf25032fa1cca190e1cc215160c22b88c918f  ./plugin/hooks/hooks.json
 d2a7193611189b9222ee8b471b0519f001dcf28373e51cb0d3072eaf2763dadf  ./plugin/LICENSE
-c0b16d7326d17ec8086bc5ffce72fac539b5958ee793b73d779f0cf64a0cd244  ./plugin/policy/ambient.md
-62751a24adfb9b7eaa07444e8764b41deca7aec6ad64954ec8f7a7717e6170fa  ./plugin/policy/sessionstart.txt
+d5f5c4c69cdfe90d3dff8e07d8c3d4bd823f2704b11eedcb991b674092c20f06  ./plugin/policy/ambient.md
+c72fa1f23c5e6bc7f91d3f925d60fa7de99b8be7e0fad27f230dcb294994a055  ./plugin/policy/sessionstart.txt
 b9bcef3f8d929fb9798a0c60d859e5ae96cadf0987bbf5e3f52ab37009a67979  ./prompts/cross-turn-1.txt
 28cca89f6181c15a8c7f690ccece82e3aa4c79363bdfd438a6007be4326f6e8e  ./prompts/preflight.txt
 d87c8b90e5e6257addb85eec184c9a057dcf4b228a65f4c1c1361282441ed444  ./prompts/routine-docs-explicit.txt

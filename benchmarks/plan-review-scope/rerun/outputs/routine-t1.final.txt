@@ -1,3 +1,3 @@
-I fixed the spelling error in `README.md` ("teh" → "the") and ran `npm test`: the one test passed. `git status` shows `README.md` is the only file changed.
+I changed "teh" to "the" in `README.md` and ran `npm test`. The one test passed and nothing failed.
 
-I didn't hand this to any of the named agents. Under pilotfish's rules, a one-word typo fix with no security, data or release risk is small local work, so it stays with the main session. Nothing here was eligible for delegation, and that's also why there was no verifier pass.
+I made the fix myself instead of giving it to an agent. Under pilotfish's rules, a small change to a single file with no risk isn't work you hand off, and starting an agent would have cost more than the edit. `git status` shows `README.md` is the only file that changed, and I didn't commit anything.

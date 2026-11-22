@@ -21,14 +21,9 @@ VERDICT_LINE = re.compile(
 
 
 def verdict_of(body):
-    """Verdict stated at the start of a line; else the only verdict word used; else None."""
+    """The one verdict stated at the start of a line; a verdict word elsewhere does not count."""
     lines = {m.group(1).upper() for m in VERDICT_LINE.finditer(body) if m.group(1).isupper()}
-    if len(lines) == 1:
-        return lines.pop()
-    if lines:
-        return None
-    words = set(VERDICTS.findall(body))
-    return words.pop() if len(words) == 1 else None
+    return lines.pop() if len(lines) == 1 else None
 
 
 def load(path):
@@ -80,7 +75,7 @@ def main():
         return
     path, role, expect = sys.argv[1], sys.argv[2], sys.argv[3]
     events = load(path)
-    calls, results, writes, version, model = [], {}, [], None, None
+    calls, results, failed, writes, version, model = [], {}, set(), [], None, None
     for e in events:
         if e.get("type") == "system" and e.get("subtype") == "init":
             version, model = e.get("claude_code_version"), e.get("model")
@@ -99,6 +94,8 @@ def main():
                     writes.append(x.get("name"))
             if e.get("type") == "user" and x.get("type") == "tool_result":
                 results[x.get("tool_use_id")] = text_of(x.get("content"))
+                if x.get("is_error"):
+                    failed.add(x.get("tool_use_id"))
     r = result_of(events) or {}
     stem = pathlib.Path(path).with_suffix("")
     verdict = None
@@ -116,6 +113,8 @@ def main():
         r.get("subtype") == "success"
         and not r.get("is_error")
         and types == [role]
+        and calls[0].get("id") in results
+        and calls[0].get("id") not in failed
         and not any(overrides)
         and not any(background)
         and not writes

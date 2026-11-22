@@ -1,37 +1,37 @@
-I've read the whole repo (9 tracked files) and changed nothing. Here is the Plan. **Please reply "approve" (or give changes) before I edit anything.**
+I haven't changed any files yet. Because this change has to keep three modules agreeing on one contract, the pilotfish rules require you to approve a Plan before I edit anything. I've read the code and the plan is below.
 
-## Plan — slice S1: `formatUser` returns `{ label, id }`
+**What the code does now**
+- `format.mjs:1-3`: `formatUser(user)` returns `` `${user.name} <${user.id}>` ``.
+- `cli.mjs:4`: `banner` builds `Welcome, ${formatUser(user)}!`.
+- `report.mjs:5`: `reportLine` builds `user: ${formatUser(decodeUser(raw))}`.
+- These are the only two places that call `formatUser`. `store.mjs` and `README.md` don't need to change.
+- The tests use `node --test`. Each consumer test checks exact strings: `"Welcome, Nana <u-1>!"` and `"user: Nana <u-1>"`.
 
-**What I found**
-- `format.mjs:1` — `formatUser(user)` returns `` `${user.name} <${user.id}>` ``.
-- Only two callers exist: `cli.mjs:4` (`banner`) and `report.mjs:5` (`reportLine`). Both put the result straight into a template string.
-- Tests run with `npm test` (which runs `node --test`). Each module has its own test file.
+**Assumption**
+- The new `id` field is `user.id`, passed through unchanged. Each consumer will read only `.label`. I won't add `toString()`, so an unchanged caller would visibly print `[object Object]` instead of quietly working.
 
-**Assumptions** (tell me if any are wrong)
-- `id` is `user.id` passed through as-is.
-- `label` is exactly the string `formatUser` returns today.
-- No `toString()` fallback on the object. Callers read `.label` explicitly, so any missed caller would visibly print `[object Object]` instead of quietly working.
+**Plan: one change, S1**
+- **Outcome:** `formatUser` returns `{ label, id }`, and `banner` and `reportLine` produce exactly the same output as now.
+- **Files changed:** only `format.mjs`, `cli.mjs`, `report.mjs`, `format.test.mjs`, `cli.test.mjs` and `report.test.mjs`.
+- **Not included:** no changes to `store.mjs`, `README.md` or `package.json`, and no compatibility shim.
+- **Edits:**
+  1. `format.mjs` returns `{ label: \`${user.name} <${user.id}>\`, id: user.id }`.
+  2. `cli.mjs` and `report.mjs` use `formatUser(...).label`.
+  3. `format.test.mjs` checks the whole object with `deepEqual({ label: "Nana <u-1>", id: "u-1" })`. It also checks that the result is an object and has exactly those two keys.
+  4. The consumer tests keep their current exact-string checks. I'll add a second user, such as `{ id: "u-2", name: "Ada" }`, so the tests don't pass only because of one fixed input.
+- **Who does it:** one `pilotfish:executor` run (low effort), then I review its diff.
+- **How it gets checked:**
+  - `npm test` passes.
+  - No `.mjs` file outside `format.mjs` uses the raw return value of `formatUser` (checked with a grep).
+  - The consumer output is byte-identical to now, compared against the old strings.
+  - A fresh `pilotfish:verifier` (medium effort) then has to return CONFIRMED.
+- **Rollback:** `git checkout -- .` (nothing is committed).
+- **Budget:** about $0.30 is left, enough for one executor run and one verifier run. I'll stop and report if the verifier says REFUTED twice or the budget runs out.
+- **Stop conditions:** if another caller of `formatUser` turns up, or if output would have to change.
 
-**Changes (exactly 5 files)**
-1. `format.mjs`: return `{ label: \`${user.name} <${user.id}>\`, id: user.id }`.
-2. `cli.mjs`: `formatUser(user).label`.
-3. `report.mjs`: `formatUser(decodeUser(raw)).label`.
-4. `format.test.mjs`: check the result with `deepEqual` against `{ label: "Nana <u-1>", id: "u-1" }`. This proves the new shape, including that there are exactly those two keys.
-5. `cli.test.mjs` / `report.test.mjs`: keep the current exact-string checks unchanged as proof the output is byte-identical. Add one guard each that the output doesn't contain `[object Object]`.
+**Gates**
+- Discovery: done.
+- Separate plan review: optional, because this risk isn't one of the kinds that require it. I'm skipping it to save budget unless you want it.
+- Next step: your approval.
 
-**Out of scope:** `store.mjs`, `store.test.mjs`, `README.md` (including its "teh" typo), `package.json`.
-
-**Done when:** `npm test` passes, with all 4 test files green. `git diff --stat` shows only the 5 files above, and the strings `"Welcome, Nana <u-1>!"` and `"user: Nana <u-1>"` are unchanged in the tests.
-
-**Rollback:** `git checkout -- .` (nothing is stored or published, so this fully undoes it).
-
-**Who does what after you approve**
-- `pilotfish:mech-executor` makes the edits from this exact spec.
-- I check the diff and run `npm test`.
-- A separate `pilotfish:verifier` then independently checks the claim that the new shape holds and the output is byte-identical. The workflow requires this for risky changes.
-
-**Stop conditions:** I stop if a test fails twice after a fix attempt, or if anything outside these 5 files would need to change.
-
-**Budget:** about $0.29 left, enough for the edits plus one verification pass. No pre-approval Plan review is required here, because this risk type doesn't need one.
-
-**Next step:** your approval.
+Reply "approve" and I'll run S1, then the verification.

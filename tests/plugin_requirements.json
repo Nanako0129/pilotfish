@@ -2,7 +2,7 @@
   "schema_version": 1,
   "source": {
     "path": "templates/claude-md.orchestration.md",
-    "sha256": "bd907c3196bc03ac6589d198e6efc71c75bd041206475fc1df4edbd23fbd2ec5"
+    "sha256": "93fb822a0cccd1a57df2ebf386f1581d2f3a8c585a0a3b27c79b7c302f04fc45"
   },
   "requirements": [
     {
@@ -233,8 +233,8 @@
       "id": "PLUG-APPROVAL-SEQUENCE",
       "category": "approval",
       "source_line": 40,
-      "source_clause": "- Plan-review units: review program envelope before slices, then next executable slice only. Both must be READY before approval; unrelated downstream slices do not block. Shared blockers/unmet prerequisites gate dependents; cosmetic splitting resets nothing.",
-      "ambient_line": "*:review envelope before next executable slice;both READY before approval.Unrelated later slices do not block;shared blockers/prerequisites do.Cosmetic splits reset nothing.",
+      "source_clause": "- Plan-review units: review program envelope before slices, then next executable slice only; both must be READY before approval. All units: unrelated downstream slices do not block approval; shared blockers/unmet prerequisites gate dependents; cosmetic splitting resets nothing.",
+      "ambient_line": "*-marked:review envelope before next executable slice;both READY before approval.All:unrelated later slices do not block;shared blockers/prerequisites do;cosmetic splits reset nothing.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {

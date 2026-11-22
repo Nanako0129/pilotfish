@@ -1,19 +1,33 @@
-The plan is ready for your approval. A reviewer agent (pilotfish:plan-verifier) checked it and returned **READY**. Because this changes how data is saved, I haven't edited anything yet.
+The plan-verifier returned **READY**. Because this changes how user data is saved, pilotfish needs your explicit approval before I edit anything. Nothing has been changed yet.
 
-**What changes (only `store.mjs` and `store.test.mjs`)**
-- **Writing:** `encodeUser` saves `{"version":2,"user_id":<id>,"name":<name>}`.
-- **Reading:** `decodeUser` accepts both versions. For version 1 it takes the ID from `user`, for version 2 from `user_id`, and returns `{id, name}`. Any other version still throws `unsupported version: <v>`.
-- **Tests:** the current version-1 round-trip test is replaced by five:
-  1. The saved format is exactly `{version:2, user_id, name}`, with no `user` key.
-  2. A hand-written version-2 payload reads correctly.
-  3. A hand-written version-1 payload reads correctly.
-  4. A user written and read back as version 2 comes out unchanged.
-  5. Version 3 throws an error.
+## Plan: user payload v2
 
-**Not changing:** `README.md` (including the "teh" typo), `package.json`, checks for missing fields, migrating already-saved data, or writing version 1.
+**What changes:** `encodeUser` will save `{version: 2, user_id, name}`. `decodeUser` will read version 1 payloads (from `user`) and version 2 payloads (from `user_id`). Any other version still throws the existing `unsupported version: X` error.
 
-**How it runs:** pilotfish:mech-executor makes the edits. I check the result: `npm test` must pass, and `git diff --stat` must show only the two files. Then pilotfish:verifier, a fresh agent, independently checks the change. Nothing gets committed. To undo: `git checkout -- store.mjs store.test.mjs`.
+**Files:** only `store.mjs` and `store.test.mjs`.
 
-**Cost:** $0.18 of the $0.50 budget is spent. The edit and verification passes should fit in what's left, but it's tight. If either pass fails twice, I'll stop and tell you rather than keep retrying.
+**Not changing:** `README.md` (including the "teh" typo), `package.json`, already-saved data, and any new fields or versions.
 
-Reply "approve" to proceed, or tell me what to change.
+**How reads work:**
+- A version 2 payload takes the id from `user_id`.
+- A version 1 payload takes the id from `user`.
+- A version 2 payload that has only `user` will not have that read as the id.
+
+**Tests** in `store.test.mjs`:
+1. A saved payload is exactly `{version: 2, user_id: "u-1", name: "Nana"}` and has no `user` key.
+2. A hand-written version 1 string decodes to `{id: "u-1", name: "Nana"}`.
+3. A hand-written version 2 string decodes to the same.
+4. Saving and then reading a version 2 payload gives back the original user.
+5. Version 3 throws `unsupported version: 3`.
+
+**Who does what:** `pilotfish:executor` makes the edits. Then a fresh `pilotfish:verifier` checks the exact claim above.
+
+**Done when:** `npm test` passes all 5 tests and `git diff --stat` shows only the two files.
+
+**To undo:** `git checkout -- store.mjs store.test.mjs`. Nothing is committed and no data is migrated.
+
+**Limits:** at most 2 executor attempts and 1 verifier pass. I'll stop if anything outside the two files would need to change.
+
+**Budget:** about $0.30 of the $0.50 is left, which should cover the executor and verifier.
+
+Reply **approve** to go ahead, or tell me what to change.

@@ -61,8 +61,12 @@ READINESS_REPLACEMENTS = {
     36: (b"and first readiness review, finish", b"and any readiness review, finish"),
     37: (b"After readiness, present Plan", b"After any required readiness, present Plan"),
     40: (
-        b"- Review program envelope before slices,",
-        b"- Plan-review units: review program envelope before slices,",
+        b"- Review program envelope before slices, then next executable slice only."
+        b" Both must be READY before approval; unrelated downstream slices do not"
+        b" block. Shared blockers",
+        b"- Plan-review units: review program envelope before slices, then next"
+        b" executable slice only; both must be READY before approval. All units:"
+        b" unrelated downstream slices do not block approval; shared blockers",
     ),
 }
 
@@ -6194,8 +6198,10 @@ class PolicyContractTests(unittest.TestCase):
             "any reproducible high-impact user/system failure",
             verifier,
         )
+        # Pins the wording only. Whether a verifier applies it was observed once
+        # per cell in benchmarks/plan-review-scope (v1, v2), not by this test.
         self.assertIn(
-            "sufficient for every required acceptance condition, or its only shortfall rates P3/P4 (report)",
+            "evaluates every required acceptance condition; each is met or fails only at P3/P4 (report)",
             verifier,
         )
         self.assertIn(
