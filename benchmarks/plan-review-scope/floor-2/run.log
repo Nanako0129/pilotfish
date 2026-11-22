@@ -1,0 +1,14 @@
+03:31:48 FROZEN client=2.1.325 (Claude Code) policy=93fb822a0cccd1a5 agents=58e07cc7791ea4a0 agents_base=899b9e01eac3114b repo_head=5a4fd50 base=1a5bad8
+03:31:48 REPO-STATUS-BEFORE aa1508d2e4b340bd
+03:31:48 START v1-t1 cap=0.60 spent_so_far=0.000000
+03:32:31 END v1-t1 claude_rc=0 stderr_bytes=0 tree=[]
+03:32:31 RESULT PASS v1-t1.jsonl agents=['verifier'] verdict=REFUTED expect=REFUTED main_writes=[] model_override=False background=False subtype=success is_error=False cost=0.34362519999999996 client=2.1.325 main_model=claude-opus-5-5
+03:32:31 START v2-t1 cap=0.60 spent_so_far=0.343625
+03:33:16 END v2-t1 claude_rc=0 stderr_bytes=0 tree=[]
+03:33:16 RESULT PASS v2-t1.jsonl agents=['verifier'] verdict=CONFIRMED expect=CONFIRMED|INCONCLUSIVE main_writes=[] model_override=False background=False subtype=success is_error=False cost=0.30250239999999995 client=2.1.325 main_model=claude-opus-5-5
+03:33:16 START v4-t1 cap=0.60 spent_so_far=0.646128
+03:33:53 END v4-t1 claude_rc=0 stderr_bytes=0 tree=[]
+03:33:53 RESULT PASS v4-t1.jsonl agents=['verifier'] verdict=REFUTED expect=REFUTED main_writes=[] model_override=False background=False subtype=success is_error=False cost=0.2825304 client=2.1.325 main_model=claude-opus-5-5
+03:33:53 REPO-STATUS-AFTER aa1508d2e4b340bd
+03:33:53 DONE spent=0.928658
+03:33:53 RUNNER-EXIT code=0

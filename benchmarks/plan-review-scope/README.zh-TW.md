@@ -4,7 +4,7 @@
 
 v1.5.0 之後有兩項改動，各做了一次小型付費檢查：
 
-1. **阻擋門檻。** `verifier` 只在目前 head 的執行失敗、或使用者會碰到該行為時，才把未達成的驗收條件評為 P2。沒有行為影響的文字或數量不符是 P3，而 P3 不會產生 REFUTED。
+1. **阻擋門檻。** 對 `verifier` 來說，沒有行為影響的文字或數量不符是 P3，而 P3 不會產生 REFUTED。最初的措辭還把所有未達成的驗收條件限制成「只在目前 head 的執行失敗、或使用者會碰到該行為時」才是 P2；這個子句在 v1.6.0 之前換掉了（見[未達成條件的下限](#未達成條件的下限)）。
 2. **Plan 審查範圍。** 核准前的 `plan-verifier` 只在四種情況下強制：明確要求審查、破壞性／不可逆／對外的變更、資料／schema／序列化／遷移、發版。其他風險觸發（安全與信任、重大跨元件驗收）仍然要有 Plan、核准停點和實作後的 `verifier`，而且每份 Plan 開頭都要重述意圖。
 
 範圍的改動在手動安裝的範本和 Plugin 上各跑了一次。之後審查在改過的文字裡找到兩處不一致，文字修正後把受影響的各格重跑了一次（見[在最終文字上重跑](#在最終文字上重跑)）。全部都是每格一次觀察，不是每格兩次的 Gate。
@@ -20,7 +20,7 @@ v1.5.0 之後有兩項改動，各做了一次小型付費檢查：
 | 角色模型 | 串流裡子代理的訊息顯示 `verifier` 與 `plan-verifier` 是 `claude-opus-5-5`、`mech-executor` 與 `executor` 是 `claude-sonnet-5-5`，所以沒有子代理模型覆寫在作用（和上一列的失敗結果數一樣，是從沒有提交的原始串流讀出來的） |
 | 花費 | 每次呼叫 result 行的 `total_cost_usd`。續接的回合回報的是整個 session 的累計值，所以每個 session 只算一次。前三份 `run.log` 的 `DONE spent=` 把每一回合都加進去，數字偏高 |
 
-輸入檔的雜湊在 [`blocking-bar/`](./blocking-bar/)、[`scope/`](./scope/)、[`plugin/`](./plugin/)、[`rerun/`](./rerun/)、[`precedence/`](./precedence/)、[`precedence-2/`](./precedence-2/) 各自的 `inputs.sha256`。各格數值在 [`results.json`](./results.json)。
+輸入檔的雜湊在 [`blocking-bar/`](./blocking-bar/)、[`scope/`](./scope/)、[`plugin/`](./plugin/)、[`rerun/`](./rerun/)、[`precedence/`](./precedence/)、[`precedence-2/`](./precedence-2/)、[`floor/`](./floor/)、[`floor-2/`](./floor-2/) 各自的 `inputs.sha256`。各格數值在 [`results.json`](./results.json)。
 
 ## 阻擋門檻
 
@@ -67,7 +67,7 @@ preflight 與每格第一回合的串流都必須含有 hook 輸出的 `*=mandat
 
 `scope` 和 `plugin` 跑的是 `0ffce36` 的政策與角色檔。`blocking-bar` 在那之前執行，用的是 `main`（`40d170e`）的政策，搭配一組候選角色檔，其中的 `verifier` 和 `0ffce36` 的相同。`0ffce36` 的文字有兩處和這次改動對不上：
 
-- `verifier` 把 CONFIRMED 定義成每個必要條件都有證據，但只在 P3 未達成的條件同樣會得到 CONFIRMED。定義現在寫成「evaluates every required acceptance condition; each is met or fails only at P3/P4 (report)」。
+- `verifier` 把 CONFIRMED 定義成每個必要條件都有證據，但只在 P3 未達成的條件同樣會得到 CONFIRMED。定義當時寫成「evaluates every required acceptance condition; each is met or fails only at P3/P4 (report)」；最後一個子句現在是「each is met or is the P3 exception below (report)」（見[未達成條件的下限](#未達成條件的下限)）。
 - 政策第 36、37、40 行對所有單元都提到 readiness，可是只有 `plan-verifier` 會回 READY。第 36 行現在寫「any readiness review」，第 37 行寫「After any required readiness」。第 40 行把審查順序和「both must be READY」限定在「Plan-review units:」，其餘三條規則放在「All units:」之下。Plugin 壓縮版用 `*-marked:` 和 `All:` 做同樣的區分。
 
 各格用同一支腳本重跑，政策 SHA-256 是 `93fb822a...fc45`，`sessionstart.txt` 的 SHA-256 是 `c72fa1f2...a055`。紀錄：[`rerun/run.log`](./rerun/run.log)。花費 2.76 美元，上限 4.00 美元。
@@ -116,11 +116,38 @@ preflight 與每格第一回合的串流都必須含有 hook 輸出的 `*=mandat
 
 第一次執行沒有經過授權。負責審查的子代理被要求用假的用戶端試跑腳本，但假的用戶端沒有建立成功，腳本找到了真的用戶端。腳本與輸入就是原本準備要跑的那一份，所以結果保留。同一個子代理的第二次啟動在 `v1` 途中被中止，擷取檔沒有 result 行，也沒有提交或列入雜湊，那筆花費不明，沒有算進總額。`precedence-2/run-copy/run.sh` 執行時就帶有檢查，沒有設定 `PAID_RUN=1` 會拒絕真的用戶端；同樣的檢查事後也補進 `precedence/run-copy/run.sh`。
 
+## 未達成條件的下限
+
+這一節是 v1.6.0 之前加的。發版前的獨立閱讀發現 `verifier` 第 23 行有兩條 P2 規則：「P2 = material bounded/recoverable issue」，以及針對未達成驗收條件的「P2 only when current-head run fails/users hit behavior」。照第二條，只靠檢視就看得出沒達成的必要條件（例如規定要補的測試沒補）會低於 P2，可能以 CONFIRMED 收場。這一行先改成「Failed acceptance condition: P0/P1 when criteria met, else P2, incl. missing required test/file. Exception: wording/count mismatch lacking behavioral effect = P3 unless users rely on mismatched text (P2).」合併前對這版措辭的審查發現，它仍與優先等級的定義不一致，並把使用者依賴的不符寫死成 P2。這一行現在寫成「Floor: unmet required acceptance condition is P0-P2, never P3/P4, incl. omitted content/test/file. Exception: wording/count mismatch lacking behavioral effect = P3 unless users rely on mismatched text.」第 15 行的 CONFIRMED 定義同步改為「each is met or is the P3 exception below (report)」。
+
+執行兩次。第一次是 [`floor/`](./floor/)，跑的是中間版措辭：拿修改後的角色（agents SHA-256 `393a2c93...5eed`，是產生器輸出連同結尾換行的雜湊；`benchmarks/baton-compatibility` 釘的是同一份 payload 去掉換行後的 `6d28c830...48fd`）對照 `1a5bad8` 的角色（`899b9e01...cf93`），政策文字沒有變。`v4` 用 [`floor/prompts/verify-test.txt`](./floor/prompts/verify-test.txt)，多了驗收條件 6：`store.test.mjs` 要有一個測試確認版本 1 的舊 payload 仍可解碼。紀錄：[`floor/run.log`](./floor/run.log)。花費 1.25 美元，上限 2.50。
+
+| 格 | 角色 | 受審狀態 | 判定 |
+|---|---|---|---|
+| `v1` | 修改後 | 版本 1 的 payload 解碼後沒有 `id`；測試通過 | REFUTED |
+| `v2` | 修改後 | 程式正確；README 寫 3 個測試，實際有 4 個 | CONFIRMED，數量不符列為 P3 |
+| `v4` | 修改後 | 程式正確、3 個測試通過、README 的數量正確；條件 6 要求的測試不存在 | REFUTED，P2 |
+| `v4base` | `1a5bad8` | 同 `v4` | REFUTED，P2 |
+
+`1a5bad8` 的 verifier 在 `v4` 上同樣判 REFUTED，理由是「a required acceptance condition fails at the current head」，把缺少的測試評為 P2。所以在這次觀察裡，先前的措辭並沒有產生閱讀者預測的 CONFIRMED，也沒有任何判定改變。
+
+第二次是 [`floor-2/`](./floor-2/)，在最終措辭上重跑 `v1`、`v2`、`v4`（agents SHA-256 含結尾換行為 `58e07cc7...e5ee`，不含為 `e3fd5fc4...044c`）。紀錄：[`floor-2/run.log`](./floor-2/run.log)。花費 0.93 美元，上限 2.00。
+
+| 格 | 受審狀態 | 判定 |
+|---|---|---|
+| `v1` | 版本 1 的 payload 解碼後沒有 `id`；測試通過 | REFUTED |
+| `v2` | 程式正確；README 寫 3 個測試，實際有 4 個 | CONFIRMED，數量不符列為 P3 |
+| `v4` | 條件 6 要求的測試不存在 | REFUTED，P2 |
+
+判定與第一次執行、以及對照角色的結果相同。最終措辭在這次執行前先經過 `/code-review`；腳本是第一次的腳本拿掉 `v4base` 一格，沒有再審。這版措辭把文字裡兩條規則的衝突拿掉；沒有任何一格顯示它改變了判定。
+
+該次審查留下、也沒有觀察過的兩點：現有文字寫錯會評為 P3，漏寫卻評為 P2；以及必要條件被判定未達成但無法重現時，照字面不屬於三種判定的任何一種。
+
 ## 限制
 
 - 每格只跑一次。
-- 在 `scope` 與 `plugin`，腳本檢查的是叫了哪些角色、有沒有寫檔、變更了哪些檔案、測試有沒有過。腳本不檢查判定結果和呼叫順序：上面的 CONFIRMED 與 READY 是從 `outputs/` 讀出來的。
-- 阻擋門檻的對照只涵蓋一種未達成的條件，也就是 README 裡的數量不符。其他不會讓執行失敗、使用者也碰不到的未達成條件（例如要求的測試沒有補上），依新措辭同樣低於 P2，這種情況沒有觀察過。
+- 在 `scope` 與 `plugin`，腳本檢查的是叫了哪些角色、有沒有寫檔、變更了哪些檔案、測試有沒有過。腳本不檢查判定結果和呼叫順序：上面的 CONFIRMED 與 READY 是從 `outputs/` 讀出來的。在 `precedence`、`precedence-2`、`floor` 與 `floor-2`，腳本只檢查判定字樣；表格裡的發現優先等級是從 `outputs/` 讀出來的。
+- 阻擋門檻的對照只涵蓋一種 P3 條件，也就是 README 裡的數量不符。驗收條件本身要求的數量（例如「新增 4 個測試」但只有 3 個）可以讀成數量不符（P3），也可以讀成缺少規定的測試（P2）；沒有任何一格包含這種情況。
 - 續接呼叫的 `--max-budget-usd` 會不會把 session 先前的花費算進去，沒有查過。每個續接回合都在上限內結束。
 - `cross` 的 prompt 直接寫明風險類別。這一格驗的是觸發條件到角色的路由，不是模型自己分類風險的能力。
 - 每個 prompt 都明確選用 pilotfish。
@@ -130,7 +157,7 @@ preflight 與每格第一回合的串流都必須含有 hook 輸出的 `*=mandat
 
 ## 重現
 
-每次呼叫都要付費。把其中一輪的資料夾（`blocking-bar`、`scope`、`plugin`、`rerun`、`precedence` 或 `precedence-2`）複製到暫存目錄再執行，這樣 repo 只會被讀取：
+每次呼叫都要付費。把其中一輪的資料夾（`blocking-bar`、`scope`、`plugin`、`rerun`、`precedence`、`precedence-2`、`floor` 或 `floor-2`）複製到暫存目錄再執行，這樣 repo 只會被讀取：
 
 ```bash
 cp -R benchmarks/plan-review-scope/scope /tmp/plan-review-scope
