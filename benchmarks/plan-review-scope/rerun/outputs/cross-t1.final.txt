@@ -1,0 +1,32 @@
+I didn't change anything this turn. The repo instructions require a plan and your explicit go-ahead before editing, because this change is risky (three modules must agree on the new return shape). It doesn't need a pre-approval plan review, since it touches no stored data, schema, external system or release.
+
+## Plan: `formatUser` returns `{ label, id }`
+
+**Goal:** `formatUser(user)` returns `{ label: "<name> <<id>>", id: user.id }`. `banner()` and `reportLine()` produce exactly the same strings as today. The tests prove both the new return shape and the unchanged output.
+
+**Won't change:** `store.mjs` and its encoded format, `README.md` (including the "teh" typo), `package.json`, `CLAUDE.md`, and any other files. No commit or push.
+
+**Files to edit (one writer, owning only these):**
+1. `format.mjs`: return `{ label: \`${user.name} <${user.id}>\`, id: user.id }`.
+2. `cli.mjs`: `banner` uses `formatUser(user).label`.
+3. `report.mjs`: `reportLine` uses `formatUser(decodeUser(raw)).label`.
+4. `format.test.mjs`: replace the string check with `assert.deepEqual(..., { label: "Nana <u-1>", id: "u-1" })`, and add a check that the result is an object, not a string.
+5. `cli.test.mjs` and `report.test.mjs`: keep the existing exact-string checks (`"Welcome, Nana <u-1>!"`, `"user: Nana <u-1>"`) unchanged. They are the proof that output didn't change, and they will fail if a consumer prints `[object Object]`.
+
+**Who does what:** one `mech-executor` makes the edits, since the spec is complete and mechanical. A fresh `verifier` then checks the change, which the repo instructions require here. I keep integration and the final call.
+
+**How I'll check it:**
+- `npm test` passes all 4 tests.
+- `git diff --stat` shows only the 5 files above (`report.test.mjs` may stay untouched).
+- The verifier independently confirms the new shape and that `banner` and `reportLine` output is unchanged.
+
+**Undo:** `git checkout -- format.mjs cli.mjs report.mjs format.test.mjs cli.test.mjs report.test.mjs`.
+
+**Cost:** two agent calls (executor, then verifier) within the remaining ~$0.27.
+
+**Stop conditions:**
+- Any test fails twice after edits.
+- Any other file would need to change.
+- The verifier says the change is wrong or can't confirm it. I'd stop and report rather than keep retrying.
+
+**next_gate: user_approval.** Reply "approve" (or ask for changes) to start.

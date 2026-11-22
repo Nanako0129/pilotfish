@@ -1,0 +1,17 @@
+
+> test
+> node --test
+
+✔ version 2 writes use user_id (0.469208ms)
+✔ decodes version 2 payloads (0.052541ms)
+✔ decodes version 1 payloads (0.034708ms)
+✔ version 2 payloads round trip (0.034917ms)
+✔ rejects unsupported versions (0.494667ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 33.474083

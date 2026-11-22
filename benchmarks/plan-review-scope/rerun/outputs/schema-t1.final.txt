@@ -1,0 +1,31 @@
+I haven't changed anything yet. Because this is a serialization/schema change, my working rules (the project's CLAUDE.md) require a reviewed plan and your go-ahead before any edits. The plan below was checked by a separate fresh-context reviewer (`plan-verifier`), which returned **READY**.
+
+## Plan — Slice S1 "payload-v2"
+
+**Goal:** `encodeUser` writes version 2 with `user_id` in place of `user`. `decodeUser` reads both version 1 (`user`) and version 2 (`user_id`), and still rejects any other version.
+
+**Not in scope:** the README typo ("teh"), `package.json`, `CLAUDE.md`, any other file, new checks for missing fields, and converting stored payloads.
+
+**Files and owner:** only `store.mjs` and `store.test.mjs`, edited by one `mech-executor` agent that owns them exclusively.
+
+**Changes**
+- `encodeUser` → `{ version: 2, user_id: user.id, name: user.name }`
+- `decodeUser` → version 1 maps `payload.user` to `id`, version 2 maps `payload.user_id` to `id`, and any other version still throws `unsupported version: N`.
+- **Tests** (these replace the current version 1 round-trip test):
+  - **(a)** Encoded output equals exactly `{version:2,user_id:"u-1",name:"Nana"}`, so it has no `user` key.
+  - **(b)** A literal version 1 string decodes correctly.
+  - **(c)** A literal version 2 string decodes correctly.
+  - **(d)** A version 2 encode → decode round trip returns the original user.
+  - **(e)** Version 3 throws `unsupported version: 3`.
+
+**Done when:** `npm test` exits 0 with all 5 tests passing, and `git diff --stat` shows only `store.mjs` and `store.test.mjs` changed.
+
+**Assumption:** anything reading these payloads gets the new code before or at the same time as the writer. A reader that only knows version 1 would fail on version 2 payloads, and that's out of scope here.
+
+**Undo:** `git checkout -- store.mjs store.test.mjs`
+
+**Check after the change:** a fresh `verifier` agent runs the tests and checks the result against the "done when" criteria.
+
+**Cost:** about $0.25 of the $0.50 budget is left, which should cover one implementation pass plus the verifier. If it runs out, I'll stop and tell you what's still unchecked.
+
+next_gate: user_approval. Reply "approved" and I'll start the implementation.

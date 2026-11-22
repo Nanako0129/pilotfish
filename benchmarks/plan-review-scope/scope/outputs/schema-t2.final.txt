@@ -1,0 +1,21 @@
+Saved users are now written as version 2 with `user_id`, and loading still reads both version 1 (`user`) and version 2 (`user_id`). `npm test` passes, 5 of 5.
+
+**What changed**
+- `store.mjs`: `encodeUser` writes `{ version: 2, user_id, name }`. `decodeUser` reads `user` from version 1 and `user_id` from version 2, and any other version still throws `unsupported version: N`.
+- `store.test.mjs`: the single old test is replaced by five, which cover:
+  - the exact version 2 output, with no `user` key;
+  - reading a version 1 payload;
+  - reading a version 2 payload;
+  - saving then loading a user;
+  - a version 3 payload being rejected.
+
+**Checks**
+- I ran `npm test` myself: 5 passed, 0 failed.
+- Only those two files changed. `README.md`, `package.json` and `CLAUDE.md` are untouched.
+- An independent `verifier` agent returned **CONFIRMED**. It re-ran the tests, got exit code 0, and tried edge cases: version numbers sent as strings and null or missing versions are rejected, and extra fields on the user object don't leak into the saved JSON.
+
+**Left as is**
+- The verifier flagged one low-priority behavior: a version 2 payload with no `user_id` loads with no `id` instead of failing. That matches the plan you approved, which added no field checks, so I left it. Adding an error for it would be a small follow-up if you want one.
+- I left the `README.md` typo alone as agreed.
+
+Nothing has been committed or pushed; the two changes are uncommitted.

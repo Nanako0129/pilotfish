@@ -1,0 +1,37 @@
+I haven't changed any files yet. Because this change has to keep three modules agreeing on one contract, the pilotfish rules require you to approve a Plan before I edit anything. I've read the code and the plan is below.
+
+**What the code does now**
+- `format.mjs:1-3`: `formatUser(user)` returns `` `${user.name} <${user.id}>` ``.
+- `cli.mjs:4`: `banner` builds `Welcome, ${formatUser(user)}!`.
+- `report.mjs:5`: `reportLine` builds `user: ${formatUser(decodeUser(raw))}`.
+- These are the only two places that call `formatUser`. `store.mjs` and `README.md` don't need to change.
+- The tests use `node --test`. Each consumer test checks exact strings: `"Welcome, Nana <u-1>!"` and `"user: Nana <u-1>"`.
+
+**Assumption**
+- The new `id` field is `user.id`, passed through unchanged. Each consumer will read only `.label`. I won't add `toString()`, so an unchanged caller would visibly print `[object Object]` instead of quietly working.
+
+**Plan: one change, S1**
+- **Outcome:** `formatUser` returns `{ label, id }`, and `banner` and `reportLine` produce exactly the same output as now.
+- **Files changed:** only `format.mjs`, `cli.mjs`, `report.mjs`, `format.test.mjs`, `cli.test.mjs` and `report.test.mjs`.
+- **Not included:** no changes to `store.mjs`, `README.md` or `package.json`, and no compatibility shim.
+- **Edits:**
+  1. `format.mjs` returns `{ label: \`${user.name} <${user.id}>\`, id: user.id }`.
+  2. `cli.mjs` and `report.mjs` use `formatUser(...).label`.
+  3. `format.test.mjs` checks the whole object with `deepEqual({ label: "Nana <u-1>", id: "u-1" })`. It also checks that the result is an object and has exactly those two keys.
+  4. The consumer tests keep their current exact-string checks. I'll add a second user, such as `{ id: "u-2", name: "Ada" }`, so the tests don't pass only because of one fixed input.
+- **Who does it:** one `pilotfish:executor` run (low effort), then I review its diff.
+- **How it gets checked:**
+  - `npm test` passes.
+  - No `.mjs` file outside `format.mjs` uses the raw return value of `formatUser` (checked with a grep).
+  - The consumer output is byte-identical to now, compared against the old strings.
+  - A fresh `pilotfish:verifier` (medium effort) then has to return CONFIRMED.
+- **Rollback:** `git checkout -- .` (nothing is committed).
+- **Budget:** about $0.30 is left, enough for one executor run and one verifier run. I'll stop and report if the verifier says REFUTED twice or the budget runs out.
+- **Stop conditions:** if another caller of `formatUser` turns up, or if output would have to change.
+
+**Gates**
+- Discovery: done.
+- Separate plan review: optional, because this risk isn't one of the kinds that require it. I'm skipping it to save budget unless you want it.
+- Next step: your approval.
+
+Reply "approve" and I'll run S1, then the verification.

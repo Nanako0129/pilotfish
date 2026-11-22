@@ -1,0 +1,16 @@
+`formatUser` now returns `{ label, id }`, and `report.mjs` and `cli.mjs` print exactly what they did before. `npm test` passes 6 of 6, and an independent verifier confirmed the change.
+
+**Changes** (only the 6 files in the plan; nothing committed):
+- `format.mjs` now returns `{ label: \`${user.name} <${user.id}>\`, id: user.id }`.
+- `report.mjs` and `cli.mjs` read `formatUser(...).label`.
+- `format.test.mjs` checks the returned object exactly and that it is an object, not a string.
+- `report.test.mjs` and `cli.test.mjs` keep their original exact-string tests and each add a second user (`u-2`/Ko) to show the output matches byte for byte.
+
+**Checks:**
+- **Tests:** I ran `npm test` myself: 6 pass, 0 fail, including the two new consumer tests.
+- **Scope:** I read the diff and `git status`. Only the 6 approved files changed; `store.mjs`, `README.md`, `package.json` and `CLAUDE.md` are untouched.
+- **Independent check:** The verifier ran the old code (from commit `8862dee`) and the new code side by side on 8 inputs: empty name, unicode, names containing `<`, `>` and `&`, numeric ids, and values containing a newline or tab. It found no differences in `label`, `banner` or `reportLine` output. It also confirmed there are no other callers of `formatUser`.
+
+**Deferred:** The verifier's one note was low priority: the test suite itself only uses ordinary names, so the edge-case match comes from the verifier's side-by-side run rather than from tests. I left it alone because it isn't needed to show the change works and would go beyond the plan.
+
+**Not done:** no commit, push or PR. Say if you want me to commit.

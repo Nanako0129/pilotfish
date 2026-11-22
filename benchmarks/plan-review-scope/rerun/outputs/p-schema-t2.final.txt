@@ -1,0 +1,22 @@
+Saved user data now uses version 2 with `user_id`, and both version 1 and version 2 data can still be read. `npm test` passes 5 of 5, and only `store.mjs` and `store.test.mjs` changed. Nothing is committed.
+
+**What changed**
+- `encodeUser` now saves `{version: 2, user_id, name}`.
+- `decodeUser` takes the id from `user` for version 1 and from `user_id` for version 2. Neither version reads the other version's field. Any other version still throws `unsupported version: X`.
+- The old round-trip test is replaced by five tests:
+  - the version 2 saved format (including that there is no `user` key)
+  - reading version 1 data
+  - reading version 2 data
+  - saving then reading version 2
+  - version 3 being rejected
+
+**Checks**
+- I ran `npm test` and `git status` myself.
+- A separate `pilotfish:verifier` agent independently confirmed every point of the claim. It reran the tests and tried extra cases: version 1 data with `user_id`, version 2 data with only `user`, a missing version, versions given as strings, and `null`. All behaved as planned.
+
+**Deferred, all low priority and outside the approved scope:**
+- The tests only check rejection for version 3. A missing version, string versions and swapped fields work correctly but have no tests.
+- A string version `"2"` gives the same error text as the number 2.
+- Data with no id field returns `id: undefined` instead of throwing. The plan didn't ask for that case to be rejected.
+
+Pilotfish steps used: plan-verifier (READY), executor (one attempt), verifier (CONFIRMED). `README.md` and `package.json` were not touched.

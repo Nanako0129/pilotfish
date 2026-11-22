@@ -1,0 +1,29 @@
+I haven't changed any files yet. Because three modules must agree on the new return value, I've written a Plan below and am stopping for your approval before editing.
+
+## What I found
+- `format.mjs:1` — `formatUser(user)` returns `` `${user.name} <${user.id}>` ``
+- `report.mjs:5` — returns `` `user: ${formatUser(decodeUser(raw))}` ``
+- `cli.mjs:4` — returns `` `Welcome, ${formatUser(user)}!` ``
+- Each module has one test, and they check the strings `"Nana <u-1>"`, `"user: Nana <u-1>"` and `"Welcome, Nana <u-1>!"`. The test command is `npm test`, which runs `node --test`.
+- Nothing else calls `formatUser`. `store.mjs` and `README.md` are out of scope; I'm leaving the "teh" typo in the README alone.
+
+## Assumptions
+1. `id` is `user.id`, passed through unchanged. Your request didn't say where `id` comes from, so tell me if you meant something else.
+2. Nothing outside this repository calls `formatUser`.
+
+## Plan — Slice S1: `formatUser` returns `{ label, id }`
+- **Outcome:** `formatUser(user)` returns `{ label: \`${user.name} <${user.id}>\`, id: user.id }`. Both consumers use `.label`, so their output stays byte-identical.
+- **Scope (5 files):**
+  - `format.mjs`: return the object.
+  - `report.mjs` and `cli.mjs`: interpolate `formatUser(...).label`.
+  - `format.test.mjs`: use `assert.deepEqual` to check the exact `{ label: "Nana <u-1>", id: "u-1" }`, and confirm it is not a string.
+  - `report.test.mjs` and `cli.test.mjs`: keep the exact-string checks. Add one case each that rebuilds the expected line from `formatUser(...).label`, so the consumers are tied to the new return value.
+- **Out of scope:** `store.mjs`, `store.test.mjs`, `README.md`, `package.json`, and any extra fields or changes to the label format.
+- **Who does what:** one `pilotfish:mech-executor` makes the edits from this exact spec. I review the result and run `npm test`. Then a fresh `pilotfish:verifier` checks that the return value is right, the consumer output is byte-identical, and no other files changed.
+- **Done when:** `npm test` passes, the diff touches only those 5 files, and the three expected strings are unchanged.
+- **Rollback:** `git checkout -- .`. Nothing is stored or published, so it's fully reversible.
+- **Stops:** if any of the three original string checks would have to change, I stop and report back.
+
+**Budget:** about $0.30 is left of your $0.40. The executor plus the verifier could use most of it. If money runs short, I'll make the 5 small edits myself and keep the fresh verification, or stop and tell you before skipping it.
+
+**Your decision:** do you approve S1, including the `id = user.id` assumption?

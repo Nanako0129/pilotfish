@@ -1,0 +1,618 @@
+{
+  "schema_version": 1,
+  "client": "Claude Code 2.1.325",
+  "main_model": "opus alias, resolved to claude-opus-5-5, effort high",
+  "fixture": "benchmarks/verifier-boundary/fixture, plus scope/xfix for the cross cell",
+  "cost_source": "total_cost_usd of each call's result line (client-reported); a resumed turn reports its session's cumulative total, so a turn-2 cost_usd includes turn 1 and spent_usd counts each session once",
+  "campaigns": [
+    {
+      "id": "blocking-bar",
+      "dates": [
+        "2026-11-20",
+        "2026-11-21"
+      ],
+      "authorized_cap_usd": 6.0,
+      "spent_usd": 2.15797,
+      "policy_sha256": "a34ddc908c72134e24adc57a61569e02abdbdc71e5759c99abe1fc5b392769ca",
+      "candidate_agents_sha256": "1e2478b1a68f47f19423bfe224297cdc4512eb8e54d618f49122f98a961f8460",
+      "base_agents_sha256": "31c0db8ded188060cfd9b095d2fc50a7cfe54af5b8d68b3884c41f7c025ad4fd",
+      "base_ref": "main at 40d170e",
+      "candidate_note": "verifier entry equals the committed templates/agents/verifier.md; plan-verifier entry carried a direction-check wording that was dropped afterwards, so the committed plan-verifier equals the base",
+      "cells": [
+        {
+          "cell": "v1",
+          "agents": "candidate",
+          "state": "behavioral defect: version 1 payloads decode without id, tests pass",
+          "role": "verifier",
+          "expected": "REFUTED",
+          "verdict": "REFUTED",
+          "pass": true,
+          "cost_usd": 0.313278
+        },
+        {
+          "cell": "v2",
+          "agents": "candidate",
+          "state": "correct code; README states 3 tests, suite has 4",
+          "role": "verifier",
+          "expected": "CONFIRMED|INCONCLUSIVE",
+          "verdict": "CONFIRMED",
+          "finding_priority": "P3",
+          "pass": true,
+          "cost_usd": 0.296181
+        },
+        {
+          "cell": "v2base",
+          "agents": "base",
+          "state": "same as v2",
+          "role": "verifier",
+          "expected": "REFUTED",
+          "verdict": "REFUTED",
+          "pass": true,
+          "cost_usd": 0.322486
+        },
+        {
+          "cell": "plancap",
+          "agents": "candidate",
+          "role": "plan-verifier",
+          "expected": [
+            "REVISE",
+            "REVISE",
+            "READY"
+          ],
+          "verdicts": [
+            "REVISE",
+            "REVISE",
+            "REVISE"
+          ],
+          "pass": false,
+          "cost_usd": 0.583352
+        },
+        {
+          "cell": "plancapbase",
+          "agents": "base",
+          "role": "plan-verifier",
+          "expected": [
+            "REVISE",
+            "REVISE",
+            "READY"
+          ],
+          "verdicts": [
+            "REVISE",
+            "REVISE",
+            "REVISE"
+          ],
+          "pass": false,
+          "cost_usd": 0.642673
+        }
+      ]
+    },
+    {
+      "id": "scope",
+      "dates": [
+        "2026-11-21"
+      ],
+      "authorized_cap_usd": 5.0,
+      "spent_usd": 1.28281,
+      "policy_sha256": "2108aabcf83fe4f440ed4a3954a6954e5e91eb58d20cb0ede07271070d291bce",
+      "agents_sha256": "748a951af3388cc3022f8bbc941896ac439cbcea10e73a353ec794eb4d279b16",
+      "cells": [
+        {
+          "cell": "cross",
+          "turn": 1,
+          "agents_called": [],
+          "main_writes": [],
+          "tree_changed": [],
+          "pass": true,
+          "cost_usd": 0.161399
+        },
+        {
+          "cell": "cross",
+          "turn": 2,
+          "agents_called": [
+            "mech-executor",
+            "verifier"
+          ],
+          "verifier_verdict": "CONFIRMED",
+          "tree_changed": [
+            "cli.mjs",
+            "cli.test.mjs",
+            "format.mjs",
+            "format.test.mjs",
+            "report.mjs",
+            "report.test.mjs"
+          ],
+          "npm_test": "pass",
+          "pass": true,
+          "cost_usd": 0.548129
+        },
+        {
+          "cell": "schema",
+          "turn": 1,
+          "agents_called": [
+            "plan-verifier"
+          ],
+          "plan_verifier_verdict": "READY",
+          "main_writes": [],
+          "tree_changed": [],
+          "pass": true,
+          "cost_usd": 0.299482
+        },
+        {
+          "cell": "schema",
+          "turn": 2,
+          "agents_called": [
+            "mech-executor",
+            "verifier"
+          ],
+          "verifier_verdict": "CONFIRMED",
+          "tree_changed": [
+            "store.mjs",
+            "store.test.mjs"
+          ],
+          "npm_test": "pass",
+          "pass": true,
+          "cost_usd": 0.592086
+        },
+        {
+          "cell": "routine",
+          "turn": 1,
+          "agents_called": [],
+          "main_writes": [
+            "Edit"
+          ],
+          "tree_changed": [
+            "README.md"
+          ],
+          "npm_test": "pass",
+          "pass": true,
+          "cost_usd": 0.142595
+        }
+      ]
+    },
+    {
+      "id": "plugin",
+      "dates": [
+        "2026-11-22"
+      ],
+      "authorized_cap_usd": 3.0,
+      "spent_usd": 0.88078,
+      "policy_source": "SessionStart hook of a frozen plugin/ copy at 0ffce36 loaded by --plugin-dir; no CLAUDE.md, no --agents",
+      "sessionstart_sha256": "52daf9bfa540473149702d3de2054e804084b084e058064d53f188805d9eeaf1",
+      "cells": [
+        {
+          "cell": "preflight",
+          "turn": 1,
+          "main_model": "claude-haiku-5-5",
+          "policy_marker_in_capture": true,
+          "pilotfish_roles_in_init": true,
+          "pass": true,
+          "cost_usd": 0.002597
+        },
+        {
+          "cell": "cross",
+          "turn": 1,
+          "agents_called": [],
+          "main_writes": [],
+          "tree_changed": [],
+          "policy_marker_in_capture": true,
+          "pass": true,
+          "cost_usd": 0.143785
+        },
+        {
+          "cell": "cross",
+          "turn": 2,
+          "agents_called": [
+            "pilotfish:mech-executor",
+            "pilotfish:verifier"
+          ],
+          "verifier_verdict": "CONFIRMED",
+          "tree_changed": [
+            "cli.mjs",
+            "cli.test.mjs",
+            "format.mjs",
+            "format.test.mjs",
+            "report.mjs",
+            "report.test.mjs"
+          ],
+          "npm_test": "pass",
+          "pass": true,
+          "cost_usd": 0.470671
+        },
+        {
+          "cell": "schema",
+          "turn": 1,
+          "agents_called": [
+            "pilotfish:plan-verifier"
+          ],
+          "plan_verifier_verdict": "READY",
+          "main_writes": [],
+          "tree_changed": [],
+          "policy_marker_in_capture": true,
+          "pass": true,
+          "cost_usd": 0.226692
+        },
+        {
+          "cell": "schema",
+          "turn": 2,
+          "agents_called": [
+            "pilotfish:verifier"
+          ],
+          "verifier_verdict": "CONFIRMED",
+          "main_writes": [
+            "Write",
+            "Write"
+          ],
+          "tree_changed": [
+            "store.mjs",
+            "store.test.mjs"
+          ],
+          "npm_test": "pass",
+          "pass": true,
+          "cost_usd": 0.407512
+        }
+      ]
+    },
+    {
+      "id": "rerun",
+      "dates": [
+        "2026-11-22"
+      ],
+      "authorized_cap_usd": 4.0,
+      "spent_usd": 2.758488,
+      "reason": "review found the verifier CONFIRMED definition and the readiness wording on policy lines 36, 37 and 40 inconsistent with the change; both were reworded (twice, see superseded_run) and the cells were run again on the final text",
+      "policy_sha256": "93fb822a0cccd1a57df2ebf386f1581d2f3a8c585a0a3b27c79b7c302f04fc45",
+      "agents_sha256": "2e0ee951f097e11847c5a0c3297798d037757039e28b4e28d4346702f4defb75",
+      "sessionstart_sha256": "c72fa1f23c5e6bc7f91d3f925d60fa7de99b8be7e0fad27f230dcb294994a055",
+      "plugin_cells": "p-*: frozen plugin/ copy loaded by --plugin-dir; no CLAUDE.md, no --agents",
+      "not_rerun": [
+        "v2base",
+        "plancap",
+        "plancapbase"
+      ],
+      "cells": [
+        {
+          "cell": "v1",
+          "state": "behavioral defect: version 1 payloads decode without id, tests pass",
+          "role": "verifier",
+          "expected": "REFUTED",
+          "verdict": "REFUTED",
+          "pass": true,
+          "cost_usd": 0.322478
+        },
+        {
+          "cell": "v2",
+          "state": "correct code; README states 3 tests, suite has 4",
+          "role": "verifier",
+          "expected": "CONFIRMED|INCONCLUSIVE",
+          "verdict": "CONFIRMED",
+          "finding_priority": "P3",
+          "pass": true,
+          "cost_usd": 0.285627
+        },
+        {
+          "cell": "cross",
+          "turn": 1,
+          "agents_called": [],
+          "main_writes": [],
+          "tree_changed": [],
+          "pass": true,
+          "cost_usd": 0.164422
+        },
+        {
+          "cell": "cross",
+          "turn": 2,
+          "agents_called": [
+            "mech-executor",
+            "verifier"
+          ],
+          "verifier_verdict": "CONFIRMED",
+          "tree_changed": [
+            "cli.mjs",
+            "format.mjs",
+            "format.test.mjs",
+            "report.mjs"
+          ],
+          "npm_test": "pass",
+          "pass": true,
+          "cost_usd": 0.502205
+        },
+        {
+          "cell": "schema",
+          "turn": 1,
+          "agents_called": [
+            "plan-verifier"
+          ],
+          "plan_verifier_verdict": "READY",
+          "main_writes": [],
+          "tree_changed": [],
+          "pass": true,
+          "cost_usd": 0.289368
+        },
+        {
+          "cell": "schema",
+          "turn": 2,
+          "agents_called": [
+            "mech-executor",
+            "verifier"
+          ],
+          "verifier_verdict": "CONFIRMED",
+          "tree_changed": [
+            "store.mjs",
+            "store.test.mjs"
+          ],
+          "npm_test": "pass",
+          "pass": true,
+          "cost_usd": 0.579564
+        },
+        {
+          "cell": "routine",
+          "turn": 1,
+          "agents_called": [],
+          "main_writes": [
+            "Edit"
+          ],
+          "tree_changed": [
+            "README.md"
+          ],
+          "npm_test": "pass",
+          "pass": true,
+          "cost_usd": 0.146431
+        },
+        {
+          "cell": "p-preflight",
+          "turn": 1,
+          "main_model": "claude-haiku-5-5",
+          "policy_marker_in_capture": true,
+          "pilotfish_roles_in_init": true,
+          "pass": true,
+          "cost_usd": 0.002597
+        },
+        {
+          "cell": "p-cross",
+          "turn": 1,
+          "agents_called": [],
+          "main_writes": [],
+          "tree_changed": [],
+          "pass": true,
+          "cost_usd": 0.145959,
+          "policy_marker_in_capture": true
+        },
+        {
+          "cell": "p-cross",
+          "turn": 2,
+          "agents_called": [
+            "pilotfish:executor",
+            "pilotfish:verifier"
+          ],
+          "verifier_verdict": "CONFIRMED",
+          "tree_changed": [
+            "cli.mjs",
+            "cli.test.mjs",
+            "format.mjs",
+            "format.test.mjs",
+            "report.mjs",
+            "report.test.mjs"
+          ],
+          "npm_test": "pass",
+          "pass": true,
+          "cost_usd": 0.421397
+        },
+        {
+          "cell": "p-schema",
+          "turn": 1,
+          "agents_called": [
+            "pilotfish:plan-verifier"
+          ],
+          "plan_verifier_verdict": "READY",
+          "main_writes": [],
+          "tree_changed": [],
+          "pass": true,
+          "cost_usd": 0.226146,
+          "policy_marker_in_capture": true,
+          "plan_verifier_run_in_background_by_client": true,
+          "verdict_source": "completion notification (summary READY); the tool result is the launch notice"
+        },
+        {
+          "cell": "p-schema",
+          "turn": 2,
+          "agents_called": [
+            "pilotfish:executor",
+            "pilotfish:verifier"
+          ],
+          "verifier_verdict": "CONFIRMED",
+          "tree_changed": [
+            "store.mjs",
+            "store.test.mjs"
+          ],
+          "npm_test": "pass",
+          "pass": true,
+          "cost_usd": 0.498189
+        }
+      ],
+      "superseded_run": {
+        "commit": "a9179ea",
+        "spent_usd": 2.739615,
+        "policy_sha256": "bd907c3196bc03ac6589d198e6efc71c75bd041206475fc1df4edbd23fbd2ec5",
+        "agents_sha256": "51230d07f41829d9f558c3c6c582680c429b599870f29367f72d48c84ab88a93",
+        "sessionstart_sha256": "62751a24adfb9b7eaa07444e8764b41deca7aec6ad64954ec8f7a7717e6170fa",
+        "note": "an earlier rerun on the wording committed in a9179ea; all cells passed with the same verdicts; review then found the line-40 prefix scoped too much and the CONFIRMED and Plugin wording unclear, so the text changed again",
+        "folder": "rerun-a9179ea",
+        "dates": [
+          "2026-11-22"
+        ],
+        "authorized_cap_usd": 4.0,
+        "cells": [
+          {
+            "cell": "v1",
+            "state": "behavioral defect: version 1 payloads decode without id, tests pass",
+            "role": "verifier",
+            "expected": "REFUTED",
+            "verdict": "REFUTED",
+            "pass": true,
+            "cost_usd": 0.31736
+          },
+          {
+            "cell": "v2",
+            "state": "correct code; README states 3 tests, suite has 4",
+            "role": "verifier",
+            "expected": "CONFIRMED|INCONCLUSIVE",
+            "verdict": "CONFIRMED",
+            "finding_priority": "P3",
+            "pass": true,
+            "cost_usd": 0.308947
+          },
+          {
+            "cell": "cross",
+            "turn": 1,
+            "agents_called": [],
+            "main_writes": [],
+            "tree_changed": [],
+            "pass": true,
+            "cost_usd": 0.168705
+          },
+          {
+            "cell": "cross",
+            "turn": 2,
+            "agents_called": [
+              "mech-executor",
+              "verifier"
+            ],
+            "verifier_verdict": "CONFIRMED",
+            "tree_changed": [
+              "cli.mjs",
+              "cli.test.mjs",
+              "format.mjs",
+              "format.test.mjs",
+              "report.mjs",
+              "report.test.mjs"
+            ],
+            "npm_test": "pass",
+            "pass": true,
+            "cost_usd": 0.511001
+          },
+          {
+            "cell": "schema",
+            "turn": 1,
+            "agents_called": [
+              "plan-verifier"
+            ],
+            "plan_verifier_verdict": "READY",
+            "main_writes": [],
+            "tree_changed": [],
+            "pass": true,
+            "cost_usd": 0.273166
+          },
+          {
+            "cell": "schema",
+            "turn": 2,
+            "agents_called": [
+              "mech-executor",
+              "verifier"
+            ],
+            "verifier_verdict": "CONFIRMED",
+            "tree_changed": [
+              "store.mjs",
+              "store.test.mjs"
+            ],
+            "npm_test": "pass",
+            "pass": true,
+            "cost_usd": 0.539384
+          },
+          {
+            "cell": "routine",
+            "turn": 1,
+            "agents_called": [],
+            "main_writes": [
+              "Edit"
+            ],
+            "tree_changed": [
+              "README.md"
+            ],
+            "npm_test": "pass",
+            "pass": true,
+            "cost_usd": 0.144839
+          },
+          {
+            "cell": "p-preflight",
+            "turn": 1,
+            "main_model": "claude-haiku-5-5",
+            "policy_marker_in_capture": true,
+            "pilotfish_roles_in_init": true,
+            "pass": true,
+            "cost_usd": 0.002523
+          },
+          {
+            "cell": "p-cross",
+            "turn": 1,
+            "agents_called": [],
+            "main_writes": [],
+            "tree_changed": [],
+            "pass": true,
+            "cost_usd": 0.14699,
+            "policy_marker_in_capture": true
+          },
+          {
+            "cell": "p-cross",
+            "turn": 2,
+            "agents_called": [
+              "pilotfish:mech-executor",
+              "pilotfish:verifier"
+            ],
+            "verifier_verdict": "CONFIRMED",
+            "tree_changed": [
+              "cli.mjs",
+              "cli.test.mjs",
+              "format.mjs",
+              "format.test.mjs",
+              "report.mjs",
+              "report.test.mjs"
+            ],
+            "npm_test": "pass",
+            "pass": true,
+            "cost_usd": 0.456126
+          },
+          {
+            "cell": "p-schema",
+            "turn": 1,
+            "agents_called": [
+              "pilotfish:plan-verifier"
+            ],
+            "plan_verifier_verdict": "READY",
+            "main_writes": [],
+            "tree_changed": [],
+            "pass": true,
+            "cost_usd": 0.21885,
+            "policy_marker_in_capture": true
+          },
+          {
+            "cell": "p-schema",
+            "turn": 2,
+            "agents_called": [
+              "pilotfish:mech-executor",
+              "pilotfish:verifier"
+            ],
+            "verifier_verdict": "CONFIRMED",
+            "tree_changed": [
+              "store.mjs",
+              "store.test.mjs"
+            ],
+            "npm_test": "pass",
+            "pass": true,
+            "cost_usd": 0.459434
+          }
+        ]
+      }
+    }
+  ],
+  "limits": [
+    "one attempt per cell",
+    "the cross prompt names its risk class, so the cell tests trigger-to-role routing, not risk classification",
+    "every prompt opts in to pilotfish explicitly",
+    "security/trust, release and destructive/external triggers were not run",
+    "plancap fails on both candidate and base agents, so its READY-at-turn-3 expectation does not hold on claude-opus-5-5 with or without this change",
+    "raw stream captures are not committed; streams.sha256 lists their digests",
+    "the Plugin campaign has no routine cell and no blocking-bar cells",
+    "scope and plugin ran on the policy and roles at 0ffce36, blocking-bar on main's policy (40d170e) with a candidate role set whose verifier equals the one at 0ffce36; rerun repeats their cells on the final text except v2base, plancapbase (main's roles) and plancap (candidate roles under main's policy, not run on the final text); the rerun's pass/fail results and verdicts equal the earlier ones (executor roles and the files touched in cross differ) and no cell distinguishes the reworded text from the earlier wording",
+    "in the rerun's p-schema turn 1 the client ran the plan-verifier call in the background without being asked; the check counted the launch notice as a returned call and READY was read from the completion notification"
+  ]
+}

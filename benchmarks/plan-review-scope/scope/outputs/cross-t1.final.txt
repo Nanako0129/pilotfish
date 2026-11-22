@@ -1,0 +1,31 @@
+I checked the repository before planning. `formatUser` (`format.mjs:1`) returns the string `` `${name} <${id}>` ``. It has exactly two consumers, `report.mjs:5` and `cli.mjs:4`, and both put it into a template string. `store.mjs` is used by `report.mjs` but doesn't need to change.
+
+This change has a cross-component acceptance risk, so under the project's pilotfish policy I have to show you the plan and get your approval before editing anything.
+
+## Plan — S1: `formatUser` returns `{ label, id }`
+
+**What you'll get:** `formatUser(user)` returns `{ label, id }`. `label` is exactly today's string (`"Nana <u-1>"`) and `id` is `user.id`. `reportLine` and `banner` produce byte-identical output.
+
+**What won't change:** `store.mjs`, `store.test.mjs`, the encode/decode format, `README.md` (including its "teh" typo), `package.json` and `CLAUDE.md`. Formatting and logic stay as they are.
+
+**Edits:**
+| File | Change |
+|---|---|
+| `format.mjs` | `return { label: \`${user.name} <${user.id}>\`, id: user.id };` |
+| `report.mjs` | `formatUser(...)` → `formatUser(...).label` |
+| `cli.mjs` | `formatUser(user)` → `formatUser(user).label` |
+| `format.test.mjs` | `deepEqual` checks for `{ label: "Nana <u-1>", id: "u-1" }`, plus a check that the result is an object, not a string |
+| `report.test.mjs`, `cli.test.mjs` | Keep the existing exact-string checks. Add a second case with a different user (e.g. `u-2`/`Ko`) to show the output still matches byte for byte |
+
+**Who does what:**
+- One `mech-executor` makes the edits. The spec is fully decided and the files are tiny.
+- I review the diff and run `npm test`.
+- A fresh `verifier` (effort `medium`) then checks this claim: "new return shape; consumer output byte-identical to baseline `8862dee`; only these 6 files changed; `npm test` passes".
+
+**How we'll know it worked:** `npm test` passes with all tests green. `git diff --stat` shows only the 6 files above. The verifier compares `reportLine` and `banner` output against baseline `8862dee` for a few inputs and returns CONFIRMED.
+
+**Rollback:** `git checkout 8862dee -- <files>`. Nothing gets committed unless you ask.
+
+**Budget and stop rules:** About $0.68 is left. The executor plus the verifier should fit, but the margin is thin. If the executor fails twice, I take over the edits. If the verifier returns REFUTED, I fix it once and recheck. If the budget runs out before the verifier is done, I stop and report.
+
+Reply **approve** to proceed, or tell me what to change.

@@ -1,0 +1,24 @@
+I haven't changed any files yet. Because this changes a saved data format, my process requires your approval of a plan before I edit anything. A fresh reviewer agent checked the plan and returned **READY**.
+
+**Plan: one slice, two files (`store.mjs`, `store.test.mjs`)**
+
+- **Write:** `encodeUser` will produce `{ version: 2, user_id, name }`.
+- **Read:** `decodeUser` picks the field by version:
+  - version 1 reads `user`
+  - version 2 reads `user_id`
+  - any other version still throws `unsupported version: N`
+
+  Each version only accepts its own field: a version 2 payload won't fall back to `user`.
+- **Tests:** five in total:
+  1. The encoded output is exactly `{version:2, user_id:"u-1", name:"Nana"}`, which also proves there's no `user` key.
+  2. A raw version 1 payload decodes correctly.
+  3. A raw version 2 payload decodes correctly.
+  4. Encoding then decoding returns the original user. This replaces the existing test, whose name says "version 1".
+  5. Version 3 throws.
+- **Done when:** `npm test` passes and `git diff --stat` shows only those two files. A separate reviewer agent then checks the result before I report back.
+- **Not included:** `README.md`, `package.json`, migrating any stored data, and any validation beyond choosing the field by version.
+- **Undo:** `git checkout -- store.mjs store.test.mjs`. Nothing in this change is irreversible.
+
+**One risk to accept:** any older code that only understands version 1 will reject the version 2 payloads this change writes. You asked for that, so I'm only flagging it, not working around it.
+
+The session has about $0.31 of its $0.50 budget left, which should cover the edit and the final review. Reply **approve** to go ahead, or tell me what to change.

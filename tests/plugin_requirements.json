@@ -2,7 +2,7 @@
   "schema_version": 1,
   "source": {
     "path": "templates/claude-md.orchestration.md",
-    "sha256": "a34ddc908c72134e24adc57a61569e02abdbdc71e5759c99abe1fc5b392769ca"
+    "sha256": "93fb822a0cccd1a57df2ebf386f1581d2f3a8c585a0a3b27c79b7c302f04fc45"
   },
   "requirements": [
     {
@@ -49,8 +49,8 @@
       "id": "PLUG-SEVERITY-RISK",
       "category": "severity",
       "source_line": 14,
-      "source_clause": "- Risk precedes size. Independent-review triggers: explicit user request for independent review; security/trust; destructive/irreversible/external mutation; data/schema/serialization/migration; release; material cross-component acceptance. File count, model concern, routine docs/UI, bounded fail-soft bug alone do not trigger.",
-      "ambient_line": "Risk first.Triggers:explicit review;security/trust;destructive/irreversible/external mutation;data/schema/serialization/migration;release;material cross-component acceptance.File count/model concern/routine docs-UI/fail-soft bug alone:no.",
+      "source_clause": "- Risk precedes size. Independent-review triggers: explicit user request for independent review; security/trust; destructive/irreversible/external mutation; data/schema/serialization/migration; release; material cross-component acceptance. Plan-review subset: explicit request; destructive/irreversible/external mutation; data/schema/serialization/migration; release. File count, model concern, routine docs/UI, bounded fail-soft bug alone do not trigger.",
+      "ambient_line": "Risk first.Triggers:explicit review*;security/trust;destructive/irreversible/external mutation*;data/schema/serialization/migration*;release*;material cross-component acceptance.*=mandatory pre-approval pilotfish:plan-verifier.File count/model concern/routine docs-UI/fail-soft bug alone:no.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -73,8 +73,8 @@
       "id": "PLUG-APPROVAL-PLAN",
       "category": "approval",
       "source_line": 17,
-      "source_clause": "- Plan gate: main synthesizes one Plan. Large work uses program envelope plus independently approvable slices carrying stable ID, outcome, scope, non-goals, owners, prerequisites, acceptance proving outcome, rollback, budget, stops. Risk-triggered units use fresh `plan-verifier`; main owns revisions/synthesis.",
-      "ambient_line": "Main writes Plan.Large work:envelope+slices with ID/outcome/scope/non-goals/owners/prerequisites/proving acceptance/rollback/budget/stops.Risk uses fresh pilotfish:plan-verifier;main revises.",
+      "source_clause": "- Plan gate: main synthesizes one Plan. Large work uses program envelope plus independently approvable slices carrying stable ID, outcome, scope, non-goals, owners, prerequisites, acceptance proving outcome, rollback, budget, stops. Plan opens restating intent (outcome, non-goals) in main's words. Plan-review units use fresh `plan-verifier`; main owns revisions/synthesis.",
+      "ambient_line": "Main writes Plan.Large work:envelope+slices with ID/outcome/scope/non-goals/owners/prerequisites/proving acceptance/rollback/budget/stops.Plan restates intent;main revises.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -201,7 +201,7 @@
       "id": "PLUG-SECURITY-ROUTING",
       "category": "security",
       "source_line": 36,
-      "source_clause": "- Security-sensitive work (authn/authz, credentials/secrets, identity/privacy, crypto, validation/hardening, vuln analysis) never uses general executors. Before required approval and first readiness review, finish tool-enforced read-only `security-reviewer`; carry findings/dispositions into Plan. After approval, send stable contract to `security-executor`. Never run both pre-approval reviews concurrently or send pre-approval work to write-capable security executor.",
+      "source_clause": "- Security-sensitive work (authn/authz, credentials/secrets, identity/privacy, crypto, validation/hardening, vuln analysis) never uses general executors. Before required approval and any readiness review, finish tool-enforced read-only `security-reviewer`; carry findings/dispositions into Plan. After approval, send stable contract to `security-executor`. Never run both pre-approval reviews concurrently or send pre-approval work to write-capable security executor.",
       "ambient_line": "Authn/authz,secrets,identity/privacy,crypto,validation/hardening,vulnerabilities never use general executors.Pre-approval:read-only pilotfish:security-reviewer+dispositions;post-approval:pilotfish:security-executor.Never overlap reviews/send pre-approval work to writers.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
@@ -209,8 +209,8 @@
       "id": "PLUG-SECURITY-MANDATORY-REVIEW",
       "category": "security",
       "source_line": 37,
-      "source_clause": "- Any independent-review trigger makes that unit risky: pre-approval `plan-verifier` and post-implementation `verifier` are mandatory Agent calls, with no extra opt-in. Higher-priority prohibition → pause before edits, never direct fallback or waiver; unblock only by lifting the prohibition or narrowing away every trigger. Bounded fail-soft exception applies only without listed risk. After readiness, present Plan and end turn; implementation begins only after explicit approval in a later turn. Plan readiness judges proposed acceptance check.",
-      "ambient_line": "Each risk trigger mandates pre-approval pilotfish:plan-verifier+post-implementation pilotfish:verifier,no extra opt-in.Higher-rule prohibition pauses pre-edit—no fallback/waiver—until lifted/risk removed.Present ready Plan/stop;later approval unlocks execution.",
+      "source_clause": "- Any independent-review trigger makes that unit risky: post-implementation `verifier` is a mandatory Agent call; Plan-review units also require pre-approval `plan-verifier`, with no extra opt-in. Higher-priority prohibition → pause before edits, never direct fallback or waiver; unblock only by lifting the prohibition or narrowing away every trigger. Bounded fail-soft exception applies only without listed risk. After any required readiness, present Plan and end turn; implementation begins only after explicit approval in a later turn. Plan readiness judges proposed acceptance check.",
+      "ambient_line": "Each risk trigger mandates post-implementation pilotfish:verifier,no extra opt-in.Higher-rule prohibition pauses pre-edit—no fallback/waiver—until lifted/risk removed.Present ready Plan/stop;later approval unlocks execution.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -233,8 +233,8 @@
       "id": "PLUG-APPROVAL-SEQUENCE",
       "category": "approval",
       "source_line": 40,
-      "source_clause": "- Review program envelope before slices, then next executable slice only. Both must be READY before approval; unrelated downstream slices do not block. Shared blockers/unmet prerequisites gate dependents; cosmetic splitting resets nothing.",
-      "ambient_line": "Review envelope before next executable slice;both READY before approval.Unrelated later slices do not block;shared blockers/prerequisites do.Cosmetic splits reset nothing.",
+      "source_clause": "- Plan-review units: review program envelope before slices, then next executable slice only; both must be READY before approval. All units: unrelated downstream slices do not block approval; shared blockers/unmet prerequisites gate dependents; cosmetic splitting resets nothing.",
+      "ambient_line": "*-marked:review envelope before next executable slice;both READY before approval.All:unrelated later slices do not block;shared blockers/prerequisites do;cosmetic splits reset nothing.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {

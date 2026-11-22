@@ -1,0 +1,18 @@
+`formatUser` now returns `{ label, id }`, and `banner` and `reportLine` print exactly what they did before. `npm test` passes all 4 tests, and a separate verification agent confirmed the change.
+
+**What changed** (only these four files):
+- `format.mjs`: returns `{ label: \`${user.name} <${user.id}>\`, id: user.id }`. `label` is the same string it returned before.
+- `cli.mjs` and `report.mjs`: both now use `formatUser(...).label`.
+- `format.test.mjs`: now checks the result equals `{ label: "Nana <u-1>", id: "u-1" }` and is an object.
+- `cli.test.mjs` and `report.test.mjs` are untouched. Their existing exact-string checks (`"Welcome, Nana <u-1>!"`, `"user: Nana <u-1>"`) are what prove the output didn't change.
+
+**Checks:**
+- **Tests:** `npm test` gives 4 passed, 0 failed. I ran it myself after the worker finished.
+- **Scope:** `git status` shows only those four files modified. `store.mjs`, `README.md`, `package.json` and `CLAUDE.md` are unchanged.
+- **Independent check:** the verifier ran the old and new code side by side on 7 inputs, including empty strings, special characters, newlines, Unicode and a name of `"[object Object]"`. Every `label`, `banner` output and `reportLine` output matched the old code byte for byte. It also found no other callers of `formatUser`.
+
+**Deferred:** the verifier noted that the `typeof result === "object"` line in `format.test.mjs` is redundant, since the shape check above it already proves that. It does no harm, so I left it as is.
+
+**Agents used:** one `mech-executor` made the edits and one `verifier` checked them; nothing failed verification. The executor's first test run failed (`user: undefined`) because two of its file writes were blocked partway. It rewrote those two files and the next run passed.
+
+Nothing is committed or pushed. To undo: `git checkout -- format.mjs cli.mjs report.mjs format.test.mjs`.

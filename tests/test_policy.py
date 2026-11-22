@@ -32,6 +32,43 @@ EFFORT_CLAUSE = (
     b" floor: `verifier`/`plan-verifier` `medium`, `security-reviewer` `high`."
 )
 EFFORT_LINE = 38
+# Plan-review scope, changed after the last behavioural gate. Checked by one run
+# per cell in benchmarks/plan-review-scope, not by a full Gate:
+# pre-approval `plan-verifier` is mandatory only for the Plan-review subset, and
+# every Plan opens by restating intent. Each entry is (gated text, live text).
+POST_GATE_REPLACEMENTS = {
+    14: (
+        b"release; material cross-component acceptance. File count,",
+        b"release; material cross-component acceptance. Plan-review subset: explicit"
+        b" request; destructive/irreversible/external mutation;"
+        b" data/schema/serialization/migration; release. File count,",
+    ),
+    17: (
+        b"Risk-triggered units use fresh `plan-verifier`; main owns revisions/synthesis.",
+        b"Plan opens restating intent (outcome, non-goals) in main's words. Plan-review"
+        b" units use fresh `plan-verifier`; main owns revisions/synthesis.",
+    ),
+    37: (
+        b"pre-approval `plan-verifier` and post-implementation `verifier` are mandatory"
+        b" Agent calls, with no extra opt-in.",
+        b"post-implementation `verifier` is a mandatory Agent call; Plan-review units"
+        b" also require pre-approval `plan-verifier`, with no extra opt-in.",
+    ),
+}
+# Readiness wording limited to Plan-review units (lines 36, 37, 40), applied on
+# top of the entries above. No benchmark cell distinguishes it from the earlier wording.
+READINESS_REPLACEMENTS = {
+    36: (b"and first readiness review, finish", b"and any readiness review, finish"),
+    37: (b"After readiness, present Plan", b"After any required readiness, present Plan"),
+    40: (
+        b"- Review program envelope before slices, then next executable slice only."
+        b" Both must be READY before approval; unrelated downstream slices do not"
+        b" block. Shared blockers",
+        b"- Plan-review units: review program envelope before slices, then next"
+        b" executable slice only; both must be READY before approval. All units:"
+        b" unrelated downstream slices do not block approval; shared blockers",
+    ),
+}
 
 
 def normalize_version_marker(payload: bytes) -> bytes:
@@ -41,12 +78,17 @@ def normalize_version_marker(payload: bytes) -> bytes:
 
 
 class PolicyContractTests(unittest.TestCase):
-    def assert_only_effort_clause_added(self, gated: bytes, live: bytes) -> None:
+    def assert_only_declared_lines_changed(self, gated: bytes, live: bytes) -> None:
         gated_lines = normalize_version_marker(gated).split(b"\n")
         live_lines = normalize_version_marker(live).split(b"\n")
         self.assertEqual(len(gated_lines), len(live_lines))
         index = EFFORT_LINE - 1
         for number, (old, new) in enumerate(zip(gated_lines, live_lines), 1):
+            for table in (POST_GATE_REPLACEMENTS, READINESS_REPLACEMENTS):
+                if number in table:
+                    before, after = table[number]
+                    self.assertEqual(old.count(before), 1, f"line {number} gated text")
+                    old = old.replace(before, after)
             if number != EFFORT_LINE:
                 self.assertEqual(old, new, f"line {number} drifted from the gated policy")
         self.assertEqual(live_lines[index], gated_lines[index] + EFFORT_CLAUSE)
@@ -2111,7 +2153,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         live = (ROOT / "templates/claude-md.orchestration.md").read_bytes()
         self.assertNotEqual(candidate, live)
-        self.assert_only_effort_clause_added(candidate, live)
+        self.assert_only_declared_lines_changed(candidate, live)
         self.assertEqual(evidence["route"]["client_versions"], ["2.1.224"])
 
         expected_adapters = [
@@ -2962,7 +3004,7 @@ class PolicyContractTests(unittest.TestCase):
             hashlib.sha256(last_qualified_policy).hexdigest(),
         )
         self.assertNotEqual(last_qualified_policy, current_policy)
-        self.assert_only_effort_clause_added(last_qualified_policy, current_policy)
+        self.assert_only_declared_lines_changed(last_qualified_policy, current_policy)
         self.assertEqual(
             runtime["release_candidate_agents_json_sha256"],
             hashlib.sha256(completed.stdout.rstrip(b"\n")).hexdigest(),
@@ -3102,7 +3144,7 @@ class PolicyContractTests(unittest.TestCase):
         )
         self.assertEqual(
             runtime["release_candidate_agents_json_delta_from_final_gate"],
-            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow fallback, and bounded-recheck contracts; since the issue #29 recovery Gate payload, security-executor effort changed high to medium and both prompts dropped one sentence each (scout's line-count cap, security-executor's high-effort and classifier rationale); scout ran on sonnet in v1.4.2 and is back on the Gate payload's haiku alias after the benchmarks/scout-haiku-probe accuracy probe, but that alias now resolves to claude-haiku-5-5, which no behavioral Gate has run; these deltas passed no behavioral Gate, only a live per-subagent model-resolution check (pilotfish:scout child messages on claude-haiku-5-5, Claude Code 2.1.294) with effort unobserved, and the mechanical, bug, routine and schema cells were not rerun on this payload",
+            "executor role model changed opus to sonnet (issue #18, tier-collapse fix); plan-verifier and verifier prompts carry current blocker, primary-flow fallback, and bounded-recheck contracts; since the issue #29 recovery Gate payload, security-executor effort changed high to medium and both prompts dropped one sentence each (scout's line-count cap, security-executor's high-effort and classifier rationale); scout ran on sonnet in v1.4.2 and is back on the Gate payload's haiku alias after the benchmarks/scout-haiku-probe accuracy probe, but that alias now resolves to claude-haiku-5-5, which no behavioral Gate has run; these deltas passed no behavioral Gate, only a live per-subagent model-resolution check (pilotfish:scout child messages on claude-haiku-5-5, Claude Code 2.1.294) with effort unobserved, and the mechanical, bug, routine and schema cells were not rerun on this payload; after v1.5.0 the verifier prompt limits a failed acceptance condition to P2 only for a failing current-head run or behavior users hit and rates wording/count mismatches P3, checked by one old-versus-new observation in benchmarks/plan-review-scope rather than a full Gate; CONFIRMED is then defined to admit a P3/P4-only shortfall, which no cell distinguishes from the earlier definition",
         )
         final_policy = (gate / runtime["final_gate_snapshot_policy"]).read_bytes()
         self.assertEqual(
@@ -6049,12 +6091,12 @@ class PolicyContractTests(unittest.TestCase):
             "smallest coherent integration boundary",
             "explicit user request for independent review",
             "Any independent-review trigger makes that unit risky",
-            "pre-approval `plan-verifier` and post-implementation `verifier` are mandatory Agent calls",
+            "post-implementation `verifier` is a mandatory Agent call; Plan-review units also require pre-approval `plan-verifier`, with no extra opt-in",
             "with no extra opt-in",
             "pause before edits, never direct fallback or waiver",
             "unblock only by lifting the prohibition or narrowing away every trigger",
             "Bounded fail-soft exception applies only without listed risk",
-            "After readiness, present Plan and end turn",
+            "After any required readiness, present Plan and end turn",
             "implementation begins only after explicit approval in a later turn",
             "Plan readiness judges proposed acceptance check",
             "Run primary user-visible acceptance first",
@@ -6156,8 +6198,10 @@ class PolicyContractTests(unittest.TestCase):
             "any reproducible high-impact user/system failure",
             verifier,
         )
+        # Pins the wording only. Whether a verifier applies it was observed once
+        # per cell in benchmarks/plan-review-scope (v1, v2), not by this test.
         self.assertIn(
-            "sufficient for every required acceptance condition",
+            "evaluates every required acceptance condition; each is met or fails only at P3/P4 (report)",
             verifier,
         )
         self.assertIn(
@@ -6197,7 +6241,8 @@ class PolicyContractTests(unittest.TestCase):
             "P2 = material bounded/recoverable issue",
             "P3 =",
             "P4 =",
-            "failed acceptance condition is P2 when bounded/recoverable",
+            "P2 only when current-head run fails/users hit behavior",
+            "mismatch lacking behavioral effect = P3 unless users rely on mismatched text",
         )))
         lowered = verifier.lower()
         self.assertIsNone(re.search(

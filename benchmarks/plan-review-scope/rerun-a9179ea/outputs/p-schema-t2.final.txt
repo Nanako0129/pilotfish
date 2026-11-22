@@ -1,0 +1,25 @@
+The payload is now version 2: new writes use `user_id`, and reads still accept both version 1 and version 2. `npm test` passes all 5 tests, and the only files changed are `store.mjs` and `store.test.mjs`. Nothing is committed.
+
+**What changed**
+- **Writing** (`store.mjs`): `encodeUser` saves `{"version":2,"user_id":…,"name":…}`, with no `user` key.
+- **Reading** (`store.mjs`): `decodeUser` takes the ID from `user` for version 1 and from `user_id` for version 2. Any other version throws `unsupported version: <v>`.
+- **Tests** (`store.test.mjs`): the old version-1 round-trip test is replaced by five:
+  - The saved format is exactly `{version:2, user_id, name}`.
+  - A hand-written version-1 payload reads correctly.
+  - A hand-written version-2 payload reads correctly.
+  - A version-2 round trip returns the same user.
+  - Version 3 is rejected.
+
+**Checks**
+- pilotfish:mech-executor made the edits. I read the diff and reran `npm test` myself: 5 passed, 0 failed.
+- pilotfish:verifier, a fresh agent, independently confirmed every part of the change.
+- It also tried cases the tests don't cover, all correct:
+  - A missing version, `"2"` as a string, `null` and `0` are all rejected.
+  - A version-2 payload with a stray `user` key still reads from `user_id`.
+  - Extra fields on the input user are left out of what gets saved.
+
+**Minor gaps, left as is**
+- The tests only check rejection for version 3, not for a missing or string version. Those were only checked by hand.
+- The error for the string `"2"` reads the same as for the number 2, so the message alone doesn't show it was a string.
+
+Neither was in the approved scope, so I didn't change anything for them. Cost so far is about $0.20 of the $0.70 budget. To undo, run `git checkout -- store.mjs store.test.mjs`.

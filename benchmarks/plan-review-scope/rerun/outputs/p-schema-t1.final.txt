@@ -1,0 +1,33 @@
+The plan-verifier returned **READY**. Because this changes how user data is saved, pilotfish needs your explicit approval before I edit anything. Nothing has been changed yet.
+
+## Plan: user payload v2
+
+**What changes:** `encodeUser` will save `{version: 2, user_id, name}`. `decodeUser` will read version 1 payloads (from `user`) and version 2 payloads (from `user_id`). Any other version still throws the existing `unsupported version: X` error.
+
+**Files:** only `store.mjs` and `store.test.mjs`.
+
+**Not changing:** `README.md` (including the "teh" typo), `package.json`, already-saved data, and any new fields or versions.
+
+**How reads work:**
+- A version 2 payload takes the id from `user_id`.
+- A version 1 payload takes the id from `user`.
+- A version 2 payload that has only `user` will not have that read as the id.
+
+**Tests** in `store.test.mjs`:
+1. A saved payload is exactly `{version: 2, user_id: "u-1", name: "Nana"}` and has no `user` key.
+2. A hand-written version 1 string decodes to `{id: "u-1", name: "Nana"}`.
+3. A hand-written version 2 string decodes to the same.
+4. Saving and then reading a version 2 payload gives back the original user.
+5. Version 3 throws `unsupported version: 3`.
+
+**Who does what:** `pilotfish:executor` makes the edits. Then a fresh `pilotfish:verifier` checks the exact claim above.
+
+**Done when:** `npm test` passes all 5 tests and `git diff --stat` shows only the two files.
+
+**To undo:** `git checkout -- store.mjs store.test.mjs`. Nothing is committed and no data is migrated.
+
+**Limits:** at most 2 executor attempts and 1 verifier pass. I'll stop if anything outside the two files would need to change.
+
+**Budget:** about $0.30 of the $0.50 is left, which should cover the executor and verifier.
+
+Reply **approve** to go ahead, or tell me what to change.

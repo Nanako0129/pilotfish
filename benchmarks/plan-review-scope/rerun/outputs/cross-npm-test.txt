@@ -1,0 +1,16 @@
+
+> test
+> node --test
+
+✔ banner greets the user (0.298541ms)
+✔ formatUser returns an object with label and id (0.548542ms)
+✔ reportLine renders a stored user (0.272958ms)
+✔ version 1 payloads round trip (0.545875ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 36.575208

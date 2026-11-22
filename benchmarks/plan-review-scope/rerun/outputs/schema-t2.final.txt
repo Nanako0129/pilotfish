@@ -1,0 +1,17 @@
+The user payload is now version 2: new writes use `user_id`, and reads still accept both version 1 (`user`) and version 2 (`user_id`). `npm test` exits 0 with 5 of 5 tests passing. I ran it myself, and a separate fresh-context check (`verifier`) returned **CONFIRMED**.
+
+**What changed** (only `store.mjs` and `store.test.mjs`; `git status` shows nothing else):
+- **Writing:** `encodeUser` now produces `{ version: 2, user_id, name }`.
+- **Reading:** `decodeUser` turns version 1 (`user`) and version 2 (`user_id`) payloads into `{ id, name }`. Any other version still throws `unsupported version: N`.
+- **Tests:** the old version 1 round-trip test is replaced by five tests. They check:
+  - the exact version 2 output, including that there is no `user` key
+  - reading a version 1 payload
+  - reading a version 2 payload
+  - a version 2 write-then-read round trip
+  - that version 3 is rejected
+
+**How it was done:** a `mech-executor` agent made the edits. Its reported exit code came from the wrong command, so I reran `npm test` myself to confirm the real exit status.
+
+**Findings:** nothing blocking. The check noted one out-of-scope case: a version 1 payload that has `user_id` instead of `user` decodes with no `id`. Checking for missing fields was a non-goal in the plan, so I've left it alone.
+
+**Not done:** nothing is committed or pushed. The README typo, other files and stored data are untouched. Cost so far this turn is about $0.26 of $0.80.

@@ -1,0 +1,17 @@
+
+> test
+> node --test
+
+✔ version 2 write format (0.423542ms)
+✔ reads version 2 payloads (0.049625ms)
+✔ reads version 1 payloads (0.032334ms)
+✔ round trip (0.031ms)
+✔ rejects unsupported versions (0.411375ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 30.230625

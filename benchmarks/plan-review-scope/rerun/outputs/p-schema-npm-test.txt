@@ -1,0 +1,17 @@
+
+> test
+> node --test
+
+✔ encodeUser writes version 2 with user_id (0.668208ms)
+✔ decodeUser reads version 1 payloads (0.074625ms)
+✔ decodeUser reads version 2 payloads (0.037792ms)
+✔ version 2 payloads round trip (0.052334ms)
+✔ decodeUser rejects unsupported versions (0.563417ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 41.1675

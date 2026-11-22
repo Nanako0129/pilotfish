@@ -1,0 +1,22 @@
+Saved user data is now written as version 2 with `user_id`, and reading still works for both version 1 and version 2. All 5 tests pass with `npm test`, and only `store.mjs` and `store.test.mjs` changed.
+
+**Code change** (`store.mjs`):
+- `encodeUser` now writes `{ version: 2, user_id, name }`.
+- `decodeUser` reads `user` from version 1 and `user_id` from version 2.
+- Each version only reads its own field.
+- Any other version still throws `unsupported version: N`.
+
+**Tests** (`store.test.mjs`): one test each for:
+- the exact version 2 format, with no `user` key;
+- reading a version 1 payload;
+- reading a version 2 payload;
+- writing then reading back gives the original user;
+- version 3 is rejected.
+
+**Independent check:** I made the edits myself because they were small. A separate verifier agent then re-ran the tests, read the diff and tried edge cases; it confirmed the change does what the plan said. It noted two minor things, both outside the approved scope, which I left alone:
+- A version 2 payload with no `user_id` reads back as `id: undefined` instead of raising an error.
+- A version sent as the string `"2"` is rejected, but the error message (`unsupported version: 2`) looks the same as for the number 2.
+
+**Still applies:** older code that only understands version 1 will reject the version 2 data this now writes.
+
+Nothing is committed and I took no outside actions. The session spent about $0.15 of its $0.80 budget.

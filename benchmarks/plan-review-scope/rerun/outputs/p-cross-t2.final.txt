@@ -1,0 +1,15 @@
+`formatUser` now returns `{ label, id }`, and `banner` and `reportLine` print exactly what they did before. `npm test` passes (6 tests, 0 failures), and a separate verifier agent confirmed the change.
+
+**What changed (only these six files; `store.mjs`, `README.md` and `package.json` are untouched):**
+- **`format.mjs`:** returns `{ label: \`${user.name} <${user.id}>\`, id: user.id }`. `label` is the old string, and `id` is `user.id` unchanged.
+- **`cli.mjs` and `report.mjs`:** each now reads `.label` from the result. Nothing else in the repo calls `formatUser`.
+- **`format.test.mjs`:** the old test expected a string, which no longer fits the contract, so it was replaced. The new test checks the whole object and that it has exactly the keys `id` and `label`.
+- **`cli.test.mjs` and `report.test.mjs`:** the original exact-string checks are kept unchanged, and each has a second user added (`u-2` / Ada).
+
+**How it was delegated and checked:**
+1. One `pilotfish:executor` run made the edits, and I read the full diff myself.
+2. A fresh `pilotfish:verifier` copied the old versions of the files from the last commit and ran old and new side by side on 9 inputs. These included empty fields, numeric ids, unicode and emoji, special characters and null/missing values. Output matched exactly in every case, and the error cases threw the same errors in both versions.
+
+The verifier made one low-priority, non-blocking note: those edge-case comparisons were a one-off check and aren't in the repo's tests, which only use plain text names and ids. I've left that out of scope rather than add tests you didn't ask for.
+
+Nothing is committed. To undo it, run `git checkout -- .`. Spend this turn was about $0.24.
