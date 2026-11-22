@@ -1,8 +1,10 @@
 # What enforces each rule
 
-pilotfish is mostly prose. This table lists every rule unit in `templates/claude-md.orchestration.md`, plus the preamble that tells roles not to delegate, and says what holds each in place today: a mechanism in the shipped files, or text alone. It exists so that a rule is added or changed with its enforcement decided, and so that the rules worth moving into a mechanism are visible.
+pilotfish is mostly prose. This table lists every rule unit in `templates/claude-md.orchestration.md`, plus the preamble that tells roles not to delegate and the indented boundary under the first rule, and says what holds each in place today: a mechanism in the shipped files, or text alone. It exists so that a rule is added or changed with its enforcement decided, and so that the rules worth moving into a mechanism are visible.
 
-The "Enforced today by" column was filled by reading role frontmatter and the policy. It is unverified against a running client: no role was observed being refused a tool.
+The "Enforced today by" column was filled by reading role frontmatter and the policy. One tool list was observed in a running client: `pilotfish:scout` from the installed Plugin v1.5.0 on Claude Code 2.1.325 reported `Read`, `Glob` and `Grep` as its only file tools and could not create a file it was asked to create (2026-11-23, one run). No other role's tool list was observed.
+
+A row credits a tool list only when the rule itself states a limit on a role. A rule that merely relies on a restricted role is marked text.
 
 Three kinds of enforcement exist in the shipped files:
 
@@ -16,14 +18,15 @@ A tool list binds only the role that carries it. A rule about what the main sess
 
 ## Table
 
-"Key" is the first eight hex digits of the SHA-256 of the rule's line in `templates/claude-md.orchestration.md`. `tests/test_policy.py` fails when the keys here differ from the keys of the template's rule lines, so adding, removing or rewording a rule fails until its row is read again and its key updated. "Line" is a reading aid and is not checked; the indented `explore_then_plan` boundary on line 12 belongs to the rule on line 11.
+"Key" is the first eight hex digits of the SHA-256 of the rule's line in `templates/claude-md.orchestration.md`. `tests/test_policy.py` fails when the keys here differ from the keys of the template's rule lines, so adding, removing or rewording a rule fails until its key is updated. The test detects that a rule changed; it cannot check that the rest of the row was reread, which is the editor's job. "Line" is a reading aid and is not checked, and neither are the line numbers and counts in the prose below. The indented `explore_then_plan` boundary on line 12 has its own row.
 
 The last column is a candidate, not a plan: none of these mechanisms is built or tested.
 
 | Line | Key | Rule | Enforced today by | Candidate mechanism |
 |---|---|---|---|---|
-| 5 | `b0a0070e` | Preamble: named roles ignore the policy and never spawn subagents | Tool list: every shipped role lacks `Agent` and `Workflow`; text for ignoring the policy | None |
-| 11 | `e703296f` | Choose interaction shape first; the first `explore_then_plan` turn is read-only | Text | `PreToolUse` on `Write`/`Edit`/`NotebookEdit` in a turn the session marked read-only |
+| 5 | `b0a0070e` | Preamble: named roles ignore the policy and never spawn subagents | Tool list: every role file pilotfish ships lacks `Agent` and `Workflow` (the Plugin's `Explore` is the client's own agent); text for ignoring the policy | None |
+| 11 | `e703296f` | Choose interaction shape first | Text | None |
+| 12 | `011eeb00` | The first `explore_then_plan` turn is read-only | Text | `PreToolUse` on `Write`/`Edit`/`NotebookEdit` in a turn the session marked read-only |
 | 13 | `e280ac38` | Invoke `baton-dispatch` before the dispatch choice on large or risky work | Text | None obvious |
 | 14 | `28bcfe16` | Risk triggers; the four Plan-review triggers | Text | None: classification is judgment |
 | 15 | `b551db5a` | Small, local, stable work without a risk trigger stays direct | Text | None |
@@ -47,7 +50,7 @@ The last column is a candidate, not a plan: none of these mechanisms is built or
 | 36 | `720b9edb` | Security work never uses general executors; `security-reviewer` first | Tool list keeps `security-reviewer` read-only; text for the routing | None |
 | 37 | `ba30adcc` | Risk units require `verifier`; Plan-review units also `plan-verifier` | Text | Same `Stop` check as line 20 |
 | 38 | `3dec77b3` | No `model` on a named-role call; pass `effort` per task with reviewer floors | Frontmatter routing supplies the defaults; text for the call arguments | `PreToolUse` on `Agent`: reject `model` with a named role, reject `effort` under a reviewer's floor |
-| 39 | `75846ef0` | `plan-verifier` and `verifier` contracts; never swap them | Tool lists make the swap fail in one direction (`plan-verifier` has no `Bash`); text otherwise | None |
+| 39 | `75846ef0` | `plan-verifier` and `verifier` contracts; never swap them | Tool list: `plan-verifier` has no `Bash`, so it cannot run an outcome check; nothing rejects a swapped call; text otherwise | None |
 | 40 | `454a1508` | Envelope before slice for Plan-review units; shared blockers gate dependents | Text | None |
 | 41 | `2aadb121` | After two automatic `REVISE` verdicts, disposition every blocker; one closing review | Text | None |
 | 42 | `4a9666b1` | One fresh outcome pass at the smallest coherent boundary | Text | None |
@@ -59,10 +62,10 @@ The last column is a candidate, not a plan: none of these mechanisms is built or
 | 51 | `02c7d03b` | `AUTO` permits only reversible approved-scope work | Text | `PreToolUse` on `Bash` matching commit, push, publish and delete commands while `AUTO` is active |
 | 52 | `89360686` | `ASK` uses `AskUserQuestion`; headless runs exit paused | Text | None |
 | 56 | `3fb44ea6` | Launch independent agents together in the background; integrate all | Text | None |
-| 57 | `b68716fd` | Long processes belong to main; Bash-capable leaves never detach | Text in the policy and in each Bash-capable role prompt | `PreToolUse` on `Bash` inside a role: reject `nohup`, `setsid`, a trailing `&` and `run_in_background` |
+| 57 | `b68716fd` | Long processes belong to main; Bash-capable leaves never detach | Text (also repeated in each Bash-capable role prompt) | `PreToolUse` on `Bash` inside a role: reject `nohup`, `setsid`, a trailing `&` and `run_in_background` |
 
 ## Reading the table
 
-Twenty-nine of the thirty-seven rules are text only. The other eight (lines 16, 17, 19, 20, 36, 38, 39 and 57) have a mechanism or a second statement behind part of them, and that part is always about what a role can do, never about what the main session does. The preamble's no-delegation rule is the one fully backed by tool lists.
+Thirty of the thirty-seven rule units are text only, and so is the line-12 boundary. The other seven (lines 16, 17, 19, 20, 36, 38 and 39) have a mechanism behind part of them, and that part is always about what a role can do, never about what the main session does. The preamble's no-delegation rule is backed by a tool list in every role file pilotfish ships.
 
 Line 38 is the cheapest candidate: the check is a comparison of call arguments, with no state to track. Lines 18, 20, 37 and 51 need the session to record a state (approved, risk-marked, `AUTO`) that a hook can read, which is new machinery. `docs/design.md` lists enforcement hooks under "Deliberately left out"; this table does not change that decision.
