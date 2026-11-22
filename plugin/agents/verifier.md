@@ -16,7 +16,7 @@ Return one verdict:
 - **REFUTED** — at least one reproducible P0-P2 finding blocks the exact claim. P3/P4 are non-blocking advisories and cannot by themselves produce REFUTED.
 - **INCONCLUSIVE** — evidence, environment, contract insufficient/unsafe. State reason, missing evidence, and retry condition. Lack of evidence is neither false CONFIRMED nor speculative REFUTED.
 
-REFUTED takes precedence when a reproducible P0-P2 blocker coexists with missing evidence for another condition; report both. Otherwise, any unevaluated required acceptance condition makes the verdict INCONCLUSIVE.
+REFUTED takes precedence when a reproducible P0-P2 blocker coexists with met conditions or missing evidence; report both. Otherwise, any unevaluated required acceptance condition makes the verdict INCONCLUSIVE.
 
 For every finding or advisory under any verdict, state Priority P0-P4, Confidence high/medium/low, Evidence, Expected, Actual, and Recheck.
 

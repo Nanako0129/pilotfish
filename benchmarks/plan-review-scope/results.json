@@ -602,6 +602,97 @@
           }
         ]
       }
+    },
+    {
+      "id": "precedence",
+      "dates": [
+        "2026-11-23"
+      ],
+      "authorized_cap_usd": null,
+      "spent_usd": 1.285564,
+      "authorization": "none: a reviewing subagent told to test the script with a stub client ran the real client because its stub was never created; the script and inputs are the ones prepared for the run. A second start was stopped during v1 and left a capture without a result line, cost unknown and not included",
+      "reason": "verifier line 19 now states that REFUTED takes precedence when a reproducible P0-P2 blocker coexists with met conditions",
+      "policy_sha256": "93fb822a0cccd1a57df2ebf386f1581d2f3a8c585a0a3b27c79b7c302f04fc45",
+      "agents_sha256": "899b9e01eac3114b0773eeb1b0a0520669f7030d91cf7f6a878d461873c4cf93",
+      "base_agents_sha256": "2e0ee951f097e11847c5a0c3297798d037757039e28b4e28d4346702f4defb75",
+      "base_ref": "5ba7ee0",
+      "cells": [
+        {
+          "cell": "v1",
+          "state": "behavioral defect: version 1 payloads decode without id, tests pass",
+          "role": "verifier",
+          "expected": "REFUTED",
+          "verdict": "REFUTED",
+          "pass": true,
+          "cost_usd": 0.364144
+        },
+        {
+          "cell": "v2",
+          "state": "correct code; README states 3 tests, suite has 4",
+          "role": "verifier",
+          "expected": "CONFIRMED|INCONCLUSIVE",
+          "verdict": "CONFIRMED",
+          "finding_priority": "P3",
+          "pass": true,
+          "cost_usd": 0.305986
+        },
+        {
+          "cell": "v3",
+          "state": "five listed conditions pass as written; encodeUser deletes id from the caller's object and the commit rewrote the round-trip test",
+          "role": "verifier",
+          "expected": "REFUTED",
+          "verdict": "REFUTED",
+          "finding_priority": "P1",
+          "pass": true,
+          "cost_usd": 0.295437,
+          "note": "the verifier tied the finding to acceptance item 3, so the state does not isolate a regression outside the listed conditions"
+        },
+        {
+          "cell": "v3base",
+          "state": "same as v3",
+          "role": "verifier at 5ba7ee0",
+          "expected": "recorded",
+          "verdict": "REFUTED",
+          "finding_priority": "P1",
+          "cost_usd": 0.319998
+        }
+      ]
+    },
+    {
+      "id": "precedence-2",
+      "dates": [
+        "2026-11-23"
+      ],
+      "authorized_cap_usd": 1.5,
+      "spent_usd": 0.684691,
+      "reason": "the first v3 state could be read as failing listed condition 3; this state keeps the round-trip test unchanged and adds only an unbounded module-level array in encodeUser",
+      "policy_sha256": "93fb822a0cccd1a57df2ebf386f1581d2f3a8c585a0a3b27c79b7c302f04fc45",
+      "agents_sha256": "899b9e01eac3114b0773eeb1b0a0520669f7030d91cf7f6a878d461873c4cf93",
+      "base_agents_sha256": "2e0ee951f097e11847c5a0c3297798d037757039e28b4e28d4346702f4defb75",
+      "base_ref": "5ba7ee0",
+      "cells": [
+        {
+          "cell": "v3",
+          "state": "five listed conditions met; encodeUser retains every user and payload in a module-level array nothing reads or clears",
+          "role": "verifier",
+          "expected": "REFUTED",
+          "verdict": "REFUTED",
+          "finding_priority": "P1",
+          "all_listed_conditions_reported_met": true,
+          "pass": true,
+          "cost_usd": 0.342525
+        },
+        {
+          "cell": "v3base",
+          "state": "same as v3",
+          "role": "verifier at 5ba7ee0",
+          "expected": "recorded",
+          "verdict": "REFUTED",
+          "finding_priority": "P1",
+          "all_listed_conditions_reported_met": true,
+          "cost_usd": 0.342166
+        }
+      ]
     }
   ],
   "limits": [
@@ -613,6 +704,7 @@
     "raw stream captures are not committed; streams.sha256 lists their digests",
     "the Plugin campaign has no routine cell and no blocking-bar cells",
     "scope and plugin ran on the policy and roles at 0ffce36, blocking-bar on main's policy (40d170e) with a candidate role set whose verifier equals the one at 0ffce36; rerun repeats their cells on the final text except v2base, plancapbase (main's roles) and plancap (candidate roles under main's policy, not run on the final text); the rerun's pass/fail results and verdicts equal the earlier ones (executor roles and the files touched in cross differ) and no cell distinguishes the reworded text from the earlier wording",
-    "in the rerun's p-schema turn 1 the client ran the plan-verifier call in the background without being asked; the check counted the launch notice as a returned call and READY was read from the completion notification"
+    "in the rerun's p-schema turn 1 the client ran the plan-verifier call in the background without being asked; the check counted the launch notice as a returned call and READY was read from the completion notification",
+    "precedence and precedence-2: the verifier at 5ba7ee0 returned REFUTED on both v3 states, the same as the changed verifier, so no cell shows the precedence sentence changing a verdict; one observation per cell"
   ]
 }

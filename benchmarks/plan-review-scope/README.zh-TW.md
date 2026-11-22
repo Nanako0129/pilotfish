@@ -13,14 +13,14 @@ v1.5.0 之後有兩項改動，各做了一次小型付費檢查：
 
 | 項目 | 值 |
 |---|---|
-| 日期 | 2026-11-20 至 2026-11-22 |
+| 日期 | 2026-11-20 至 2026-11-23 |
 | 用戶端 | Claude Code 2.1.325；`--model opus --effort high`，實際解析為 `claude-opus-5-5` |
 | 隔離 | `--setting-sources project,local --strict-mcp-config`；每格在 `benchmarks/verifier-boundary/fixture` 的拋棄式 Git 複本裡執行，政策範本當作 `CLAUDE.md`，角色用 `--agents` 傳入 |
 | 計數 | 只算最上層的串流事件。在 `scope` 與 `plugin`，必要角色的呼叫要沒有錯誤地回傳才算數；`blocking-bar` 沒有檢查這一點，而它的串流裡沒有失敗的最上層工具結果 |
 | 角色模型 | 串流裡子代理的訊息顯示 `verifier` 與 `plan-verifier` 是 `claude-opus-5-5`、`mech-executor` 與 `executor` 是 `claude-sonnet-5-5`，所以沒有子代理模型覆寫在作用（和上一列的失敗結果數一樣，是從沒有提交的原始串流讀出來的） |
 | 花費 | 每次呼叫 result 行的 `total_cost_usd`。續接的回合回報的是整個 session 的累計值，所以每個 session 只算一次。前三份 `run.log` 的 `DONE spent=` 把每一回合都加進去，數字偏高 |
 
-輸入檔的雜湊在 [`blocking-bar/`](./blocking-bar/)、[`scope/`](./scope/)、[`plugin/`](./plugin/)、[`rerun/`](./rerun/) 各自的 `inputs.sha256`。各格數值在 [`results.json`](./results.json)。
+輸入檔的雜湊在 [`blocking-bar/`](./blocking-bar/)、[`scope/`](./scope/)、[`plugin/`](./plugin/)、[`rerun/`](./rerun/)、[`precedence/`](./precedence/)、[`precedence-2/`](./precedence-2/) 各自的 `inputs.sha256`。各格數值在 [`results.json`](./results.json)。
 
 ## 阻擋門檻
 
@@ -93,6 +93,29 @@ preflight 與每格第一回合的串流都必須含有 hook 輸出的 `*=mandat
 
 `v2base`、`plancap`、`plancapbase` 沒有重跑。`v2base` 與 `plancapbase` 用的是 `main` 的角色檔。`plancap` 用的是候選角色檔搭配 `main` 的政策，失敗的方式和 `plancapbase` 相同；它沒有在最終文字上跑過。
 
+## 判定的優先順序
+
+這一節是上面的變更合併之後加的。`verifier` 把 CONFIRMED 定義成每個必要條件都達成，把 REFUTED 定義成有可重現、會擋住主張的 P0-P2 發現；列出的條件全數達成、但受審的提交另外造成條件以外的 P0-P2 回歸時，沒有任何一句話說明該用哪一個。`main` 在 `40d170e` 就有同樣的缺口。第 19 行現在寫成「REFUTED takes precedence when a reproducible P0-P2 blocker coexists with met conditions or missing evidence; report both.」
+
+兩次執行都拿修改後的角色（agents SHA-256 `899b9e01...cf93`）對照 `5ba7ee0` 的角色（`2e0ee951...b75`），政策文字沒有變。提示詞沿用阻擋門檻那一份：[`precedence/prompts/verify.txt`](./precedence/prompts/verify.txt)。
+
+| 執行 | 格 | 角色 | 受審狀態 | 判定 |
+|---|---|---|---|---|
+| [`precedence/`](./precedence/) | `v1` | 修改後 | 版本 1 的 payload 解碼後沒有 `id`；測試通過 | REFUTED |
+| | `v2` | 修改後 | 程式正確；README 寫 3 個測試，實際有 4 個 | CONFIRMED，數量不符列為 P3 |
+| | `v3` | 修改後 | `encodeUser` 把呼叫端物件的 `id` 刪掉；該提交改寫了 round-trip 測試 | REFUTED，P1 |
+| | `v3base` | `5ba7ee0` | 同 `v3` | REFUTED，P1 |
+| [`precedence-2/`](./precedence-2/) | `v3` | 修改後 | 測試與 `v2` 相同；`encodeUser` 把每個使用者與 payload 留在模組層陣列裡，沒有任何地方讀取或清除 | REFUTED，P1；五個條件都回報達成 |
+| | `v3base` | `5ba7ee0` | 同 `v3` | REFUTED，P1；五個條件都回報達成 |
+
+花費 1.29 美元（腳本上限 2.50；沒有授權上限）與 0.68 美元（上限 1.50）。紀錄：[`precedence/run.log`](./precedence/run.log)、[`precedence-2/run.log`](./precedence-2/run.log)。
+
+第一個 `v3` 狀態沒有把情境隔離出來：兩個 verifier 都說各項檢查照字面通過，但修改後的 verifier 把發現連到驗收條件 3，對照組則把條件 3 標成「Met on decode」並附但書。第二個狀態沒有動測試，兩個 verifier 都把五個條件標成達成、沒有附帶但書，再判 REFUTED。對照組仍把它的發現標成影響條件 2，所以這次的區隔比第一個狀態乾淨，但不算完全。
+
+`5ba7ee0` 的 verifier 在兩個狀態上本來就判 REFUTED。這兩次執行顯示 `v1`、`v2` 沒有回歸，也沒有任何判定因為新的那句話而改變；那句話是把模型在這兩次觀察裡已經做的事寫進角色文字。
+
+第一次執行沒有經過授權。負責審查的子代理被要求用假的用戶端試跑腳本，但假的用戶端沒有建立成功，腳本找到了真的用戶端。腳本與輸入就是原本準備要跑的那一份，所以結果保留。同一個子代理的第二次啟動在 `v1` 途中被中止，擷取檔沒有 result 行，也沒有提交或列入雜湊，那筆花費不明，沒有算進總額。`precedence-2/run-copy/run.sh` 在沒有設定 `PAID_RUN=1` 時會拒絕真的用戶端。
+
 ## 限制
 
 - 每格只跑一次。
@@ -107,11 +130,11 @@ preflight 與每格第一回合的串流都必須含有 hook 輸出的 `*=mandat
 
 ## 重現
 
-每次呼叫都要付費。把其中一輪的資料夾（`blocking-bar`、`scope`、`plugin` 或 `rerun`）複製到暫存目錄再執行，這樣 repo 只會被讀取：
+每次呼叫都要付費。把其中一輪的資料夾（`blocking-bar`、`scope`、`plugin`、`rerun`、`precedence` 或 `precedence-2`）複製到暫存目錄再執行，這樣 repo 只會被讀取：
 
 ```bash
 cp -R benchmarks/plan-review-scope/scope /tmp/plan-review-scope
 SRC="$PWD" bash /tmp/plan-review-scope/run-copy/run.sh
 ```
 
-提交的腳本是當時執行內容的紀錄，不當作共用工具維護，所以彼此重複。改了三處：`SRC` 原本是絕對路徑；`blocking-bar/run-copy/run.sh` 原本從 `main` 取對照用的角色檔，現在固定為 `40d170e`；各檢查程式的花費加總原本把續接 session 的每一回合都加進去，現在每個 session 只算一次。`plugin/run-copy/run.sh` 會從 repo 的 `scope/` 讀取 `cross` 的 fixture 與 prompt。改完之後沒有重跑過；`rerun/run-copy/` 裡的腳本則是執行當時的原樣。`blocking-bar/run-copy/run2.sh` 加跑兩個 `main` 對照格，並沿用 `run.sh` 凍結的輸入。
+提交的腳本是當時執行內容的紀錄，不當作共用工具維護，所以彼此重複。改了三處：`SRC` 原本是絕對路徑；`blocking-bar/run-copy/run.sh` 原本從 `main` 取對照用的角色檔，現在固定為 `40d170e`；各檢查程式的花費加總原本把續接 session 的每一回合都加進去，現在每個 session 只算一次。`plugin/run-copy/run.sh` 會從 repo 的 `scope/` 讀取 `cross` 的 fixture 與 prompt。改完之後沒有重跑過；`rerun/run-copy/`、`precedence/run-copy/`、`precedence-2/run-copy/` 裡的腳本則是執行當時的原樣；跑 `precedence-2` 要設定 `PAID_RUN=1`。`blocking-bar/run-copy/run2.sh` 加跑兩個 `main` 對照格，並沿用 `run.sh` 凍結的輸入。
