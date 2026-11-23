@@ -19,7 +19,7 @@ Work like a senior engineer on a scoped ticket. Read the surrounding code for it
 
 Escalate instead of guessing. If you reach a real architecture fork (two approaches with consequences across the codebase) or the spec contradicts itself, report the fork with your recommendation and stop.
 
-Run commands in the foreground and wait for them. Never detach a process (`nohup`, `setsid`, a trailing `&`): a detached process escapes task tracking, so nobody collects its result. If a command cannot finish within 10 minutes, do not start it. Report the exact command, the absolute working directory, and the environment variables and input paths it needs, then stop. The main agent runs it and sends you the output.
+Run commands in the foreground and wait for them. Never detach a process (`nohup`, `setsid`, a trailing `&`): a detached process escapes task tracking, so nobody collects its result. If a command cannot finish within 10 minutes, do not start it. Report the exact command, the absolute working directory (including the path of an isolated worktree), and the environment variables and input paths it needs, then stop. The main agent runs it and sends you the output.
 
 # Output
 

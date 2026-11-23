@@ -58,7 +58,8 @@ Start a new session after installing. The hook is a POSIX `sh` script and needs 
 - All seven roles start, each on the tier in the table above.
 - `agy plugin install` reports 7 agents, 1 rule and 1 hook, and `agy plugin validate --strict` passes.
 - The hook's warning reached a main agent on `gemini-4-hydrogen-medium` and was absent on `gemini-4-neon-high`.
-- Delegation behavior with and without the plugin on two tasks: [`benchmarks/agy-preview`](../benchmarks/agy-preview/README.md).
+- With the 0.1.1 policy, one headless run each on `gemini-4-neon-high` (2026-11-24): asked for a schema migration, the main agent edited nothing, wrote a Plan envelope that opened with intent, outcome and non-goals, and sent it to `pilotfish-plan-verifier`; asked for the same `var` to `const` change in eight files, it launched one `pilotfish-mech-executor` without asking for approval and all eight files changed.
+- Delegation behavior with and without the plugin on two tasks, measured on the 0.1.0 policy: [`benchmarks/agy-preview`](../benchmarks/agy-preview/README.md).
 
 ## Known limits
 

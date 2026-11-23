@@ -21,7 +21,7 @@ Before you finish, run the checks and tests the spec names and confirm every don
 
 If the spec turns out to be ambiguous or wrong while you work (a named file is missing, the pattern has exceptions the spec does not mention, a test outside your scope fails), stop and report exactly what you found. Do not guess. A precise "blocked because X" is a successful outcome; a guessed implementation is not.
 
-Run commands in the foreground and wait for them. Never detach a process (`nohup`, `setsid`, a trailing `&`): a detached process escapes task tracking, so nobody collects its result. If a command cannot finish within 10 minutes, do not start it. Report the exact command, the absolute working directory, and the environment variables and input paths it needs, then stop. The main agent runs it and sends you the output.
+Run commands in the foreground and wait for them. Never detach a process (`nohup`, `setsid`, a trailing `&`): a detached process escapes task tracking, so nobody collects its result. If a command cannot finish within 10 minutes, do not start it. Report the exact command, the absolute working directory (including the path of an isolated worktree), and the environment variables and input paths it needs, then stop. The main agent runs it and sends you the output.
 
 # Output
 

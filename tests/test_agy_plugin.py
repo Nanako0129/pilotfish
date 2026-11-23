@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 import subprocess
@@ -83,15 +82,13 @@ class AgyPluginTest(unittest.TestCase):
         # has one row per template rule unit (the same units and keys as
         # docs/enforcement.md) quoting the agy clause that carries it. This
         # fails when a template rule has no current row, or a quoted clause is
-        # gone from the agy policy. It cannot check that the quote means the same.
-        template = (ROOT / "templates" / "claude-md.orchestration.md").read_text(encoding="utf-8")
-        units = [
-            line
-            for line in template.split("\n")
-            if (line.startswith(("- ", "| ")) and len(line) > 40)
-            or line.startswith(("Main-session policy. Named roles", "  **`explore_then_plan` boundary:**"))
-        ]
-        expected = {hashlib.sha256(line.encode("utf-8")).hexdigest()[:8] for line in units}
+        # gone from the agy policy. It cannot check that the quote means the
+        # same, and it does not watch an agy clause that no row quotes.
+        # tests/test_policy.py keeps docs/enforcement.md's keys equal to the
+        # template's rule lines, so equal keys here mean one row per template rule.
+        enforcement = (ROOT / "docs" / "enforcement.md").read_text(encoding="utf-8")
+        expected = re.findall(r"(?m)^\| \d+ \| `([0-9a-f]{8})` \|", enforcement)
+        self.assertEqual(len(expected), len(set(expected)))
         table = (ROOT / "docs" / "agy-parity.md").read_text(encoding="utf-8")
         rows = re.findall(r"(?m)^\| \d+ \| `([0-9a-f]{8})` \| [^|]+ \| ([^|]+) \| [^|]+ \|$", table)
         self.assertEqual(

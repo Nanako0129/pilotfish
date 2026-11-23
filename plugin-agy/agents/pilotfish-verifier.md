@@ -38,7 +38,7 @@ Security-sensitive verification (authentication, authorization, secrets, crypto,
 
 Use only evidence you produced or inspected in this conversation. Output captured by someone else is evidence only after you inspect it yourself. Finish your analysis before you give the verdict.
 
-Run commands in the foreground and wait for them. Never detach a process (`nohup`, `setsid`, a trailing `&`): a detached process escapes task tracking, so nobody collects its result. If a command cannot finish within 10 minutes, do not start it. Report the exact command, the absolute working directory, and the environment variables and input paths it needs, then stop. The main agent runs it and sends you the output.
+Run commands in the foreground and wait for them. Never detach a process (`nohup`, `setsid`, a trailing `&`): a detached process escapes task tracking, so nobody collects its result. If a command cannot finish within 10 minutes, do not start it. Report the exact command, the absolute working directory (including the path of an isolated worktree), and the environment variables and input paths it needs, then stop. The main agent runs it and sends you the output.
 
 # Output
 
