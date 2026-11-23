@@ -2,9 +2,9 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
-## Unreleased
+## v1.7.0 — 2026-11-23
 
-**Preview port for the Antigravity CLI (#107).** [`plugin-agy`](plugin-agy/README.md) is a native `agy` plugin: the orchestration policy as an always-on rule, seven `pilotfish-<role>` leaf subagents with prompts written for Gemini 4, and a SessionStart hook that warns when the conversation runs on a Hydrogen or Flash tier. `scout`, `mech-executor` and `executor` use the `flash` tier; the four review and security roles use `inherit`, because on agy 1.5.15 a subagent reaches a frontier model only that way. It is versioned separately (`0.1.0`), is not on a marketplace, and changes nothing in the Claude Code plugin or the legacy install.
+**Preview port for the Antigravity CLI (#107).** [`plugin-agy`](plugin-agy/README.md) is a native `agy` plugin: the orchestration policy as an always-on rule, seven `pilotfish-<role>` leaf subagents with prompts written for Gemini 4, and a SessionStart hook that warns when the conversation runs on a Hydrogen or Flash tier. `scout`, `mech-executor` and `executor` use the `flash` tier; the four review and security roles use `inherit`, because on agy 1.5.15 a subagent reaches a frontier model only that way. It is versioned separately (`0.1.0`), is not on a marketplace, and changes nothing in the Claude Code plugin or the legacy install: their installed behavior is the same as v1.6.0, and only the version stamp differs.
 
 Evidence is in [`benchmarks/agy-preview`](benchmarks/agy-preview/README.md): five runs per cell on agy 1.5.15 and `gemini-4-neon-high`. A coupled debugging task was never delegated, with or without the plugin. A two-surface audit was delegated to two `pilotfish-scout` on the Hydrogen tier in 5 of 5 runs with the plugin, and to two built-in `research` subagents on the main model in 4 of 5 without it. All 20 runs passed the fixture tests. Duration and input size did not separate the conditions.
 

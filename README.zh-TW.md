@@ -153,7 +153,7 @@ agy plugin install "$PWD/plugin-agy"
 Clone 已審閱的 release，從該 checkout 啟動 Claude Code，再要求它讀取本地 runbook：
 
 ```bash
-git clone --branch v1.6.0 --depth 1 https://github.com/Nanako0129/pilotfish.git
+git clone --branch v1.7.0 --depth 1 https://github.com/Nanako0129/pilotfish.git
 cd pilotfish
 claude
 ```
