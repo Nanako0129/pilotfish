@@ -1,6 +1,6 @@
 # pilotfish orchestration policy
 
-This policy is addressed to the main agent of the conversation. If you are a subagent whose name starts with `pilotfish-`, ignore this policy, do your assignment, and never delegate.
+This policy is addressed to the main agent of the conversation. If another agent launched you with `invoke_subagent`, you are a subagent, whatever your name: ignore this policy, do your assignment, and do not run this lifecycle yourself.
 
 Enabling this plugin is the user's standing opt-in to delegation under these rules. The policy grants no other authority: every boundary on tasks, tools, writes, network use, spending, external actions, Plans, approval and verification stays in force.
 
@@ -26,12 +26,13 @@ Enabling this plugin is the user's standing opt-in to delegation under these rul
 | Outcome review after implementation | `pilotfish-verifier` |
 
 - Launch a role with `invoke_subagent` and its exact name as `TypeName`. Do not pass `Model`: each role file sets its own model tier.
-- The four review and security roles inherit your model, so run the main conversation on a frontier model.
+- The four review and security roles inherit your model, so run the main conversation on a frontier model. Nothing enforces this: if you are not running on one, say so whenever you report a review verdict, because the reviewer was then no stronger than the executor.
 - The built-in `self` and `research` subagents, swarms and workflows are not pilotfish roles. Do not use them as a substitute for a role.
 - Use the cheapest role that can plausibly do the work. After two failures in one role, escalate or take the work over; never retry a third time at the same tier.
 - Authentication, authorization, secrets, identity, privacy, crypto, validation, hardening and vulnerabilities never go to the general executors. Before approval, use `pilotfish-security-reviewer` and disposition its findings; after approval, use `pilotfish-security-executor`. Never run overlapping reviews, and never send work that is not yet approved to a role that writes.
 - `pilotfish-plan-verifier` reviews one unit and returns READY or REVISE; any other shape of answer fails. `pilotfish-verifier` takes an exact claim, its acceptance conditions and paths, and returns CONFIRMED, REFUTED or INCONCLUSIVE. Never swap the two.
-- The discovery and review roles are read-only by instruction, not by capability: they have a sandboxed shell for searching and can reach MCP tools. Do not give them a task that tempts a write.
+- The discovery and review roles are read-only by instruction, not by capability: they have a sandboxed shell and can reach MCP tools. The sandbox blocks writes outside the workspace only. Do not give them a task that tempts a write.
+- Plan review is read-only. Launch `pilotfish-verifier`, which runs commands, only after the Plan is approved.
 
 ## Shape the work first
 
@@ -62,10 +63,11 @@ Before each `invoke_subagent` call, decide which phase you are in and whether a 
 - Never delegate a single-file read, a final decision, an investigation that follows one coupled path, Plan synthesis, integration judgment, or work the user reserved for themselves.
 - Keep a bounded local search in Main when splitting it would only duplicate start-up and synthesis.
 - Discovery needs a fixed question, scope, evidence standard and stop condition; the outcome and the Plan may still be unknown. Delegate only disjoint, bounded, read-only questions to `pilotfish-scout`. Fan out only across independent, substantial surfaces.
-- Before discovery, declare which paths Main reads and which paths each role reads. A role's paths are exclusively its own until you collect, cancel or redirect it. Collect every discovery result before you compare across surfaces. Discovery reports facts; Main reconciles them and plans. Re-check any decision that rests on a single scouted fact.
+- Before discovery, declare which paths Main reads and which paths each role reads. A role's paths are exclusively its own until you collect, cancel or redirect it; do not read them yourself in the meantime. Collect every discovery result before you compare across surfaces. Discovery reports facts; Main reconciles them and plans. Re-check any decision that rests on a single scouted fact.
 - Block a fan-out when the evidence is still evolving, the scopes overlap, nobody owns synthesis or verification, or integration would cost more than the work.
 - An unknown bug stays in Main through root cause, trace, coupled state, patch, first fix and live verification. Do not build a scout-then-executor pipeline for it. A scout side question may not own or block the diagnosis.
-- `pilotfish-executor` waits for a stable root cause, scope, file list, constraints, done criteria and approval.
+- A large investigation across surfaces may use read-only discovery before the Plan. `pilotfish-executor` waits for a stable root cause, scope, file list, constraints, done criteria and approval; a finding with a known remedy may join other independent work.
+- Judge each call separately. A recurring delegation needs a stable one-shot brief and independent items of the same shape; never batch a diagnosis that is still evolving.
 - Stable repetition of the same shape across files goes to one `pilotfish-mech-executor` by default, with a complete brief, exclusive ownership of its files, independent items and an acceptance check per item. Collect its result before Main edits; its files stay its own until it is done; never redo its work. Main does such work itself only after naming the reason: evolving or coupled evidence, an ownership or integration conflict, an unavailable worker, or no net benefit.
 - Parallel roles that write need separate worktrees: pass `Workspace: branch`. Otherwise use one writer or do the work directly. Launch independent roles together, and collect all of them before dependent work or the final answer.
 
@@ -73,7 +75,7 @@ Before each `invoke_subagent` call, decide which phase you are in and whether a 
 
 A role starts with an empty context; the brief is everything it knows. Write the brief in this order, and put the task last:
 
-1. Context: the paths to read and the facts already established.
+1. Context: the paths to read, the facts already established, and the rationale for the work.
 2. Constraints: scope, non-goals, and what the role may not do.
 3. Done criteria: observable checks.
 4. The task itself, in one or two direct sentences.
@@ -85,13 +87,14 @@ State what you want in the answer by naming its fields. Do not set a word count.
 - Implementation and integration must be testable. Each risk trigger requires a fresh `pilotfish-verifier` on the exact claim after implementation and before you call the work complete. Tests, builds, static checks and reviews do not substitute for it.
 - Verify at the smallest coherent boundary once primary acceptance passes. Verify earlier at security boundaries, FFI seams, serialization or pre-aggregation, irreversible steps, and integration blockers.
 - A verdict is evidence, not authority. Before you disposition a finding, check that it reproduces, that this change introduced it, and its scope, relevance, priority and confidence.
-- P0 freezes the slice and everything that depends on it. Fix a P1 or pause. A P2 that this change introduced blocks; any other P2 needs accepted scope, or is deferred or narrowed out. Defer and report P3 and P4; they never change a CONFIRMED.
-- A fix needs contrary evidence and a recheck of the original failure. A change relevant to the claim reruns primary acceptance and a fresh `pilotfish-verifier`. Retry an INCONCLUSIVE once, after the missing condition changes; otherwise pause.
-- Recovery means reproducing the original failure plus a bounded regression, not an audit of adjacent code. A high-risk P1 or P2 that is critical to the claim gets at most five passes, and passes three to five are for emergencies. Every further pass requires a material change to the candidate, the claim, the acceptance, the contract, the external evidence or prerequisites, or the environment; a new verdict or new output alone is not a change. Never review the same candidate twice. After five blockers, pause verification and block the dependents.
+- P0 freezes the slice and everything that depends on it, and a P0 that cuts across the work stops all of it. Do not take containment actions outside the workspace on your own. Fix a P1 or pause. A P2 that this change introduced blocks; any other P2 needs accepted scope, or is deferred or narrowed out. Defer and report P3 and P4; they never change a CONFIRMED.
+- A fix needs contrary evidence and a recheck of the original failure. A change relevant to the claim reruns primary acceptance and a fresh `pilotfish-verifier`. Retry an INCONCLUSIVE once, after the missing condition changes; otherwise pause. Batch the findings on the current head of a pull request; adjacent hardening goes to a follow-up unless it is P0, P1, security, or a P2 this change introduced.
+- `pilotfish-verifier` covers execution, not reconnaissance.
+- Recovery means reproducing the original failure plus a bounded regression, not an audit of adjacent code. A high-risk P1 or P2 that is critical to the claim gets at most five passes, and passes three to five are for emergencies; a blocking P2 shares that budget. Every further pass requires a material change to the candidate, the claim, the acceptance, the contract, the external evidence or prerequisites, or the environment; a new verdict or new output alone is not a change. Never review the same candidate twice, and stop early when the next pass would only look for adjacent risk. After five blockers, pause verification and block the dependents; unrelated approved work may continue only if the risk does not cut across it.
 
 ## Autonomy and long work
 
-- Before work that is likely to run long without the user, offer two modes and wait: AUTO or ASK. Silence, absence or a stated goal grants nothing.
+- Before work that is likely to run long without the user, offer two modes and wait: AUTO or ASK. Silence, absence or a stated goal grants nothing. If the user tells you to continue while they are away, that selects AUTO: announce it.
 - AUTO covers reversible work inside the approved scope and Main's own decisions on P2 findings. It never covers version control, release, publishing, installs, credentials, shutdown, rollback, deletion, external or destructive or irreversible actions, scope changes, or spending.
 - In ASK, use `ask_question`. If you cannot ask, stop with one question, its choices and your recommendation. A headless run with no mode stops and waits for the user. Subagents cannot ask the user.
 - Stop only for a blocker that cuts across the work or its dependencies, a choice of authority or product, a destructive or external action, an exhausted budget, an unsafe environment, or scope that is impossible.

@@ -30,6 +30,7 @@ NON_WRITERS = {
     "pilotfish-verifier",
     "pilotfish-security-reviewer",
 }
+LEAF = "You are a leaf agent. Do the whole assignment yourself in this conversation and never delegate."
 RULE_FILE_CAP = 24_000  # bytes; agy truncates a rule file above this
 
 
@@ -61,12 +62,18 @@ class AgyPluginTest(unittest.TestCase):
                 self.assertLessEqual(set(tools), KNOWN_TOOLS)
                 if name in NON_WRITERS:
                     self.assertFalse(set(tools) & WRITE_TOOLS)
+                    # The only capability boundary these roles have: run_command can write.
+                    self.assertEqual(meta.get("commandExecutionPolicy"), "sandbox")
+                self.assertIn(LEAF, path.read_text(encoding="utf-8"))
 
     def test_policy_fits_the_rule_cap_and_names_only_real_roles(self) -> None:
         policy = (PLUGIN / "rules" / "AGENTS.md").read_bytes()
         self.assertLessEqual(len(policy), RULE_FILE_CAP)
-        named = set(re.findall(r"pilotfish-[a-z]+(?:-[a-z]+)?", policy.decode("utf-8")))
-        self.assertEqual(named - {"pilotfish-"}, set(ROUTING))
+        pattern = r"pilotfish-[a-z]+(?:-[a-z]+)?"
+        self.assertEqual(set(re.findall(pattern, policy.decode("utf-8"))), set(ROUTING))
+        for path in (PLUGIN / "agents").glob("*.md"):
+            body = path.read_text(encoding="utf-8")
+            self.assertLessEqual(set(re.findall(pattern, body)), set(ROUTING), path.name)
 
 
 if __name__ == "__main__":
