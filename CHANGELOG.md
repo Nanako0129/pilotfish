@@ -21,7 +21,7 @@ All notable changes to pilotfish. The installed version is stamped inside the po
 
 `plugin-agy` is now `0.1.1`. Reinstall it to pick up the policy: `agy plugin install` on the updated checkout replaces the existing installation. The Claude Code plugin and the legacy install behave as in v1.6.0; only the version stamp differs.
 
-Evidence is two live headless runs on agy 1.5.15 with `gemini-4-neon-high`, one per task, described in the plugin README. No run without the fix was made for comparison, and [`benchmarks/agy-preview`](benchmarks/agy-preview/README.md) ran on the v1.7.0 policy and was not rerun.
+Evidence is two live headless runs per task on agy 1.5.15 with `gemini-4-neon-high`, described in the plugin README. The first run of each task used an earlier revision of the 0.1.1 policy text; the second used the text in this release. No run without the fix was made for comparison, and [`benchmarks/agy-preview`](benchmarks/agy-preview/README.md) ran on the v1.7.0 policy and was not rerun.
 
 ## v1.7.0 — 2026-11-23
 
