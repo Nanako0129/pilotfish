@@ -18,7 +18,7 @@ A tool list binds only the role that carries it. A rule about what the main sess
 
 ## Table
 
-"Key" is the first eight hex digits of the SHA-256 of the rule's line in `templates/claude-md.orchestration.md`. `tests/test_policy.py` fails when the keys here differ from the keys of the template's rule lines, so adding, removing or rewording a rule fails until its key is updated. The test detects that a rule changed; it cannot check that the rest of the row was reread, which is the editor's job. "Line" is a reading aid and is not checked, and neither are the line numbers and counts in the prose below. The indented `explore_then_plan` boundary on line 12 has its own row.
+"Key" is the first eight hex digits of the SHA-256 of the rule's line in `templates/claude-md.orchestration.md`. `tests/test_policy.py` fails when the keys here differ from the keys of the template's rule lines, so adding, removing or rewording a rule fails until its key is updated. [`agy-parity.md`](./agy-parity.md) uses the same keys and has to be reread with the same change. The test detects that a rule changed; it cannot check that the rest of the row was reread, which is the editor's job. "Line" is a reading aid and is not checked, and neither are the line numbers and counts in the prose below. The indented `explore_then_plan` boundary on line 12 has its own row.
 
 The last column is a candidate, not a plan: none of these mechanisms is built or tested.
 

@@ -1,7 +1,7 @@
 {
   "name": "pilotfish",
   "displayName": "pilotfish",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Preview port of pilotfish for the Antigravity CLI: an always-on orchestration policy plus seven leaf role subagents tuned for Gemini 4.",
   "author": {
     "name": "Nanako0129",

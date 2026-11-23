@@ -2,6 +2,27 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
+## v1.7.1 — 2026-11-24
+
+**The agy policy is brought back in line with the Claude Code policy (#109).** The policy in [`plugin-agy`](plugin-agy/README.md) is a hand rewrite of the orchestration template, and v1.7.0 shipped it without the v1.6.0 rule that every Plan opens by restating the intent. Three readings of the template's 37 rule units, its preamble and its `explore_then_plan` boundary against the agy text, two of them by fresh readers, found that omission and several dozen clauses that were dropped, looser or stricter than the original. The larger ones:
+
+- The first `explore_then_plan` turn is read-only even when the request is worded as an instruction to implement, and execution starts only after approval in a later turn.
+- `baton-dispatch` is invoked before the choice between direct and delegated work, not only before a dispatch.
+- `pilotfish-security-reviewer` finishes before any Plan review, and its findings go into the Plan.
+- A P2 the change did not introduce is fixed only inside the explicit acceptance, the approved scope and a bounded change; otherwise it is deferred with a rationale and the claim is narrowed.
+- A regression the change caused stays relevant even when the brief did not mention the affected flow.
+- A known-remedy finding may join only other findings of the same shape.
+- Only a request for independent review is a risk trigger, and AUTO forbids the listed actions (commit, push, merge, release and the rest), not all version control or every use of credentials. The v1.7.0 text was stricter on both.
+- Anything the user asked the main agent to judge personally is never delegated.
+- A headless run that cannot ask ends with `PAUSED_NEEDS_USER` and exits. The v1.7.0 text said it waits.
+- Main integrates every collected worktree and keeps triage, exceptions, integration and acceptance for delegated mechanical work.
+
+[`docs/agy-parity.md`](docs/agy-parity.md) now maps each template rule to the agy clauses that carry it and lists what is deliberately not ported: per-call effort, the foreground and background launch clauses, and `Explore`. A test fails when a template rule has no current row or a quoted clause leaves the agy policy. It cannot check that a quote means what the rule means, and it does not watch a clause that no row quotes. The seven role files were read against their templates; four of them now ask for an isolated worktree's path when a long command is handed back.
+
+`plugin-agy` is now `0.1.1`. Reinstall it to pick up the policy: `agy plugin install` on the updated checkout replaces the existing installation. The Claude Code plugin and the legacy install behave as in v1.6.0; only the version stamp differs.
+
+Evidence is two live headless runs per task on agy 1.5.15 with `gemini-4-neon-high`, described in the plugin README. The first run of each task used an earlier revision of the 0.1.1 policy text; the second used the text in this release. No run without the fix was made for comparison, and [`benchmarks/agy-preview`](benchmarks/agy-preview/README.md) ran on the v1.7.0 policy and was not rerun.
+
 ## v1.7.0 — 2026-11-23
 
 **Preview port for the Antigravity CLI (#107).** [`plugin-agy`](plugin-agy/README.md) is a native `agy` plugin: the orchestration policy as an always-on rule, seven `pilotfish-<role>` leaf subagents with prompts written for Gemini 4, and a SessionStart hook that warns when the conversation runs on a Hydrogen or Flash tier. `scout`, `mech-executor` and `executor` use the `flash` tier; the four review and security roles use `inherit`, because on agy 1.5.15 a subagent reaches a frontier model only that way. It is versioned separately (`0.1.0`), is not on a marketplace, and changes nothing in the Claude Code plugin or the legacy install: their installed behavior is the same as v1.6.0, and only the version stamp differs.

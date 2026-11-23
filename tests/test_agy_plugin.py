@@ -76,6 +76,34 @@ class AgyPluginTest(unittest.TestCase):
             body = path.read_text(encoding="utf-8")
             self.assertLessEqual(set(re.findall(pattern, body)), set(ROUTING), path.name)
 
+    def test_every_template_rule_has_a_parity_row_quoting_the_agy_policy(self) -> None:
+        # The agy policy is a hand rewrite of the template, and v1.7.0 shipped
+        # it without the "Plan opens restating intent" rule. docs/agy-parity.md
+        # has one row per template rule unit (the same units and keys as
+        # docs/enforcement.md) quoting the agy clause that carries it. This
+        # fails when a template rule has no current row, or a quoted clause is
+        # gone from the agy policy. It cannot check that the quote means the
+        # same, and it does not watch an agy clause that no row quotes.
+        # tests/test_policy.py keeps docs/enforcement.md's keys equal to the
+        # template's rule lines, so equal keys here mean one row per template rule.
+        enforcement = (ROOT / "docs" / "enforcement.md").read_text(encoding="utf-8")
+        expected = re.findall(r"(?m)^\| \d+ \| `([0-9a-f]{8})` \|", enforcement)
+        self.assertEqual(len(expected), len(set(expected)))
+        table = (ROOT / "docs" / "agy-parity.md").read_text(encoding="utf-8")
+        rows = re.findall(r"(?m)^\| \d+ \| `([0-9a-f]{8})` \| [^|]+ \| ([^|]+) \| [^|]+ \|$", table)
+        self.assertEqual(
+            sorted(key for key, _ in rows),
+            sorted(expected),
+            "a template rule changed: reread its row in docs/agy-parity.md against "
+            "plugin-agy/rules/AGENTS.md, then update its Key.",
+        )
+        policy = (PLUGIN / "rules" / "AGENTS.md").read_text(encoding="utf-8")
+        for key, cell in rows:
+            quotes = re.findall(r"“([^”]+)”", cell)
+            self.assertTrue(quotes, key)
+            for quote in quotes:
+                self.assertIn(quote, policy, f"row {key}")
+
     def test_model_floor_hook_warns_only_on_the_weak_tiers(self) -> None:
         hooks = json.loads((PLUGIN / "hooks.json").read_text(encoding="utf-8"))
         (handler,) = hooks["pilotfish-model-floor"]["SessionStart"]

@@ -175,7 +175,7 @@ Clone the reviewed release, start Claude Code from that checkout, and ask it to
 follow the local runbook:
 
 ```bash
-git clone --branch v1.7.0 --depth 1 https://github.com/Nanako0129/pilotfish.git
+git clone --branch v1.7.1 --depth 1 https://github.com/Nanako0129/pilotfish.git
 cd pilotfish
 claude
 ```
@@ -234,6 +234,7 @@ before writing.
 | Daily use and troubleshooting | [docs/usage.md](./docs/usage.md) · [繁體中文](./docs/usage.zh-TW.md) |
 | Architecture and policy decisions | [docs/design.md](./docs/design.md) |
 | What enforces each policy rule | [docs/enforcement.md](./docs/enforcement.md) |
+| Where the agy policy carries each rule | [docs/agy-parity.md](./docs/agy-parity.md) |
 | Model economics and source research | [docs/research.md](./docs/research.md) · [繁體中文](./docs/research.zh-TW.md) |
 | Real long-session field report | [docs/field-report-tokscale-2026-07.zh-TW.md](./docs/field-report-tokscale-2026-07.zh-TW.md) |
 | Behavioral evidence and claim limits | [dispatch brake](./benchmarks/dispatch-brake/README.md) · [spontaneous dispatch](./benchmarks/spontaneous-dispatch/README.md) · [Baton activation](./benchmarks/baton-dispatch-effect/README.md) · [prompt compression](./benchmarks/prompt-compression/README.md) · [verifier boundary](./benchmarks/verifier-boundary/README.md) |
