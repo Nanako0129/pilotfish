@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import subprocess
@@ -75,6 +76,36 @@ class AgyPluginTest(unittest.TestCase):
         for path in (PLUGIN / "agents").glob("*.md"):
             body = path.read_text(encoding="utf-8")
             self.assertLessEqual(set(re.findall(pattern, body)), set(ROUTING), path.name)
+
+    def test_every_template_rule_has_a_parity_row_quoting_the_agy_policy(self) -> None:
+        # The agy policy is a hand rewrite of the template, and v1.7.0 shipped
+        # it without the "Plan opens restating intent" rule. docs/agy-parity.md
+        # has one row per template rule unit (the same units and keys as
+        # docs/enforcement.md) quoting the agy clause that carries it. This
+        # fails when a template rule has no current row, or a quoted clause is
+        # gone from the agy policy. It cannot check that the quote means the same.
+        template = (ROOT / "templates" / "claude-md.orchestration.md").read_text(encoding="utf-8")
+        units = [
+            line
+            for line in template.split("\n")
+            if (line.startswith(("- ", "| ")) and len(line) > 40)
+            or line.startswith(("Main-session policy. Named roles", "  **`explore_then_plan` boundary:**"))
+        ]
+        expected = {hashlib.sha256(line.encode("utf-8")).hexdigest()[:8] for line in units}
+        table = (ROOT / "docs" / "agy-parity.md").read_text(encoding="utf-8")
+        rows = re.findall(r"(?m)^\| \d+ \| `([0-9a-f]{8})` \| [^|]+ \| ([^|]+) \| [^|]+ \|$", table)
+        self.assertEqual(
+            sorted(key for key, _ in rows),
+            sorted(expected),
+            "a template rule changed: reread its row in docs/agy-parity.md against "
+            "plugin-agy/rules/AGENTS.md, then update its Key.",
+        )
+        policy = (PLUGIN / "rules" / "AGENTS.md").read_text(encoding="utf-8")
+        for key, cell in rows:
+            quotes = re.findall(r"“([^”]+)”", cell)
+            self.assertTrue(quotes, key)
+            for quote in quotes:
+                self.assertIn(quote, policy, f"row {key}")
 
     def test_model_floor_hook_warns_only_on_the_weak_tiers(self) -> None:
         hooks = json.loads((PLUGIN / "hooks.json").read_text(encoding="utf-8"))

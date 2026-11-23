@@ -2,7 +2,9 @@
 
 This directory is a port of pilotfish to `agy`, the Antigravity CLI. It gives the main agent the pilotfish orchestration policy and seven leaf subagents, with prompts written for Gemini 4.
 
-It is a preview. It was built and observed on agy 1.5.15 on macOS with a consumer plan on 2026-11-23, and it is versioned separately from the Claude Code plugin (`plugin.json` says `0.1.0`). It is not on a marketplace.
+It is a preview. It was built and observed on agy 1.5.15 on macOS with a consumer plan on 2026-11-23, and it is versioned separately from the Claude Code plugin (`plugin.json` says `0.1.1`). It is not on a marketplace.
+
+The policy is a hand rewrite of the Claude Code policy. [`docs/agy-parity.md`](../docs/agy-parity.md) maps every rule of the original to the clause that carries it here and lists what was not ported.
 
 ## What it installs
 
