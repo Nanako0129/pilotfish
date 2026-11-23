@@ -4,7 +4,7 @@ All notable changes to pilotfish. The installed version is stamped inside the po
 
 ## v1.7.1 — 2026-11-24
 
-**The agy policy is brought back in line with the Claude Code policy (#109).** The policy in [`plugin-agy`](plugin-agy/README.md) is a hand rewrite of the orchestration template, and v1.7.0 shipped it without the v1.6.0 rule that every Plan opens by restating the intent. Two readings of the template's 37 rule units, its preamble and its `explore_then_plan` boundary against the agy text, the second by a fresh reader, found that omission and several dozen clauses that were dropped, weakened or looser than the original. The larger ones:
+**The agy policy is brought back in line with the Claude Code policy (#109).** The policy in [`plugin-agy`](plugin-agy/README.md) is a hand rewrite of the orchestration template, and v1.7.0 shipped it without the v1.6.0 rule that every Plan opens by restating the intent. Three readings of the template's 37 rule units, its preamble and its `explore_then_plan` boundary against the agy text, two of them by fresh readers, found that omission and several dozen clauses that were dropped, looser or stricter than the original. The larger ones:
 
 - The first `explore_then_plan` turn is read-only even when the request is worded as an instruction to implement, and execution starts only after approval in a later turn.
 - `baton-dispatch` is invoked before the choice between direct and delegated work, not only before a dispatch.
@@ -12,6 +12,8 @@ All notable changes to pilotfish. The installed version is stamped inside the po
 - A P2 the change did not introduce is fixed only inside the explicit acceptance, the approved scope and a bounded change; otherwise it is deferred with a rationale and the claim is narrowed.
 - A regression the change caused stays relevant even when the brief did not mention the affected flow.
 - A known-remedy finding may join only other findings of the same shape.
+- Only a request for independent review is a risk trigger, and AUTO forbids the listed actions (commit, push, merge, release and the rest), not all version control or every use of credentials. The v1.7.0 text was stricter on both.
+- Anything the user asked the main agent to judge personally is never delegated.
 - A headless run that cannot ask ends with `PAUSED_NEEDS_USER` and exits. The v1.7.0 text said it waits.
 - Main integrates every collected worktree and keeps triage, exceptions, integration and acceptance for delegated mechanical work.
 
