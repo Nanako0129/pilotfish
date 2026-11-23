@@ -2,6 +2,14 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
+## Unreleased
+
+**Preview port for the Antigravity CLI (#107).** [`plugin-agy`](plugin-agy/README.md) is a native `agy` plugin: the orchestration policy as an always-on rule, seven `pilotfish-<role>` leaf subagents with prompts written for Gemini 4, and a SessionStart hook that warns when the conversation runs on a Hydrogen or Flash tier. `scout`, `mech-executor` and `executor` use the `flash` tier; the four review and security roles use `inherit`, because on agy 1.5.15 a subagent reaches a frontier model only that way. It is versioned separately (`0.1.0`), is not on a marketplace, and changes nothing in the Claude Code plugin or the legacy install.
+
+Evidence is in [`benchmarks/agy-preview`](benchmarks/agy-preview/README.md): five runs per cell on agy 1.5.15 and `gemini-4-neon-high`. A coupled debugging task was never delegated, with or without the plugin. A two-surface audit was delegated to two `pilotfish-scout` on the Hydrogen tier in 5 of 5 runs with the plugin, and to two built-in `research` subagents on the main model in 4 of 5 without it. All 20 runs passed the fixture tests. Duration and input size did not separate the conditions.
+
+Not covered: any risk-triggered path, any role other than `pilotfish-scout` and one `pilotfish-verifier` call, cost, an interactive session, Linux and Windows. The discovery and review roles are read-only by instruction, since agy gave a `read_file`-only role no way to search; the limits are listed in the plugin README.
+
 ## v1.6.0 — 2026-11-23
 
 **Plan review is limited to four triggers (#101).** Pre-approval `plan-verifier` is now mandatory only for an explicit review request, a destructive, irreversible or external mutation, a data, schema, serialization or migration change, and a release. Security/trust work and material cross-component acceptance remain risk triggers: they keep the Plan, the approval stop and the mandatory post-implementation `verifier`, and security work keeps `security-reviewer` before approval. Every Plan now opens by restating the intent, the outcome and the non-goals, so the user confirms direction before approving. The readiness rules on policy lines 36, 37 and 40 apply only to units that get a Plan review.

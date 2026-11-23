@@ -1,0 +1,423 @@
+{
+  "model": "gemini-4-neon-high",
+  "rows": [
+    {
+      "task": "brake",
+      "condition": "none",
+      "rep": 1,
+      "status": "SUCCESS",
+      "duration_seconds": 121.961769,
+      "usage": {
+        "input_tokens": 57147,
+        "output_tokens": 5485,
+        "thinking_tokens": 2631,
+        "cache_read_tokens": 102749,
+        "total_tokens": 62632
+      },
+      "subagent_calls": [],
+      "changed": [
+        " M src/reducer.js",
+        " M test/statusline.test.js"
+      ],
+      "tests_pass": true
+    },
+    {
+      "task": "brake",
+      "condition": "none",
+      "rep": 2,
+      "status": "SUCCESS",
+      "duration_seconds": 99.130749,
+      "usage": {
+        "input_tokens": 34329,
+        "output_tokens": 5765,
+        "thinking_tokens": 2909,
+        "cache_read_tokens": 127022,
+        "total_tokens": 40094
+      },
+      "subagent_calls": [],
+      "changed": [
+        " M src/reducer.js",
+        " M test/statusline.test.js"
+      ],
+      "tests_pass": true
+    },
+    {
+      "task": "brake",
+      "condition": "none",
+      "rep": 3,
+      "status": "SUCCESS",
+      "duration_seconds": 96.787572,
+      "usage": {
+        "input_tokens": 37953,
+        "output_tokens": 5010,
+        "thinking_tokens": 2236,
+        "cache_read_tokens": 146801,
+        "total_tokens": 42963
+      },
+      "subagent_calls": [],
+      "changed": [
+        " M src/reducer.js",
+        " M test/statusline.test.js"
+      ],
+      "tests_pass": true
+    },
+    {
+      "task": "brake",
+      "condition": "none",
+      "rep": 4,
+      "status": "SUCCESS",
+      "duration_seconds": 122.751444,
+      "usage": {
+        "input_tokens": 38577,
+        "output_tokens": 5744,
+        "thinking_tokens": 2996,
+        "cache_read_tokens": 140112,
+        "total_tokens": 44321
+      },
+      "subagent_calls": [],
+      "changed": [
+        " M src/reducer.js",
+        " M test/statusline.test.js"
+      ],
+      "tests_pass": true
+    },
+    {
+      "task": "brake",
+      "condition": "none",
+      "rep": 5,
+      "status": "SUCCESS",
+      "duration_seconds": 79.18939,
+      "usage": {
+        "input_tokens": 34427,
+        "output_tokens": 5163,
+        "thinking_tokens": 2598,
+        "cache_read_tokens": 132682,
+        "total_tokens": 39590
+      },
+      "subagent_calls": [],
+      "changed": [
+        " M src/reducer.js",
+        " M test/statusline.test.js"
+      ],
+      "tests_pass": true
+    },
+    {
+      "task": "brake",
+      "condition": "plugin",
+      "rep": 1,
+      "status": "SUCCESS",
+      "duration_seconds": 177.647393,
+      "usage": {
+        "input_tokens": 89681,
+        "output_tokens": 6709,
+        "thinking_tokens": 3853,
+        "cache_read_tokens": 81647,
+        "total_tokens": 96390
+      },
+      "subagent_calls": [],
+      "changed": [
+        " M src/reducer.js",
+        " M test/statusline.test.js"
+      ],
+      "tests_pass": true
+    },
+    {
+      "task": "brake",
+      "condition": "plugin",
+      "rep": 2,
+      "status": "SUCCESS",
+      "duration_seconds": 175.006317,
+      "usage": {
+        "input_tokens": 75796,
+        "output_tokens": 5642,
+        "thinking_tokens": 2812,
+        "cache_read_tokens": 91543,
+        "total_tokens": 81438
+      },
+      "subagent_calls": [],
+      "changed": [
+        " M src/reducer.js",
+        " M test/statusline.test.js"
+      ],
+      "tests_pass": true
+    },
+    {
+      "task": "brake",
+      "condition": "plugin",
+      "rep": 3,
+      "status": "SUCCESS",
+      "duration_seconds": 76.657168,
+      "usage": {
+        "input_tokens": 37051,
+        "output_tokens": 6003,
+        "thinking_tokens": 3217,
+        "cache_read_tokens": 131557,
+        "total_tokens": 43054
+      },
+      "subagent_calls": [],
+      "changed": [
+        " M src/reducer.js",
+        " M test/statusline.test.js"
+      ],
+      "tests_pass": true
+    },
+    {
+      "task": "brake",
+      "condition": "plugin",
+      "rep": 4,
+      "status": "SUCCESS",
+      "duration_seconds": 84.527492,
+      "usage": {
+        "input_tokens": 37510,
+        "output_tokens": 5986,
+        "thinking_tokens": 3070,
+        "cache_read_tokens": 157220,
+        "total_tokens": 43496
+      },
+      "subagent_calls": [],
+      "changed": [
+        " M src/reducer.js",
+        " M test/statusline.test.js"
+      ],
+      "tests_pass": true
+    },
+    {
+      "task": "brake",
+      "condition": "plugin",
+      "rep": 5,
+      "status": "SUCCESS",
+      "duration_seconds": 91.768866,
+      "usage": {
+        "input_tokens": 37289,
+        "output_tokens": 6495,
+        "thinking_tokens": 3506,
+        "cache_read_tokens": 132385,
+        "total_tokens": 43784
+      },
+      "subagent_calls": [],
+      "changed": [
+        " M src/reducer.js",
+        " M test/statusline.test.js"
+      ],
+      "tests_pass": true
+    },
+    {
+      "task": "research",
+      "condition": "none",
+      "rep": 1,
+      "status": "SUCCESS",
+      "duration_seconds": 394.628052,
+      "usage": {
+        "input_tokens": 78078,
+        "output_tokens": 18586,
+        "thinking_tokens": 5592,
+        "cache_read_tokens": 360213,
+        "total_tokens": 96664
+      },
+      "subagent_calls": [
+        "research",
+        "research"
+      ],
+      "changed": [
+        "?? REPORT.md"
+      ],
+      "tests_pass": true
+    },
+    {
+      "task": "research",
+      "condition": "none",
+      "rep": 2,
+      "status": "SUCCESS",
+      "duration_seconds": 311.267697,
+      "usage": {
+        "input_tokens": 56772,
+        "output_tokens": 16978,
+        "thinking_tokens": 3343,
+        "cache_read_tokens": 229224,
+        "total_tokens": 73750
+      },
+      "subagent_calls": [
+        "research",
+        "research"
+      ],
+      "changed": [
+        "?? REPORT.md"
+      ],
+      "tests_pass": true
+    },
+    {
+      "task": "research",
+      "condition": "none",
+      "rep": 3,
+      "status": "SUCCESS",
+      "duration_seconds": 364.867054,
+      "usage": {
+        "input_tokens": 71758,
+        "output_tokens": 22298,
+        "thinking_tokens": 8110,
+        "cache_read_tokens": 334036,
+        "total_tokens": 94056
+      },
+      "subagent_calls": [
+        "research",
+        "research"
+      ],
+      "changed": [
+        "?? REPORT.md"
+      ],
+      "tests_pass": true
+    },
+    {
+      "task": "research",
+      "condition": "none",
+      "rep": 4,
+      "status": "SUCCESS",
+      "duration_seconds": 337.26699,
+      "usage": {
+        "input_tokens": 62132,
+        "output_tokens": 21475,
+        "thinking_tokens": 7776,
+        "cache_read_tokens": 241811,
+        "total_tokens": 83607
+      },
+      "subagent_calls": [
+        "research",
+        "research"
+      ],
+      "changed": [
+        "?? REPORT.md"
+      ],
+      "tests_pass": true
+    },
+    {
+      "task": "research",
+      "condition": "none",
+      "rep": 5,
+      "status": "SUCCESS",
+      "duration_seconds": 214.852673,
+      "usage": {
+        "input_tokens": 60891,
+        "output_tokens": 23765,
+        "thinking_tokens": 11941,
+        "cache_read_tokens": 166685,
+        "total_tokens": 84656
+      },
+      "subagent_calls": [],
+      "changed": [
+        "?? REPORT.md"
+      ],
+      "tests_pass": true
+    },
+    {
+      "task": "research",
+      "condition": "plugin",
+      "rep": 1,
+      "status": "SUCCESS",
+      "duration_seconds": 445.490405,
+      "usage": {
+        "input_tokens": 241325,
+        "output_tokens": 19048,
+        "thinking_tokens": 6060,
+        "cache_read_tokens": 115576,
+        "total_tokens": 260373
+      },
+      "subagent_calls": [
+        "pilotfish-scout",
+        "pilotfish-scout"
+      ],
+      "changed": [
+        "?? REPORT.md"
+      ],
+      "tests_pass": true
+    },
+    {
+      "task": "research",
+      "condition": "plugin",
+      "rep": 2,
+      "status": "SUCCESS",
+      "duration_seconds": 243.73275,
+      "usage": {
+        "input_tokens": 68088,
+        "output_tokens": 19345,
+        "thinking_tokens": 6380,
+        "cache_read_tokens": 348157,
+        "total_tokens": 87433
+      },
+      "subagent_calls": [
+        "pilotfish-scout",
+        "pilotfish-scout"
+      ],
+      "changed": [
+        "?? REPORT.md"
+      ],
+      "tests_pass": true
+    },
+    {
+      "task": "research",
+      "condition": "plugin",
+      "rep": 3,
+      "status": "SUCCESS",
+      "duration_seconds": 258.661492,
+      "usage": {
+        "input_tokens": 70228,
+        "output_tokens": 21338,
+        "thinking_tokens": 8806,
+        "cache_read_tokens": 348306,
+        "total_tokens": 91566
+      },
+      "subagent_calls": [
+        "pilotfish-scout",
+        "pilotfish-scout"
+      ],
+      "changed": [
+        "?? REPORT.md"
+      ],
+      "tests_pass": true
+    },
+    {
+      "task": "research",
+      "condition": "plugin",
+      "rep": 4,
+      "status": "SUCCESS",
+      "duration_seconds": 238.467384,
+      "usage": {
+        "input_tokens": 58303,
+        "output_tokens": 19480,
+        "thinking_tokens": 7491,
+        "cache_read_tokens": 233595,
+        "total_tokens": 77783
+      },
+      "subagent_calls": [
+        "pilotfish-scout",
+        "pilotfish-scout"
+      ],
+      "changed": [
+        "?? REPORT.md"
+      ],
+      "tests_pass": true
+    },
+    {
+      "task": "research",
+      "condition": "plugin",
+      "rep": 5,
+      "status": "SUCCESS",
+      "duration_seconds": 383.37024,
+      "usage": {
+        "input_tokens": 69704,
+        "output_tokens": 22908,
+        "thinking_tokens": 9278,
+        "cache_read_tokens": 455314,
+        "total_tokens": 92612
+      },
+      "subagent_calls": [
+        "pilotfish-scout",
+        "pilotfish-scout",
+        "pilotfish-verifier"
+      ],
+      "changed": [
+        "?? REPORT.md"
+      ],
+      "tests_pass": true
+    }
+  ]
+}

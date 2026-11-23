@@ -1,0 +1,11 @@
+{
+  "pilotfish-model-floor": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "./hooks/model-floor.sh",
+        "timeout": 5
+      }
+    ]
+  }
+}

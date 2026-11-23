@@ -33,6 +33,7 @@ acceptance boundary 使用 fresh-context reviewer。
 | Claude Code 全域政策 | 本 repo |
 | Claude Code 的 session-scoped GPT routing | [remora](https://github.com/Nanako0129/remora-cc) |
 | Grok Build | [pilotfish-grok](https://github.com/Nanako0129/pilotfish-grok) |
+| Antigravity CLI（`agy`），preview | 本 repo 的 [`plugin-agy`](./plugin-agy/README.md) |
 | Codex CLI | [pilotfish-codex](https://github.com/miyago9267/pilotfish-codex) |
 
 ## 運作方式
@@ -134,6 +135,18 @@ rollback，請見 [Plugin 安裝指南](./install/PLUGIN-INSTALL.zh-TW.md)。Plu
 contract qualification，未經測試、驗證或 live observation。Windows 不在範圍內。
 必須啟用 SessionStart hooks，且不可與 legacy global install 共存；Plugin 不主張
 stable reliability、跨版本相容性或 runtime namespace collision proof。
+
+### Antigravity CLI（preview）
+
+給 `agy` 用的移植版放在 [`plugin-agy`](./plugin-agy/README.md)，角色 prompt 依
+Gemini 的特性改寫。只在 macOS 的 agy 1.5.15 上觀察過，版本與 Claude Code Plugin
+分開計算，也沒有上架 marketplace。從 checkout 安裝：
+
+```bash
+agy plugin install "$PWD/plugin-agy"
+```
+
+角色、模型層級、觀察結果與已知限制請見該 README（英文）。
 
 ### Legacy global install
 
