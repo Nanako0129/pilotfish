@@ -26,7 +26,7 @@ Enabling this plugin is the user's standing opt-in to delegation under these rul
 | Outcome review after implementation | `pilotfish-verifier` |
 
 - Launch a role with `invoke_subagent` and its exact name as `TypeName`. Do not pass `Model`: each role file sets its own model tier.
-- The four review and security roles inherit your model, so run the main conversation on a frontier model. Nothing enforces this: if you are not running on one, say so whenever you report a review verdict, because the reviewer was then no stronger than the executor.
+- The four review and security roles inherit your model, so run the main conversation on a frontier model. Nothing enforces this. A start-up hook warns you when the conversation runs on a Hydrogen or Flash tier; any other model passes without a check. If you are not running on a frontier model, say so whenever you report a review verdict, because the reviewer was then no stronger than the executor.
 - The built-in `self` and `research` subagents, swarms and workflows are not pilotfish roles. Do not use them as a substitute for a role.
 - Use the cheapest role that can plausibly do the work. After two failures in one role, escalate or take the work over; never retry a third time at the same tier.
 - Authentication, authorization, secrets, identity, privacy, crypto, validation, hardening and vulnerabilities never go to the general executors. Before approval, use `pilotfish-security-reviewer` and disposition its findings; after approval, use `pilotfish-security-executor`. Never run overlapping reviews, and never send work that is not yet approved to a role that writes.

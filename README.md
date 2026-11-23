@@ -39,6 +39,7 @@ wins every task. The rationale and measurements live in
 | Claude Code global policy | This repository |
 | Claude Code with session-scoped GPT routing | [remora](https://github.com/Nanako0129/remora-cc) |
 | Grok Build | [pilotfish-grok](https://github.com/Nanako0129/pilotfish-grok) |
+| Antigravity CLI (`agy`), preview | [`plugin-agy`](./plugin-agy/README.md) in this repository |
 | Codex CLI | [pilotfish-codex](https://github.com/miyago9267/pilotfish-codex) |
 
 ## How it works
@@ -154,6 +155,19 @@ contract-qualified only; it has not been tested, verified, or live-observed.
 Windows is excluded. SessionStart hooks are required, the Plugin must not
 coexist with the legacy global install, and the Plugin does not claim stable
 reliability, cross-version compatibility, or runtime namespace-collision proof.
+
+### Antigravity CLI (preview)
+
+A port for `agy` with Gemini-tuned role prompts lives in
+[`plugin-agy`](./plugin-agy/README.md). It was observed on agy 1.5.15 on macOS
+only, is versioned separately from the Claude Code plugin, and is not on a
+marketplace. Install it from a checkout:
+
+```bash
+agy plugin install "$PWD/plugin-agy"
+```
+
+Roles, model tiers, observations and known limits are in that README.
 
 ### Legacy global install
 

@@ -8,5 +8,7 @@
     "url": "https://github.com/Nanako0129"
   },
   "repository": "https://github.com/Nanako0129/pilotfish",
-  "homepage": "https://github.com/Nanako0129/pilotfish"
+  "homepage": "https://github.com/Nanako0129/pilotfish",
+  "license": "MIT",
+  "keywords": ["orchestration", "subagents", "delegation", "review"]
 }

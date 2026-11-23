@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -75,6 +76,34 @@ class AgyPluginTest(unittest.TestCase):
             body = path.read_text(encoding="utf-8")
             self.assertLessEqual(set(re.findall(pattern, body)), set(ROUTING), path.name)
 
+    def test_model_floor_hook_warns_only_on_the_weak_tiers(self) -> None:
+        hooks = json.loads((PLUGIN / "hooks.json").read_text(encoding="utf-8"))
+        (handler,) = hooks["pilotfish-model-floor"]["SessionStart"]
+        compact, spaced = (",", ":"), (", ", ": ")
+        cases = [
+            ("gemini-4-hydrogen-tiered-high", compact, True),
+            ("gemini-3.8-flash-high", compact, True),
+            ("models/Gemini-4-Hydrogen (High)", compact, True),
+            ("gemini-4-hydrogen-medium", spaced, True),
+            ("gemini-4-neon-high", compact, False),
+            ("auto", spaced, False),
+        ]
+        for model, separators, warns in cases:
+            with self.subTest(model=model, separators=separators):
+                # A decoy inside the user's text must not decide the result.
+                payload = json.dumps(
+                    {"lastUserInput": 'x "modelName":"flash"', "modelName": model, "transcriptPath": "/t"},
+                    separators=separators,
+                )
+                # agy runs a plugin hook with the plugin folder as its directory.
+                out = subprocess.run(
+                    handler["command"], shell=True, cwd=PLUGIN, input=payload,
+                    capture_output=True, text=True, check=True,
+                ).stdout
+                steps = json.loads(out).get("injectSteps", [])
+                self.assertEqual(bool(steps), warns)
+                if warns:
+                    self.assertIn(model, steps[0]["systemMessage"]["systemMessage"])
 
 if __name__ == "__main__":
     unittest.main()
