@@ -2,6 +2,14 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
+## Unreleased
+
+**Approval and other user decisions go through the question tool.** When the main session stops for the user's decision, it now asks through `AskUserQuestion` (`ask_question` on agy) if that tool is available: Plan approval, the `AUTO` or `ASK` choice, a direction-changing question and a pause in `ASK`. An approving answer there is explicit approval, so implementation may begin in the same turn. Before this change the policy required every approval stop to end the turn and the approval to arrive in a later one, and it named the tool only for `ASK` pauses. Without the tool, as in a headless run, nothing changes: the Plan is presented and the turn ends.
+
+This changes four rule lines of the orchestration template (the `explore_then_plan` boundary, the Approval gate, the mandatory-review line and the `ASK` line), their four lines in the Plugin's SessionStart text, which stays under its 9,000-character limit at 8,998, and the agy policy (`plugin-agy` 0.1.2).
+
+Evidence: one headless run of the Plugin's `schema` cell on the new text stopped for approval with no write and called `plan-verifier` first, then implemented and verified after approval in the next turn; the tool was not called. On agy 1.5.15, two headless mechanical runs delegated and finished as before; two headless Plan-first runs wrote nothing but hit the 280-second print timeout while `pilotfish-plan-verifier` was running, so they do not show how the turn ends. No interactive session was recorded on either client, so the tool path itself is unobserved here. Records: [`benchmarks/plan-review-scope`](benchmarks/plan-review-scope/README.md#approval-through-the-question-tool).
+
 ## v1.7.1 — 2026-11-24
 
 **The agy policy is brought back in line with the Claude Code policy (#109).** The policy in [`plugin-agy`](plugin-agy/README.md) is a hand rewrite of the orchestration template, and v1.7.0 shipped it without the v1.6.0 rule that every Plan opens by restating the intent. Three readings of the template's 37 rule units, its preamble and its `explore_then_plan` boundary against the agy text, two of them by fresh readers, found that omission and several dozen clauses that were dropped, looser or stricter than the original. The larger ones:

@@ -2,7 +2,7 @@
 
 This directory is a port of pilotfish to `agy`, the Antigravity CLI. It gives the main agent the pilotfish orchestration policy and seven leaf subagents, with prompts written for Gemini 4.
 
-It is a preview. It was built and observed on agy 1.5.15 on macOS with a consumer plan on 2026-11-23, and it is versioned separately from the Claude Code plugin (`plugin.json` says `0.1.1`). It is not on a marketplace.
+It is a preview. It was built and observed on agy 1.5.15 on macOS with a consumer plan on 2026-11-23, and it is versioned separately from the Claude Code plugin (`plugin.json` says `0.1.2`). It is not on a marketplace.
 
 The policy is a hand rewrite of the Claude Code policy. [`docs/agy-parity.md`](../docs/agy-parity.md) maps every rule of the original to the clause that carries it here and lists what was not ported.
 
@@ -59,6 +59,7 @@ Start a new session after installing. The hook is a POSIX `sh` script and needs 
 - `agy plugin install` reports 7 agents, 1 rule and 1 hook, and `agy plugin validate --strict` passes.
 - The hook's warning reached a main agent on `gemini-4-hydrogen-medium` and was absent on `gemini-4-neon-high`.
 - With the 0.1.1 policy, headless on `gemini-4-neon-high` (2026-11-24). Asked for a schema migration, in two runs the main agent edited nothing and drafted a Plan that opened with intent, outcome and non-goals; one of the two also sent the envelope to `pilotfish-plan-verifier`, and the other stopped to ask clarifying questions first. Asked for the same `var` to `const` change in eight files, in two runs it launched one `pilotfish-mech-executor` without asking for approval and all eight files changed. The first run of each task was on an earlier revision of the 0.1.1 text.
+- With the 0.1.2 policy, which asks for Plan approval and other user decisions through `ask_question` when that tool is available, headless on `gemini-4-neon-high` (2026-11-24): two eight-file `var` to `const` runs delegated to one `pilotfish-mech-executor` and finished as before; two schema-migration runs edited nothing but hit the 280-second print timeout while `pilotfish-plan-verifier` was running. The `ask_question` path was not observed: headless runs have no user to ask, and no interactive session was recorded.
 - Delegation behavior with and without the plugin on two tasks, measured on the 0.1.0 policy: [`benchmarks/agy-preview`](../benchmarks/agy-preview/README.md).
 
 ## Known limits

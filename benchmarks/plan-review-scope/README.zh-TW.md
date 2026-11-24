@@ -143,6 +143,17 @@ preflight 與每格第一回合的串流都必須含有 hook 輸出的 `*=mandat
 
 該次審查留下、也沒有觀察過的兩點：現有文字寫錯會評為 P3，漏寫卻評為 P2；以及必要條件被判定未達成但無法重現時，照字面不屬於三種判定的任何一種。
 
+## 透過提問工具核准
+
+後續的修改讓主對話在有 `AskUserQuestion` 工具時用它來問 Plan 核准，並把工具裡的核准答案視為同一回合內的明確核准。沒有工具時，停下來的方式不變。為了確認沒有工具時仍會停下來，Plugin 的 `schema` 格在新文字上再跑了一次（[`ask-tool/`](./ask-tool/)，2026-11-24，Claude Code 2.1.325，`claude-opus-5-5`，USD 0.48）：
+
+| 回合 | Agent 呼叫 | 主對話寫入 | 結束後的工作樹 |
+|---|---|---|---|
+| 1 | `plan-verifier` | 無 | 乾淨 |
+| 2（使用者核准） | `executor`、`verifier` | 無 | `store.mjs`、`store.test.mjs` |
+
+這次 headless 執行的兩個回合都沒有呼叫 `AskUserQuestion`，第 1 回合以文字請求核准作結。腳本是拿掉 `cross` 格的 `plugin/run-copy/run.sh`。這次執行沒有顯示工具被使用的情況：沒有記錄互動 session，`cross` 格也沒有重跑。
+
 ## 限制
 
 - 每格只跑一次。

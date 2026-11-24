@@ -143,6 +143,17 @@ The verdicts equal the first run's and the base roles'. The final wording was re
 
 Left open by that review and not observed: a wrong statement in present text rates P3 while an omitted one rates P2; and a required condition judged unmet without a reproduction fits none of the three verdicts as written.
 
+## Approval through the question tool
+
+A later change lets the main session ask for Plan approval through `AskUserQuestion` when that tool is available, and counts an approving answer there as explicit approval in the same turn. Without the tool the stop is as before. The Plugin's `schema` cell was run once more on that text to see that the stop without the tool still holds ([`ask-tool/`](./ask-tool/), 2026-11-24, Claude Code 2.1.325, `claude-opus-5-5`, USD 0.48):
+
+| Turn | Agent calls | Main-session writes | Tree after |
+|---|---|---|---|
+| 1 | `plan-verifier` | none | clean |
+| 2 (the user approves) | `executor`, `verifier` | none | `store.mjs`, `store.test.mjs` |
+
+`AskUserQuestion` was not called in either turn of this headless run, and turn 1 ended with a written request for approval. The script is `plugin/run-copy/run.sh` with the `cross` cell removed. This run does not show the tool being used: no interactive session was recorded, and the `cross` cell was not rerun.
+
 ## Limits
 
 - One attempt per cell.
