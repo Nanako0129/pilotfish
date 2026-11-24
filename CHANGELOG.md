@@ -2,6 +2,18 @@
 
 All notable changes to pilotfish. The installed version is stamped inside the policy block in `~/.claude/CLAUDE.md` (`<!-- pilotfish vX.Y.Z -->`); installs older than v1.1.0 carry no stamp.
 
+## Unreleased
+
+**Approval and other user decisions go through the question tool.** When the main session stops for the user's decision, it now asks through `AskUserQuestion` (`ask_question` on agy) if that tool is available: Plan approval, the `AUTO` or `ASK` choice, a direction-changing question and a pause in `ASK`. Only an approving answer there is explicit approval, and with one, implementation may begin in the same turn. Before this change the policy required every approval stop to end the turn and the approval to arrive in a later one, and it named the tool only for `ASK` pauses. Without the tool, or when the call is denied or returns no answer, nothing changes: the Plan is presented and the turn ends.
+
+This changes four rule lines of the orchestration template (the `explore_then_plan` boundary, the Approval gate, the mandatory-review line and the `ASK` line), their four lines in the Plugin's SessionStart text, which is now exactly at its 9,000-character limit, and the agy policy (`plugin-agy` 0.1.2). The boundary is now read-only until approval, where it used to bind only the first turn.
+
+Evidence:
+
+- **Claude Code, headless, no tool.** One run of the Plugin's `schema` cell on the final text. The sessions did not list `AskUserQuestion`; the main session searched for it, found nothing, and ended turn 1 with a written request for approval, having called `plan-verifier` and written nothing. It implemented and verified after approval in the next turn. Record: [`benchmarks/plan-review-scope`](benchmarks/plan-review-scope/README.md#approval-through-the-question-tool).
+- **agy 1.5.15, headless.** Two mechanical runs delegated and finished as before. Four Plan-first runs wrote nothing and called `pilotfish-plan-verifier`, but none reached the approval stop: two hit a 280-second print timeout and two ended after 469 and 556 seconds while a review was still running. `ask_question` was not called. Record: [`benchmarks/agy-preview/ask-tool-0.1.2.json`](benchmarks/agy-preview/ask-tool-0.1.2.json).
+- **Not observed:** the tool path itself. No interactive session was recorded on either client. Claude Code's plan mode, where `ExitPlanMode` is the approval, is not addressed by the new text. The `cross` cell and the full behavioral matrix were not rerun.
+
 ## v1.7.1 — 2026-11-24
 
 **The agy policy is brought back in line with the Claude Code policy (#109).** The policy in [`plugin-agy`](plugin-agy/README.md) is a hand rewrite of the orchestration template, and v1.7.0 shipped it without the v1.6.0 rule that every Plan opens by restating the intent. Three readings of the template's 37 rule units, its preamble and its `explore_then_plan` boundary against the agy text, two of them by fresh readers, found that omission and several dozen clauses that were dropped, looser or stricter than the original. The larger ones:

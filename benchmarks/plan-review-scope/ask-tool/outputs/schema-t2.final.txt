@@ -1,0 +1,14 @@
+The user record is now saved in the version 2 format with `user_id`, and reading still works for both version 1 and version 2 records. `npm test` passes all 5 tests, and the independent check (`pilotfish:verifier`) came back CONFIRMED. Nothing is committed.
+
+**What changed**
+- **`store.mjs`:** `encodeUser` writes `{"version":2,"user_id":…,"name":…}` and no longer includes a `user` field. `decodeUser` reads the id from `user` in version 1 records and from `user_id` in version 2 records. Any other version is still rejected with `unsupported version: N`.
+- **`store.test.mjs`:** 5 tests now cover the exact version 2 output, reading a version 1 record, reading a version 2 record, a version 2 save-and-read round trip, and rejection of version 3.
+- Only those two files changed; `README.md` and `package.json` are untouched.
+
+**Checks run**
+1. **My own review:** I read the diff, ran `npm test` (5 of 5 passed), and confirmed with `git status` that only the two files were modified.
+2. **Independent check:** the verifier decoded version 1 records produced by the old code and they came back correctly. It also ran the tests against deliberately broken copies of `store.mjs`, and they failed whenever the code wrote the wrong field or version number. If the code went back to writing version 1 records, only the test for the exact output would catch it, because the round trip still succeeds.
+
+**Left as is (minor):** if a record has the version as the text `"2"` instead of the number, it is correctly rejected, but the error reads `unsupported version: 2`, which looks like the number 2. The old code had the same message, and changing it was outside the approved scope.
+
+**Agents used:** `pilotfish:plan-verifier` approved the plan as ready, `pilotfish:mech-executor` made the edits, and `pilotfish:verifier` did the final check. This turn cost about $0.27 of the $0.80 budget; the planning turn before it cost about $0.21.

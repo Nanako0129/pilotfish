@@ -2,7 +2,7 @@
   "schema_version": 1,
   "source": {
     "path": "templates/claude-md.orchestration.md",
-    "sha256": "05cf7a3eeb3a2167e40fb8a5592d32731542d26585ac003d938010c5d65cbdb5"
+    "sha256": "f2fda29beb2942a1bbeee77d8dac0fec5714dbaa9440544f160aa9871049035c"
   },
   "requirements": [
     {
@@ -33,8 +33,8 @@
       "id": "PLUG-APPROVAL-DISCOVERY",
       "category": "approval",
       "source_line": 12,
-      "source_clause": "  **`explore_then_plan` boundary:** its first turn is `discovery_read_only` despite imperative implementation wording. Inspect only; Write/Edit/NotebookEdit and mutating Bash are forbidden. Return assumptions and one reversible slice; label `next_gate: user_approval` only after every applicable readiness gate is `READY`, otherwise label the blocking or paused gate, then end the turn. Execution is unreachable until later explicit approval. Stop discovery when more evidence cannot change next gate.",
-      "ambient_line": "First explore_then_plan turn=read-only:no Write/Edit/NotebookEdit/mutating Bash.Return assumptions+1 slice;next_gate:user_approval only if all gates READY,else blocker/pause;stop.Later approval unlocks execution;stop when evidence cannot alter gate.",
+      "source_clause": "  **`explore_then_plan` boundary:** it starts `discovery_read_only` despite imperative implementation wording. Inspect only until approval; Write/Edit/NotebookEdit and mutating Bash are forbidden. Return assumptions and one reversible slice; label `next_gate: user_approval` only after every applicable readiness gate is `READY`, otherwise label the blocking or paused gate; then stop at that gate. Execution is unreachable until explicit approval. Stop discovery when more evidence cannot change next gate.",
+      "ambient_line": "explore_then_plan=read-only pre-approval:no Write/Edit/NotebookEdit/mutating Bash.Return assumptions+1 slice;next_gate:user_approval only if all gates READY,else blocker/pause;stop.Stop when evidence cannot alter gate.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -81,8 +81,8 @@
       "id": "PLUG-APPROVAL-GATE",
       "category": "approval",
       "source_line": 18,
-      "source_clause": "- Approval gate: large/architectural/risky/plan-first work presents Plan and waits for explicit approval. Broad initial request is not approval of unseen Plan. No source edit or implementation brief before required approval; read-only clarification remains allowed.",
-      "ambient_line": "Large/architectural/risky/plan-first awaits explicit Plan approval.Broad request ≠ unseen-Plan approval;pre-approval permits read-only clarification,not source edit/implementation brief.",
+      "source_clause": "- Approval gate: large/architectural/risky/plan-first work presents Plan and waits for explicit approval: ask via `AskUserQuestion` when available; only an approving answer is explicit approval. Without the tool or without an answer (denied or dismissed call), end the turn and wait. Broad initial request is not approval of unseen Plan. No source edit or implementation brief before required approval; read-only clarification remains allowed.",
+      "ambient_line": "Large/architectural/risky/plan-first awaits explicit approval:ask via AskUserQuestion—only approval counts;else end turn.Broad request ≠ unseen-Plan approval;pre-approval:read-only clarification,no source edit/implementation brief.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -209,8 +209,8 @@
       "id": "PLUG-SECURITY-MANDATORY-REVIEW",
       "category": "security",
       "source_line": 37,
-      "source_clause": "- Any independent-review trigger makes that unit risky: post-implementation `verifier` is a mandatory Agent call; Plan-review units also require pre-approval `plan-verifier`, with no extra opt-in. Higher-priority prohibition → pause before edits, never direct fallback or waiver; unblock only by lifting the prohibition or narrowing away every trigger. Bounded fail-soft exception applies only without listed risk. After any required readiness, present Plan and end turn; implementation begins only after explicit approval in a later turn. Plan readiness judges proposed acceptance check.",
-      "ambient_line": "Each risk trigger mandates post-implementation pilotfish:verifier,no extra opt-in.Higher-rule prohibition pauses pre-edit—no fallback/waiver—until lifted/risk removed.Present ready Plan/stop;later approval unlocks execution.",
+      "source_clause": "- Any independent-review trigger makes that unit risky: post-implementation `verifier` is a mandatory Agent call; Plan-review units also require pre-approval `plan-verifier`, with no extra opt-in. Higher-priority prohibition → pause before edits, never direct fallback or waiver; unblock only by lifting the prohibition or narrowing away every trigger. Bounded fail-soft exception applies only without listed risk. After any required readiness, present Plan and stop at Approval gate; implementation begins only after explicit approval. Plan readiness judges proposed acceptance check.",
+      "ambient_line": "Risk trigger mandates post-implementation pilotfish:verifier,no extra opt-in.Higher-rule prohibition pauses pre-edit—no fallback/waiver—until lifted/risk removed.Present ready Plan;await approval.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {
@@ -305,8 +305,8 @@
       "id": "PLUG-LIVENESS-ASK",
       "category": "liveness",
       "source_line": 52,
-      "source_clause": "- `ASK` uses `AskUserQuestion` when available; otherwise end with `PAUSED_NEEDS_USER`, one concise question, choices, recommendation. Headless/noninteractive run exits—never poll, retry, guess, or continue affected slice. Questions belong to main session, never child. P0 freezes affected slice/dependents; cross-cutting P0 stops program. Stop run only for cross-cutting blocker, all remaining work depending on paused slice, new authority/product decision, destructive/irreversible/external action, exhausted budget/quota, unsafe environment, or unattainable original scope. Final report separates confirmed/fixed/deferred/regraded findings (original/revised priority, evidence, disposition), rejected findings with evidence, paused slices/dependents, inconclusive/unrun checks, narrowed claims, tests/gates/cost, external actions not taken.",
-      "ambient_line": "ASK:use AskUserQuestion;else PAUSED_NEEDS_USER+1 question/choices/recommendation.Headless cannot poll/retry/guess;children cannot ask.P0 freezes dependents;cross-cutting P0 stops all.Stop only on cross-cutting/dependency blocker,authority/product choice,destructive/external action,exhausted budget,unsafe environment,impossible scope.Report outcomes/dispositions/pauses/gaps/narrowed claims/gates/cost/external actions separately.",
+      "source_clause": "- `AskUserQuestion`, when available, carries every user-decision stop: Plan approval, `AUTO`/`ASK` choice, direction-changing question, `ASK` pause. Without it or without an answer, `ASK` ends with `PAUSED_NEEDS_USER`, one concise question, choices, recommendation. Headless/noninteractive run exits—never poll, retry, guess, or continue affected slice. Questions belong to main session, never child. P0 freezes affected slice/dependents; cross-cutting P0 stops program. Stop run only for cross-cutting blocker, all remaining work depending on paused slice, new authority/product decision, destructive/irreversible/external action, exhausted budget/quota, unsafe environment, or unattainable original scope. Final report separates confirmed/fixed/deferred/regraded findings (original/revised priority, evidence, disposition), rejected findings with evidence, paused slices/dependents, inconclusive/unrun checks, narrowed claims, tests/gates/cost, external actions not taken.",
+      "ambient_line": "ASK/mode/direction:AskUserQuestion;else ASK:PAUSED_NEEDS_USER+1 question/choices/recommendation.Headless cannot poll/retry/guess;children cannot ask.P0 freezes dependents;cross-cutting P0 stops all.Stop only on cross-cutting/dependency blocker,authority/product choice,destructive/external action,exhausted budget,unsafe environment,impossible scope.Report outcomes/dispositions/pauses/gaps/narrowed claims/gates/cost/external actions separately.",
       "focused_test": "tests.test_plugin.PluginArtifactTests.test_policy_requirement_matrix"
     },
     {

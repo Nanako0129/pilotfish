@@ -71,6 +71,51 @@ READINESS_REPLACEMENTS = {
 }
 
 
+# Approval through the question tool, changed after the last behavioural gate.
+# Plan approval, the AUTO/ASK choice and direction-changing questions go through
+# `AskUserQuestion` when it is available, and an approving answer there is
+# explicit approval in the same turn, so "end the turn" and "a later turn" are no
+# longer required when the tool exists. Without the tool, or without an answer
+# from it, the stop is unchanged.
+# Applied on top of the entries above. Not checked by a full Gate.
+APPROVAL_TOOL_REPLACEMENTS = {
+    12: (
+        b"its first turn is `discovery_read_only` despite imperative implementation"
+        b" wording. Inspect only; Write/Edit/NotebookEdit and mutating Bash are"
+        b" forbidden. Return assumptions and one reversible slice; label `next_gate:"
+        b" user_approval` only after every applicable readiness gate is `READY`,"
+        b" otherwise label the blocking or paused gate, then end the turn. Execution"
+        b" is unreachable until later explicit approval.",
+        b"it starts `discovery_read_only` despite imperative implementation wording."
+        b" Inspect only until approval; Write/Edit/NotebookEdit and mutating Bash are"
+        b" forbidden. Return assumptions and one reversible slice; label `next_gate:"
+        b" user_approval` only after every applicable readiness gate is `READY`,"
+        b" otherwise label the blocking or paused gate; then stop at that gate."
+        b" Execution is unreachable until explicit approval.",
+    ),
+    18: (
+        b"presents Plan and waits for explicit approval. Broad initial request",
+        b"presents Plan and waits for explicit approval: ask via `AskUserQuestion`"
+        b" when available; only an approving answer is explicit approval. Without the"
+        b" tool or without an answer (denied or dismissed call), end the turn and"
+        b" wait. Broad initial request",
+    ),
+    37: (
+        b"present Plan and end turn; implementation begins only after explicit"
+        b" approval in a later turn.",
+        b"present Plan and stop at Approval gate; implementation begins only after"
+        b" explicit approval.",
+    ),
+    52: (
+        b"- `ASK` uses `AskUserQuestion` when available; otherwise end with"
+        b" `PAUSED_NEEDS_USER`,",
+        b"- `AskUserQuestion`, when available, carries every user-decision stop: Plan"
+        b" approval, `AUTO`/`ASK` choice, direction-changing question, `ASK` pause."
+        b" Without it or without an answer, `ASK` ends with `PAUSED_NEEDS_USER`,",
+    ),
+}
+
+
 def normalize_version_marker(payload: bytes) -> bytes:
     return re.sub(
         rb"<!-- pilotfish v\d+\.\d+\.\d+ -->", b"<!-- pilotfish vX.Y.Z -->", payload
@@ -93,7 +138,11 @@ class PolicyContractTests(unittest.TestCase):
         self.assertEqual(len(gated_lines), len(live_lines))
         index = EFFORT_LINE - 1
         for number, (old, new) in enumerate(zip(gated_lines, live_lines), 1):
-            for table in (POST_GATE_REPLACEMENTS, READINESS_REPLACEMENTS):
+            for table in (
+                POST_GATE_REPLACEMENTS,
+                READINESS_REPLACEMENTS,
+                APPROVAL_TOOL_REPLACEMENTS,
+            ):
                 if number in table:
                     before, after = table[number]
                     self.assertEqual(old.count(before), 1, f"line {number} gated text")
@@ -5959,14 +6008,14 @@ class PolicyContractTests(unittest.TestCase):
             if line.startswith("  **`explore_then_plan` boundary:**")
         )
         for contract in (
-            "first turn is `discovery_read_only`",
+            "it starts `discovery_read_only`",
+            "Inspect only until approval",
             "despite imperative implementation wording",
             "Write/Edit/NotebookEdit and mutating Bash are forbidden",
             "one reversible slice",
             "label `next_gate: user_approval` only after every applicable readiness gate is `READY`",
-            "otherwise label the blocking or paused gate",
-            "then end the turn",
-            "Execution is unreachable until later explicit approval",
+            "otherwise label the blocking or paused gate; then stop at that gate",
+            "Execution is unreachable until explicit approval",
         ):
             self.assertIn(contract, boundary)
         self.assertIn("Routing controls interaction; approval controls authority", policy)
@@ -6101,8 +6150,8 @@ class PolicyContractTests(unittest.TestCase):
             "pause before edits, never direct fallback or waiver",
             "unblock only by lifting the prohibition or narrowing away every trigger",
             "Bounded fail-soft exception applies only without listed risk",
-            "After any required readiness, present Plan and end turn",
-            "implementation begins only after explicit approval in a later turn",
+            "After any required readiness, present Plan and stop at Approval gate",
+            "implementation begins only after explicit approval",
             "Plan readiness judges proposed acceptance check",
             "Run primary user-visible acceptance first",
             "avoid micro-verifier calls",
@@ -6181,7 +6230,7 @@ class PolicyContractTests(unittest.TestCase):
             "explicit “continue while I am away” selects AUTO and must be announced",
             "emergency recovery, not quota",
             "Headless likely-long run without selected mode",
-            "otherwise end with `PAUSED_NEEDS_USER`",
+            "Without it or without an answer, `ASK` ends with `PAUSED_NEEDS_USER`",
             "Default recovery: one targeted recheck",
             "High-risk claim-critical P1/P2 recovery allows at most five meaningful",
             "never adjacent-hardening audit",

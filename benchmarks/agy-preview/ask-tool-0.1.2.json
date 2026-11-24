@@ -1,0 +1,117 @@
+{
+  "date": "2026-11-24",
+  "client": "agy 1.5.15, headless (agy -p)",
+  "main_model": "gemini-4-neon-high",
+  "plugin": "plugin-agy 0.1.2 installed globally",
+  "note": "planA and planB ran four at a time with mechA and mechB under a 280 s print timeout; planC and planD ran one at a time under 560 s. main_tool_calls counts tool names in the main conversation's transcript. workspace_edits is git status after the run.",
+  "runs": [
+    {
+      "run": "mechA",
+      "task": "mechanical",
+      "policy_text": "first wording",
+      "status": "SUCCESS",
+      "error": null,
+      "duration_seconds": 114,
+      "main_tool_calls": {
+        "invoke_subagent": 1,
+        "read_file": 8,
+        "run_command": 2
+      },
+      "roles_launched": [
+        "pilotfish-mech-executor"
+      ],
+      "ask_question_calls": 0,
+      "workspace_edits": "all eight files"
+    },
+    {
+      "run": "mechB",
+      "task": "mechanical",
+      "policy_text": "first wording",
+      "status": "SUCCESS",
+      "error": null,
+      "duration_seconds": 113,
+      "main_tool_calls": {
+        "invoke_subagent": 1,
+        "read_file": 1,
+        "run_command": 2
+      },
+      "roles_launched": [
+        "pilotfish-mech-executor"
+      ],
+      "ask_question_calls": 0,
+      "workspace_edits": "all eight files"
+    },
+    {
+      "run": "planA",
+      "task": "plan-first",
+      "policy_text": "first wording",
+      "status": "ERROR",
+      "error": "print timeout after 4m40s with the turn still in progress; the response is partial",
+      "duration_seconds": 265,
+      "main_tool_calls": {
+        "invoke_subagent": 1,
+        "read_file": 3,
+        "run_command": 4
+      },
+      "roles_launched": [
+        "pilotfish-plan-verifier"
+      ],
+      "ask_question_calls": 0,
+      "workspace_edits": "none"
+    },
+    {
+      "run": "planB",
+      "task": "plan-first",
+      "policy_text": "first wording",
+      "status": "ERROR",
+      "error": "print timeout after 4m40s with the turn still in progress; the response is partial",
+      "duration_seconds": 260,
+      "main_tool_calls": {
+        "invoke_subagent": 1,
+        "read_file": 3,
+        "run_command": 3
+      },
+      "roles_launched": [
+        "pilotfish-plan-verifier"
+      ],
+      "ask_question_calls": 0,
+      "workspace_edits": "none"
+    },
+    {
+      "run": "planC",
+      "task": "plan-first",
+      "policy_text": "final wording",
+      "status": "SUCCESS",
+      "error": null,
+      "duration_seconds": 469,
+      "main_tool_calls": {
+        "invoke_subagent": 2,
+        "read_file": 3,
+        "run_command": 4
+      },
+      "roles_launched": [
+        "pilotfish-plan-verifier"
+      ],
+      "ask_question_calls": 0,
+      "workspace_edits": "none"
+    },
+    {
+      "run": "planD",
+      "task": "plan-first",
+      "policy_text": "final wording",
+      "status": "SUCCESS",
+      "error": null,
+      "duration_seconds": 556,
+      "main_tool_calls": {
+        "invoke_subagent": 3,
+        "read_file": 3,
+        "run_command": 3
+      },
+      "roles_launched": [
+        "pilotfish-plan-verifier"
+      ],
+      "ask_question_calls": 0,
+      "workspace_edits": "none"
+    }
+  ]
+}

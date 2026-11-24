@@ -1,0 +1,31 @@
+[
+  {
+    "stream": "preflight-t1.jsonl",
+    "init_tool_count": 30,
+    "AskUserQuestion_listed": false,
+    "ExitPlanMode_listed": false,
+    "top_level_tool_calls": []
+  },
+  {
+    "stream": "schema-t1.jsonl",
+    "init_tool_count": 30,
+    "AskUserQuestion_listed": false,
+    "ExitPlanMode_listed": false,
+    "top_level_tool_calls": [
+      "Bash",
+      "Agent",
+      "ToolSearch"
+    ]
+  },
+  {
+    "stream": "schema-t2.jsonl",
+    "init_tool_count": 30,
+    "AskUserQuestion_listed": false,
+    "ExitPlanMode_listed": false,
+    "top_level_tool_calls": [
+      "Agent",
+      "Bash",
+      "Agent"
+    ]
+  }
+]

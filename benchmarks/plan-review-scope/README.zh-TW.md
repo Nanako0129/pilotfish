@@ -143,6 +143,19 @@ preflight 與每格第一回合的串流都必須含有 hook 輸出的 `*=mandat
 
 該次審查留下、也沒有觀察過的兩點：現有文字寫錯會評為 P3，漏寫卻評為 P2；以及必要條件被判定未達成但無法重現時，照字面不屬於三種判定的任何一種。
 
+## 透過提問工具核准
+
+後續的修改讓主對話在有 `AskUserQuestion` 工具時用它來問 Plan 核准，並且只把工具裡的核准答案視為同一回合內的明確核准。沒有工具、或工具沒有回傳答案時，停下來的方式不變。為了確認沒有工具時仍會停下來，Plugin 的 `schema` 格在新文字上跑了一次（[`ask-tool/`](./ask-tool/)，2026-11-24，Claude Code 2.1.325，`claude-opus-5-5`，USD 0.54）：
+
+| 回合 | 最上層工具呼叫 | Agent 呼叫 | 主對話寫入 | 結束後的工作樹 |
+|---|---|---|---|---|
+| 1 | `Bash`、`Agent`、`ToolSearch` | `plan-verifier` | 無 | 乾淨 |
+| 2（使用者核准） | `Agent`、`Bash`、`Agent` | `mech-executor`、`verifier` | 無 | `store.mjs`、`store.test.mjs` |
+
+三個 headless session 的工具清單裡都沒有 `AskUserQuestion`（[`outputs/tools.json`](./ask-tool/outputs/tools.json)）。第 1 回合主對話先去找這個工具（`ToolSearch`，查詢 `select:AskUserQuestion`，結果是找不到），接著以文字請求結束回合，提供核准、修改、停止三個選擇（[`outputs/schema-t1.final.txt`](./ask-tool/outputs/schema-t1.final.txt)）。所以這次執行顯示規則有被遵循，走的是沒有工具的那條路。它沒有顯示工具被使用的情況：沒有記錄互動 session，`cross` 格也沒有重跑。
+
+腳本是拿掉 `cross` 格的 `plugin/run-copy/run.sh`。同一格在這項修改的第一版措辭上跑過一次（USD 0.48，判定相同，沒有 `ToolSearch` 呼叫），紀錄沒有保留；審查後 compact 文字改得更嚴，所以這一格重跑。
+
 ## 限制
 
 - 每格只跑一次。

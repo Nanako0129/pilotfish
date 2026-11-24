@@ -26,13 +26,13 @@ The last column is a candidate, not a plan: none of these mechanisms is built or
 |---|---|---|---|---|
 | 5 | `b0a0070e` | Preamble: named roles ignore the policy and never spawn subagents | Tool list: every role file pilotfish ships lacks `Agent` and `Workflow` (the Plugin's `Explore` is the client's own agent); text for ignoring the policy | None |
 | 11 | `e703296f` | Choose interaction shape first | Text | None |
-| 12 | `011eeb00` | The first `explore_then_plan` turn is read-only | Text | `PreToolUse` on `Write`/`Edit`/`NotebookEdit` in a turn the session marked read-only |
+| 12 | `4fbdba88` | `explore_then_plan` is read-only until approval | Text | `PreToolUse` on `Write`/`Edit`/`NotebookEdit` in a turn the session marked read-only |
 | 13 | `e280ac38` | Invoke `baton-dispatch` before the dispatch choice on large or risky work | Text | None obvious |
 | 14 | `28bcfe16` | Risk triggers; the four Plan-review triggers | Text | None: classification is judgment |
 | 15 | `b551db5a` | Small, local, stable work without a risk trigger stays direct | Text | None |
 | 16 | `e6826de3` | Discovery gate: bounded read-only discovery roles | Tool list for the roles' read-only limit; text for the gate | None |
 | 17 | `869dc7bd` | Plan gate: one Plan, intent restated, fresh `plan-verifier` for Plan-review units | Tool list keeps `plan-verifier` read-only; text for the rest | None |
-| 18 | `fed65e91` | Approval gate: no source edit or implementation brief before approval | Text | `PreToolUse` on write tools and on `Agent` with an executor role until an approval marker exists |
+| 18 | `0c16cb69` | Approval gate: no source edit or implementation brief before approval; approval asked through `AskUserQuestion` when available | Text | `PreToolUse` on write tools and on `Agent` with an executor role until an approval marker exists |
 | 19 | `2db7affa` | Execution gate: approved contract, routing among the three executors | Frontmatter routing for each role's model; text for the choice | None |
 | 20 | `70d96906` | Verification gate: fresh `verifier` on risk-triggered units | Tool list removes `verifier`'s editing tools (it keeps `Bash`, so no-write through the shell is text); text for calling it | `Stop` check that a risk-marked unit has a `verifier` result |
 | 24 | `d8f10e1d` | State phase and apply the dispatch brake before every Agent call | Text | None |
@@ -48,7 +48,7 @@ The last column is a candidate, not a plan: none of these mechanisms is built or
 | 34 | `7a67bc1c` | Large investigation may use read-only discovery; executor waits for a stable contract | Text | None |
 | 35 | `7e0f39fc` | One-shot spec; after two failures escalate or take over | Text | None |
 | 36 | `720b9edb` | Security work never uses general executors; `security-reviewer` first | Tool list keeps `security-reviewer` read-only; text for the routing | None |
-| 37 | `ba30adcc` | Risk units require `verifier`; Plan-review units also `plan-verifier` | Text | Same `Stop` check as line 20 |
+| 37 | `7945fd86` | Risk units require `verifier`; Plan-review units also `plan-verifier` | Text | Same `Stop` check as line 20 |
 | 38 | `3dec77b3` | No `model` on a named-role call; pass `effort` per task with reviewer floors | Frontmatter routing supplies the defaults; text for the call arguments | `PreToolUse` on `Agent`: reject `model` with a named role, reject `effort` under a reviewer's floor |
 | 39 | `75846ef0` | `plan-verifier` and `verifier` contracts; never swap them | Tool list: `plan-verifier` has no `Bash`, so it cannot run an outcome check; nothing rejects a swapped call; text otherwise | None |
 | 40 | `454a1508` | Envelope before slice for Plan-review units; shared blockers gate dependents | Text | None |
@@ -60,7 +60,7 @@ The last column is a candidate, not a plan: none of these mechanisms is built or
 | 49 | `49ccbdcd` | Recovery budget and verification pass limits | Text | None |
 | 50 | `6252299a` | Offer `AUTO` or `ASK` before long autonomous work | Text | None |
 | 51 | `02c7d03b` | `AUTO` permits only reversible approved-scope work | Text | `PreToolUse` on `Bash` matching commit, push, publish and delete commands while `AUTO` is active |
-| 52 | `89360686` | `ASK` uses `AskUserQuestion`; headless runs exit paused | Text | None |
+| 52 | `ca8cdc61` | User-decision stops use `AskUserQuestion` when available; headless runs exit paused | Text | None |
 | 56 | `3fb44ea6` | Launch independent agents together in the background; integrate all | Text | None |
 | 57 | `b68716fd` | Long processes belong to main; Bash-capable leaves never detach | Text (also repeated in each Bash-capable role prompt) | `PreToolUse` on `Bash` inside a role: reject `nohup`, `setsid`, a trailing `&` and `run_in_background` |
 
