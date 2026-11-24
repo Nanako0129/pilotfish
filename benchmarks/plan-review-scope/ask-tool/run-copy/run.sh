@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Paid Gate for the Plan-review scope change on the Plugin path (compressed SessionStart policy).
-# Runs on the Mac. Authorized hard cap: USD 3 total for this campaign; stop at the first failed cell.
+# Paid regression for the approval-tool change on the Plugin path (compressed SessionStart policy): preflight and the
+# `schema` cell only. Copied from ../../plugin/run-copy/run.sh with the `cross` cell removed. Runs on the Mac. Hard cap: USD 3.
 # Every claude call runs inside a disposable Git copy of a fixture, with a frozen copy of plugin/
 # loaded by --plugin-dir. No CLAUDE.md and no --agents: the policy comes only from the SessionStart hook.
 # The pilotfish repository is only read.

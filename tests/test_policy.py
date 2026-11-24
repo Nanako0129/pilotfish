@@ -75,7 +75,8 @@ READINESS_REPLACEMENTS = {
 # Plan approval, the AUTO/ASK choice and direction-changing questions go through
 # `AskUserQuestion` when it is available, and an approving answer there is
 # explicit approval in the same turn, so "end the turn" and "a later turn" are no
-# longer required when the tool exists. Without the tool the stop is unchanged.
+# longer required when the tool exists. Without the tool, or without an answer
+# from it, the stop is unchanged.
 # Applied on top of the entries above. Not checked by a full Gate.
 APPROVAL_TOOL_REPLACEMENTS = {
     12: (
@@ -88,15 +89,16 @@ APPROVAL_TOOL_REPLACEMENTS = {
         b"it starts `discovery_read_only` despite imperative implementation wording."
         b" Inspect only until approval; Write/Edit/NotebookEdit and mutating Bash are"
         b" forbidden. Return assumptions and one reversible slice; label `next_gate:"
-        b" user_approval` only after every applicable readiness gate is `READY`, then"
-        b" stop at Approval gate; otherwise label the blocking or paused gate and end"
-        b" the turn. Execution is unreachable until explicit approval.",
+        b" user_approval` only after every applicable readiness gate is `READY`,"
+        b" otherwise label the blocking or paused gate; then stop at that gate."
+        b" Execution is unreachable until explicit approval.",
     ),
     18: (
         b"presents Plan and waits for explicit approval. Broad initial request",
         b"presents Plan and waits for explicit approval: ask via `AskUserQuestion`"
-        b" when available, where an approving answer is explicit approval; otherwise"
-        b" end the turn and wait. Broad initial request",
+        b" when available; only an approving answer is explicit approval. Without the"
+        b" tool or without an answer (denied or dismissed call), end the turn and"
+        b" wait. Broad initial request",
     ),
     37: (
         b"present Plan and end turn; implementation begins only after explicit"
@@ -109,7 +111,7 @@ APPROVAL_TOOL_REPLACEMENTS = {
         b" `PAUSED_NEEDS_USER`,",
         b"- `AskUserQuestion`, when available, carries every user-decision stop: Plan"
         b" approval, `AUTO`/`ASK` choice, direction-changing question, `ASK` pause."
-        b" `ASK` without it ends with `PAUSED_NEEDS_USER`,",
+        b" Without it or without an answer, `ASK` ends with `PAUSED_NEEDS_USER`,",
     ),
 }
 
@@ -6012,8 +6014,7 @@ class PolicyContractTests(unittest.TestCase):
             "Write/Edit/NotebookEdit and mutating Bash are forbidden",
             "one reversible slice",
             "label `next_gate: user_approval` only after every applicable readiness gate is `READY`",
-            "then stop at Approval gate",
-            "otherwise label the blocking or paused gate and end the turn",
+            "otherwise label the blocking or paused gate; then stop at that gate",
             "Execution is unreachable until explicit approval",
         ):
             self.assertIn(contract, boundary)
@@ -6229,7 +6230,7 @@ class PolicyContractTests(unittest.TestCase):
             "explicit “continue while I am away” selects AUTO and must be announced",
             "emergency recovery, not quota",
             "Headless likely-long run without selected mode",
-            "`ASK` without it ends with `PAUSED_NEEDS_USER`",
+            "Without it or without an answer, `ASK` ends with `PAUSED_NEEDS_USER`",
             "Default recovery: one targeted recheck",
             "High-risk claim-critical P1/P2 recovery allows at most five meaningful",
             "never adjacent-hardening audit",

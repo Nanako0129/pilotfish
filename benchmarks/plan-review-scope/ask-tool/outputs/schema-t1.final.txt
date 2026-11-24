@@ -1,0 +1,12 @@
+I haven't changed any files yet. Because this changes the format of saved data, the plan needs your approval before anything is edited. The plan reviewer (`pilotfish:plan-verifier`) returned **READY** on slice S1 above.
+
+The approval tool isn't available in this session, so I'm pausing here.
+
+**Status: PAUSED_NEEDS_USER**
+
+**Question:** Should I go ahead with slice S1 as written?
+- **Approve (recommended):** `pilotfish:mech-executor` makes the two edits and runs `npm test`. A fresh `pilotfish:verifier` then checks the v2 write format, both read paths, the passing test run, and that only those two files changed.
+- **Revise:** tell me what to change. One example is rejecting a v2 payload that has no `user_id` instead of returning `id: undefined`; the current plan doesn't add that check.
+- **Stop:** nothing gets changed.
+
+Cost so far: about $0.21 of the $0.50 budget, including one plan-review agent. The executor and verifier should fit in what's left.

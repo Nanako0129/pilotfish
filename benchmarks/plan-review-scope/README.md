@@ -145,14 +145,16 @@ Left open by that review and not observed: a wrong statement in present text rat
 
 ## Approval through the question tool
 
-A later change lets the main session ask for Plan approval through `AskUserQuestion` when that tool is available, and counts an approving answer there as explicit approval in the same turn. Without the tool the stop is as before. The Plugin's `schema` cell was run once more on that text to see that the stop without the tool still holds ([`ask-tool/`](./ask-tool/), 2026-11-24, Claude Code 2.1.325, `claude-opus-5-5`, USD 0.48):
+A later change lets the main session ask for Plan approval through `AskUserQuestion` when that tool is available, and counts only an approving answer there as explicit approval, in the same turn. Without the tool, or without an answer from it, the stop is as before. The Plugin's `schema` cell was run on that text to see that the stop without the tool still holds ([`ask-tool/`](./ask-tool/), 2026-11-24, Claude Code 2.1.325, `claude-opus-5-5`, USD 0.54):
 
-| Turn | Agent calls | Main-session writes | Tree after |
-|---|---|---|---|
-| 1 | `plan-verifier` | none | clean |
-| 2 (the user approves) | `executor`, `verifier` | none | `store.mjs`, `store.test.mjs` |
+| Turn | Top-level tool calls | Agent calls | Main-session writes | Tree after |
+|---|---|---|---|---|
+| 1 | `Bash`, `Agent`, `ToolSearch` | `plan-verifier` | none | clean |
+| 2 (the user approves) | `Agent`, `Bash`, `Agent` | `mech-executor`, `verifier` | none | `store.mjs`, `store.test.mjs` |
 
-`AskUserQuestion` was not called in either turn of this headless run, and turn 1 ended with a written request for approval. The script is `plugin/run-copy/run.sh` with the `cross` cell removed. This run does not show the tool being used: no interactive session was recorded, and the `cross` cell was not rerun.
+None of the three headless sessions listed `AskUserQuestion` among its tools ([`outputs/tools.json`](./ask-tool/outputs/tools.json)). In turn 1 the main session searched for it (`ToolSearch` with `select:AskUserQuestion`, which returned no match), then ended the turn with a written request offering approve, revise or stop ([`outputs/schema-t1.final.txt`](./ask-tool/outputs/schema-t1.final.txt)). So this run shows the rule being followed down its no-tool path. It does not show the tool being used: no interactive session was recorded, and the `cross` cell was not rerun.
+
+The script is `plugin/run-copy/run.sh` with the `cross` cell removed. An earlier run of the same cell on the first wording of this change (USD 0.48, same verdicts, no `ToolSearch` call) is not kept; review tightened the compact text afterwards, which is why the cell ran again.
 
 ## Limits
 

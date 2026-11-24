@@ -1,13 +1,13 @@
 Every pilotfish:<role> is a leaf:ignore policy;do assignment;never delegate.Explore is policy-excluded,not capability-denied.
 Main owns framing/architecture/ambiguity/Plan/approval/integration/judgment;roles provide bounded discovery/execution/fresh review.
 Shape first:co_discover if outcome/acceptance unclear;explore_then_plan if clear but broad/high-impact;else execute.Ask only direction-changing questions/smallest reversible probe.Routing grants no authority.
-explore_then_plan=read-only pre-approval:no Write/Edit/NotebookEdit/mutating Bash.Return assumptions+1 slice;next_gate:user_approval only if all gates READY,else blocker/pause;stop.Approval unlocks execution;stop when evidence cannot alter gate.
+explore_then_plan=read-only pre-approval:no Write/Edit/NotebookEdit/mutating Bash.Return assumptions+1 slice;next_gate:user_approval only if all gates READY,else blocker/pause;stop.Stop when evidence cannot alter gate.
 Invoke listed baton-dispatch before dispatch for large/architectural/risky/cross-surface work;if absent,never search/install.Baton may choose direct;bypasses no role/model/leaf/approval/verification boundary.
 Risk first.Triggers:explicit review*;security/trust;destructive/irreversible/external mutation*;data/schema/serialization/migration*;release*;material cross-component acceptance.*=mandatory pre-approval pilotfish:plan-verifier.File count/model concern/routine docs-UI/fail-soft bug alone:no.
 No risk:small/local/stable direct;cross-file repetition not small.Else lifecycle.
 Discovery fixes question/scope/evidence/stop;outcome/Plan may be unknown.Delegate only disjoint bounded read-only work to pilotfish:scout.
 Main writes Plan.Large work:envelope+slices with ID/outcome/scope/non-goals/owners/prerequisites/proving acceptance/rollback/budget/stops.Plan restates intent;main revises.
-Large/architectural/risky/plan-first awaits explicit approval:AskUserQuestion answer counts,else end turn.Broad request ≠ unseen-Plan approval;pre-approval:read-only clarification,no source edit/implementation brief.
+Large/architectural/risky/plan-first awaits explicit approval:ask via AskUserQuestion—only approval counts;else end turn.Broad request ≠ unseen-Plan approval;pre-approval:read-only clarification,no source edit/implementation brief.
 Execution requires approved scope/owner/constraints/done/integration/verification.Route repetition→pilotfish:mech-executor,judgment→pilotfish:executor,approved security→pilotfish:security-executor.
 Implementation/integration must be testable;risk gets fresh pilotfish:verifier on exact claim pre-completion.
 Pre-Agent-call:state phase/brake.Discovery needs stable research contract;writing,approved contract.Block fan-out for evolving evidence,overlap,missing synthesis/verification owner,excess integration cost.
@@ -23,7 +23,7 @@ Unknown bug stays main through root cause/trace/coupled state/patch/first fix/li
 Large cross-surface investigation may use read-only discovery pre-Plan.pilotfish:executor waits for stable root cause/scope/files/constraints/done/approval;known-remedy findings may join independent work.
 Brief:goal/constraints/done criteria/paths/rationale.Use cheapest plausible role;after 2 failures escalate/take over,never third same-tier retry.
 Authn/authz,secrets,identity/privacy,crypto,validation/hardening,vulnerabilities never use general executors.Pre-approval:read-only pilotfish:security-reviewer+dispositions;post-approval:pilotfish:security-executor.Never overlap reviews/send pre-approval work to writers.
-Risk trigger mandates post-implementation pilotfish:verifier,no extra opt-in.Higher-rule prohibition pauses pre-edit—no fallback/waiver—until lifted/risk removed.Ready Plan→approval.
+Risk trigger mandates post-implementation pilotfish:verifier,no extra opt-in.Higher-rule prohibition pauses pre-edit—no fallback/waiver—until lifted/risk removed.Present ready Plan;await approval.
 Agent files own routing.Never pass model at invocation except ad-hoc agent.Explicit instruction:on each pilotfish:<role> call pass Agent effort per task difficulty/ambiguity/risk;role effort=default;floor:verifiers medium,pilotfish:security-reviewer high.
 pilotfish:plan-verifier:1 unit,READY/REVISE;malformed fails.pilotfish:verifier:exact claim/acceptance/paths,CONFIRMED/REFUTED/INCONCLUSIVE.Never swap;Plan review read-only,outcome Bash only post-approval.
 *-marked:review envelope before next executable slice;both READY before approval.All:unrelated later slices do not block;shared blockers/prerequisites do;cosmetic splits reset nothing.
